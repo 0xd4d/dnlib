@@ -127,9 +127,15 @@ namespace dnlib.DotNet.Writer {
 		NoOldDiaSymReader		= 0x00000002,
 
 		/// <summary>
-		/// Create a deterministic PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory entry to the PE file.
+		/// Create a deterministic PE file and PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory
+		/// entry to the PE file. The entry is also added if no PDB file is written.
 		///
-		/// It's ignored if the PDB writer doesn't support it.
+		/// The PE file's TimeDateStamp (and the export directory's TimeDateStamp) is calculated from a hash of the PE file,
+		/// so <see cref="PEHeadersOptions.TimeDateStamp"/> is ignored. The new value is written after the
+		/// <see cref="ModuleWriterEvent.BeginStrongNameSign"/> event and before the file is strong name signed.
+		///
+		/// It's ignored if the Windows PDB writer doesn't support deterministic PDB files. The PE file isn't
+		/// deterministic in that case.
 		/// </summary>
 		Deterministic			= 0x00000004,
 
@@ -568,10 +574,14 @@ namespace dnlib.DotNet.Writer {
 		protected Win32ResourcesChunk win32Resources;
 		/// <summary>Offset where the module is written. Usually 0.</summary>
 		protected long destStreamBaseOffset;
+		// The stream passed to Write(). destStream is a MemoryStream if this stream can't be read or seeked.
+		Stream userDestStream;
 		/// <summary>Debug directory</summary>
 		protected DebugDirectory debugDirectory;
 
 		string createdPdbFileName;
+		// true if the Reproducible debug directory entry was added so the PE timestamp must be calculated from the file's hash
+		bool isDeterministic;
 
 		/// <summary>
 		/// Strong name signature
@@ -584,7 +594,9 @@ namespace dnlib.DotNet.Writer {
 		public abstract ModuleWriterOptionsBase TheOptions { get; }
 
 		/// <summary>
-		/// Gets the destination stream
+		/// Gets the destination stream. If a deterministic file is written to a stream that can't be read and
+		/// seeked, this is a temporary <see cref="MemoryStream"/> until the file has been written, and the
+		/// user's stream after it has been written (<see cref="ModuleWriterEvent.End"/>).
 		/// </summary>
 		public Stream DestinationStream => destStream;
 
@@ -748,13 +760,22 @@ namespace dnlib.DotNet.Writer {
 					Error("Options.StrongNameKey must be null when delay signing the assembly");
 			}
 
-			destStream = dest;
+			// A deterministic file's timestamp is a hash of the file so the file is read back. If the user's
+			// stream can't do that, write the file to memory first.
+			userDestStream = dest;
+			bool isBuffered = (TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 && !(dest.CanRead && dest.CanSeek);
+			destStream = isBuffered ? new MemoryStream() : dest;
 			destStreamBaseOffset = destStream.Position;
 			createdPdbFileName = null;
 			try {
 				OnWriterEvent(ModuleWriterEvent.Begin);
 				var imageLength = WriteImpl();
 				destStream.Position = destStreamBaseOffset + imageLength;
+				if (isBuffered) {
+					((MemoryStream)destStream).WriteTo(dest);
+					destStream = dest;
+					destStreamBaseOffset = dest.CanSeek ? dest.Position - imageLength : 0;
+				}
 				OnWriterEvent(ModuleWriterEvent.End);
 			}
 			catch {
@@ -931,10 +952,11 @@ namespace dnlib.DotNet.Writer {
 		bool CanWritePdb() => pdbState is not null;
 
 		/// <summary>
-		/// Creates the debug directory if a PDB file should be written
+		/// Creates the debug directory if a PDB file should be written or if the file is deterministic
 		/// </summary>
 		protected void CreateDebugDirectory() {
-			if (CanWritePdb())
+			// A deterministic file always has a Reproducible entry, even if there's no PDB file
+			if (CanWritePdb() || (TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0)
 				debugDirectory = new DebugDirectory();
 		}
 
@@ -945,8 +967,12 @@ namespace dnlib.DotNet.Writer {
 		protected void WritePdbFile() {
 			// This writer may have been used before. Don't delete a file created by an earlier write.
 			createdPdbFileName = null;
-			if (!CanWritePdb())
+			isDeterministic = false;
+			if (!CanWritePdb()) {
+				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 && debugDirectory is not null)
+					AddReproduciblePdbDebugDirectoryEntry();
 				return;
+			}
 			if (debugDirectory is null)
 				throw new InvalidOperationException("debugDirectory is null but WritePdb is true");
 
@@ -980,8 +1006,40 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		void AddReproduciblePdbDebugDirectoryEntry() =>
+		void AddReproduciblePdbDebugDirectoryEntry() {
 			debugDirectory.Add(Array2.Empty<byte>(), type: ImageDebugType.Reproducible, majorVersion: 0, minorVersion: 0, timeDateStamp: 0);
+			isDeterministic = true;
+		}
+
+		/// <summary>
+		/// <c>true</c> if the PE file is deterministic. It's only valid after the PDB file has been written.
+		/// </summary>
+		internal bool IsDeterministic => isDeterministic;
+
+		/// <summary>
+		/// Calculates the deterministic PE timestamp from a hash of the PE file and writes it to all
+		/// <paramref name="timeDateStampOffsets"/>. The PE checksum and the strong name signature must
+		/// still be zero. Same as Roslyn: the hash is calculated with all timestamps set to 0.
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="imageLength">Length of the PE file</param>
+		/// <param name="timeDateStampOffsets">Stream offsets (not relative to the start of the PE file) of all PE timestamps</param>
+		internal void WriteDeterministicTimeDateStamp(DataWriter writer, long imageLength, List<long> timeDateStampOffsets) {
+			Debug.Assert(isDeterministic);
+			var pos = writer.Position;
+			foreach (var offset in timeDateStampOffsets) {
+				writer.Position = offset;
+				writer.WriteUInt32(0);
+			}
+			destStream.Position = destStreamBaseOffset;
+			var hash = Hasher.Hash(ChecksumAlgorithm.SHA256, destStream, imageLength);
+			RoslynContentIdProvider.GetContentId(hash, out _, out uint timestamp);
+			foreach (var offset in timeDateStampOffsets) {
+				writer.Position = offset;
+				writer.WriteUInt32(timestamp);
+			}
+			writer.Position = pos;
+		}
 
 		void AddPdbChecksumDebugDirectoryEntry(byte[] checksumBytes, ChecksumAlgorithm checksumAlgorithm) {
 			var stream = new MemoryStream();
@@ -1098,7 +1156,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		string TryGetDefaultPdbFileName() {
-			var destFileName = GetStreamName(destStream) ?? GetModuleName(Module);
+			var destFileName = GetStreamName(userDestStream ?? destStream) ?? GetModuleName(Module);
 			if (string.IsNullOrEmpty(destFileName))
 				return null;
 			return Path.ChangeExtension(destFileName, "pdb");

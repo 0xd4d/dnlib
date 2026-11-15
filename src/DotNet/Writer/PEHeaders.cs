@@ -37,7 +37,8 @@ namespace dnlib.DotNet.Writer {
 		public Machine? Machine;
 
 		/// <summary>
-		/// IMAGE_FILE_HEADER.TimeDateStamp value
+		/// IMAGE_FILE_HEADER.TimeDateStamp value. It's ignored if a deterministic file is written
+		/// (<see cref="PdbWriterOptions.Deterministic"/>), the timestamp is calculated from a hash of the file.
 		/// </summary>
 		public uint? TimeDateStamp;
 
@@ -181,6 +182,7 @@ namespace dnlib.DotNet.Writer {
 		ulong imageBase;
 		long startOffset;
 		long checkSumOffset;
+		long timeDateStampOffset;
 		bool isExeFile;
 
 		// Copied from Partition II.25.2.1
@@ -368,6 +370,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt16((ushort)GetMachine());
 			writer.WriteUInt16((ushort)SectionsCount);
 			Debug.Assert(SectionsCount == sections.Count, "One or more sections are empty! The PE file could be bigger than it should be. Empty sections should be removed.");
+			timeDateStampOffset = writer.Position;
 			writer.WriteUInt32(options.TimeDateStamp ?? PEHeadersOptions.CreateNewTimeDateStamp());
 			writer.WriteUInt32(options.PointerToSymbolTable ?? 0);
 			writer.WriteUInt32(options.NumberOfSymbols ?? 0);
@@ -474,6 +477,11 @@ namespace dnlib.DotNet.Writer {
 			if (emptySections != 0)
 				writer.WriteZeros(emptySections * 0x28);
 		}
+
+		/// <summary>
+		/// Stream offset of IMAGE_FILE_HEADER.TimeDateStamp. It's valid after the headers have been written.
+		/// </summary>
+		internal long TimeDateStampOffset => timeDateStampOffset;
 
 		/// <summary>
 		/// Calculates the PE checksum and writes it to the checksum field

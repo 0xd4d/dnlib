@@ -111,6 +111,7 @@ namespace dnlib.DotNet.Writer {
 		/// Offset in <see cref="ModuleWriterBase.destStream"/> of the PE checksum field.
 		/// </summary>
 		long checkSumOffset;
+		long timeDateStampOffset;
 
 		/// <summary>
 		/// Original PE section
@@ -613,6 +614,10 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.EndWriteChunks);
 
 			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);
+			// After the event since listeners can still change the file. Only the PE header's timestamp is
+			// updated. The original sections (eg. an export directory) are input data.
+			if (IsDeterministic)
+				WriteDeterministicTimeDateStamp(writer, imageLength, new List<long> { timeDateStampOffset });
 			if (Options.StrongNameKey is not null)
 				StrongNameSign((long)strongNameSignature.FileOffset);
 			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);
@@ -699,6 +704,7 @@ namespace dnlib.DotNet.Writer {
 			writer.Position = fileHeaderOffset;
 			writer.WriteUInt16((ushort)(peOptions.Machine ?? module.Machine));
 			writer.WriteUInt16((ushort)(origSections.Count + sections.Count));
+			timeDateStampOffset = writer.Position;
 			WriteUInt32(writer, peOptions.TimeDateStamp);
 			WriteUInt32(writer, peOptions.PointerToSymbolTable);
 			WriteUInt32(writer, peOptions.NumberOfSymbols);
