@@ -100,7 +100,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				break;
 
 			case PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap:
-				WriteEditAndContinueStateMachineStateMap(writer, (PdbEditAndContinueStateMachineStateMapDebugInfo)cdi);
+				if (!WriteEditAndContinueStateMachineStateMap(writer, (PdbEditAndContinueStateMachineStateMapDebugInfo)cdi))
+					helper.Error("Edit and continue state machine state map has a state or syntax offset that can't be encoded");
 				break;
 
 			case PdbCustomDebugInfoKind.PrimaryConstructorInformationBlob:
@@ -337,19 +338,38 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		// Also used by the Windows PDB CDI writer, both formats use the same blob format
-		internal static void WriteEditAndContinueStateMachineStateMap(DataWriter writer, PdbEditAndContinueStateMachineStateMapDebugInfo cdi) {
-			writer.WriteCompressedUInt32((uint)cdi.StateMachineStates.Count);
+		// Returns false if a value can't be encoded. An empty map is written then.
+		internal static bool WriteEditAndContinueStateMachineStateMap(DataWriter writer, PdbEditAndContinueStateMachineStateMapDebugInfo cdi) {
+			var states = cdi.StateMachineStates;
+			if (states.Count <= 0) {
+				writer.WriteCompressedUInt32(0);
+				return true;
+			}
 
-			if (cdi.StateMachineStates.Count <= 0)
-				return;
+			// The offsets are written relative to the baseline as compressed uints and the states as compressed ints
+			const int MaxCompressedUInt32 = 0x1FFFFFFF;
+			int minOffset = int.MaxValue, maxOffset = int.MinValue;
+			bool badState = false;
+			foreach (var state in states) {
+				minOffset = Math.Min(minOffset, state.SyntaxOffset);
+				maxOffset = Math.Max(maxOffset, state.SyntaxOffset);
+				int stateValue = (int)state.State;
+				if (stateValue < -0x10000000 || stateValue > 0x0FFFFFFF)
+					badState = true;
+			}
+			long syntaxOffsetBaseline = Math.Min(minOffset, 0);
+			if (badState || states.Count > MaxCompressedUInt32 || -syntaxOffsetBaseline > MaxCompressedUInt32 || maxOffset - syntaxOffsetBaseline > MaxCompressedUInt32) {
+				writer.WriteCompressedUInt32(0);
+				return false;
+			}
 
-			int syntaxOffsetBaseline = Math.Min(cdi.StateMachineStates.Min(state => state.SyntaxOffset), 0);
+			writer.WriteCompressedUInt32((uint)states.Count);
 			writer.WriteCompressedUInt32((uint)-syntaxOffsetBaseline);
-
-			foreach (var state in cdi.StateMachineStates) {
+			foreach (var state in states) {
 				writer.WriteCompressedInt32((int)state.State);
 				writer.WriteCompressedUInt32((uint)(state.SyntaxOffset - syntaxOffsetBaseline));
 			}
+			return true;
 		}
 
 		void WritePrimaryConstructorInformationBlob(PrimaryConstructorInformationBlobDebugInfo cdi) {

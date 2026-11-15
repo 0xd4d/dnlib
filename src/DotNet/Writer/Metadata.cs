@@ -3380,7 +3380,8 @@ namespace dnlib.DotNet.Writer {
 					writer.WriteCompressedUInt32(instrOffset - ilOffset);
 				ilOffset = instrOffset;
 
-				if (seqPoint.StartLine == SequencePointConstants.HIDDEN_LINE && seqPoint.EndLine == SequencePointConstants.HIDDEN_LINE) {
+				// Like DiaSymReader and Pdb2Pdb, a start line of 0xFEEFEE is a hidden sequence point, whatever the end line is
+				if (seqPoint.StartLine == SequencePointConstants.HIDDEN_LINE) {
 					// hidden-sequence-point-record
 
 					writer.WriteCompressedUInt32(0);
@@ -3389,16 +3390,16 @@ namespace dnlib.DotNet.Writer {
 				else {
 					// sequence-point-record
 
-					uint dlines = (uint)(seqPoint.EndLine - seqPoint.StartLine);
-					int dcolumns = seqPoint.EndColumn - seqPoint.StartColumn;
-					if (dlines == 0 && dcolumns == 0) {
-						// Only hidden sequence points can have zero width: (0, 0) is the hidden-sequence-point-record.
-						// Do what Microsoft's Pdb2Pdb does: (line, 0, line, 0) (written by eg. C++/CLI) is the whole
-						// line, anything else gets a width of one column. Pdb2Pdb uses 0xFFFF as the end column of
-						// a whole line, but System.Reflection.Metadata in .NET 10 and earlier rejects 0xFFFF, so
-						// use 0xFFFE.
-						dcolumns = seqPoint.StartColumn == 0 ? ushort.MaxValue - 1 : 1;
+					GetSequencePointLinesAndColumns(seqPoint, out int startLine, out int startColumn, out int endLine, out int endColumn);
+					if (line >= 0 && !IsCompressedInt32(startLine - line)) {
+						Error("Sequence point start line {0} can't be encoded after start line {1}, writing a hidden sequence point", startLine, line);
+						writer.WriteCompressedUInt32(0);
+						writer.WriteCompressedUInt32(0);
+						continue;
 					}
+
+					uint dlines = (uint)(endLine - startLine);
+					int dcolumns = endColumn - startColumn;
 					writer.WriteCompressedUInt32(dlines);
 					if (dlines == 0)
 						writer.WriteCompressedUInt32((uint)dcolumns);
@@ -3406,15 +3407,15 @@ namespace dnlib.DotNet.Writer {
 						writer.WriteCompressedInt32(dcolumns);
 
 					if (line < 0) {
-						writer.WriteCompressedUInt32((uint)seqPoint.StartLine);
-						writer.WriteCompressedUInt32((uint)seqPoint.StartColumn);
+						writer.WriteCompressedUInt32((uint)startLine);
+						writer.WriteCompressedUInt32((uint)startColumn);
 					}
 					else {
-						writer.WriteCompressedInt32(seqPoint.StartLine - line);
-						writer.WriteCompressedInt32(seqPoint.StartColumn - column);
+						writer.WriteCompressedInt32(startLine - line);
+						writer.WriteCompressedInt32(startColumn - column);
 					}
-					line = seqPoint.StartLine;
-					column = seqPoint.StartColumn;
+					line = startLine;
+					column = startColumn;
 				}
 			}
 
@@ -3424,6 +3425,58 @@ namespace dnlib.DotNet.Writer {
 			debugMetadata.methodDebugInformationInfosUsed = true;
 			Free(ref bwctx);
 		}
+
+		static bool IsCompressedInt32(int value) => -0x10000000 <= value && value <= 0x0FFFFFFF;
+
+		/// <summary>
+		/// Gets the lines and columns of a non-hidden sequence point, changed to values that can be written to a
+		/// portable PDB. Invalid values are errors and are fixed like Microsoft's Pdb2Pdb does it.
+		/// </summary>
+		void GetSequencePointLinesAndColumns(SequencePoint seqPoint, out int startLine, out int startColumn, out int endLine, out int endColumn) {
+			// Spec: lines are in [0, 0x20000000) and not 0xFEEFEE, columns are in [0, 0x10000), the end line is
+			// >= the start line, and if they're equal, the end column is > the start column.
+			const int MaxLine = 0x1FFFFFFF;
+			const int MaxColumn = ushort.MaxValue;
+			startLine = seqPoint.StartLine;
+			startColumn = seqPoint.StartColumn;
+			endLine = seqPoint.EndLine;
+			endColumn = seqPoint.EndColumn;
+			Debug.Assert(startLine != SequencePointConstants.HIDDEN_LINE);
+
+			if ((uint)startLine > MaxLine || (uint)endLine > MaxLine || endLine == SequencePointConstants.HIDDEN_LINE ||
+				(uint)startColumn > MaxColumn || (uint)endColumn > MaxColumn ||
+				endLine < startLine || (endLine == startLine && endColumn < startColumn)) {
+				Error("Invalid sequence point: start line {0}, start column {1}, end line {2}, end column {3}", startLine, startColumn, endLine, endColumn);
+				// Like Pdb2Pdb, but too big values become the biggest values System.Reflection.Metadata in .NET 10
+				// and earlier can read: it rejects lines >= 0xFEEFEE and columns >= 0xFFFF.
+				const int MaxFixedLine = SequencePointConstants.HIDDEN_LINE - 1;
+				const int MaxFixedColumn = MaxColumn - 1;
+				startLine = FixValue(startLine, MaxLine, MaxFixedLine);
+				endLine = Math.Max(startLine, endLine == SequencePointConstants.HIDDEN_LINE ? MaxFixedLine : FixValue(endLine, MaxLine, MaxFixedLine));
+				startColumn = FixValue(startColumn, MaxColumn, MaxFixedColumn);
+				endColumn = FixValue(endColumn, MaxColumn, MaxFixedColumn);
+				if (endLine == startLine && endColumn < startColumn)
+					endColumn = startColumn;
+			}
+
+			if (endLine == startLine && endColumn == startColumn) {
+				// Only hidden sequence points can have zero width: (0, 0) is the hidden-sequence-point-record.
+				// Do what Microsoft's Pdb2Pdb does: (line, 0, line, 0) (written by eg. C++/CLI) is the whole
+				// line, anything else gets a width of one column. Pdb2Pdb uses 0xFFFF as the end column of
+				// a whole line, but System.Reflection.Metadata in .NET 10 and earlier rejects 0xFFFF, so
+				// use 0xFFFE. For the same reason, a start column >= 0xFFFE becomes 0xFFFD-0xFFFE.
+				if (startColumn == 0)
+					endColumn = MaxColumn - 1;
+				else if (startColumn >= MaxColumn - 1) {
+					startColumn = MaxColumn - 2;
+					endColumn = MaxColumn - 1;
+				}
+				else
+					endColumn = startColumn + 1;
+			}
+		}
+
+		static int FixValue(int value, int max, int maxFixed) => value < 0 ? 0 : value > max ? maxFixed : value;
 
 		uint VerifyGetRid(PdbDocument doc) {
 			Debug.Assert(debugMetadata is not null);

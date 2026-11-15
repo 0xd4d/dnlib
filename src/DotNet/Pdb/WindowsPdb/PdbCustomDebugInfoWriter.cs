@@ -308,7 +308,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						Error("Unsupported custom debug info type {0}", info.GetType());
 						return null;
 					}
-					Portable.PortablePdbCustomDebugInfoWriter.WriteEditAndContinueStateMachineStateMap(writer, encStateMachineStateMapRec);
+					if (!Portable.PortablePdbCustomDebugInfoWriter.WriteEditAndContinueStateMachineStateMap(writer, encStateMachineStateMapRec))
+						Error("Edit and continue state machine state map has a state or syntax offset that can't be encoded");
 					break;
 
 				default:
