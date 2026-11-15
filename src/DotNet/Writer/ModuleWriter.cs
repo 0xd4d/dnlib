@@ -229,13 +229,15 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long WriteFile() {
-			managedExportsWriter.AddExportedMethods(metadata.ExportedMethods, GetTimeDateStamp());
-			if (managedExportsWriter.HasExports)
-				needStartupStub = true;
-
+			// The PDB is written first since it decides if the file is deterministic. The exports'
+			// timestamp is then calculated with the rest of the file.
 			OnWriterEvent(ModuleWriterEvent.BeginWritePdb);
 			WritePdbFile();
 			OnWriterEvent(ModuleWriterEvent.EndWritePdb);
+
+			managedExportsWriter.AddExportedMethods(metadata.ExportedMethods, IsDeterministic ? 0 : GetTimeDateStamp());
+			if (managedExportsWriter.HasExports)
+				needStartupStub = true;
 
 			metadata.OnBeforeSetOffset();
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
@@ -268,6 +270,13 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.EndWriteChunks);
 
 			OnWriterEvent(ModuleWriterEvent.BeginStrongNameSign);
+			// After the event since listeners can still change the file
+			if (IsDeterministic) {
+				var timeDateStampOffsets = new List<long> { peHeaders.TimeDateStampOffset };
+				if (managedExportsWriter.HasExports)
+					timeDateStampOffsets.Add(destStreamBaseOffset + (long)managedExportsWriter.ExportDirTimeDateStampOffset);
+				WriteDeterministicTimeDateStamp(writer, imageLength, timeDateStampOffsets);
+			}
 			if (Options.StrongNameKey is not null)
 				StrongNameSign((long)strongNameSignature.FileOffset);
 			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);

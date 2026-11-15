@@ -127,9 +127,15 @@ namespace dnlib.DotNet.Writer {
 		NoOldDiaSymReader		= 0x00000002,
 
 		/// <summary>
-		/// Create a deterministic PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory entry to the PE file.
+		/// Create a deterministic PE file and PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory
+		/// entry to the PE file.
 		///
-		/// It's ignored if the PDB writer doesn't support it.
+		/// The PE file's TimeDateStamp (and the export directory's TimeDateStamp) is calculated from a hash of the PE file,
+		/// so <see cref="PEHeadersOptions.TimeDateStamp"/> is ignored. The new value is written after the
+		/// <see cref="ModuleWriterEvent.BeginStrongNameSign"/> event and before the file is strong name signed.
+		///
+		/// It's ignored if the Windows PDB writer doesn't support deterministic PDB files. The PE file isn't
+		/// deterministic in that case.
 		/// </summary>
 		Deterministic			= 0x00000004,
 
@@ -572,6 +578,8 @@ namespace dnlib.DotNet.Writer {
 		protected DebugDirectory debugDirectory;
 
 		string createdPdbFileName;
+		// true if the Reproducible debug directory entry was added so the PE timestamp must be calculated from the file's hash
+		bool isDeterministic;
 
 		/// <summary>
 		/// Strong name signature
@@ -945,6 +953,7 @@ namespace dnlib.DotNet.Writer {
 		protected void WritePdbFile() {
 			// This writer may have been used before. Don't delete a file created by an earlier write.
 			createdPdbFileName = null;
+			isDeterministic = false;
 			if (!CanWritePdb())
 				return;
 			if (debugDirectory is null)
@@ -980,8 +989,40 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		void AddReproduciblePdbDebugDirectoryEntry() =>
+		void AddReproduciblePdbDebugDirectoryEntry() {
 			debugDirectory.Add(Array2.Empty<byte>(), type: ImageDebugType.Reproducible, majorVersion: 0, minorVersion: 0, timeDateStamp: 0);
+			isDeterministic = true;
+		}
+
+		/// <summary>
+		/// <c>true</c> if the PE file is deterministic. It's only valid after the PDB file has been written.
+		/// </summary>
+		internal bool IsDeterministic => isDeterministic;
+
+		/// <summary>
+		/// Calculates the deterministic PE timestamp from a hash of the PE file and writes it to all
+		/// <paramref name="timeDateStampOffsets"/>. The PE checksum and the strong name signature must
+		/// still be zero. Same as Roslyn: the hash is calculated with all timestamps set to 0.
+		/// </summary>
+		/// <param name="writer">Writer</param>
+		/// <param name="imageLength">Length of the PE file</param>
+		/// <param name="timeDateStampOffsets">Stream offsets (not relative to the start of the PE file) of all PE timestamps</param>
+		internal void WriteDeterministicTimeDateStamp(DataWriter writer, long imageLength, List<long> timeDateStampOffsets) {
+			Debug.Assert(isDeterministic);
+			var pos = writer.Position;
+			foreach (var offset in timeDateStampOffsets) {
+				writer.Position = offset;
+				writer.WriteUInt32(0);
+			}
+			destStream.Position = destStreamBaseOffset;
+			var hash = Hasher.Hash(ChecksumAlgorithm.SHA256, destStream, imageLength);
+			RoslynContentIdProvider.GetContentId(hash, out _, out uint timestamp);
+			foreach (var offset in timeDateStampOffsets) {
+				writer.Position = offset;
+				writer.WriteUInt32(timestamp);
+			}
+			writer.Position = pos;
+		}
 
 		void AddPdbChecksumDebugDirectoryEntry(byte[] checksumBytes, ChecksumAlgorithm checksumAlgorithm) {
 			var stream = new MemoryStream();

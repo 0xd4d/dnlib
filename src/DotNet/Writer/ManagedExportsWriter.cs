@@ -36,6 +36,8 @@ namespace dnlib.DotNet.Writer {
 		RVA ExportDirRVA => sdataChunk.RVA + exportDirOffset;
 		uint ExportDirSize => 0x28;
 		internal bool HasExports => vtables.Count != 0;
+		// File offset of IMAGE_EXPORT_DIRECTORY.TimeDateStamp. It's only valid if there are exports.
+		internal FileOffset ExportDirTimeDateStampOffset => ExportDirOffset + 4;
 
 		sealed class ExportDir : IChunk {
 			readonly ManagedExportsWriter owner;
