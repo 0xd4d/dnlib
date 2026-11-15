@@ -14,11 +14,83 @@ namespace dnlib.DotNet.Pdb {
 	/// </summary>
 	public sealed class PdbState {
 		readonly SymbolReader reader;
-		readonly Dictionary<PdbDocument, PdbDocument> docDict = new Dictionary<PdbDocument, PdbDocument>();
+		// PdbDocument's Equals()/GetHashCode() use properties the user can change at any time, so a
+		// PdbDocument is never used as a dictionary key by value here:
+		//	- docs: the inserted documents, compared by reference. Add(), Remove() and GetExisting()
+		//	  always find an inserted instance, no matter how it's been edited.
+		//	- valueIndex: finds an inserted document that's equal to some other instance. The keys are
+		//	  immutable copies of the compared values. An entry can be stale if the document was
+		//	  edited after it was indexed, so a hit is always checked against the current values.
+		//	- readerIndex: finds the document that was created from a SymbolDocument. The keys are
+		//	  the original values in the PDB file and don't change when the document is edited.
+		readonly Dictionary<PdbDocument, DocumentInfo> docs = new Dictionary<PdbDocument, DocumentInfo>(ReferenceComparer.Instance);
+		readonly Dictionary<DocumentKey, PdbDocument> valueIndex = new Dictionary<DocumentKey, PdbDocument>();
+		readonly Dictionary<DocumentKey, PdbDocument> readerIndex = new Dictionary<DocumentKey, PdbDocument>();
 		internal readonly Dictionary<MDToken, PdbDocument> tokenToDocument = new Dictionary<MDToken, PdbDocument>();
 		MethodDef userEntryPoint;
 		readonly Compiler compiler;
 		readonly PdbFileKind originalPdbFileKind;
+
+		sealed class ReferenceComparer : IEqualityComparer<PdbDocument> {
+			public static readonly ReferenceComparer Instance = new ReferenceComparer();
+			public bool Equals(PdbDocument x, PdbDocument y) => (object)x == y;
+			public int GetHashCode(PdbDocument obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+		}
+
+		sealed class DocumentInfo {
+			public DocumentKey ValueKey;
+			public bool HasValueKey;
+			public DocumentKey ReaderKey;
+			public bool HasReaderKey;
+		}
+
+		/// <summary>
+		/// The values that <see cref="PdbDocument.Equals(object)"/> compares. It must match that method.
+		/// </summary>
+		readonly struct DocumentKey : IEquatable<DocumentKey> {
+			readonly string url;
+			readonly Guid language;
+			readonly Guid checkSumAlgorithmId;
+			readonly byte[] checkSum;
+			readonly int hashCode;
+
+			public DocumentKey(PdbDocument doc)
+				: this(doc.Url, doc.Language, doc.CheckSumAlgorithmId, doc.CheckSum) {
+			}
+
+			public DocumentKey(SymbolDocument symDoc)
+				: this(symDoc.URL, symDoc.Language, symDoc.CheckSumAlgorithmId, symDoc.CheckSum) {
+			}
+
+			DocumentKey(string url, Guid language, Guid checkSumAlgorithmId, byte[] checkSum) {
+				// null and empty are equal, see PdbDocument.Equals()
+				this.url = url ?? string.Empty;
+				this.language = language;
+				this.checkSumAlgorithmId = checkSumAlgorithmId;
+				this.checkSum = checkSum is null || checkSum.Length == 0 ? null : checkSum;
+				unchecked {
+					hashCode = StringComparer.Ordinal.GetHashCode(this.url) + checkSumAlgorithmId.GetHashCode() +
+							Utils.GetHashCode(this.checkSum) + language.GetHashCode();
+				}
+			}
+
+			/// <summary>
+			/// Returns a key that doesn't change if the caller writes to the checksum array. Keys
+			/// stored in a dictionary must be created by this method.
+			/// </summary>
+			public DocumentKey ToImmutable() =>
+				checkSum is null ? this : new DocumentKey(url, language, checkSumAlgorithmId, (byte[])checkSum.Clone());
+
+			public bool Equals(DocumentKey other) =>
+				hashCode == other.hashCode &&
+				StringComparer.Ordinal.Equals(url, other.url) &&
+				checkSumAlgorithmId == other.checkSumAlgorithmId &&
+				Utils.Equals(checkSum, other.checkSum) &&
+				language == other.language;
+
+			public override bool Equals(object obj) => obj is DocumentKey other && Equals(other);
+			public override int GetHashCode() => hashCode;
+		}
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -45,10 +117,10 @@ namespace dnlib.DotNet.Pdb {
 			get {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
-					return new List<PdbDocument>(docDict.Values);
+					return new List<PdbDocument>(docs.Keys);
 				} finally { theLock.ExitWriteLock(); }
 #else
-				return docDict.Values;
+				return docs.Keys;
 #endif
 			}
 		}
@@ -61,7 +133,7 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				return docDict.Count > 0;
+				return docs.Count > 0;
 #if THREAD_SAFE
 				} finally { theLock.ExitWriteLock(); }
 #endif
@@ -110,6 +182,9 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="doc">New document</param>
 		/// <returns><paramref name="doc"/> if it wasn't inserted, or the already existing document
 		/// if it was already inserted.</returns>
+		/// <remarks>An equal document (see <see cref="PdbDocument.Equals(object)"/>) that was changed
+		/// after it was inserted isn't always found. <paramref name="doc"/> is then inserted too, and
+		/// equal documents are written as one document when the PDB file is saved.</remarks>
 		public PdbDocument Add(PdbDocument doc) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -121,11 +196,15 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		PdbDocument Add_NoLock(PdbDocument doc) {
-			if (docDict.TryGetValue(doc, out var orig))
-				return orig;
-			docDict.Add(doc, doc);
-			if (doc.MDToken.HasValue)
-				tokenToDocument.Add(doc.MDToken.Value, doc);
+			if (doc is null)
+				throw new ArgumentNullException(nameof(doc));
+			if (docs.ContainsKey(doc))
+				return doc;
+			var key = new DocumentKey(doc);
+			var existing = FindEqual_NoLock(key);
+			if (existing is not null)
+				return existing;
+			Insert_NoLock(doc, key, fromReader: false);
 			return doc;
 		}
 
@@ -135,15 +214,69 @@ namespace dnlib.DotNet.Pdb {
 			// AddSequencePoints miss it and add the same row a second time (see #566).
 			if (symDoc.MDToken.HasValue && tokenToDocument.TryGetValue(symDoc.MDToken.Value, out var existing))
 				return existing;
-			var doc = PdbDocument.CreatePartialForCompare(symDoc);
-			if (docDict.TryGetValue(doc, out var orig))
-				return orig;
+			// Windows PDB documents don't have a token and the reader can return a new instance every
+			// time, so they're found by their original values. Editing the document doesn't change this key.
+			var key = new DocumentKey(symDoc);
+			if (readerIndex.TryGetValue(key, out existing))
+				return existing;
+			// The document was removed, or it's the first time we see it. Use an equal document if the
+			// user has added one.
+			existing = FindEqual_NoLock(key);
+			if (existing is not null)
+				return existing;
 			// Expensive part, can read source code etc
-			doc.Initialize(symDoc);
-			docDict.Add(doc, doc);
-			if (symDoc.MDToken.HasValue)
-				tokenToDocument.Add(symDoc.MDToken.Value, doc);
+			var doc = new PdbDocument(symDoc);
+			Insert_NoLock(doc, key, fromReader: true);
 			return doc;
+		}
+
+		void Insert_NoLock(PdbDocument doc, DocumentKey key, bool fromReader) {
+			var info = new DocumentInfo();
+			docs.Add(doc, info);
+			key = key.ToImmutable();
+			AddToValueIndex_NoLock(doc, info, key);
+			if (fromReader && !readerIndex.ContainsKey(key)) {
+				readerIndex.Add(key, doc);
+				info.ReaderKey = key;
+				info.HasReaderKey = true;
+			}
+			// Only documents created from this module's PDB are found by token. A document added by the
+			// user can be from another module, and its token is then some other document in this PDB.
+			if (fromReader && doc.MDToken.HasValue && !tokenToDocument.ContainsKey(doc.MDToken.Value))
+				tokenToDocument.Add(doc.MDToken.Value, doc);
+		}
+
+		void AddToValueIndex_NoLock(PdbDocument doc, DocumentInfo info, DocumentKey immutableKey) {
+			// If another inserted document has the same values, that one stays in the index
+			if (valueIndex.ContainsKey(immutableKey))
+				return;
+			valueIndex.Add(immutableKey, doc);
+			info.ValueKey = immutableKey;
+			info.HasValueKey = true;
+		}
+
+		void RemoveFromValueIndex_NoLock(DocumentInfo info) {
+			if (!info.HasValueKey)
+				return;
+			valueIndex.Remove(info.ValueKey);
+			info.ValueKey = default;
+			info.HasValueKey = false;
+		}
+
+		/// <summary>
+		/// Finds an inserted document whose current values equal <paramref name="key"/>
+		/// </summary>
+		PdbDocument FindEqual_NoLock(DocumentKey key) {
+			if (!valueIndex.TryGetValue(key, out var doc))
+				return null;
+			var currentKey = new DocumentKey(doc);
+			if (currentKey.Equals(key))
+				return doc;
+			// The document was edited after it was indexed. Index its current values instead.
+			var info = docs[doc];
+			RemoveFromValueIndex_NoLock(info);
+			AddToValueIndex_NoLock(doc, info, currentKey.ToImmutable());
+			return null;
 		}
 
 		/// <summary>
@@ -155,11 +288,16 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			// doc may be an equal copy of the stored document, so remove the stored document's token
-			if (!docDict.TryGetValue(doc, out var stored))
+			// doc may be an equal copy of the stored document
+			var stored = GetExisting_NoLock(doc);
+			if (stored is null)
 				return false;
-			docDict.Remove(doc);
-			if (stored.MDToken.HasValue)
+			var info = docs[stored];
+			docs.Remove(stored);
+			RemoveFromValueIndex_NoLock(info);
+			if (info.HasReaderKey)
+				readerIndex.Remove(info.ReaderKey);
+			if (stored.MDToken.HasValue && tokenToDocument.TryGetValue(stored.MDToken.Value, out var tokenDoc) && tokenDoc == (object)stored)
 				tokenToDocument.Remove(stored.MDToken.Value);
 			return true;
 #if THREAD_SAFE
@@ -173,15 +311,25 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="doc">A PDB document</param>
 		/// <returns>The existing <see cref="PdbDocument"/> or <c>null</c> if it doesn't exist.</returns>
+		/// <remarks>An inserted instance is always found. An equal document (see
+		/// <see cref="PdbDocument.Equals(object)"/>) that was changed after it was inserted isn't
+		/// always found.</remarks>
 		public PdbDocument GetExisting(PdbDocument doc) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			docDict.TryGetValue(doc, out var orig);
-			return orig;
+			return GetExisting_NoLock(doc);
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
+		}
+
+		PdbDocument GetExisting_NoLock(PdbDocument doc) {
+			if (doc is null)
+				throw new ArgumentNullException(nameof(doc));
+			if (docs.ContainsKey(doc))
+				return doc;
+			return FindEqual_NoLock(new DocumentKey(doc));
 		}
 
 		/// <summary>
@@ -201,10 +349,12 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			var docs = returnDocs ? new List<PdbDocument>(docDict.Values) : null;
+			var result = returnDocs ? new List<PdbDocument>(docs.Keys) : null;
 			tokenToDocument.Clear();
-			docDict.Clear();
-			return docs;
+			valueIndex.Clear();
+			readerIndex.Clear();
+			docs.Clear();
+			return result;
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif
