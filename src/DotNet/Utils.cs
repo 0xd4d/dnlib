@@ -143,43 +143,37 @@ namespace dnlib.DotNet {
 			// All bytes are hashed (xxHash32 algorithm, seed 0). Hashing only some of the bytes makes
 			// it easy to create many different arrays with the same hash code, which makes the
 			// dictionaries (eg. #Blob heap, FieldRVA data, method bodies) quadratic.
-			const uint Prime1 = 2654435761U, Prime2 = 2246822519U, Prime3 = 3266489917U, Prime4 = 668265263U, Prime5 = 374761393U;
 			int length = a.Length;
 			uint hash;
 			fixed (byte* start = a) {
 				byte* p = start;
 				byte* end = start + length;
 				if (length >= 16) {
-					uint v1 = unchecked(Prime1 + Prime2);
-					uint v2 = Prime2;
+					uint v1 = unchecked(HashCodeCombiner.Prime1 + HashCodeCombiner.Prime2);
+					uint v2 = HashCodeCombiner.Prime2;
 					uint v3 = 0;
-					uint v4 = unchecked(0 - Prime1);
+					uint v4 = unchecked(0 - HashCodeCombiner.Prime1);
 					byte* limit = end - 16;
 					do {
-						v1 = HashRound(v1, *(uint*)p);
-						v2 = HashRound(v2, *(uint*)(p + 4));
-						v3 = HashRound(v3, *(uint*)(p + 8));
-						v4 = HashRound(v4, *(uint*)(p + 12));
+						v1 = HashCodeCombiner.Round(v1, *(uint*)p);
+						v2 = HashCodeCombiner.Round(v2, *(uint*)(p + 4));
+						v3 = HashCodeCombiner.Round(v3, *(uint*)(p + 8));
+						v4 = HashCodeCombiner.Round(v4, *(uint*)(p + 12));
 						p += 16;
 					} while (p <= limit);
-					hash = RotateLeft(v1, 1) + RotateLeft(v2, 7) + RotateLeft(v3, 12) + RotateLeft(v4, 18);
+					hash = HashCodeCombiner.RotateLeft(v1, 1) + HashCodeCombiner.RotateLeft(v2, 7) +
+						HashCodeCombiner.RotateLeft(v3, 12) + HashCodeCombiner.RotateLeft(v4, 18);
 				}
 				else
-					hash = Prime5;
+					hash = HashCodeCombiner.Prime5;
 				hash = unchecked(hash + (uint)length);
 				for (; p + 4 <= end; p += 4)
-					hash = unchecked(RotateLeft(hash + *(uint*)p * Prime3, 17) * Prime4);
+					hash = unchecked(HashCodeCombiner.RotateLeft(hash + *(uint*)p * HashCodeCombiner.Prime3, 17) * HashCodeCombiner.Prime4);
 				for (; p < end; p++)
-					hash = unchecked(RotateLeft(hash + *p * Prime5, 11) * Prime1);
+					hash = unchecked(HashCodeCombiner.RotateLeft(hash + *p * HashCodeCombiner.Prime5, 11) * HashCodeCombiner.Prime1);
 			}
-			hash = unchecked((hash ^ (hash >> 15)) * Prime2);
-			hash = unchecked((hash ^ (hash >> 13)) * Prime3);
-			hash ^= hash >> 16;
-			return (int)hash;
+			return HashCodeCombiner.Finish(hash);
 		}
-
-		static uint HashRound(uint acc, uint input) => unchecked(RotateLeft(acc + input * 2246822519U, 13) * 2654435761U);
-		static uint RotateLeft(uint value, int count) => (value << count) | (value >> (32 - count));
 
 		/// <summary>
 		/// Compares two versions

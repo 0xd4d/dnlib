@@ -3059,7 +3059,12 @@ exit: ;
 		/// </summary>
 		/// <param name="a">The <c>MemberRef</c></param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(MemberRef a) {
+		public int GetHashCode(MemberRef a) => GetHashCode(a, null);
+
+		// methodArgs are the generic arguments of a MethodSpec. They're only used to substitute the
+		// signature, not the declaring type (eg. the !!0 in G<!!0> is the caller's method generic
+		// parameter, see Equals(MethodSpec, MethodBase)).
+		int GetHashCode(MemberRef a, IList<TypeSig> methodArgs) {
 			// ********************************************************************************
 			// IMPORTANT: This hash code must match the MethodDef/FieldDef/MethodBase hash code
 			// ********************************************************************************
@@ -3072,6 +3077,10 @@ exit: ;
 				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
 
 			int hash = GetHashCode_MethodFieldName(a.Name);
+			if (methodArgs is not null) {
+				InitializeGenericArguments();
+				genericArguments.PushMethodArgs(methodArgs);
+			}
 			GenericInstSig git;
 			if (CompareMethodFieldDeclaringType && !DontSubstituteGenericParameters && (git = GetGenericInstanceType(a.Class)) is not null) {
 				InitializeGenericArguments();
@@ -3081,6 +3090,8 @@ exit: ;
 			}
 			else
 				hash += GetHashCode(a.Signature);
+			if (methodArgs is not null)
+				genericArguments.PopMethodArgs();
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.Class);
 
@@ -3123,16 +3134,73 @@ exit: ;
 				return 0;
 
 			var gim = a.GenericInstMethodSig;
-			if (gim is not null) {
-				InitializeGenericArguments();
-				genericArguments.PushMethodArgs(gim.GenericArguments);
+			int hash;
+			if (a.Method is MemberRef mr)
+				hash = GetHashCode(mr, gim?.GenericArguments);
+			else {
+				// A MethodDef's declaring type is a TypeDef, so it's not affected by the method args
+				if (gim is not null) {
+					InitializeGenericArguments();
+					genericArguments.PushMethodArgs(gim.GenericArguments);
+				}
+				hash = GetHashCode(a.Method);
+				if (gim is not null)
+					genericArguments.PopMethodArgs();
 			}
-			int hash = GetHashCode(a.Method);
-			if (gim is not null)
-				genericArguments.PopMethodArgs();
+			// Same context as Equals(MethodSpec, MethodSpec) and Equals(MethodSpec, MethodBase)
+			if (gim is not null && !AreAllMethodGenericParameters(gim.GenericArguments))
+				hash += GetHashCode(gim.GenericArguments);
 
 			recursionCounter.Decrement();
 			return hash;
+		}
+
+		// A MemberRef equals a MethodBase generic method instance if all its generic arguments are
+		// method generic parameters (in any order), and such a MethodBase can also equal a MethodSpec,
+		// so the generic arguments are only hashed if at least one of them isn't a method generic parameter.
+		// This must match AreAllMethodGenericParameters(IList<Type>): a TypeSig is a method generic parameter
+		// here if Equals(TypeSig, Type) can be true for a Type that's a method generic parameter.
+		bool AreAllMethodGenericParameters(IList<TypeSig> a) {
+			if (a is null)
+				return true;
+			for (int i = 0; i < a.Count; i++) {
+				if (!IsMethodGenericParameter(a[i]))
+					return false;
+			}
+			return true;
+		}
+
+		bool IsMethodGenericParameter(TypeSig a) {
+			// The limit stops TypeSpec loops
+			for (int i = 0; i < 100 && a is not null; i++) {
+				if (genericArguments is not null)
+					a = genericArguments.Resolve(a);
+				switch (a.ElementType) {
+				case ElementType.MVar:
+					return true;
+				case ElementType.Pinned:
+				case ElementType.CModReqd:
+				case ElementType.CModOpt:
+					a = a.Next;
+					break;
+				default:
+					// Equals(TypeSig, Type) compares a TypeSpec's TypeSig
+					if (a is TypeDefOrRefSig tdrs && tdrs.TypeDefOrRef is TypeSpec ts) {
+						a = ts.TypeSig;
+						break;
+					}
+					return false;
+				}
+			}
+			return false;
+		}
+
+		static bool AreAllMethodGenericParameters(IList<Type> a) {
+			for (int i = 0; i < a.Count; i++) {
+				if (a[i].GetElementType2() != ElementType.MVar)
+					return false;
+			}
+			return true;
 		}
 
 		/// <summary>
@@ -3537,7 +3605,9 @@ exit: ;
 					goto exit;
 				}
 			}
-			result = !b.HasElementType &&
+			// Same check as Equals(TypeRef, Type): b can't be a generic instance or a generic parameter.
+			// Their hash codes differ from a TypeDef's hash code.
+			result = b.IsTypeDef() &&
 					Equals_TypeNames(a.Name, ReflectionExtensions.Unescape(b.Name)) &&
 					Equals_TypeNamespaces(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
@@ -4609,6 +4679,12 @@ exit: ;
 					GetHashCode_MethodSig(a);
 			if (CompareMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
+			if (a.IsGenericMethod && !a.IsGenericMethodDefinition) {
+				// Must match GetHashCode(MethodSpec)
+				var genArgs = a.GetGenericArguments();
+				if (!AreAllMethodGenericParameters(genArgs))
+					hash += GetHashCode(genArgs, a.DeclaringType);
+			}
 
 			recursionCounter.Decrement();
 			return hash;

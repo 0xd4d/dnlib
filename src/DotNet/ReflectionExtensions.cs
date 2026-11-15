@@ -386,11 +386,11 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Checks whether <paramref name="type"/> is a type definition and not a type spec
-		/// (eg. pointer or generic type instantiation)
+		/// (eg. pointer, generic type instantiation or generic parameter)
 		/// </summary>
 		/// <param name="type">this</param>
 		public static bool IsTypeDef(this Type type) =>
-			type is not null && !type.HasElementType && (!type.IsGenericType || type.IsGenericTypeDefinition);
+			type is not null && !type.HasElementType && !type.IsGenericParameter && (!type.IsGenericType || type.IsGenericTypeDefinition);
 
 		internal static string Unescape(string name) {
 			if (string.IsNullOrEmpty(name) || name.IndexOf('\\') < 0)
