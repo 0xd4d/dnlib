@@ -300,18 +300,19 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			// Don't modify the module: it may be read by another thread while it's being written
 			var scope = body.PdbMethod?.Scope;
 			if (scope is null || (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0)) {
-				if (scope is null || scope.Scopes.Count == 0) {
+				bool wroteScope = false;
+				if (scope is not null) {
+					var scopes = scope.Scopes;
+					int count = scopes.Count;
+					for (int i = 0; i < count; i++)
+						wroteScope |= WriteScope(ref info, scopes[i], 0);
+				}
+				if (!wroteScope) {
 					// We must open at least one sub scope (the sym writer creates the 'method' scope
 					// which covers the whole method) or the native PDB reader will fail to read all
 					// sequence points.
 					writer.OpenScope(0);
 					writer.CloseScope((int)info.BodySize);
-				}
-				else {
-					var scopes = scope.Scopes;
-					int count = scopes.Count;
-					for (int i = 0; i < count; i++)
-						WriteScope(ref info, scopes[i], 0);
 				}
 			}
 			else {
@@ -422,10 +423,14 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return 0;
 		}
 
-		void WriteScope(ref CurrentMethod info, PdbScope scope, int recursionCounter) {
+		bool WriteScope(ref CurrentMethod info, PdbScope scope, int recursionCounter) {
 			if (recursionCounter >= 1000) {
 				Error("Too many PdbScopes");
-				return;
+				return false;
+			}
+			if (scope is null) {
+				Error("PDB scope is null. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+				return false;
 			}
 
 			int startOffset = info.GetOffset(scope.Start);
@@ -455,6 +460,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			for (int i = 0; i < count; i++)
 				WriteScope(ref info, scopes[i], recursionCounter + 1);
 			writer.CloseScope(startOffset == 0 && endOffset == info.BodySize ? endOffset : endOffset - localsEndScopeIncValue);
+			return true;
 		}
 		static readonly object boxedZeroInt32 = 0;
 

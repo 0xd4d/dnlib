@@ -2103,12 +2103,21 @@ namespace dnlib.DotNet.Writer {
 							var rootScope = cilBody.PdbMethod?.Scope;
 							if (rootScope is not null) {
 								// We don't need to write empty scopes
-								if (!IsEmptyRootScope(cilBody, rootScope)) {
+								if (IsEmptyRootScope(cilBody, rootScope)) {
+									// All child scopes are null
+									if (rootScope.Scopes.Count != 0)
+										Error("PDB scope is null");
+								}
+								else {
 									serializerMethodContext.SetBody(method);
 									scopeStack.Add(rootScope);
 									while (scopeStack.Count > 0) {
 										var scope = scopeStack[scopeStack.Count - 1];
 										scopeStack.RemoveAt(scopeStack.Count - 1);
+										if (scope is null) {
+											Error("PDB scope is null");
+											continue;
+										}
 										scopeStack.AddRange(scope.Scopes);
 										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
 										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
@@ -2190,8 +2199,13 @@ namespace dnlib.DotNet.Writer {
 				return false;
 			if (scope.ImportScope is not null)
 				return false;
-			if (scope.Scopes.Count != 0)
-				return false;
+			var scopes = scope.Scopes;
+			int count = scopes.Count;
+			for (int i = 0; i < count; i++) {
+				// null scopes are reported by the caller
+				if (scopes[i] is not null)
+					return false;
+			}
 			if (scope.CustomDebugInfos.Count != 0)
 				return false;
 			if (scope.End is not null)
