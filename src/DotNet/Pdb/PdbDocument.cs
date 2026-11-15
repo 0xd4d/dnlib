@@ -59,6 +59,13 @@ namespace dnlib.DotNet.Pdb {
 		public MDToken? MDToken { get; internal set; }
 
 		/// <summary>
+		/// Set by the <see cref="PdbState"/> that created this document from its PDB file. It's used
+		/// to find the document again if it's removed and then added back to that <see cref="PdbState"/>.
+		/// It must not reference the <see cref="PdbState"/>, the reader or the module.
+		/// </summary>
+		internal object readerOrigin;
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public PdbDocument() => customDebugInfos = new List<PdbCustomDebugInfo>();
@@ -67,24 +74,13 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		/// <param name="symDoc">A <see cref="SymbolDocument"/> instance</param>
-		public PdbDocument(SymbolDocument symDoc) : this(symDoc, partial: false) {
-		}
-
-		PdbDocument(SymbolDocument symDoc, bool partial) {
+		public PdbDocument(SymbolDocument symDoc) {
 			if (symDoc is null)
 				throw new ArgumentNullException(nameof(symDoc));
 			Url = symDoc.URL;
 			Language = symDoc.Language;
 			CheckSumAlgorithmId = symDoc.CheckSumAlgorithmId;
 			CheckSum = symDoc.CheckSum;
-			if (!partial)
-				Initialize(symDoc);
-		}
-
-		internal static PdbDocument CreatePartialForCompare(SymbolDocument symDoc) =>
-			new PdbDocument(symDoc, partial: true);
-
-		internal void Initialize(SymbolDocument symDoc) {
 			LanguageVendor = symDoc.LanguageVendor;
 			DocumentType = symDoc.DocumentType;
 			customDebugInfos = new List<PdbCustomDebugInfo>();
@@ -112,7 +108,12 @@ namespace dnlib.DotNet.Pdb {
 			customDebugInfos = new List<PdbCustomDebugInfo>();
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Gets the hash code of the properties compared by <see cref="Equals(object)"/>
+		/// </summary>
+		/// <remarks>The hash code changes when one of those properties is changed. Don't change them
+		/// while the document is a key in your own dictionary or hash set. It's safe to change them
+		/// while the document is in a <see cref="PdbState"/>.</remarks>
 		public override int GetHashCode() {
 			unchecked {
 				int hash = StringComparer.Ordinal.GetHashCode(Url ?? string.Empty);
@@ -123,7 +124,10 @@ namespace dnlib.DotNet.Pdb {
 			}
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Compares <see cref="Url"/>, <see cref="Language"/>, <see cref="CheckSumAlgorithmId"/> and
+		/// <see cref="CheckSum"/>. Equal documents are written as one document to the PDB file.
+		/// </summary>
 		public override bool Equals(object obj) {
 			var other = obj as PdbDocument;
 			if (other is null)
