@@ -25,8 +25,9 @@ namespace dnlib.Threading {
 	/// and just like <c>ReaderWriterLockSlim</c> it prevents recursive locks. It doesn't support
 	/// multiple readers. A reader lock is the same as a writer lock.
 	/// </summary>
-	class Lock {
-		readonly object lockObj;
+	sealed class Lock {
+		// It locks itself to save one object per lock. That's safe since this class is internal
+		// and instances are never given to code outside of dnlib.
 		int recurseCount;
 
 		/// <summary>
@@ -39,17 +40,15 @@ namespace dnlib.Threading {
 		/// Constructor
 		/// </summary>
 		Lock() {
-			lockObj = new object();
-			recurseCount = 0;
 		}
 
 		/// <summary>
 		/// Enter read mode
 		/// </summary>
 		public void EnterReadLock() {
-			Monitor.Enter(lockObj);
+			Monitor.Enter(this);
 			if (recurseCount != 0) {
-				Monitor.Exit(lockObj);
+				Monitor.Exit(this);
 				throw new LockException("Recursive locks aren't supported");
 			}
 			recurseCount++;
@@ -62,16 +61,16 @@ namespace dnlib.Threading {
 			if (recurseCount <= 0)
 				throw new LockException("Too many exit lock method calls");
 			recurseCount--;
-			Monitor.Exit(lockObj);
+			Monitor.Exit(this);
 		}
 
 		/// <summary>
 		/// Enter write mode
 		/// </summary>
 		public void EnterWriteLock() {
-			Monitor.Enter(lockObj);
+			Monitor.Enter(this);
 			if (recurseCount != 0) {
-				Monitor.Exit(lockObj);
+				Monitor.Exit(this);
 				throw new LockException("Recursive locks aren't supported");
 			}
 			recurseCount--;
@@ -84,7 +83,7 @@ namespace dnlib.Threading {
 			if (recurseCount >= 0)
 				throw new LockException("Too many exit lock method calls");
 			recurseCount++;
-			Monitor.Exit(lockObj);
+			Monitor.Exit(this);
 		}
 	}
 #endif
