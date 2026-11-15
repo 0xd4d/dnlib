@@ -128,7 +128,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <summary>
 		/// Create a deterministic PE file and PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory
-		/// entry to the PE file.
+		/// entry to the PE file. The entry is also added if no PDB file is written.
 		///
 		/// The PE file's TimeDateStamp (and the export directory's TimeDateStamp) is calculated from a hash of the PE file,
 		/// so <see cref="PEHeadersOptions.TimeDateStamp"/> is ignored. The new value is written after the
@@ -939,10 +939,11 @@ namespace dnlib.DotNet.Writer {
 		bool CanWritePdb() => pdbState is not null;
 
 		/// <summary>
-		/// Creates the debug directory if a PDB file should be written
+		/// Creates the debug directory if a PDB file should be written or if the file is deterministic
 		/// </summary>
 		protected void CreateDebugDirectory() {
-			if (CanWritePdb())
+			// A deterministic file always has a Reproducible entry, even if there's no PDB file
+			if (CanWritePdb() || (TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0)
 				debugDirectory = new DebugDirectory();
 		}
 
@@ -954,8 +955,11 @@ namespace dnlib.DotNet.Writer {
 			// This writer may have been used before. Don't delete a file created by an earlier write.
 			createdPdbFileName = null;
 			isDeterministic = false;
-			if (!CanWritePdb())
+			if (!CanWritePdb()) {
+				if ((TheOptions.PdbOptions & PdbWriterOptions.Deterministic) != 0 && debugDirectory is not null)
+					AddReproduciblePdbDebugDirectoryEntry();
 				return;
+			}
 			if (debugDirectory is null)
 				throw new InvalidOperationException("debugDirectory is null but WritePdb is true");
 
