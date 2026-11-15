@@ -301,6 +301,10 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="doc">Document</param>
 		/// <returns><c>true</c> if it was removed, <c>false</c> if it wasn't inserted.</returns>
+		/// <remarks>This doesn't remove the document from the PDB file. A document that's still used by
+		/// a sequence point is written anyway, including one that's created again from the PDB file when
+		/// a method body is read after this call. To remove a document from the PDB file, also remove the
+		/// sequence points that use it.</remarks>
 		public bool Remove(PdbDocument doc) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -353,6 +357,10 @@ namespace dnlib.DotNet.Pdb {
 		/// Removes all documents
 		/// </summary>
 		/// <returns></returns>
+		/// <remarks>This doesn't remove the documents from the PDB file. A document that's still used by
+		/// a sequence point is written anyway, including one that's created again from the PDB file when
+		/// a method body is read after this call. To remove a document from the PDB file, also remove the
+		/// sequence points that use it.</remarks>
 		public void RemoveAllDocuments() => RemoveAllDocuments(false);
 
 		/// <summary>
@@ -362,6 +370,10 @@ namespace dnlib.DotNet.Pdb {
 		/// should be returned.</param>
 		/// <returns>All <see cref="PdbDocument"/>s if <paramref name="returnDocs"/> is <c>true</c>
 		/// or <c>null</c> if <paramref name="returnDocs"/> is <c>false</c>.</returns>
+		/// <remarks>This doesn't remove the documents from the PDB file. A document that's still used by
+		/// a sequence point is written anyway, including one that's created again from the PDB file when
+		/// a method body is read after this call. To remove a document from the PDB file, also remove the
+		/// sequence points that use it.</remarks>
 		public List<PdbDocument> RemoveAllDocuments(bool returnDocs) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
