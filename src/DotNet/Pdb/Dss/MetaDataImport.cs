@@ -73,7 +73,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void IMetaDataImport.GetMemberRefProps(uint mr, out uint ptk, IntPtr szMember, uint cchMember, out uint pchMember, out IntPtr ppvSigBlob, out uint pbSig) => throw new NotImplementedException();
 		void IMetaDataImport.EnumProperties(ref IntPtr phEnum, uint td, uint[] rProperties, uint cMax, out uint pcProperties) => throw new NotImplementedException();
 		void IMetaDataImport.EnumEvents(ref IntPtr phEnum, uint td, uint[] rEvents, uint cMax, out uint pcEvents) => throw new NotImplementedException();
-		void IMetaDataImport.GetEventProps(uint ev, out uint pClass, string szEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, uint[] rmdOtherMethod, uint cMax, out uint pcOtherMethod) => throw new NotImplementedException();
+		void IMetaDataImport.GetEventProps(uint ev, out uint pClass, IntPtr szEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, uint[] rmdOtherMethod, uint cMax, out uint pcOtherMethod) => throw new NotImplementedException();
 		void IMetaDataImport.EnumMethodSemantics(ref IntPtr phEnum, uint mb, uint[] rEventProp, uint cMax, out uint pcEventProp) => throw new NotImplementedException();
 		void IMetaDataImport.GetMethodSemantics(uint mb, uint tkEventProp, out uint pdwSemanticsFlags) => throw new NotImplementedException();
 		void IMetaDataImport.GetClassLayout(uint td, out uint pdwPackSize, out IntPtr rFieldOffset, uint cMax, out uint pcFieldOffset, out uint pulClassSize) => throw new NotImplementedException();
