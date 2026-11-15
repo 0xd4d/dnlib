@@ -841,7 +841,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
 			var list = readerModule.Metadata.GetDeclSecurityRidList(Table.Assembly, origRid);
-			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
+			var tmp = readerModule.CreateDeclSecurityList(list, null);
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
@@ -864,8 +864,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Assembly, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			var tmp = readerModule.CreateCustomAttributeCollection(Table.Assembly, origRid);
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

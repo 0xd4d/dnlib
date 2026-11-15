@@ -441,6 +441,11 @@ namespace dnlib.DotNet.Writer {
 	/// .NET meta data
 	/// </summary>
 	public abstract class Metadata : IReuseChunk, ISignatureWriterHelper, ITokenProvider, ICustomAttributeWriterHelper, IPortablePdbCustomDebugInfoWriterHelper, IWriterError2 {
+		/// <summary>
+		/// Max length of a byte array
+		/// </summary>
+		internal const int MaxByteArrayLength = 0x7FFFFFC7;
+
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -448,6 +453,12 @@ namespace dnlib.DotNet.Writer {
 		ILogger logger;
 		readonly MetadataErrorContext errorContext;
 		readonly NormalMetadata debugMetadata;
+
+		/// <summary>
+		/// Instruction offsets of methods that are referenced by the debug info of other methods
+		/// </summary>
+		internal InstructionOffsetCache ExternalInstructionOffsets => externalInstructionOffsets ??= new InstructionOffsetCache();
+		InstructionOffsetCache externalInstructionOffsets;
 		readonly bool isStandaloneDebugMetadata;
 		internal readonly ModuleDef module;
 		internal readonly UniqueChunkList<ByteArrayChunk> constants;
@@ -2002,6 +2013,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		struct MethodScopeDebugInfo {
+			public MethodDef Method;
 			public uint MethodRid;
 			public PdbScope Scope;
 			public uint ScopeStart;
@@ -2028,15 +2040,18 @@ namespace dnlib.DotNet.Writer {
 
 			List<MethodScopeDebugInfo> methodScopeDebugInfos;
 			List<PdbScope> scopeStack;
+			HashSet<PdbScope> visitedScopes;
 			SerializerMethodContext serializerMethodContext;
 			if (debugMetadata is null) {
 				methodScopeDebugInfos = null;
 				scopeStack = null;
+				visitedScopes = null;
 				serializerMethodContext = null;
 			}
 			else {
 				methodScopeDebugInfos = new List<MethodScopeDebugInfo>();
 				scopeStack = new List<PdbScope>();
+				visitedScopes = new HashSet<PdbScope>();
 				serializerMethodContext = AllocSerializerMethodContext();
 			}
 
@@ -2088,19 +2103,40 @@ namespace dnlib.DotNet.Writer {
 						uint rid = GetRid(method);
 
 						if (cilBody is not null) {
-							var pdbMethod = cilBody.PdbMethod;
-							if (pdbMethod is not null) {
+							var rootScope = cilBody.PdbMethod?.Scope;
+							if (rootScope is not null) {
 								// We don't need to write empty scopes
-								if (!IsEmptyRootScope(cilBody, pdbMethod.Scope)) {
+								if (IsEmptyRootScope(cilBody, rootScope)) {
+									// All child scopes are null
+									if (rootScope.Scopes.Count != 0)
+										Error("PDB scope is null");
+								}
+								else {
 									serializerMethodContext.SetBody(method);
-									scopeStack.Add(pdbMethod.Scope);
+									// A scope can be reached twice only if the user's Scopes lists
+									// have a loop or share a scope. Write it once so a loop ends.
+									visitedScopes.Clear();
+									scopeStack.Add(rootScope);
 									while (scopeStack.Count > 0) {
 										var scope = scopeStack[scopeStack.Count - 1];
 										scopeStack.RemoveAt(scopeStack.Count - 1);
+										if (scope is null) {
+											Error("PDB scope is null");
+											continue;
+										}
+										if (!visitedScopes.Add(scope)) {
+											Error("PDB scope is used more than once in the method (Scopes loop?)");
+											continue;
+										}
 										scopeStack.AddRange(scope.Scopes);
 										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
 										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
+										if (scopeEnd < scopeStart) {
+											Error("PDB scope's end instruction is before its start instruction");
+											scopeEnd = scopeStart;
+										}
 										methodScopeDebugInfos.Add(new MethodScopeDebugInfo() {
+											Method = method,
 											MethodRid = rid,
 											Scope = scope,
 											ScopeStart = scopeStart,
@@ -2126,7 +2162,14 @@ namespace dnlib.DotNet.Writer {
 						return c;
 					return b.ScopeLength.CompareTo(a.ScopeLength);
 				});
+				MethodDef currentMethod = null;
+				IDisposable currentSource = null;
 				foreach (var info in methodScopeDebugInfos) {
+					if (info.Method != currentMethod) {
+						currentSource?.Dispose();
+						currentMethod = info.Method;
+						currentSource = errorContext.SetSource(currentMethod);
+					}
 					uint localScopeRid = (uint)debugMetadata.localScopeInfos.infos.Count + 1;
 					var row = new RawLocalScopeRow(info.MethodRid, AddImportScope(info.Scope.ImportScope),
 						(uint)debugMetadata.tablesHeap.LocalVariableTable.Rows + 1,
@@ -2137,7 +2180,7 @@ namespace dnlib.DotNet.Writer {
 					int count = variables.Count;
 					for (int i = 0; i < count; i++) {
 						var local = variables[i];
-						AddLocalVariable(local);
+						AddLocalVariable(local, currentMethod.Body);
 					}
 					var constants = info.Scope.Constants;
 					count = constants.Count;
@@ -2147,6 +2190,7 @@ namespace dnlib.DotNet.Writer {
 					}
 					AddCustomDebugInformationList(Table.LocalScope, localScopeRid, info.Scope.CustomDebugInfos);
 				}
+				currentSource?.Dispose();
 
 				debugMetadata.tablesHeap.LocalScopeTable.IsSorted = true;
 				foreach (var info in debugMetadata.localScopeInfos.infos)
@@ -2165,8 +2209,13 @@ namespace dnlib.DotNet.Writer {
 				return false;
 			if (scope.ImportScope is not null)
 				return false;
-			if (scope.Scopes.Count != 0)
-				return false;
+			var scopes = scope.Scopes;
+			int count = scopes.Count;
+			for (int i = 0; i < count; i++) {
+				// null scopes are reported by the caller
+				if (scopes[i] is not null)
+					return false;
+			}
 			if (scope.CustomDebugInfos.Count != 0)
 				return false;
 			if (scope.End is not null)
@@ -3322,7 +3371,7 @@ namespace dnlib.DotNet.Writer {
 
 			writer.WriteCompressedUInt32(MDToken.ToRID(localVarSigToken));
 			if (singleDoc is null)
-				writer.WriteCompressedUInt32(VerifyGetRid(firstDoc));
+				writer.WriteCompressedUInt32(AddPdbDocument(firstDoc));
 
 			var instrs = body.Instructions;
 			var currentDoc = firstDoc;
@@ -3344,7 +3393,7 @@ namespace dnlib.DotNet.Writer {
 
 					currentDoc = seqPoint.Document;
 					writer.WriteCompressedUInt32(0);
-					writer.WriteCompressedUInt32(VerifyGetRid(currentDoc));
+					writer.WriteCompressedUInt32(AddPdbDocument(currentDoc));
 				}
 
 				// SequencePointRecord
@@ -3355,7 +3404,8 @@ namespace dnlib.DotNet.Writer {
 					writer.WriteCompressedUInt32(instrOffset - ilOffset);
 				ilOffset = instrOffset;
 
-				if (seqPoint.StartLine == SequencePointConstants.HIDDEN_LINE && seqPoint.EndLine == SequencePointConstants.HIDDEN_LINE) {
+				// Like DiaSymReader and Pdb2Pdb, a start line of 0xFEEFEE is a hidden sequence point, whatever the end line is
+				if (seqPoint.StartLine == SequencePointConstants.HIDDEN_LINE) {
 					// hidden-sequence-point-record
 
 					writer.WriteCompressedUInt32(0);
@@ -3364,8 +3414,16 @@ namespace dnlib.DotNet.Writer {
 				else {
 					// sequence-point-record
 
-					uint dlines = (uint)(seqPoint.EndLine - seqPoint.StartLine);
-					int dcolumns = seqPoint.EndColumn - seqPoint.StartColumn;
+					GetSequencePointLinesAndColumns(seqPoint, out int startLine, out int startColumn, out int endLine, out int endColumn);
+					if (line >= 0 && !IsCompressedInt32(startLine - line)) {
+						Error("Sequence point start line {0} can't be encoded after start line {1}, writing a hidden sequence point", startLine, line);
+						writer.WriteCompressedUInt32(0);
+						writer.WriteCompressedUInt32(0);
+						continue;
+					}
+
+					uint dlines = (uint)(endLine - startLine);
+					int dcolumns = endColumn - startColumn;
 					writer.WriteCompressedUInt32(dlines);
 					if (dlines == 0)
 						writer.WriteCompressedUInt32((uint)dcolumns);
@@ -3373,15 +3431,15 @@ namespace dnlib.DotNet.Writer {
 						writer.WriteCompressedInt32(dcolumns);
 
 					if (line < 0) {
-						writer.WriteCompressedUInt32((uint)seqPoint.StartLine);
-						writer.WriteCompressedUInt32((uint)seqPoint.StartColumn);
+						writer.WriteCompressedUInt32((uint)startLine);
+						writer.WriteCompressedUInt32((uint)startColumn);
 					}
 					else {
-						writer.WriteCompressedInt32(seqPoint.StartLine - line);
-						writer.WriteCompressedInt32(seqPoint.StartColumn - column);
+						writer.WriteCompressedInt32(startLine - line);
+						writer.WriteCompressedInt32(startColumn - column);
 					}
-					line = seqPoint.StartLine;
-					column = seqPoint.StartColumn;
+					line = startLine;
+					column = startColumn;
 				}
 			}
 
@@ -3392,14 +3450,57 @@ namespace dnlib.DotNet.Writer {
 			Free(ref bwctx);
 		}
 
-		uint VerifyGetRid(PdbDocument doc) {
-			Debug.Assert(debugMetadata is not null);
-			if (!debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid)) {
-				Error("PDB document has been removed");
-				return 0;
+		static bool IsCompressedInt32(int value) => -0x10000000 <= value && value <= 0x0FFFFFFF;
+
+		/// <summary>
+		/// Gets the lines and columns of a non-hidden sequence point, changed to values that can be written to a
+		/// portable PDB. Invalid values are errors and are fixed like Microsoft's Pdb2Pdb does it.
+		/// </summary>
+		void GetSequencePointLinesAndColumns(SequencePoint seqPoint, out int startLine, out int startColumn, out int endLine, out int endColumn) {
+			// Spec: lines are in [0, 0x20000000) and not 0xFEEFEE, columns are in [0, 0x10000), the end line is
+			// >= the start line, and if they're equal, the end column is > the start column.
+			const int MaxLine = 0x1FFFFFFF;
+			const int MaxColumn = ushort.MaxValue;
+			startLine = seqPoint.StartLine;
+			startColumn = seqPoint.StartColumn;
+			endLine = seqPoint.EndLine;
+			endColumn = seqPoint.EndColumn;
+			Debug.Assert(startLine != SequencePointConstants.HIDDEN_LINE);
+
+			if ((uint)startLine > MaxLine || (uint)endLine > MaxLine || endLine == SequencePointConstants.HIDDEN_LINE ||
+				(uint)startColumn > MaxColumn || (uint)endColumn > MaxColumn ||
+				endLine < startLine || (endLine == startLine && endColumn < startColumn)) {
+				Error("Invalid sequence point: start line {0}, start column {1}, end line {2}, end column {3}", startLine, startColumn, endLine, endColumn);
+				// Like Pdb2Pdb, but too big values become the biggest values System.Reflection.Metadata in .NET 10
+				// and earlier can read: it rejects lines >= 0xFEEFEE and columns >= 0xFFFF.
+				const int MaxFixedLine = SequencePointConstants.HIDDEN_LINE - 1;
+				const int MaxFixedColumn = MaxColumn - 1;
+				startLine = FixValue(startLine, MaxLine, MaxFixedLine);
+				endLine = Math.Max(startLine, endLine == SequencePointConstants.HIDDEN_LINE ? MaxFixedLine : FixValue(endLine, MaxLine, MaxFixedLine));
+				startColumn = FixValue(startColumn, MaxColumn, MaxFixedColumn);
+				endColumn = FixValue(endColumn, MaxColumn, MaxFixedColumn);
+				if (endLine == startLine && endColumn < startColumn)
+					endColumn = startColumn;
 			}
-			return rid;
+
+			if (endLine == startLine && endColumn == startColumn) {
+				// Only hidden sequence points can have zero width: (0, 0) is the hidden-sequence-point-record.
+				// Do what Microsoft's Pdb2Pdb does: (line, 0, line, 0) (written by eg. C++/CLI) is the whole
+				// line, anything else gets a width of one column. Pdb2Pdb uses 0xFFFF as the end column of
+				// a whole line, but System.Reflection.Metadata in .NET 10 and earlier rejects 0xFFFF, so
+				// use 0xFFFE. For the same reason, a start column >= 0xFFFE becomes 0xFFFD-0xFFFE.
+				if (startColumn == 0)
+					endColumn = MaxColumn - 1;
+				else if (startColumn >= MaxColumn - 1) {
+					startColumn = MaxColumn - 2;
+					endColumn = MaxColumn - 1;
+				}
+				else
+					endColumn = startColumn + 1;
+			}
 		}
+
+		static int FixValue(int value, int max, int maxFixed) => value < 0 ? 0 : value > max ? maxFixed : value;
 
 		static void GetSingleDocument(CilBody body, out PdbDocument singleDoc, out PdbDocument firstDoc, out bool hasNoSeqPoints) {
 			var instrs = body.Instructions;
@@ -3599,11 +3700,11 @@ namespace dnlib.DotNet.Writer {
 			var writer = bwctx.Writer;
 			outStream.SetLength(0);
 			outStream.Position = 0;
-			var parts = name.Split(directorySeparatorCharArray);
-			if (parts.Length == 1)
-				writer.WriteByte(0);
-			else
-				writer.WriteBytes(directorySeparatorCharUtf8);
+			// Same separator as System.Reflection.Metadata's MetadataBuilder.GetOrAddDocumentName
+			// so the output doesn't depend on the OS
+			char separator = ChooseDocumentNameSeparator(name);
+			var parts = name.Split(separator);
+			writer.WriteByte((byte)separator);
 			for (int i = 0; i < parts.Length; i++) {
 				var part = parts[i];
 				uint partOffset = debugMetadata.blobHeap.Add(Encoding.UTF8.GetBytes(part));
@@ -3614,8 +3715,17 @@ namespace dnlib.DotNet.Writer {
 			Free(ref bwctx);
 			return res;
 		}
-		static readonly byte[] directorySeparatorCharUtf8 = Encoding.UTF8.GetBytes(Path.DirectorySeparatorChar.ToString());
-		static readonly char[] directorySeparatorCharArray = new char[] { Path.DirectorySeparatorChar };
+
+		static char ChooseDocumentNameSeparator(string name) {
+			int slashes = 0, backslashes = 0;
+			foreach (var c in name) {
+				if (c == '/')
+					slashes++;
+				else if (c == '\\')
+					backslashes++;
+			}
+			return slashes >= backslashes ? '/' : '\\';
+		}
 
 		uint AddImportScope(PdbImportScope scope) {
 			Debug.Assert(debugMetadata is not null);
@@ -3626,29 +3736,54 @@ namespace dnlib.DotNet.Writer {
 					Error("PdbImportScope has an infinite Parent loop");
 				return rid;
 			}
-			debugMetadata.importScopeInfos.Add(scope, 0);   // Prevent inf recursion
 
+			// The Parent chain can be long, so don't recurse. Blobs and rows are added in the same
+			// order as the old recursive code: first each scope's imports, from this scope up to the
+			// first parent that's already been added, then the rows, from the top down to this scope.
+			var chain = new List<PdbImportScope>();
+			var chainImports = new List<byte[]>();
 			var bwctx = AllocBinaryWriterContext();
 			var outStream = bwctx.OutStream;
 			var writer = bwctx.Writer;
-			outStream.SetLength(0);
-			outStream.Position = 0;
-			ImportScopeBlobWriter.Write(this, this, writer, debugMetadata.blobHeap, scope.Imports);
-			var importsData = outStream.ToArray();
+			uint parentRid = 0;
+			for (var current = scope; ;) {
+				debugMetadata.importScopeInfos.Add(current, 0);   // rid 0 = being added, so a loop is found
+				outStream.SetLength(0);
+				outStream.Position = 0;
+				ImportScopeBlobWriter.Write(this, this, writer, debugMetadata.blobHeap, current.Imports);
+				chain.Add(current);
+				chainImports.Add(outStream.ToArray());
+
+				current = current.Parent;
+				if (current is null)
+					break;
+				if (debugMetadata.importScopeInfos.TryGetRid(current, out parentRid)) {
+					if (parentRid == 0)
+						Error("PdbImportScope has an infinite Parent loop");
+					break;
+				}
+			}
 			Free(ref bwctx);
 
-			var row = new RawImportScopeRow(AddImportScope(scope.Parent), debugMetadata.blobHeap.Add(importsData));
-			rid = debugMetadata.tablesHeap.ImportScopeTable.Add(row);
-			debugMetadata.importScopeInfos.SetRid(scope, rid);
-
-			AddCustomDebugInformationList(Table.ImportScope, rid, scope.CustomDebugInfos);
-			return rid;
+			for (int i = chain.Count - 1; i >= 0; i--) {
+				var current = chain[i];
+				var row = new RawImportScopeRow(parentRid, debugMetadata.blobHeap.Add(chainImports[i]));
+				rid = debugMetadata.tablesHeap.ImportScopeTable.Add(row);
+				debugMetadata.importScopeInfos.SetRid(current, rid);
+				AddCustomDebugInformationList(Table.ImportScope, rid, current.CustomDebugInfos);
+				parentRid = rid;
+			}
+			return parentRid;
 		}
 
-		void AddLocalVariable(PdbLocal local) {
+		void AddLocalVariable(PdbLocal local, CilBody body) {
 			Debug.Assert(debugMetadata is not null);
 			if (local is null) {
 				Error("PDB local is null");
+				return;
+			}
+			if (!PdbUtils.IsValidLocal(local, body, out var errorMessage)) {
+				Error(errorMessage, local.Name);
 				return;
 			}
 			var row = new RawLocalVariableRow((ushort)local.Attributes, (ushort)local.Index, debugMetadata.stringsHeap.Add(local.Name));
@@ -3699,7 +3834,15 @@ namespace dnlib.DotNet.Writer {
 			var writer = new DataWriter(output);
 			debugMetadata.OnBeforeSetOffset();
 			debugMetadata.SetOffset(0, 0);
-			debugMetadata.GetFileLength();
+			uint pdbLength = debugMetadata.GetFileLength();
+			// Don't let a MemoryStream grow by doubling its buffer: a big PDB (eg. with embedded
+			// source files) would allocate about 2x its size more than needed.
+			if (output is MemoryStream memStream) {
+				long neededCapacity = memStream.Position + pdbLength;
+				// A bigger PDB fails when it's written
+				if (memStream.Capacity < neededCapacity && neededCapacity <= MaxByteArrayLength)
+					memStream.Capacity = (int)neededCapacity;
+			}
 			debugMetadata.VerifyWriteTo(writer);
 			pdbIdOffset = (long)pdbHeap.PdbIdOffset;
 		}

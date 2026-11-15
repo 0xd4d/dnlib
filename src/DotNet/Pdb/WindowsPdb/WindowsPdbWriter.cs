@@ -15,6 +15,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		readonly Dictionary<PdbDocument, ISymbolDocumentWriter> pdbDocs = new Dictionary<PdbDocument, ISymbolDocumentWriter>();
 		readonly SequencePointHelper seqPointsHelper = new SequencePointHelper();
 		readonly Dictionary<Instruction, uint> instrToOffset;
+		readonly HashSet<PdbScope> visitedScopes;
+		InstructionOffsetCache externalInstructionOffsets;
 		readonly PdbCustomDebugInfoWriterContext customDebugInfoWriterContext;
 		readonly int localsEndScopeIncValue;
 
@@ -35,6 +37,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			this.metadata = metadata;
 			module = metadata.Module;
 			instrToOffset = new Dictionary<Instruction, uint>();
+			visitedScopes = new HashSet<PdbScope>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
 			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
 		}
@@ -118,59 +121,135 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		sealed class SequencePointHelper {
-			readonly Dictionary<PdbDocument, bool> checkedPdbDocs = new Dictionary<PdbDocument, bool>();
+			// Documents in the order they're first used. Equal PdbDocument instances (Equals()) share an index
+			// and are written with the first instance.
+			readonly List<PdbDocument> docs = new List<PdbDocument>();
+			readonly Dictionary<PdbDocument, int> docToIndex = new Dictionary<PdbDocument, int>();
+			int[] docStarts = Array2.Empty<int>();
+			// Document index of each sequence point
+			int[] seqPointDocs = Array2.Empty<int>();
 			int[] instrOffsets = Array2.Empty<int>();
-			int[] startLines;
-			int[] startColumns;
-			int[] endLines;
-			int[] endColumns;
+			int[] startLines = Array2.Empty<int>();
+			int[] startColumns = Array2.Empty<int>();
+			int[] endLines = Array2.Empty<int>();
+			int[] endColumns = Array2.Empty<int>();
+			// Sequence points sorted by document, only used if a method uses more than one document
+			int[] sortedInstrOffsets = Array2.Empty<int>();
+			int[] sortedStartLines = Array2.Empty<int>();
+			int[] sortedStartColumns = Array2.Empty<int>();
+			int[] sortedEndLines = Array2.Empty<int>();
+			int[] sortedEndColumns = Array2.Empty<int>();
 
 			public void Write(WindowsPdbWriter pdbWriter, IList<Instruction> instrs) {
-				checkedPdbDocs.Clear();
-				while (true) {
-					PdbDocument currPdbDoc = null;
-					bool otherDocsAvailable = false;
-					int index = 0, instrOffset = 0;
-					Instruction instr = null;
-					for (int i = 0; i < instrs.Count; i++, instrOffset += instr.GetSize()) {
-						instr = instrs[i];
-						var seqp = instr.SequencePoint;
-						if (seqp is null || seqp.Document is null)
-							continue;
-						if (checkedPdbDocs.ContainsKey(seqp.Document))
-							continue;
-						if (currPdbDoc is null)
-							currPdbDoc = seqp.Document;
-						else if (currPdbDoc != seqp.Document) {
-							otherDocsAvailable = true;
-							continue;
-						}
+				try {
+					Write2(pdbWriter, instrs);
+				}
+				finally {
+					// Don't keep the method's documents alive
+					docs.Clear();
+					docToIndex.Clear();
+				}
+			}
 
-						if (index >= instrOffsets.Length) {
-							int newSize = index * 2;
-							if (newSize < 64)
-								newSize = 64;
-							Array.Resize(ref instrOffsets, newSize);
-							Array.Resize(ref startLines, newSize);
-							Array.Resize(ref startColumns, newSize);
-							Array.Resize(ref endLines, newSize);
-							Array.Resize(ref endColumns, newSize);
-						}
+			void Write2(WindowsPdbWriter pdbWriter, IList<Instruction> instrs) {
+				// One pass over the instructions. The points are saved in instruction order.
+				int count = 0, instrOffset = 0;
+				PdbDocument lastDoc = null;
+				int lastDocIndex = -1;
+				Instruction instr = null;
+				for (int i = 0; i < instrs.Count; i++, instrOffset += instr.GetSize()) {
+					instr = instrs[i];
+					var seqp = instr.SequencePoint;
+					if (seqp is null)
+						continue;
+					var doc = seqp.Document;
+					if (doc is null)
+						continue;
 
-						instrOffsets[index]	= instrOffset;
-						startLines[index]	= seqp.StartLine;
-						startColumns[index]	= seqp.StartColumn;
-						endLines[index]		= seqp.EndLine;
-						endColumns[index]	= seqp.EndColumn;
-						index++;
+					int docIndex;
+					if ((object)doc == lastDoc)
+						docIndex = lastDocIndex;
+					else {
+						if (!docToIndex.TryGetValue(doc, out docIndex)) {
+							docIndex = docs.Count;
+							docs.Add(doc);
+							docToIndex.Add(doc, docIndex);
+						}
+						lastDoc = doc;
+						lastDocIndex = docIndex;
 					}
-					if (index != 0)
-						pdbWriter.writer.DefineSequencePoints(pdbWriter.Add(currPdbDoc), (uint)index, instrOffsets, startLines, startColumns, endLines, endColumns);
 
-					if (!otherDocsAvailable)
-						break;
-					if (currPdbDoc is not null)
-						checkedPdbDocs.Add(currPdbDoc, true);
+					if (count >= instrOffsets.Length) {
+						int newSize = count * 2;
+						if (newSize < 64)
+							newSize = 64;
+						Array.Resize(ref seqPointDocs, newSize);
+						Array.Resize(ref instrOffsets, newSize);
+						Array.Resize(ref startLines, newSize);
+						Array.Resize(ref startColumns, newSize);
+						Array.Resize(ref endLines, newSize);
+						Array.Resize(ref endColumns, newSize);
+					}
+
+					seqPointDocs[count]	= docIndex;
+					instrOffsets[count]	= instrOffset;
+					startLines[count]	= seqp.StartLine;
+					startColumns[count]	= seqp.StartColumn;
+					endLines[count]		= seqp.EndLine;
+					endColumns[count]	= seqp.EndColumn;
+					count++;
+				}
+
+				if (docs.Count == 0)
+					return;
+				if (docs.Count == 1) {
+					pdbWriter.writer.DefineSequencePoints(pdbWriter.Add(docs[0]), (uint)count, instrOffsets, startLines, startColumns, endLines, endColumns);
+					return;
+				}
+
+				// Stable counting sort by document
+				int docCount = docs.Count;
+				if (docStarts.Length < docCount)
+					docStarts = new int[Math.Max(docCount, docStarts.Length * 2)];
+				Array.Clear(docStarts, 0, docCount);
+				for (int i = 0; i < count; i++)
+					docStarts[seqPointDocs[i]]++;
+				int start = 0;
+				for (int d = 0; d < docCount; d++) {
+					int n = docStarts[d];
+					docStarts[d] = start;
+					start += n;
+				}
+				if (sortedInstrOffsets.Length < count) {
+					int newSize = instrOffsets.Length;
+					sortedInstrOffsets = new int[newSize];
+					sortedStartLines = new int[newSize];
+					sortedStartColumns = new int[newSize];
+					sortedEndLines = new int[newSize];
+					sortedEndColumns = new int[newSize];
+				}
+				for (int i = 0; i < count; i++) {
+					int j = docStarts[seqPointDocs[i]]++;
+					sortedInstrOffsets[j]	= instrOffsets[i];
+					sortedStartLines[j]		= startLines[i];
+					sortedStartColumns[j]	= startColumns[i];
+					sortedEndLines[j]		= endLines[i];
+					sortedEndColumns[j]		= endColumns[i];
+				}
+
+				// docStarts[d] is now the end of document d's points. The arrays must start at index 0, so
+				// copy each document's points to the start of the unsorted arrays.
+				int begin = 0;
+				for (int d = 0; d < docCount; d++) {
+					int end = docStarts[d];
+					int n = end - begin;
+					Array.Copy(sortedInstrOffsets, begin, instrOffsets, 0, n);
+					Array.Copy(sortedStartLines, begin, startLines, 0, n);
+					Array.Copy(sortedStartColumns, begin, startColumns, 0, n);
+					Array.Copy(sortedEndLines, begin, endLines, 0, n);
+					Array.Copy(sortedEndColumns, begin, endColumns, 0, n);
+					pdbWriter.writer.DefineSequencePoints(pdbWriter.Add(docs[d]), (uint)n, instrOffsets, startLines, startColumns, endLines, endColumns);
+					begin = end;
 				}
 			}
 		}
@@ -220,25 +299,26 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.OpenMethod(symbolToken);
 			seqPointsHelper.Write(this, info.Method.Body.Instructions);
 
-			var pdbMethod = body.PdbMethod;
-			if (pdbMethod is null)
-				body.PdbMethod = pdbMethod = new PdbMethod();
-			var scope = pdbMethod.Scope;
-			if (scope is null)
-				pdbMethod.Scope = scope = new PdbScope();
-			if (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0) {
-				if (scope.Scopes.Count == 0) {
+			// Don't modify the module: it may be read by another thread while it's being written
+			var scope = body.PdbMethod?.Scope;
+			// A scope can be reached twice only if the user's Scopes lists have a loop or share a
+			// scope. Write it once so a loop ends.
+			visitedScopes.Clear();
+			if (scope is null || (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0)) {
+				bool wroteScope = false;
+				if (scope is not null) {
+					visitedScopes.Add(scope);
+					var scopes = scope.Scopes;
+					int count = scopes.Count;
+					for (int i = 0; i < count; i++)
+						wroteScope |= WriteScope(ref info, scopes[i], 0);
+				}
+				if (!wroteScope) {
 					// We must open at least one sub scope (the sym writer creates the 'method' scope
 					// which covers the whole method) or the native PDB reader will fail to read all
 					// sequence points.
 					writer.OpenScope(0);
 					writer.CloseScope((int)info.BodySize);
-				}
-				else {
-					var scopes = scope.Scopes;
-					int count = scopes.Count;
-					for (int i = 0; i < count; i++)
-						WriteScope(ref info, scopes[i], 0);
 				}
 			}
 			else {
@@ -342,29 +422,33 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				Error("Method body is null");
 				return 0;
 			}
-
-			var instrs = body.Instructions;
-			int offset = 0;
-			for (int i = 0; i < instrs.Count; i++) {
-				var currInstr = instrs[i];
-				if (currInstr == instr)
-					return offset;
-				offset += currInstr.GetSize();
-			}
-			if (instr is null)
-				return offset;
+			externalInstructionOffsets ??= new InstructionOffsetCache();
+			if (externalInstructionOffsets.TryGetOffset(method, body, instr, out uint offset))
+				return (int)offset;
 			Error("Async method instruction has been removed but it's still being referenced by PDB info: BP Instruction: {0}, BP Method: {1} (0x{2:X8}), Current Method: {3} (0x{4:X8})", instr, method, method.MDToken.Raw, info.Method, info.Method.MDToken.Raw);
 			return 0;
 		}
 
-		void WriteScope(ref CurrentMethod info, PdbScope scope, int recursionCounter) {
+		bool WriteScope(ref CurrentMethod info, PdbScope scope, int recursionCounter) {
 			if (recursionCounter >= 1000) {
 				Error("Too many PdbScopes");
-				return;
+				return false;
+			}
+			if (scope is null) {
+				Error("PDB scope is null. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+				return false;
+			}
+			if (!visitedScopes.Add(scope)) {
+				Error("PDB scope is used more than once in the method (Scopes loop?). Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+				return false;
 			}
 
 			int startOffset = info.GetOffset(scope.Start);
 			int endOffset = info.GetOffset(scope.End);
+			if (endOffset < startOffset) {
+				Error("PDB scope's end instruction is before its start instruction. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+				endOffset = startOffset;
+			}
 			writer.OpenScope(startOffset);
 			AddLocals(info.Method, scope.Variables, (uint)startOffset, (uint)endOffset);
 			if (scope.Constants.Count > 0) {
@@ -386,6 +470,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			for (int i = 0; i < count; i++)
 				WriteScope(ref info, scopes[i], recursionCounter + 1);
 			writer.CloseScope(startOffset == 0 && endOffset == info.BodySize ? endOffset : endOffset - localsEndScopeIncValue);
+			return true;
 		}
 		static readonly object boxedZeroInt32 = 0;
 
@@ -400,6 +485,14 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			int count = locals.Count;
 			for (int i = 0; i < count; i++) {
 				var local = locals[i];
+				if (local is null) {
+					Error("PDB local is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
+					continue;
+				}
+				if (!PdbUtils.IsValidLocal(local, method.Body, out var errorMessage)) {
+					Error(errorMessage + ". Method {1} ({2:X8})", local.Name, method, method.MDToken.Raw);
+					continue;
+				}
 				uint attrs = GetPdbLocalFlags(local.Attributes);
 				if (attrs == 0 && local.Name is null)
 					continue;

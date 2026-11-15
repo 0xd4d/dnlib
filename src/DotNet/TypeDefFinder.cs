@@ -10,7 +10,7 @@ namespace dnlib.DotNet {
 	/// Finds <see cref="TypeDef"/>s
 	/// </summary>
 	sealed class TypeDefFinder : ITypeDefFinder, IDisposable {
-		const SigComparerOptions TypeComparerOptions = SigComparerOptions.DontCompareTypeScope | SigComparerOptions.TypeRefCanReferenceGlobalType;
+		internal const SigComparerOptions TypeComparerOptions = SigComparerOptions.DontCompareTypeScope | SigComparerOptions.TypeRefCanReferenceGlobalType;
 		bool isCacheEnabled;
 		readonly bool includeNestedTypes;
 		Dictionary<ITypeDefOrRef, TypeDef> typeRefCache = new Dictionary<ITypeDefOrRef, TypeDef>(new TypeEqualityComparer(TypeComparerOptions));

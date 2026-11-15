@@ -1085,21 +1085,21 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeParamDefs() {
 			var list = readerModule.Metadata.GetParamRidList(origRid);
-			var tmp = new LazyList<ParamDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveParam(list2[index]));
+			var tmp = readerModule.CreateParamList(list, this);
 			Interlocked.CompareExchange(ref paramDefs, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeGenericParameters() {
 			var list = readerModule.Metadata.GetGenericParamRidList(Table.Method, origRid);
-			var tmp = new LazyList<GenericParam, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParam(list2[index]));
+			var tmp = readerModule.CreateGenericParamList(list, this);
 			Interlocked.CompareExchange(ref genericParameters, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
 			var list = readerModule.Metadata.GetDeclSecurityRidList(Table.Method, origRid);
-			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
+			var tmp = readerModule.CreateDeclSecurityList(list, null);
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
@@ -1111,8 +1111,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.Method, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			var tmp = readerModule.CreateCustomAttributeCollection(Table.Method, origRid);
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

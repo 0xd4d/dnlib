@@ -203,12 +203,43 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		public static SymbolWriter Create(PdbWriterOptions options, string pdbFileName) {
-			if (File.Exists(pdbFileName))
-				File.Delete(pdbFileName);
-			return new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, File.Create(pdbFileName), options, ownsStream: true);
+			// Create the COM writer first so the old PDB isn't deleted if there's no COM writer
+			var writer = CreateSymUnmanagedWriter2(options);
+			if (writer is null)
+				return null;
+			FileStream pdbStream = null;
+			try {
+				if (File.Exists(pdbFileName))
+					File.Delete(pdbFileName);
+				pdbStream = File.Create(pdbFileName);
+				return new SymbolWriterImpl(writer, pdbFileName, pdbStream, options, ownsStream: true);
+			}
+			catch {
+				Marshal.FinalReleaseComObject(writer);
+				if (pdbStream is not null) {
+					// We created it, don't leave an open empty file behind
+					pdbStream.Dispose();
+					try {
+						File.Delete(pdbFileName);
+					}
+					catch {
+					}
+				}
+				throw;
+			}
 		}
 
-		public static SymbolWriter Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) =>
-			new SymbolWriterImpl(CreateSymUnmanagedWriter2(options), pdbFileName, pdbStream, options, ownsStream: false);
+		public static SymbolWriter Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) {
+			var writer = CreateSymUnmanagedWriter2(options);
+			if (writer is null)
+				return null;
+			try {
+				return new SymbolWriterImpl(writer, pdbFileName, pdbStream, options, ownsStream: false);
+			}
+			catch {
+				Marshal.FinalReleaseComObject(writer);
+				throw;
+			}
+		}
 	}
 }

@@ -364,8 +364,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.GenericParam, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			var tmp = readerModule.CreateCustomAttributeCollection(Table.GenericParam, origRid);
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 
@@ -379,7 +378,8 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeGenericParamConstraints() {
 			var list = readerModule.Metadata.GetGenericParamConstraintRidList(origRid);
-			var tmp = new LazyList<GenericParamConstraint, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(list2[index], GetGenericParamContext(owner)));
+			var tmp = list.Count == 0 ? new LazyList<GenericParamConstraint>(this) :
+				new LazyList<GenericParamConstraint, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(list2[index], GetGenericParamContext(owner)));
 			Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 		}
 

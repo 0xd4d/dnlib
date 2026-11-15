@@ -114,7 +114,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void IMetaDataEmit.DefineModuleRef(string szName, out uint pmur) => throw new NotImplementedException();
 		void IMetaDataEmit.SetParent(uint mr, uint tk) => throw new NotImplementedException();
 		void IMetaDataEmit.GetTokenFromTypeSpec(IntPtr pvSig, uint cbSig, out uint ptypespec) => throw new NotImplementedException();
-		void IMetaDataEmit.SaveToMemory(out IntPtr pbData, uint cbData) => throw new NotImplementedException();
+		void IMetaDataEmit.SaveToMemory(IntPtr pbData, uint cbData) => throw new NotImplementedException();
 		void IMetaDataEmit.DefineUserString(string szString, uint cchString, out uint pstk) => throw new NotImplementedException();
 		void IMetaDataEmit.DeleteToken(uint tkObj) => throw new NotImplementedException();
 		void IMetaDataEmit.SetMethodProps(uint md, uint dwMethodFlags, uint ulCodeRVA, uint dwImplFlags) => throw new NotImplementedException();
