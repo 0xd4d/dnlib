@@ -2040,15 +2040,18 @@ namespace dnlib.DotNet.Writer {
 
 			List<MethodScopeDebugInfo> methodScopeDebugInfos;
 			List<PdbScope> scopeStack;
+			HashSet<PdbScope> visitedScopes;
 			SerializerMethodContext serializerMethodContext;
 			if (debugMetadata is null) {
 				methodScopeDebugInfos = null;
 				scopeStack = null;
+				visitedScopes = null;
 				serializerMethodContext = null;
 			}
 			else {
 				methodScopeDebugInfos = new List<MethodScopeDebugInfo>();
 				scopeStack = new List<PdbScope>();
+				visitedScopes = new HashSet<PdbScope>();
 				serializerMethodContext = AllocSerializerMethodContext();
 			}
 
@@ -2110,12 +2113,19 @@ namespace dnlib.DotNet.Writer {
 								}
 								else {
 									serializerMethodContext.SetBody(method);
+									// A scope can be reached twice only if the user's Scopes lists
+									// have a loop or share a scope. Write it once so a loop ends.
+									visitedScopes.Clear();
 									scopeStack.Add(rootScope);
 									while (scopeStack.Count > 0) {
 										var scope = scopeStack[scopeStack.Count - 1];
 										scopeStack.RemoveAt(scopeStack.Count - 1);
 										if (scope is null) {
 											Error("PDB scope is null");
+											continue;
+										}
+										if (!visitedScopes.Add(scope)) {
+											Error("PDB scope is used more than once in the method (Scopes loop?)");
 											continue;
 										}
 										scopeStack.AddRange(scope.Scopes);
@@ -3726,23 +3736,44 @@ namespace dnlib.DotNet.Writer {
 					Error("PdbImportScope has an infinite Parent loop");
 				return rid;
 			}
-			debugMetadata.importScopeInfos.Add(scope, 0);   // Prevent inf recursion
 
+			// The Parent chain can be long, so don't recurse. Blobs and rows are added in the same
+			// order as the old recursive code: first each scope's imports, from this scope up to the
+			// first parent that's already been added, then the rows, from the top down to this scope.
+			var chain = new List<PdbImportScope>();
+			var chainImports = new List<byte[]>();
 			var bwctx = AllocBinaryWriterContext();
 			var outStream = bwctx.OutStream;
 			var writer = bwctx.Writer;
-			outStream.SetLength(0);
-			outStream.Position = 0;
-			ImportScopeBlobWriter.Write(this, this, writer, debugMetadata.blobHeap, scope.Imports);
-			var importsData = outStream.ToArray();
+			uint parentRid = 0;
+			for (var current = scope; ;) {
+				debugMetadata.importScopeInfos.Add(current, 0);   // rid 0 = being added, so a loop is found
+				outStream.SetLength(0);
+				outStream.Position = 0;
+				ImportScopeBlobWriter.Write(this, this, writer, debugMetadata.blobHeap, current.Imports);
+				chain.Add(current);
+				chainImports.Add(outStream.ToArray());
+
+				current = current.Parent;
+				if (current is null)
+					break;
+				if (debugMetadata.importScopeInfos.TryGetRid(current, out parentRid)) {
+					if (parentRid == 0)
+						Error("PdbImportScope has an infinite Parent loop");
+					break;
+				}
+			}
 			Free(ref bwctx);
 
-			var row = new RawImportScopeRow(AddImportScope(scope.Parent), debugMetadata.blobHeap.Add(importsData));
-			rid = debugMetadata.tablesHeap.ImportScopeTable.Add(row);
-			debugMetadata.importScopeInfos.SetRid(scope, rid);
-
-			AddCustomDebugInformationList(Table.ImportScope, rid, scope.CustomDebugInfos);
-			return rid;
+			for (int i = chain.Count - 1; i >= 0; i--) {
+				var current = chain[i];
+				var row = new RawImportScopeRow(parentRid, debugMetadata.blobHeap.Add(chainImports[i]));
+				rid = debugMetadata.tablesHeap.ImportScopeTable.Add(row);
+				debugMetadata.importScopeInfos.SetRid(current, rid);
+				AddCustomDebugInformationList(Table.ImportScope, rid, current.CustomDebugInfos);
+				parentRid = rid;
+			}
+			return parentRid;
 		}
 
 		void AddLocalVariable(PdbLocal local, CilBody body) {

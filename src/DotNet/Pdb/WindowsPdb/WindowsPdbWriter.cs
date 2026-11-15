@@ -15,6 +15,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		readonly Dictionary<PdbDocument, ISymbolDocumentWriter> pdbDocs = new Dictionary<PdbDocument, ISymbolDocumentWriter>();
 		readonly SequencePointHelper seqPointsHelper = new SequencePointHelper();
 		readonly Dictionary<Instruction, uint> instrToOffset;
+		readonly HashSet<PdbScope> visitedScopes;
 		InstructionOffsetCache externalInstructionOffsets;
 		readonly PdbCustomDebugInfoWriterContext customDebugInfoWriterContext;
 		readonly int localsEndScopeIncValue;
@@ -36,6 +37,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			this.metadata = metadata;
 			module = metadata.Module;
 			instrToOffset = new Dictionary<Instruction, uint>();
+			visitedScopes = new HashSet<PdbScope>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
 			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
 		}
@@ -299,9 +301,13 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			// Don't modify the module: it may be read by another thread while it's being written
 			var scope = body.PdbMethod?.Scope;
+			// A scope can be reached twice only if the user's Scopes lists have a loop or share a
+			// scope. Write it once so a loop ends.
+			visitedScopes.Clear();
 			if (scope is null || (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0)) {
 				bool wroteScope = false;
 				if (scope is not null) {
+					visitedScopes.Add(scope);
 					var scopes = scope.Scopes;
 					int count = scopes.Count;
 					for (int i = 0; i < count; i++)
@@ -430,6 +436,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 			if (scope is null) {
 				Error("PDB scope is null. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+				return false;
+			}
+			if (!visitedScopes.Add(scope)) {
+				Error("PDB scope is used more than once in the method (Scopes loop?). Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
 				return false;
 			}
 
