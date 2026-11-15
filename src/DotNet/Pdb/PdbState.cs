@@ -30,6 +30,7 @@ namespace dnlib.DotNet.Pdb {
 		MethodDef userEntryPoint;
 		readonly Compiler compiler;
 		readonly PdbFileKind originalPdbFileKind;
+		readonly object readerOriginOwner = new object();
 
 		sealed class ReferenceComparer : IEqualityComparer<PdbDocument> {
 			public static readonly ReferenceComparer Instance = new ReferenceComparer();
@@ -42,6 +43,18 @@ namespace dnlib.DotNet.Pdb {
 			public bool HasValueKey;
 			public DocumentKey ReaderKey;
 			public bool HasReaderKey;
+		}
+
+		// Stored in a PdbDocument that was created from the PDB file. Neither field ever changes.
+		// Owner is the PdbState's readerOriginOwner and not the PdbState itself, so a document that's
+		// moved to another module doesn't keep this PdbState, its reader and its module alive.
+		sealed class ReaderOrigin {
+			public readonly object Owner;
+			public readonly DocumentKey Key;
+			public ReaderOrigin(object owner, DocumentKey key) {
+				Owner = owner;
+				Key = key;
+			}
 		}
 
 		/// <summary>
@@ -204,7 +217,7 @@ namespace dnlib.DotNet.Pdb {
 			var existing = FindEqual_NoLock(key);
 			if (existing is not null)
 				return existing;
-			Insert_NoLock(doc, key, fromReader: false);
+			Insert_NoLock(doc, key);
 			return doc;
 		}
 
@@ -226,24 +239,28 @@ namespace dnlib.DotNet.Pdb {
 				return existing;
 			// Expensive part, can read source code etc
 			var doc = new PdbDocument(symDoc);
-			Insert_NoLock(doc, key, fromReader: true);
+			doc.readerOrigin = new ReaderOrigin(readerOriginOwner, key.ToImmutable());
+			Insert_NoLock(doc, key);
 			return doc;
 		}
 
-		void Insert_NoLock(PdbDocument doc, DocumentKey key, bool fromReader) {
+		void Insert_NoLock(PdbDocument doc, DocumentKey key) {
 			var info = new DocumentInfo();
 			docs.Add(doc, info);
-			key = key.ToImmutable();
-			AddToValueIndex_NoLock(doc, info, key);
-			if (fromReader && !readerIndex.ContainsKey(key)) {
-				readerIndex.Add(key, doc);
-				info.ReaderKey = key;
-				info.HasReaderKey = true;
+			AddToValueIndex_NoLock(doc, info, key.ToImmutable());
+			// Only documents created from this module's PDB are found by their original values and
+			// by token, including when they're removed and added back. Any other document can be from
+			// another module, and its token is then some other document in this PDB.
+			if (doc.readerOrigin is ReaderOrigin origin && origin.Owner == readerOriginOwner) {
+				// Not free if the method bodies were read while the document was removed
+				if (!readerIndex.ContainsKey(origin.Key)) {
+					readerIndex.Add(origin.Key, doc);
+					info.ReaderKey = origin.Key;
+					info.HasReaderKey = true;
+				}
+				if (doc.MDToken.HasValue && !tokenToDocument.ContainsKey(doc.MDToken.Value))
+					tokenToDocument.Add(doc.MDToken.Value, doc);
 			}
-			// Only documents created from this module's PDB are found by token. A document added by the
-			// user can be from another module, and its token is then some other document in this PDB.
-			if (fromReader && doc.MDToken.HasValue && !tokenToDocument.ContainsKey(doc.MDToken.Value))
-				tokenToDocument.Add(doc.MDToken.Value, doc);
 		}
 
 		void AddToValueIndex_NoLock(PdbDocument doc, DocumentInfo info, DocumentKey immutableKey) {

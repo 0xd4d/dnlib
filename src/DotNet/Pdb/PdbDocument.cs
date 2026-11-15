@@ -59,6 +59,13 @@ namespace dnlib.DotNet.Pdb {
 		public MDToken? MDToken { get; internal set; }
 
 		/// <summary>
+		/// Set by the <see cref="PdbState"/> that created this document from its PDB file. It's used
+		/// to find the document again if it's removed and then added back to that <see cref="PdbState"/>.
+		/// It must not reference the <see cref="PdbState"/>, the reader or the module.
+		/// </summary>
+		internal object readerOrigin;
+
+		/// <summary>
 		/// Default constructor
 		/// </summary>
 		public PdbDocument() => customDebugInfos = new List<PdbCustomDebugInfo>();
