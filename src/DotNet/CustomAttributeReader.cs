@@ -23,26 +23,45 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public AssemblyRef FindAssemblyRef(TypeRef nonNestedTypeRef) {
 			var modAsm = module.Assembly;
+
+			// Finding a type by name is slow if the module's type cache isn't enabled (all types are
+			// checked) and this method is called once per type argument, eg. once per async method.
+			// The common case is a type that's defined in this module, so check that first.
+			if (IsOriginalTypeInModule(nonNestedTypeRef, modAsm))
+				return GetCurrentAssemblyRef(modAsm);
+
+			// It's the corlib type unless this module has a type with the same name: if it's not
+			// a corlib type, the current assembly is returned whether or not the type is found.
+			var corLibAsm = module.Context.AssemblyResolver.Resolve(module.CorLibTypes.AssemblyRef, module);
+			if (corLibAsm is null || corLibAsm.Find(nonNestedTypeRef) is null)
+				return GetCurrentAssemblyRef(modAsm);
+
 			if (modAsm is not null) {
 				var type = modAsm.Find(nonNestedTypeRef);
 				// If the user added a new type with the same name as a corelib type, don't return it,
 				// only return the type if it is this module's original type.
 				if (type is TypeDefMD td && td.ReaderModule == module)
-					return module.UpdateRowId(new AssemblyRefUser(modAsm));
+					return GetCurrentAssemblyRef(modAsm);
 			}
 			else if (module.Find(nonNestedTypeRef) is not null)
 				return AssemblyRef.CurrentAssembly;
 
-			var corLibAsm = module.Context.AssemblyResolver.Resolve(module.CorLibTypes.AssemblyRef, module);
-			if (corLibAsm is not null) {
-				var type = corLibAsm.Find(nonNestedTypeRef);
-				if (type is not null)
-					return module.CorLibTypes.AssemblyRef;
-			}
+			return module.CorLibTypes.AssemblyRef;
+		}
 
+		AssemblyRef GetCurrentAssemblyRef(AssemblyDef modAsm) {
 			if (modAsm is not null)
 				return module.UpdateRowId(new AssemblyRefUser(modAsm));
 			return AssemblyRef.CurrentAssembly;
+		}
+
+		// Returns true if one of this module's original types is still in the module's assembly
+		// (or in the module if it has no assembly) and still has the name of nonNestedTypeRef
+		bool IsOriginalTypeInModule(TypeRef nonNestedTypeRef, AssemblyDef modAsm) {
+			// If the type cache is enabled, the normal search is fast
+			if (module is not ModuleDefMD readerModule || readerModule.EnableTypeDefFindCache)
+				return false;
+			return readerModule.FindTypeDefFast(nonNestedTypeRef, modAsm) is not null;
 		}
 	}
 

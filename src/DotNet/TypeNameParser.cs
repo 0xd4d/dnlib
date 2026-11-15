@@ -597,6 +597,13 @@ namespace dnlib.DotNet {
 				return null;
 			if (!(AssemblyNameComparer.CompareAll.Equals(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
 				return null;
+			// Finding a type is slow if the module's type cache isn't enabled (all types are checked),
+			// and this method is called once per type, so try to find it without checking all types.
+			if (ownerModule is ModuleDefMD readerModule && !readerModule.EnableTypeDefFindCache) {
+				var fastTd = readerModule.FindTypeDefFast(typeRef, asm);
+				if (fastTd is not null && fastTd.Module == ownerModule)
+					return fastTd;
+			}
 			var td = asm.Find(typeRef);
 			return td is not null && td.Module == ownerModule ? td : null;
 		}

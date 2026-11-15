@@ -734,6 +734,135 @@ namespace dnlib.DotNet {
 		public TypeDef ResolveTypeDef(uint rid) => listTypeDefMD[rid - 1];
 
 		/// <summary>
+		/// Finds a type without checking all types in the module. Only types that can be reached from one of
+		/// this module's original non-nested types are found, so <c>null</c> doesn't mean that the type doesn't
+		/// exist: the caller must then do a normal (slow) search. If there are no types with duplicate names, the
+		/// returned type is the same type <see cref="AssemblyDef.Find(TypeRef)"/> returns.
+		/// </summary>
+		/// <param name="typeRef">The type to find</param>
+		/// <param name="assembly">The non-nested type must be in this assembly, or if it's <c>null</c>, in this module</param>
+		/// <returns>The type or <c>null</c> if it wasn't found</returns>
+		internal TypeDef FindTypeDefFast(TypeRef typeRef, AssemblyDef assembly) {
+			if (typeRef is null)
+				return null;
+
+			// Get the type and all its enclosing types, starting with the non-nested type
+			const int MaxNestedLevels = 50;
+			int levels = 1;
+			for (var tr = typeRef; tr.ResolutionScope is TypeRef enclosingType; tr = enclosingType) {
+				if (++levels > MaxNestedLevels)
+					return null;
+			}
+			var typeRefs = new TypeRef[levels];
+			typeRefs[levels - 1] = typeRef;
+			for (int i = levels - 2; i >= 0; i--)
+				typeRefs[i] = (TypeRef)typeRefs[i + 1].ResolutionScope;
+
+			var index = nonNestedTypeDefNameIndex;
+			if (index is null) {
+				Interlocked.CompareExchange(ref nonNestedTypeDefNameIndex, new NonNestedTypeDefNameIndex(this), null);
+				index = nonNestedTypeDefNameIndex;
+			}
+
+			var comparer = new SigComparer(TypeDefFinder.TypeComparerOptions);
+			var nonNestedTypeRef = typeRefs[0];
+			uint rid = 0;
+			while ((rid = index.GetNext(nonNestedTypeRef.Namespace, nonNestedTypeRef.Name, rid)) != 0) {
+				// The index uses the names in the metadata and only their hash, and the type could've been
+				// renamed, moved or removed since the module was loaded
+				var td = ResolveTypeDef(rid);
+				if (td is null || td.DeclaringType is not null)
+					continue;
+				var tdModule = td.Module;
+				if (tdModule is null)
+					continue;
+				if (assembly is not null ? tdModule.Assembly != assembly : tdModule != this)
+					continue;
+				if (!comparer.Equals(td, nonNestedTypeRef))
+					continue;
+				var result = levels == 1 ? td : FindNestedTypeDef(ref comparer, td, typeRefs, 1);
+				if (result is not null)
+					return result;
+			}
+			return null;
+		}
+
+		// Finds the nested types in the same order a search of all types would find them
+		static TypeDef FindNestedTypeDef(ref SigComparer comparer, TypeDef enclosingType, TypeRef[] typeRefs, int level) {
+			var nestedTypes = enclosingType.NestedTypes;
+			int count = nestedTypes.Count;
+			for (int i = 0; i < count; i++) {
+				var nestedType = nestedTypes[i];
+				if (nestedType is null || !comparer.Equals(nestedType, typeRefs[level]))
+					continue;
+				if (level == typeRefs.Length - 1)
+					return nestedType;
+				var result = FindNestedTypeDef(ref comparer, nestedType, typeRefs, level + 1);
+				if (result is not null)
+					return result;
+			}
+			return null;
+		}
+		NonNestedTypeDefNameIndex nonNestedTypeDefNameIndex;
+
+		sealed class NonNestedTypeDefNameIndex {
+			// Hash of the name -> first rid with that hash
+			readonly Dictionary<int, uint> firstRid;
+			// rid -> next rid with the same hash or 0. null if all hashes are unique.
+			readonly uint[] nextRid;
+
+			public NonNestedTypeDefNameIndex(ModuleDefMD module) {
+				var tablesStream = module.TablesStream;
+				var stringsStream = module.StringsStream;
+				uint rows = tablesStream.TypeDefTable.Rows;
+
+				var isNested = new bool[rows + 1];
+				uint nestedRows = tablesStream.NestedClassTable.Rows;
+				uint nestedCount = 0;
+				for (uint rid = 1; rid <= nestedRows; rid++) {
+					if (!tablesStream.TryReadNestedClassRow(rid, out var nestedRow))
+						break;
+					if (nestedRow.NestedClass != 0 && nestedRow.NestedClass <= rows && !isNested[nestedRow.NestedClass]) {
+						isNested[nestedRow.NestedClass] = true;
+						nestedCount++;
+					}
+				}
+
+				firstRid = new Dictionary<int, uint>((int)(rows - nestedCount));
+				// Add them in reverse order so the rows with the same hash are returned in rid order
+				for (uint rid = rows; rid != 0; rid--) {
+					if (isNested[rid])
+						continue;
+					if (!tablesStream.TryReadTypeDefRow(rid, out var row))
+						continue;
+					int hash = GetHashCode(stringsStream.ReadNoNull(row.Namespace), stringsStream.ReadNoNull(row.Name));
+					if (firstRid.TryGetValue(hash, out uint next)) {
+						nextRid ??= new uint[rows + 1];
+						nextRid[rid] = next;
+					}
+					firstRid[hash] = rid;
+				}
+			}
+
+			// A null name is the same as an empty name, see SigComparer
+			static int GetHashCode(UTF8String @namespace, UTF8String name) =>
+				UTF8String.GetHashCode(@namespace) * 31 + UTF8String.GetHashCode(name);
+
+			/// <summary>
+			/// Gets the next non-nested <c>TypeDef</c> row with the same name hash
+			/// </summary>
+			/// <param name="namespace">Namespace</param>
+			/// <param name="name">Name</param>
+			/// <param name="prevRid">0 to get the first row, else the previously returned rid</param>
+			/// <returns>The rid or 0 if there are no more rows</returns>
+			public uint GetNext(UTF8String @namespace, UTF8String name, uint prevRid) {
+				if (prevRid == 0)
+					return firstRid.TryGetValue(GetHashCode(@namespace, name), out uint rid) ? rid : 0;
+				return nextRid is not null && prevRid < (uint)nextRid.Length ? nextRid[prevRid] : 0;
+			}
+		}
+
+		/// <summary>
 		/// Resolves a <see cref="FieldDef"/>
 		/// </summary>
 		/// <param name="rid">The row ID</param>
