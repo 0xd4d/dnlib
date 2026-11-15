@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using dnlib.Threading;
 
 namespace dnlib.Utils {
@@ -70,7 +71,42 @@ namespace dnlib.Utils {
 		private protected readonly IListListener<TValue> listener;
 
 #if THREAD_SAFE
-		readonly Lock theLock = Lock.Create();
+		// The lock is the private 'list' instance (it's never exposed) and not a Lock instance since
+		// that would use two more objects per list, and most lists in a module are empty. The rules
+		// are the same as Lock's: no recursive locks, and a read lock is the same as a write lock.
+		int recurseCount;
+
+		void EnterReadLock() {
+			Monitor.Enter(list);
+			if (recurseCount != 0) {
+				Monitor.Exit(list);
+				throw new LockException("Recursive locks aren't supported");
+			}
+			recurseCount++;
+		}
+
+		void ExitReadLock() {
+			if (recurseCount <= 0)
+				throw new LockException("Too many exit lock method calls");
+			recurseCount--;
+			Monitor.Exit(list);
+		}
+
+		void EnterWriteLock() {
+			Monitor.Enter(list);
+			if (recurseCount != 0) {
+				Monitor.Exit(list);
+				throw new LockException("Recursive locks aren't supported");
+			}
+			recurseCount--;
+		}
+
+		void ExitWriteLock() {
+			if (recurseCount >= 0)
+				throw new LockException("Too many exit lock method calls");
+			recurseCount++;
+			Monitor.Exit(list);
+		}
 #endif
 
 		/// <summary>
@@ -117,11 +153,11 @@ namespace dnlib.Utils {
 		public int Count {
 			get {
 #if THREAD_SAFE
-				theLock.EnterReadLock(); try {
+				EnterReadLock(); try {
 #endif
 				return Count_NoLock;
 #if THREAD_SAFE
-				} finally { theLock.ExitReadLock(); }
+				} finally { ExitReadLock(); }
 #endif
 			}
 		}
@@ -136,20 +172,20 @@ namespace dnlib.Utils {
 		public TValue this[int index] {
 			get {
 #if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
+				EnterWriteLock(); try {
 #endif
 				return Get_NoLock(index);
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				} finally { ExitWriteLock(); }
 #endif
 			}
 			set {
 #if THREAD_SAFE
-				theLock.EnterWriteLock(); try {
+				EnterWriteLock(); try {
 #endif
 				Set_NoLock(index, value);
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				} finally { ExitWriteLock(); }
 #endif
 			}
 		}
@@ -164,7 +200,7 @@ namespace dnlib.Utils {
 		/// </summary>
 		internal void EnterLock() {
 #if THREAD_SAFE
-			theLock.EnterWriteLock();
+			EnterWriteLock();
 #endif
 		}
 
@@ -173,7 +209,7 @@ namespace dnlib.Utils {
 		/// </summary>
 		internal void ExitLock() {
 #if THREAD_SAFE
-			theLock.ExitWriteLock();
+			ExitWriteLock();
 #endif
 		}
 
@@ -210,11 +246,11 @@ namespace dnlib.Utils {
 		/// <inheritdoc/>
 		public int IndexOf(TValue item) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
+			EnterWriteLock(); try {
 #endif
 			return IndexOf_NoLock(item);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			} finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -229,11 +265,11 @@ namespace dnlib.Utils {
 		/// <inheritdoc/>
 		public void Insert(int index, TValue item) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
+			EnterWriteLock(); try {
 #endif
 			Insert_NoLock(index, item);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			} finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -249,11 +285,11 @@ namespace dnlib.Utils {
 		/// <inheritdoc/>
 		public void RemoveAt(int index) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
+			EnterWriteLock(); try {
 #endif
 			RemoveAt_NoLock(index);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			} finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -269,11 +305,11 @@ namespace dnlib.Utils {
 		/// <inheritdoc/>
 		public void Add(TValue item) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
+			EnterWriteLock(); try {
 #endif
 			Add_NoLock(item);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			} finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -290,11 +326,11 @@ namespace dnlib.Utils {
 		/// <inheritdoc/>
 		public void Clear() {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
+			EnterWriteLock(); try {
 #endif
 			Clear_NoLock();
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			} finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -313,11 +349,11 @@ namespace dnlib.Utils {
 		/// <inheritdoc/>
 		public void CopyTo(TValue[] array, int arrayIndex) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
+			EnterWriteLock(); try {
 #endif
 			CopyTo_NoLock(array, arrayIndex);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			} finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -329,11 +365,11 @@ namespace dnlib.Utils {
 		/// <inheritdoc/>
 		public bool Remove(TValue item) {
 #if THREAD_SAFE
-			theLock.EnterWriteLock(); try {
+			EnterWriteLock(); try {
 #endif
 			return Remove_NoLock(item);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			} finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -347,11 +383,11 @@ namespace dnlib.Utils {
 
 		internal bool IsInitialized(int index) {
 #if THREAD_SAFE
-			theLock.EnterReadLock(); try {
+			EnterReadLock(); try {
 #endif
 			return IsInitialized_NoLock(index);
 #if THREAD_SAFE
-			} finally { theLock.ExitReadLock(); }
+			} finally { ExitReadLock(); }
 #endif
 		}
 
@@ -375,11 +411,11 @@ namespace dnlib.Utils {
 				index = 0;
 				current = default;
 #if THREAD_SAFE
-				list.theLock.EnterReadLock(); try {
+				list.EnterReadLock(); try {
 #endif
 				id = list.id;
 #if THREAD_SAFE
-				} finally { list.theLock.ExitReadLock(); }
+				} finally { list.ExitReadLock(); }
 #endif
 			}
 
@@ -395,7 +431,7 @@ namespace dnlib.Utils {
 			/// <returns></returns>
 			public bool MoveNext() {
 #if THREAD_SAFE
-				list.theLock.EnterWriteLock(); try {
+				list.EnterWriteLock(); try {
 #endif
 				if (list.id == id && index < list.Count_NoLock) {
 					current = list.list[index].GetValue_NoLock(index);
@@ -405,7 +441,7 @@ namespace dnlib.Utils {
 				else
 					return MoveNextDoneOrThrow_NoLock();
 #if THREAD_SAFE
-				} finally { list.theLock.ExitWriteLock(); }
+				} finally { list.ExitWriteLock(); }
 #endif
 			}
 

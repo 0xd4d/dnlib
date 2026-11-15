@@ -2460,35 +2460,36 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		protected override void InitializeFields() {
 			var list = readerModule.Metadata.GetFieldRidList(origRid);
-			var tmp = new LazyList<FieldDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveField(list2[index]));
+			var tmp = readerModule.CreateFieldList(list, this);
 			Interlocked.CompareExchange(ref fields, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeMethods() {
 			var list = readerModule.Metadata.GetMethodRidList(origRid);
-			var tmp = new LazyList<MethodDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveMethod(list2[index]));
+			var tmp = readerModule.CreateMethodList(list, this);
 			Interlocked.CompareExchange(ref methods, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeGenericParameters() {
 			var list = readerModule.Metadata.GetGenericParamRidList(Table.TypeDef, origRid);
-			var tmp = new LazyList<GenericParam, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParam(list2[index]));
+			var tmp = readerModule.CreateGenericParamList(list, this);
 			Interlocked.CompareExchange(ref genericParameters, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeInterfaces() {
 			var list = readerModule.Metadata.GetInterfaceImplRidList(origRid);
-			var tmp = new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this)));
+			var tmp = list.Count == 0 ? new LazyList<InterfaceImpl>() :
+				new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this)));
 			Interlocked.CompareExchange(ref interfaces, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeDeclSecurities() {
 			var list = readerModule.Metadata.GetDeclSecurityRidList(Table.TypeDef, origRid);
-			var tmp = new LazyList<DeclSecurity, RidList>(list.Count, list, (list2, index) => readerModule.ResolveDeclSecurity(list2[index]));
+			var tmp = readerModule.CreateDeclSecurityList(list, null);
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
 		}
 
@@ -2516,7 +2517,7 @@ namespace dnlib.DotNet {
 		protected override void InitializeEvents() {
 			var mapRid = readerModule.Metadata.GetEventMapRid(origRid);
 			var list = readerModule.Metadata.GetEventRidList(mapRid);
-			var tmp = new LazyList<EventDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveEvent(list2[index]));
+			var tmp = readerModule.CreateEventList(list, this);
 			Interlocked.CompareExchange(ref events, tmp, null);
 		}
 
@@ -2524,21 +2525,20 @@ namespace dnlib.DotNet {
 		protected override void InitializeProperties() {
 			var mapRid = readerModule.Metadata.GetPropertyMapRid(origRid);
 			var list = readerModule.Metadata.GetPropertyRidList(mapRid);
-			var tmp = new LazyList<PropertyDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveProperty(list2[index]));
+			var tmp = readerModule.CreatePropertyList(list, this);
 			Interlocked.CompareExchange(ref properties, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeNestedTypes() {
 			var list = readerModule.Metadata.GetNestedClassRidList(origRid);
-			var tmp = new LazyList<TypeDef, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveTypeDef(list2[index]));
+			var tmp = readerModule.CreateTypeDefList(list, this);
 			Interlocked.CompareExchange(ref nestedTypes, tmp, null);
 		}
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {
-			var list = readerModule.Metadata.GetCustomAttributeRidList(Table.TypeDef, origRid);
-			var tmp = new CustomAttributeCollection(list.Count, list, (list2, index) => readerModule.ReadCustomAttribute(list[index]));
+			var tmp = readerModule.CreateCustomAttributeCollection(Table.TypeDef, origRid);
 			Interlocked.CompareExchange(ref customAttributes, tmp, null);
 		}
 

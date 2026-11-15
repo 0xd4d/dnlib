@@ -1463,9 +1463,62 @@ namespace dnlib.DotNet {
 			return array;
 		}
 
-		CustomAttributeCollection CreateCustomAttributeCollection(Table table, uint rid) {
+		// Most members have no custom attributes, generic parameters, etc, so the methods below create
+		// the smallest possible list if it's empty: no context and no delegate.
+
+		internal CustomAttributeCollection CreateCustomAttributeCollection(Table table, uint rid) {
 			var list = Metadata.GetCustomAttributeRidList(table, rid);
-			return new CustomAttributeCollection(list.Count, list, (list2, index) => ReadCustomAttribute(list[index]));
+			if (list.Count == 0)
+				return new CustomAttributeCollection();
+			return new CustomAttributeCollection(list.Count, list, (list2, index) => ReadCustomAttribute(((RidList)list2)[index]));
+		}
+
+		internal LazyList<FieldDef> CreateFieldList(RidList list, IListListener<FieldDef> listener) {
+			if (list.Count == 0)
+				return new LazyList<FieldDef>(listener);
+			return new LazyList<FieldDef, RidList>(list.Count, listener, list, (list2, index) => ResolveField(list2[index]));
+		}
+
+		internal LazyList<MethodDef> CreateMethodList(RidList list, IListListener<MethodDef> listener) {
+			if (list.Count == 0)
+				return new LazyList<MethodDef>(listener);
+			return new LazyList<MethodDef, RidList>(list.Count, listener, list, (list2, index) => ResolveMethod(list2[index]));
+		}
+
+		internal LazyList<ParamDef> CreateParamList(RidList list, IListListener<ParamDef> listener) {
+			if (list.Count == 0)
+				return new LazyList<ParamDef>(listener);
+			return new LazyList<ParamDef, RidList>(list.Count, listener, list, (list2, index) => ResolveParam(list2[index]));
+		}
+
+		internal LazyList<GenericParam> CreateGenericParamList(RidList list, IListListener<GenericParam> listener) {
+			if (list.Count == 0)
+				return new LazyList<GenericParam>(listener);
+			return new LazyList<GenericParam, RidList>(list.Count, listener, list, (list2, index) => ResolveGenericParam(list2[index]));
+		}
+
+		internal LazyList<DeclSecurity> CreateDeclSecurityList(RidList list, IListListener<DeclSecurity> listener) {
+			if (list.Count == 0)
+				return new LazyList<DeclSecurity>(listener);
+			return new LazyList<DeclSecurity, RidList>(list.Count, listener, list, (list2, index) => ResolveDeclSecurity(list2[index]));
+		}
+
+		internal LazyList<EventDef> CreateEventList(RidList list, IListListener<EventDef> listener) {
+			if (list.Count == 0)
+				return new LazyList<EventDef>(listener);
+			return new LazyList<EventDef, RidList>(list.Count, listener, list, (list2, index) => ResolveEvent(list2[index]));
+		}
+
+		internal LazyList<PropertyDef> CreatePropertyList(RidList list, IListListener<PropertyDef> listener) {
+			if (list.Count == 0)
+				return new LazyList<PropertyDef>(listener);
+			return new LazyList<PropertyDef, RidList>(list.Count, listener, list, (list2, index) => ResolveProperty(list2[index]));
+		}
+
+		internal LazyList<TypeDef> CreateTypeDefList(RidList list, IListListener<TypeDef> listener) {
+			if (list.Count == 0)
+				return new LazyList<TypeDef>(listener);
+			return new LazyList<TypeDef, RidList>(list.Count, listener, list, (list2, index) => ResolveTypeDef(list2[index]));
 		}
 
 		/// <summary>
