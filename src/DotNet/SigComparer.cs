@@ -3589,7 +3589,9 @@ exit: ;
 					goto exit;
 				}
 			}
-			result = !b.HasElementType &&
+			// Same check as Equals(TypeRef, Type): b can't be a generic instance or a generic parameter.
+			// Their hash codes differ from a TypeDef's hash code.
+			result = b.IsTypeDef() &&
 					Equals_TypeNames(a.Name, ReflectionExtensions.Unescape(b.Name)) &&
 					Equals_TypeNamespaces(a.Namespace, b) &&
 					EnclosingTypeEquals(a.DeclaringType, b.DeclaringType) &&
