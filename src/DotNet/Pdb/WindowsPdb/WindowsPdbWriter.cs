@@ -297,14 +297,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.OpenMethod(symbolToken);
 			seqPointsHelper.Write(this, info.Method.Body.Instructions);
 
-			var pdbMethod = body.PdbMethod;
-			if (pdbMethod is null)
-				body.PdbMethod = pdbMethod = new PdbMethod();
-			var scope = pdbMethod.Scope;
-			if (scope is null)
-				pdbMethod.Scope = scope = new PdbScope();
-			if (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0) {
-				if (scope.Scopes.Count == 0) {
+			// Don't modify the module: it may be read by another thread while it's being written
+			var scope = body.PdbMethod?.Scope;
+			if (scope is null || (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0)) {
+				if (scope is null || scope.Scopes.Count == 0) {
 					// We must open at least one sub scope (the sym writer creates the 'method' scope
 					// which covers the whole method) or the native PDB reader will fail to read all
 					// sequence points.
