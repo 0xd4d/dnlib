@@ -3627,11 +3627,11 @@ namespace dnlib.DotNet.Writer {
 			var writer = bwctx.Writer;
 			outStream.SetLength(0);
 			outStream.Position = 0;
-			var parts = name.Split(directorySeparatorCharArray);
-			if (parts.Length == 1)
-				writer.WriteByte(0);
-			else
-				writer.WriteBytes(directorySeparatorCharUtf8);
+			// Same separator as System.Reflection.Metadata's MetadataBuilder.GetOrAddDocumentName
+			// so the output doesn't depend on the OS
+			char separator = ChooseDocumentNameSeparator(name);
+			var parts = name.Split(separator);
+			writer.WriteByte((byte)separator);
 			for (int i = 0; i < parts.Length; i++) {
 				var part = parts[i];
 				uint partOffset = debugMetadata.blobHeap.Add(Encoding.UTF8.GetBytes(part));
@@ -3642,8 +3642,17 @@ namespace dnlib.DotNet.Writer {
 			Free(ref bwctx);
 			return res;
 		}
-		static readonly byte[] directorySeparatorCharUtf8 = Encoding.UTF8.GetBytes(Path.DirectorySeparatorChar.ToString());
-		static readonly char[] directorySeparatorCharArray = new char[] { Path.DirectorySeparatorChar };
+
+		static char ChooseDocumentNameSeparator(string name) {
+			int slashes = 0, backslashes = 0;
+			foreach (var c in name) {
+				if (c == '/')
+					slashes++;
+				else if (c == '\\')
+					backslashes++;
+			}
+			return slashes >= backslashes ? '/' : '\\';
+		}
 
 		uint AddImportScope(PdbImportScope scope) {
 			Debug.Assert(debugMetadata is not null);
