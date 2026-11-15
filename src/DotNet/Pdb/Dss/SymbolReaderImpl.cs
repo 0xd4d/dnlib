@@ -133,7 +133,18 @@ namespace dnlib.DotNet.Pdb.Dss {
 		}
 
 		void Dispose(bool disposing) {
-			(reader as ISymUnmanagedDispose)?.Destroy();
+			if (disposing)
+				(reader as ISymUnmanagedDispose)?.Destroy();
+			else {
+				// The runtime may already have released the COM reader's runtime callable wrapper when
+				// the finalizer runs (finalizers run in any order). Using it then throws, and an
+				// exception on the finalizer thread kills the process.
+				try {
+					(reader as ISymUnmanagedDispose)?.Destroy();
+				}
+				catch {
+				}
+			}
 			var o = objsToKeepAlive;
 			if (o is not null) {
 				foreach (var obj in o)
