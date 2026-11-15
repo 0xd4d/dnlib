@@ -526,6 +526,7 @@ namespace dnlib.DotNet {
 
 		const int HASHCODE_MAGIC_GLOBAL_TYPE = 1654396648;
 		const int HASHCODE_MAGIC_NESTED_TYPE = -1049070942;
+		const int HASHCODE_ENCLOSING_TYPE_MULTIPLIER = 31;
 		const int HASHCODE_MAGIC_ET_MODULE = -299744851;
 		const int HASHCODE_MAGIC_ET_VALUEARRAY = -674970533;
 		const int HASHCODE_MAGIC_ET_GENERICINST = -2050514639;
@@ -1553,6 +1554,41 @@ exit: ;
 			return GetHashCode(a);
 		}
 
+		// The hash code of a nested type includes its enclosing types. If it didn't, all nested types
+		// with the same name (eg. compiler generated types) would get the same hash code.
+		// All four methods must return the same value for the same enclosing type.
+		int GetHashCode_EnclosingType(TypeDef a) {
+			if (!recursionCounter.Increment())
+				return 0;
+			int hash = GetHashCode(a);
+			recursionCounter.Decrement();
+			return hash * HASHCODE_ENCLOSING_TYPE_MULTIPLIER;
+		}
+
+		int GetHashCode_EnclosingType(TypeRef a) {
+			if (!recursionCounter.Increment())
+				return 0;
+			int hash = GetHashCode(a);
+			recursionCounter.Decrement();
+			return hash * HASHCODE_ENCLOSING_TYPE_MULTIPLIER;
+		}
+
+		int GetHashCode_EnclosingType(ExportedType a) {
+			if (!recursionCounter.Increment())
+				return 0;
+			int hash = GetHashCode(a);
+			recursionCounter.Decrement();
+			return hash * HASHCODE_ENCLOSING_TYPE_MULTIPLIER;
+		}
+
+		int GetHashCode_EnclosingType(Type a) {
+			if (a is null || !recursionCounter.Increment())
+				return 0;
+			int hash = GetHashCode_TypeDef(a);
+			recursionCounter.Decrement();
+			return hash * HASHCODE_ENCLOSING_TYPE_MULTIPLIER;
+		}
+
 		int GetHashCodeGlobalType() {
 			// We don't always know the name+namespace of the global type, eg. when it's
 			// referenced by a ModuleRef. Use the same hash for all global types.
@@ -1604,8 +1640,8 @@ exit: ;
 
 			int hash;
 			hash = GetHashCode_TypeName(a.Name);
-			if (a.ResolutionScope is TypeRef)
-				hash += HASHCODE_MAGIC_NESTED_TYPE;
+			if (a.ResolutionScope is TypeRef enclosingType)
+				hash += HASHCODE_MAGIC_NESTED_TYPE + GetHashCode_EnclosingType(enclosingType);
 			else
 				hash += GetHashCode_TypeNamespace(a.Namespace);
 			return hash;
@@ -1655,8 +1691,8 @@ exit: ;
 				a = WinMDHelpers.ToCLR(a.Module ?? sourceModule, a) ?? a;
 			int hash;
 			hash = GetHashCode_TypeName(a.TypeName);
-			if (a.Implementation is ExportedType)
-				hash += HASHCODE_MAGIC_NESTED_TYPE;
+			if (a.Implementation is ExportedType enclosingType)
+				hash += HASHCODE_MAGIC_NESTED_TYPE + GetHashCode_EnclosingType(enclosingType);
 			else
 				hash += GetHashCode_TypeNamespace(a.TypeNamespace);
 			return hash;
@@ -1724,8 +1760,8 @@ exit: ;
 
 			int hash;
 			hash = GetHashCode_TypeName(a.Name);
-			if (a.DeclaringType is not null)
-				hash += HASHCODE_MAGIC_NESTED_TYPE;
+			if (a.DeclaringType is TypeDef enclosingType)
+				hash += HASHCODE_MAGIC_NESTED_TYPE + GetHashCode_EnclosingType(enclosingType);
 			else
 				hash += GetHashCode_TypeNamespace(a.Namespace);
 			return hash;
@@ -4092,7 +4128,7 @@ exit: ;
 			int hash;
 			hash = GetHashCode_TypeName(ReflectionExtensions.Unescape(a.Name));
 			if (a.IsNested)
-				hash += HASHCODE_MAGIC_NESTED_TYPE;
+				hash += HASHCODE_MAGIC_NESTED_TYPE + GetHashCode_EnclosingType(a.DeclaringType);
 			else
 				hash += GetHashCode_TypeNamespace(a.Namespace);
 			return hash;
