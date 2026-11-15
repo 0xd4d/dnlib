@@ -750,10 +750,18 @@ namespace dnlib.DotNet.Writer {
 
 			destStream = dest;
 			destStreamBaseOffset = destStream.Position;
-			OnWriterEvent(ModuleWriterEvent.Begin);
-			var imageLength = WriteImpl();
-			destStream.Position = destStreamBaseOffset + imageLength;
-			OnWriterEvent(ModuleWriterEvent.End);
+			createdPdbFileName = null;
+			try {
+				OnWriterEvent(ModuleWriterEvent.Begin);
+				var imageLength = WriteImpl();
+				destStream.Position = destStreamBaseOffset + imageLength;
+				OnWriterEvent(ModuleWriterEvent.End);
+			}
+			catch {
+				// The PDB was created for this module so it's useless if writing the module failed
+				DeleteFileNoThrow(createdPdbFileName);
+				throw;
+			}
 		}
 
 		/// <summary>
@@ -919,6 +927,8 @@ namespace dnlib.DotNet.Writer {
 		/// method.
 		/// </summary>
 		protected void WritePdbFile() {
+			// This writer may have been used before. Don't delete a file created by an earlier write.
+			createdPdbFileName = null;
 			if (!CanWritePdb())
 				return;
 			if (debugDirectory is null)
@@ -1034,15 +1044,17 @@ namespace dnlib.DotNet.Writer {
 							GetDefaultPdbFileName());
 			}
 
-			if (!string.IsNullOrEmpty(TheOptions.PdbFileName)) {
-				createdPdbFileName = pdbFilename = TheOptions.PdbFileName;
-				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, createdPdbFileName);
-			}
-
-			createdPdbFileName = pdbFilename = GetDefaultPdbFileName();
-			if (createdPdbFileName is null)
+			if (!string.IsNullOrEmpty(TheOptions.PdbFileName))
+				pdbFilename = TheOptions.PdbFileName;
+			else
+				pdbFilename = GetDefaultPdbFileName();
+			if (pdbFilename is null)
 				return null;
-			return Pdb.Dss.SymbolReaderWriterFactory.Create(options, createdPdbFileName);
+			var symWriter = Pdb.Dss.SymbolReaderWriterFactory.Create(options, pdbFilename);
+			// Only delete the file on failure if we created it. It's not created if there's no COM writer.
+			if (symWriter is not null)
+				createdPdbFileName = pdbFilename;
+			return symWriter;
 		}
 
 		static string GetStreamName(Stream stream) => (stream as FileStream)?.Name;
@@ -1225,16 +1237,20 @@ namespace dnlib.DotNet.Writer {
 				return TheOptions.PdbStream;
 			}
 
+			string pdbFilename;
 			if (!string.IsNullOrEmpty(TheOptions.PdbFileName))
-				createdPdbFileName = TheOptions.PdbFileName;
+				pdbFilename = TheOptions.PdbFileName;
 			else
-				createdPdbFileName = GetDefaultPdbFileName();
-			if (createdPdbFileName is null) {
+				pdbFilename = GetDefaultPdbFileName();
+			if (pdbFilename is null) {
 				ownsStream = false;
 				return null;
 			}
+			var stream = File.Create(pdbFilename);
+			// Only delete the file on failure if we created it
+			createdPdbFileName = pdbFilename;
 			ownsStream = true;
-			return File.Create(createdPdbFileName);
+			return stream;
 		}
 
 		void Metadata_MetadataEvent(object sender, MetadataWriterEventArgs e) {
