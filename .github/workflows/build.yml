@@ -25,6 +25,12 @@ on:
 
 permissions: {}
 
+# One run per branch/PR/tag. Only PR runs are cancelled when a newer commit is pushed, so a master
+# or release (publish) run is never stopped part-way.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   CI_REQ_DOTNET_SDK_VER: 10.0.x
   NUGET_USER: 'wtfsck'
