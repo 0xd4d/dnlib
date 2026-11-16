@@ -3792,10 +3792,43 @@ namespace dnlib.DotNet.Writer {
 			AddCustomDebugInformationList(Table.LocalVariable, rid, local.CustomDebugInfos);
 		}
 
+		TypeSig GetLocalConstantTypeFromValue(object value) {
+			var corLibTypes = module.CorLibTypes;
+			return value switch {
+				// A Windows PDB stores "" as null and null as 0, so without a type it could've been
+				// "" or any null reference. OBJECT + null value is a valid null reference constant.
+				null => corLibTypes.Object,
+				bool => corLibTypes.Boolean,
+				char => corLibTypes.Char,
+				sbyte => corLibTypes.SByte,
+				byte => corLibTypes.Byte,
+				short => corLibTypes.Int16,
+				ushort => corLibTypes.UInt16,
+				int => corLibTypes.Int32,
+				uint => corLibTypes.UInt32,
+				long => corLibTypes.Int64,
+				ulong => corLibTypes.UInt64,
+				float => corLibTypes.Single,
+				double => corLibTypes.Double,
+				string => corLibTypes.String,
+				decimal => new ValueTypeSig(corLibTypes.GetTypeRef("System", "Decimal")),
+				DateTime => new ValueTypeSig(corLibTypes.GetTypeRef("System", "DateTime")),
+				_ => null,
+			};
+		}
+
 		void AddLocalConstant(PdbConstant constant) {
 			Debug.Assert(debugMetadata is not null);
 			if (constant is null) {
 				Error("PDB constant is null");
+				return;
+			}
+
+			// A constant read from a Windows PDB has no type if its signature token is 0 (eg. Pdb2Pdb). The
+			// portable PDB blob must have a type so use the value's type.
+			var type = constant.Type ?? GetLocalConstantTypeFromValue(constant.Value);
+			if (type is null) {
+				Error("PDB constant {0} has no type and its type can't be determined from its value", constant.Name);
 				return;
 			}
 
@@ -3804,7 +3837,7 @@ namespace dnlib.DotNet.Writer {
 			var writer = bwctx.Writer;
 			outStream.SetLength(0);
 			outStream.Position = 0;
-			LocalConstantSigBlobWriter.Write(this, this, writer, constant.Type, constant.Value);
+			LocalConstantSigBlobWriter.Write(this, this, writer, type, constant.Value);
 			var signature = outStream.ToArray();
 			Free(ref bwctx);
 

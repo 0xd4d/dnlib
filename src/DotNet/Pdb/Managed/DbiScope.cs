@@ -178,12 +178,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 				TypeSig signature;
 				var saSig = module.ResolveToken(info.SignatureToken, gpContext) as StandAloneSig;
 				var fieldSig = saSig is null ? null : saSig.Signature as FieldSig;
-				if (fieldSig is null) {
-					Debug.Fail("Constant without a signature");
-					signature = null;
-				}
-				else
-					signature = fieldSig.Type;
+				// The signature token can be 0 (eg. Pdb2Pdb if the module has no StandAloneSig with the constant's type)
+				signature = fieldSig?.Type;
 				res[i] = new PdbConstant(info.Name, signature, info.Value);
 			}
 			return res;
