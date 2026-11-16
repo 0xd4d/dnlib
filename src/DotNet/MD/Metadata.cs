@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using dnlib.PE;
@@ -75,7 +77,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Returns the #Pdb stream or null if it's not a standalone portable PDB file
 		/// </summary>
-		public abstract PdbStream PdbStream { get; }
+		public abstract PdbStream? PdbStream { get; }
 
 		/// <summary>
 		/// Gets all streams

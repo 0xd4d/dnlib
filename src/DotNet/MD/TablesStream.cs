@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using dnlib.IO;
 
@@ -17,75 +19,75 @@ namespace dnlib.DotNet.MD {
 		ulong validMask;
 		ulong sortedMask;
 		uint extraData;
-		MDTable[] mdTables;
+		MDTable[] mdTables = null!;
 		uint mdTablesPos;
 		// Row counts used to calculate the location of each table. These can be bigger than MDTable.Rows.
-		uint[] tableLayoutRows;
+		uint[] tableLayoutRows = null!;
 
-		IColumnReader columnReader;
-		IRowReader<RawMethodRow> methodRowReader;
+		IColumnReader? columnReader;
+		IRowReader<RawMethodRow>? methodRowReader;
 		readonly CLRRuntimeReaderKind runtime;
 
 #pragma warning disable 1591	// XML doc comment
-		public MDTable ModuleTable { get; private set; }
-		public MDTable TypeRefTable { get; private set; }
-		public MDTable TypeDefTable { get; private set; }
-		public MDTable FieldPtrTable { get; private set; }
-		public MDTable FieldTable { get; private set; }
-		public MDTable MethodPtrTable { get; private set; }
-		public MDTable MethodTable { get; private set; }
-		public MDTable ParamPtrTable { get; private set; }
-		public MDTable ParamTable { get; private set; }
-		public MDTable InterfaceImplTable { get; private set; }
-		public MDTable MemberRefTable { get; private set; }
-		public MDTable ConstantTable { get; private set; }
-		public MDTable CustomAttributeTable { get; private set; }
-		public MDTable FieldMarshalTable { get; private set; }
-		public MDTable DeclSecurityTable { get; private set; }
-		public MDTable ClassLayoutTable { get; private set; }
-		public MDTable FieldLayoutTable { get; private set; }
-		public MDTable StandAloneSigTable { get; private set; }
-		public MDTable EventMapTable { get; private set; }
-		public MDTable EventPtrTable { get; private set; }
-		public MDTable EventTable { get; private set; }
-		public MDTable PropertyMapTable { get; private set; }
-		public MDTable PropertyPtrTable { get; private set; }
-		public MDTable PropertyTable { get; private set; }
-		public MDTable MethodSemanticsTable { get; private set; }
-		public MDTable MethodImplTable { get; private set; }
-		public MDTable ModuleRefTable { get; private set; }
-		public MDTable TypeSpecTable { get; private set; }
-		public MDTable ImplMapTable { get; private set; }
-		public MDTable FieldRVATable { get; private set; }
-		public MDTable ENCLogTable { get; private set; }
-		public MDTable ENCMapTable { get; private set; }
-		public MDTable AssemblyTable { get; private set; }
-		public MDTable AssemblyProcessorTable { get; private set; }
-		public MDTable AssemblyOSTable { get; private set; }
-		public MDTable AssemblyRefTable { get; private set; }
-		public MDTable AssemblyRefProcessorTable { get; private set; }
-		public MDTable AssemblyRefOSTable { get; private set; }
-		public MDTable FileTable { get; private set; }
-		public MDTable ExportedTypeTable { get; private set; }
-		public MDTable ManifestResourceTable { get; private set; }
-		public MDTable NestedClassTable { get; private set; }
-		public MDTable GenericParamTable { get; private set; }
-		public MDTable MethodSpecTable { get; private set; }
-		public MDTable GenericParamConstraintTable { get; private set; }
-		public MDTable DocumentTable { get; private set; }
-		public MDTable MethodDebugInformationTable { get; private set; }
-		public MDTable LocalScopeTable { get; private set; }
-		public MDTable LocalVariableTable { get; private set; }
-		public MDTable LocalConstantTable { get; private set; }
-		public MDTable ImportScopeTable { get; private set; }
-		public MDTable StateMachineMethodTable { get; private set; }
-		public MDTable CustomDebugInformationTable { get; private set; }
+		public MDTable ModuleTable { get; private set; } = null!;
+		public MDTable TypeRefTable { get; private set; } = null!;
+		public MDTable TypeDefTable { get; private set; } = null!;
+		public MDTable FieldPtrTable { get; private set; } = null!;
+		public MDTable FieldTable { get; private set; } = null!;
+		public MDTable MethodPtrTable { get; private set; } = null!;
+		public MDTable MethodTable { get; private set; } = null!;
+		public MDTable ParamPtrTable { get; private set; } = null!;
+		public MDTable ParamTable { get; private set; } = null!;
+		public MDTable InterfaceImplTable { get; private set; } = null!;
+		public MDTable MemberRefTable { get; private set; } = null!;
+		public MDTable ConstantTable { get; private set; } = null!;
+		public MDTable CustomAttributeTable { get; private set; } = null!;
+		public MDTable FieldMarshalTable { get; private set; } = null!;
+		public MDTable DeclSecurityTable { get; private set; } = null!;
+		public MDTable ClassLayoutTable { get; private set; } = null!;
+		public MDTable FieldLayoutTable { get; private set; } = null!;
+		public MDTable StandAloneSigTable { get; private set; } = null!;
+		public MDTable EventMapTable { get; private set; } = null!;
+		public MDTable EventPtrTable { get; private set; } = null!;
+		public MDTable EventTable { get; private set; } = null!;
+		public MDTable PropertyMapTable { get; private set; } = null!;
+		public MDTable PropertyPtrTable { get; private set; } = null!;
+		public MDTable PropertyTable { get; private set; } = null!;
+		public MDTable MethodSemanticsTable { get; private set; } = null!;
+		public MDTable MethodImplTable { get; private set; } = null!;
+		public MDTable ModuleRefTable { get; private set; } = null!;
+		public MDTable TypeSpecTable { get; private set; } = null!;
+		public MDTable ImplMapTable { get; private set; } = null!;
+		public MDTable FieldRVATable { get; private set; } = null!;
+		public MDTable ENCLogTable { get; private set; } = null!;
+		public MDTable ENCMapTable { get; private set; } = null!;
+		public MDTable AssemblyTable { get; private set; } = null!;
+		public MDTable AssemblyProcessorTable { get; private set; } = null!;
+		public MDTable AssemblyOSTable { get; private set; } = null!;
+		public MDTable AssemblyRefTable { get; private set; } = null!;
+		public MDTable AssemblyRefProcessorTable { get; private set; } = null!;
+		public MDTable AssemblyRefOSTable { get; private set; } = null!;
+		public MDTable FileTable { get; private set; } = null!;
+		public MDTable ExportedTypeTable { get; private set; } = null!;
+		public MDTable ManifestResourceTable { get; private set; } = null!;
+		public MDTable NestedClassTable { get; private set; } = null!;
+		public MDTable GenericParamTable { get; private set; } = null!;
+		public MDTable MethodSpecTable { get; private set; } = null!;
+		public MDTable GenericParamConstraintTable { get; private set; } = null!;
+		public MDTable DocumentTable { get; private set; } = null!;
+		public MDTable MethodDebugInformationTable { get; private set; } = null!;
+		public MDTable LocalScopeTable { get; private set; } = null!;
+		public MDTable LocalVariableTable { get; private set; } = null!;
+		public MDTable LocalConstantTable { get; private set; } = null!;
+		public MDTable ImportScopeTable { get; private set; } = null!;
+		public MDTable StateMachineMethodTable { get; private set; } = null!;
+		public MDTable CustomDebugInformationTable { get; private set; } = null!;
 #pragma warning restore
 
 		/// <summary>
 		/// Gets/sets the column reader
 		/// </summary>
-		public IColumnReader ColumnReader {
+		public IColumnReader? ColumnReader {
 			get => columnReader;
 			set => columnReader = value;
 		}
@@ -93,7 +95,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Gets/sets the <c>Method</c> table reader
 		/// </summary>
-		public IRowReader<RawMethodRow> MethodRowReader {
+		public IRowReader<RawMethodRow>? MethodRowReader {
 			get => methodRowReader;
 			set => methodRowReader = value;
 		}
@@ -200,7 +202,7 @@ namespace dnlib.DotNet.MD {
 		/// Initializes MD tables
 		/// </summary>
 		/// <param name="typeSystemTableRows">Type system table rows (from #Pdb stream)</param>
-		public void Initialize(uint[] typeSystemTableRows) =>
+		public void Initialize(uint[]? typeSystemTableRows) =>
 			Initialize(typeSystemTableRows, false);
 
 		/// <summary>
@@ -208,7 +210,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="typeSystemTableRows">Type system table rows (from #Pdb stream)</param>
 		/// <param name="forceAllBig">Force all columns to 4 bytes instead of 2 or 4 bytes</param>
-		internal void Initialize(uint[] typeSystemTableRows, bool forceAllBig) {
+		internal void Initialize(uint[]? typeSystemTableRows, bool forceAllBig) {
 			if (initialized)
 				throw new Exception("Initialize() has already been called");
 			initialized = true;
@@ -383,7 +385,7 @@ namespace dnlib.DotNet.MD {
 						if (mdTable is not null)
 							mdTable.Dispose();
 					}
-					mdTables = null;
+					mdTables = null!;
 				}
 			}
 			base.Dispose(disposing);
@@ -394,7 +396,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="table">The table type</param>
 		/// <returns>A <see cref="MDTable"/> or <c>null</c> if table doesn't exist</returns>
-		public MDTable Get(Table table) {
+		public MDTable? Get(Table table) {
 			int index = (int)table;
 			if ((uint)index >= (uint)mdTables.Length)
 				return null;

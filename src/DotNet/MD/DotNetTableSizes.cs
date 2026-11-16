@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -12,7 +14,7 @@ namespace dnlib.DotNet.MD {
 		bool bigGuid;
 		bool bigBlob;
 		bool forceAllBig;
-		TableInfo[] tableInfos;
+		TableInfo[] tableInfos = null!;
 
 		internal static bool IsSystemTable(Table table) => table < Table.Document;
 

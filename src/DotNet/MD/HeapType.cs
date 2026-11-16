@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// Heap type. The values are set in stone by MS. Don't change.

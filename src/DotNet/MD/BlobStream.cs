@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using dnlib.IO;
 
@@ -38,7 +40,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="offset">Offset of data</param>
 		/// <returns>The data or <c>null</c> if invalid offset</returns>
-		public byte[] Read(uint offset) {
+		public byte[]? Read(uint offset) {
 			offset &= offsetMask;
 			// The CLR has a special check for offset 0. It always interprets it as
 			// 0-length data, even if that first byte isn't 0 at all.

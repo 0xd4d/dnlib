@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using dnlib.IO;
 
@@ -31,7 +33,7 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="offset">Offset of unicode string</param>
 		/// <returns>A string or <c>null</c> if <paramref name="offset"/> is invalid</returns>
-		public string Read(uint offset) {
+		public string? Read(uint offset) {
 			if (offset == 0)
 				return string.Empty;
 			if (!IsValidOffset(offset))

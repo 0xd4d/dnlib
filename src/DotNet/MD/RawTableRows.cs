@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.MD {
 #pragma warning disable 1591 // Missing XML comment for publicly visible type or member
 	/// <summary>

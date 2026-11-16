@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using dnlib.IO;
 
 namespace dnlib.DotNet.MD {
@@ -21,10 +23,10 @@ namespace dnlib.DotNet.MD {
 		/// </summary>
 		/// <param name="offset">Offset of string</param>
 		/// <returns>A <see cref="UTF8String"/> instance or <c>null</c> if invalid offset</returns>
-		public UTF8String Read(uint offset) {
+		public UTF8String? Read(uint offset) {
 			if (offset >= StreamLength)
 				return null;
-			byte[] data;
+			byte[]? data;
 			var reader = dataReader;
 			reader.Position = offset;
 			data = reader.TryReadBytesUntil(0);

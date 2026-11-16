@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using dnlib.IO;
@@ -29,7 +31,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		protected override void InitializeInternal(DataReaderFactory mdReaderFactory, uint metadataBaseOffset) {
-			DotNetStream dns = null;
+			DotNetStream? dns = null;
 			var newAllStreams = new List<DotNetStream>(allStreams);
 			bool forceAllBig = false;
 			try {
