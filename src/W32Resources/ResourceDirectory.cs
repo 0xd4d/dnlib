@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using dnlib.Utils;
@@ -20,9 +22,9 @@ namespace dnlib.W32Resources {
 		/// <summary>See <see cref="MinorVersion"/></summary>
 		protected ushort minorVersion;
 		/// <summary>See <see cref="Directories"/></summary>
-		private protected LazyList<ResourceDirectory> directories;
+		private protected LazyList<ResourceDirectory> directories = null!;
 		/// <summary>See <see cref="Data"/></summary>
-		private protected LazyList<ResourceData> data;
+		private protected LazyList<ResourceData> data = null!;
 
 		/// <summary>
 		/// Gets/sets the characteristics
@@ -79,7 +81,7 @@ namespace dnlib.W32Resources {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <returns>A <see cref="ResourceDirectory"/> or <c>null</c> if it wasn't found</returns>
-		public ResourceDirectory FindDirectory(ResourceName name) {
+		public ResourceDirectory? FindDirectory(ResourceName name) {
 			foreach (var dir in directories) {
 				if (dir.Name == name)
 					return dir;
@@ -92,7 +94,7 @@ namespace dnlib.W32Resources {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <returns>A <see cref="ResourceData"/> or <c>null</c> if it wasn't found</returns>
-		public ResourceData FindData(ResourceName name) {
+		public ResourceData? FindData(ResourceName name) {
 			foreach (var d in data) {
 				if (d.Name == name)
 					return d;
@@ -135,12 +137,12 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// Info about all <see cref="ResourceData"/>'s we haven't created yet
 		/// </summary>
-		List<EntryInfo> dataInfos;
+		List<EntryInfo>? dataInfos;
 
 		/// <summary>
 		/// Info about all <see cref="ResourceDirectory"/>'s we haven't created yet
 		/// </summary>
-		List<EntryInfo> dirInfos;
+		List<EntryInfo>? dirInfos;
 
 		readonly struct EntryInfo {
 			public readonly ResourceName name;
@@ -213,19 +215,19 @@ namespace dnlib.W32Resources {
 					dirInfos.Add(new EntryInfo(name, dataOrDirectory & 0x7FFFFFFF));
 			}
 
-			directories = new LazyList<ResourceDirectory, object>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory(i));
-			data = new LazyList<ResourceData, object>(dataInfos.Count, null, (ctx, i) => ReadResourceData(i));
+			directories = new LazyList<ResourceDirectory, object?>(dirInfos.Count, null, (ctx, i) => ReadResourceDirectory(i));
+			data = new LazyList<ResourceData, object?>(dataInfos.Count, null, (ctx, i) => ReadResourceData(i));
 		}
 
 		ResourceDirectory ReadResourceDirectory(int i) {
-			var info = dirInfos[i];
+			var info = dirInfos![i];
 			var reader = resources.GetResourceReader();
 			reader.Position = Math.Min(reader.Length, info.offset);
 			return new ResourceDirectoryPE(depth + 1, info.name, resources, ref reader);
 		}
 
 		ResourceData ReadResourceData(int i) {
-			var info = dataInfos[i];
+			var info = dataInfos![i];
 			var reader = resources.GetResourceReader();
 			reader.Position = Math.Min(reader.Length, info.offset);
 

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using dnlib.IO;
@@ -44,7 +46,7 @@ namespace dnlib.PE {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
-		string Filename { get; }
+		string? Filename { get; }
 
 		/// <summary>
 		/// Returns the DOS header
@@ -69,7 +71,7 @@ namespace dnlib.PE {
 		/// <summary>
 		/// Gets/sets the Win32 resources. This is <c>null</c> if there are no Win32 resources.
 		/// </summary>
-		Win32Resources Win32Resources { get; set; }
+		Win32Resources? Win32Resources { get; set; }
 
 		/// <summary>
 		/// Gets the <see cref="DataReader"/> factory
@@ -139,7 +141,7 @@ namespace dnlib.PE {
 		/// <param name="name">Name</param>
 		/// <param name="langId">Language ID</param>
 		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
-		public static ResourceData FindWin32ResourceData(this IPEImage self, ResourceName type, ResourceName name, ResourceName langId) =>
+		public static ResourceData? FindWin32ResourceData(this IPEImage self, ResourceName type, ResourceName name, ResourceName langId) =>
 			self.Win32Resources?.Find(type, name, langId);
 	}
 }

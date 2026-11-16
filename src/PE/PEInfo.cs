@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using dnlib.IO;
 
@@ -62,7 +64,7 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <param name="offset">The file offset</param>
 		/// <returns></returns>
-		public ImageSectionHeader ToImageSectionHeader(FileOffset offset) {
+		public ImageSectionHeader? ToImageSectionHeader(FileOffset offset) {
 			foreach (var section in imageSectionHeaders) {
 				if ((uint)offset >= section.PointerToRawData && (uint)offset < section.PointerToRawData + section.LoadedSizeOfRawData)
 					return section;
@@ -76,7 +78,7 @@ namespace dnlib.PE {
 		/// </summary>
 		/// <param name="rva">The RVA</param>
 		/// <returns></returns>
-		public ImageSectionHeader ToImageSectionHeader(RVA rva) {
+		public ImageSectionHeader? ToImageSectionHeader(RVA rva) {
 			uint alignment = imageNTHeaders.OptionalHeader.SectionAlignment;
 			foreach (var section in imageSectionHeaders) {
 				if (rva >= section.VirtualAddress && rva < section.VirtualAddress + DotNet.Utils.AlignUp(section.LoadedVirtualSize, alignment))

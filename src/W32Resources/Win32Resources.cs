@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -16,14 +18,14 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// Gets/sets the root directory
 		/// </summary>
-		public abstract ResourceDirectory Root { get; set; }
+		public abstract ResourceDirectory? Root { get; set; }
 
 		/// <summary>
 		/// Finds a <see cref="ResourceDirectory"/>
 		/// </summary>
 		/// <param name="type">Type</param>
 		/// <returns>The <see cref="ResourceDirectory"/> or <c>null</c> if none found</returns>
-		public ResourceDirectory Find(ResourceName type) {
+		public ResourceDirectory? Find(ResourceName type) {
 			var dir = Root;
 			if (dir is null)
 				return null;
@@ -36,7 +38,7 @@ namespace dnlib.W32Resources {
 		/// <param name="type">Type</param>
 		/// <param name="name">Name</param>
 		/// <returns>The <see cref="ResourceDirectory"/> or <c>null</c> if none found</returns>
-		public ResourceDirectory Find(ResourceName type, ResourceName name) {
+		public ResourceDirectory? Find(ResourceName type, ResourceName name) {
 			var dir = Find(type);
 			if (dir is null)
 				return null;
@@ -50,7 +52,7 @@ namespace dnlib.W32Resources {
 		/// <param name="name">Name</param>
 		/// <param name="langId">Language ID</param>
 		/// <returns>The <see cref="ResourceData"/> or <c>null</c> if none found</returns>
-		public ResourceData Find(ResourceName type, ResourceName name, ResourceName langId) {
+		public ResourceData? Find(ResourceName type, ResourceName name, ResourceName langId) {
 			var dir = Find(type, name);
 			if (dir is null)
 				return null;
@@ -78,10 +80,10 @@ namespace dnlib.W32Resources {
 	/// Win32 resources class created by the user
 	/// </summary>
 	public class Win32ResourcesUser : Win32Resources {
-		ResourceDirectory root = new ResourceDirectoryUser(new ResourceName("root"));
+		ResourceDirectory? root = new ResourceDirectoryUser(new ResourceName("root"));
 
 		/// <inheritdoc/>
-		public override ResourceDirectory Root {
+		public override ResourceDirectory? Root {
 			get => root;
 			set => Interlocked.Exchange(ref root, value);
 		}
@@ -115,7 +117,7 @@ namespace dnlib.W32Resources {
 		uint rsrcReader_length;
 		bool owns_rsrcReader_factory;
 
-		UserValue<ResourceDirectory> root;
+		UserValue<ResourceDirectory?> root;
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -135,7 +137,7 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// All names that have been read, the key is the offset of the name
 		/// </summary>
-		readonly Dictionary<uint, string> names = new Dictionary<uint, string>();
+		readonly Dictionary<uint, string?> names = new Dictionary<uint, string?>();
 
 		ulong MaxBudget => (ulong)rsrcReader_length * 2;
 
@@ -167,7 +169,7 @@ namespace dnlib.W32Resources {
 		/// <param name="reader">Resource reader</param>
 		/// <param name="offset">Offset of name</param>
 		/// <returns>The name or <c>null</c> if we could not read it</returns>
-		internal string ReadName(ref DataReader reader, uint offset) {
+		internal string? ReadName(ref DataReader reader, uint offset) {
 #if THREAD_SAFE
 			budgetLock.EnterWriteLock(); try {
 #endif
@@ -181,7 +183,7 @@ namespace dnlib.W32Resources {
 #endif
 		}
 
-		string ReadName_NoLock(ref DataReader reader, uint offset) {
+		string? ReadName_NoLock(ref DataReader reader, uint offset) {
 			if (offset > reader.Length)
 				return null;
 			reader.Position = offset;
@@ -202,7 +204,7 @@ namespace dnlib.W32Resources {
 		}
 
 		/// <inheritdoc/>
-		public override ResourceDirectory Root {
+		public override ResourceDirectory? Root {
 			get => root.Value;
 			set {
 				if (root.IsValueInitialized) {
@@ -266,7 +268,7 @@ namespace dnlib.W32Resources {
 		/// <param name="rsrcReader_offset">Offset of resource section</param>
 		/// <param name="rsrcReader_length">Length of resource section</param>
 		/// <param name="owns_rsrcReader_factory">true if this instance can dispose of <paramref name="rsrcReader_factory"/></param>
-		public Win32ResourcesPE(IPEImage peImage, DataReaderFactory rsrcReader_factory, uint rsrcReader_offset, uint rsrcReader_length, bool owns_rsrcReader_factory) {
+		public Win32ResourcesPE(IPEImage peImage, DataReaderFactory? rsrcReader_factory, uint rsrcReader_offset, uint rsrcReader_length, bool owns_rsrcReader_factory) {
 			rvaConverter = peImage ?? throw new ArgumentNullException(nameof(peImage));
 			dataReader_factory = peImage.DataReaderFactory;
 			dataReader_offset = 0;
@@ -344,8 +346,8 @@ namespace dnlib.W32Resources {
 				dataReader_factory?.Dispose();
 			if (owns_rsrcReader_factory)
 				rsrcReader_factory?.Dispose();
-			dataReader_factory = null;
-			rsrcReader_factory = null;
+			dataReader_factory = null!;
+			rsrcReader_factory = null!;
 			base.Dispose(disposing);
 		}
 	}

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.PE {
 	/// <summary>
 	/// Image debug type, see <c>IMAGE_DEBUG_TYPE_*</c> in winnt.n

@@ -1,6 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.W32Resources {
 	/// <summary>
@@ -8,16 +11,18 @@ namespace dnlib.W32Resources {
 	/// </summary>
 	public readonly struct ResourceName : IComparable<ResourceName>, IEquatable<ResourceName> {
 		readonly int id;
-		readonly string name;
+		readonly string? name;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Id"/> is valid
 		/// </summary>
+		[MemberNotNullWhen(false, nameof(name), nameof(Name))]
 		public bool HasId => name is null;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="Name"/> is valid
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(name), nameof(Name))]
 		public bool HasName => name is not null;
 
 		/// <summary>
@@ -28,7 +33,7 @@ namespace dnlib.W32Resources {
 		/// <summary>
 		/// The name. It's only valid if <see cref="HasName"/> is <c>true</c>
 		/// </summary>
-		public string Name => name;
+		public string? Name => name;
 
 		/// <summary>
 		/// Constructor
@@ -81,14 +86,14 @@ namespace dnlib.W32Resources {
 			if (HasId)
 				return id.CompareTo(other.id);
 			else
-				return string.CompareOrdinal(name.ToUpperInvariant(), other.name.ToUpperInvariant());
+				return string.CompareOrdinal(name.ToUpperInvariant(), other.name!.ToUpperInvariant());
 		}
 
 		/// <inheritdoc/>
 		public bool Equals(ResourceName other) => CompareTo(other) == 0;
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			if (!(obj is ResourceName))
 				return false;
 			return Equals((ResourceName)obj);
