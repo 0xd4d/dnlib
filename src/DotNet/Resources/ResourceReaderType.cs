@@ -1,4 +1,6 @@
 namespace dnlib.DotNet.Resources {
+
+#nullable enable
 	/// <summary>
 	/// Resource reader type
 	/// </summary>
