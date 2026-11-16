@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Emit;
 using SR = System.Reflection;
@@ -12,6 +13,8 @@ namespace dnlib.DotNet.Emit {
 	/// <c>RuntimeTypeHandle.Value</c> and it's the same address you use with the WinDbg SOS command
 	/// !dumpmt.
 	/// </summary>
+	[RequiresUnreferencedCode("Reads private fields of runtime types and method bodies, which can be removed or changed by trimming")]
+	[RequiresDynamicCode("Emits code in a dynamic assembly")]
 	static class MethodTableToTypeConverter {
 		const string METHOD_NAME = "m";
 		static readonly MethodInfo setMethodBodyMethodInfo = typeof(MethodBuilder).GetMethod("SetMethodBody", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);

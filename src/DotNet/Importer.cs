@@ -545,7 +545,7 @@ namespace dnlib.DotNet {
 			bool isMethodSpec = methodBase.IsGenericButNotGenericMethodDefinition();
 			if (isMethodSpec) {
 				IMethodDefOrRef method;
-				var origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
+				var origMethod = methodBase.ResolveMethodDefinition();
 				if (methodBase.DeclaringType.GetElementType2() == ElementType.GenericInst)
 					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), Import(methodBase.DeclaringType)));
 				else
@@ -582,7 +582,7 @@ namespace dnlib.DotNet {
 					try {
 						// Get the original method def in case the declaring type is a generic
 						// type instance and the method uses at least one generic type parameter.
-						origMethod = methodBase.Module.ResolveMethod(methodBase.MetadataToken);
+						origMethod = methodBase.ResolveMethodDefinition();
 					}
 					catch (ArgumentException) {
 						origMethod = methodBase;
@@ -727,7 +727,7 @@ namespace dnlib.DotNet {
 				try {
 					// Get the original field def in case the declaring type is a generic
 					// type instance and the field uses a generic type parameter.
-					origField = fieldInfo.Module.ResolveField(fieldInfo.MetadataToken);
+					origField = fieldInfo.ResolveFieldDefinition();
 				}
 				catch (ArgumentException) {
 					origField = fieldInfo;

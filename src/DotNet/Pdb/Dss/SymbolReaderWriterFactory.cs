@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using dnlib.IO;
@@ -56,6 +57,63 @@ namespace dnlib.DotNet.Pdb.Dss {
 
 		static volatile bool canTry_Microsoft_DiaSymReader_Native = true;
 
+		/// <summary>
+		/// <c>false</c> if built-in COM interop has been disabled. It's disabled by default in trimmed and
+		/// NativeAOT apps, and the trimmer then removes the code that uses COM.
+		/// </summary>
+#if NET9_0_OR_GREATER
+		[FeatureSwitchDefinition(BuiltInComInteropSwitchName)]
+#endif
+		static bool IsBuiltInComSupported {
+			get {
+#if NET
+				if (AppContext.TryGetSwitch(BuiltInComInteropSwitchName, out bool isSupported))
+					return isSupported;
+#endif
+				return true;
+			}
+		}
+		const string BuiltInComInteropSwitchName = "System.Runtime.InteropServices.BuiltInComInterop.IsSupported";
+
+		const string ComJustification = "Only called if built-in COM interop is enabled. It's disabled by default in trimmed and AOT " +
+			"apps, and the trimmer then removes this code. If an app enables it, KeepComInterfaces() keeps all COM interface members.";
+		const string ComTypeJustification = "The type is a COM class (from its CLSID) and not a managed type that could be trimmed. " + ComJustification;
+
+		/// <summary>
+		/// The trimmer removes unused interface members, but a COM interface's vtable must have all of its methods.
+		/// This method is only kept (and only keeps them) if the COM code isn't removed by the trimmer.
+		/// </summary>
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IMetaDataEmit))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IMetaDataImport))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IPdbWriter))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedAsyncMethod))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedAsyncMethodPropertiesWriter))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedConstant))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedDispose))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedDocument))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedDocumentWriter))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedMethod))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedMethod2))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedNamespace))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedReader))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedReader2))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedReader3))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedReader4))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedReader5))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedScope))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedScope2))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedSourceServerModule))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedVariable))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter2))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter3))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter4))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter5))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter6))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter7))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter8))]
+		static void KeepComInterfaces() { }
+
 		public static SymbolReader Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream) {
 			ISymUnmanagedReader unmanagedReader = null;
 			SymbolReaderImpl symReader = null;
@@ -106,7 +164,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 			return null;
 		}
 
+		[UnconditionalSuppressMessage("Trimming", "IL2050", Justification = ComJustification)]
+		[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = ComTypeJustification)]
+		[UnconditionalSuppressMessage("Trimming", "IL2077", Justification = ComTypeJustification)]
 		static ISymUnmanagedReader CreateSymUnmanagedReader(PdbReaderOptions options) {
+			if (!IsBuiltInComSupported)
+				return null;
+			KeepComInterfaces();
 			bool useDiaSymReader = (options & PdbReaderOptions.NoDiaSymReader) == 0;
 			bool useOldDiaSymReader = (options & PdbReaderOptions.NoOldDiaSymReader) == 0;
 
@@ -154,7 +218,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 			return null;
 		}
 
+		[UnconditionalSuppressMessage("Trimming", "IL2050", Justification = ComJustification)]
+		[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = ComTypeJustification)]
+		[UnconditionalSuppressMessage("Trimming", "IL2077", Justification = ComTypeJustification)]
 		static ISymUnmanagedWriter2 CreateSymUnmanagedWriter2(PdbWriterOptions options) {
+			if (!IsBuiltInComSupported)
+				return null;
+			KeepComInterfaces();
 			bool useDiaSymReader = (options & PdbWriterOptions.NoDiaSymReader) == 0;
 			bool useOldDiaSymReader = (options & PdbWriterOptions.NoOldDiaSymReader) == 0;
 

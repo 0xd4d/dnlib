@@ -7,6 +7,7 @@ on:
       - 'src/**'
       - 'build.sh'
       - 'dnlib.sln'
+      - 'global.json'
       - '!**/*.md'
     branches:
       - master
@@ -17,6 +18,7 @@ on:
       - 'src/**'
       - 'build.sh'
       - 'dnlib.sln'
+      - 'global.json'
       - '!**/*.md'
     branches:
       - master
@@ -25,8 +27,13 @@ on:
 
 permissions: {}
 
+# One run per branch/PR/tag. Only PR runs are cancelled when a newer commit is pushed, so a master
+# or release (publish) run is never stopped part-way.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
-  CI_REQ_DOTNET_SDK_VER: 10.0.x
   NUGET_USER: 'wtfsck'
 
 jobs:
@@ -43,7 +50,7 @@ jobs:
 
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
+          global-json-file: global.json
 
       - name: Build
         shell: bash
@@ -71,13 +78,20 @@ jobs:
     runs-on: windows-latest
     environment: nuget
     permissions:
-      id-token: write # Required for NuGet trusted publishing (OIDC)
+      id-token: write # Required for NuGet trusted publishing (OIDC) and attestations (Sigstore)
+      attestations: write # Required to store the build provenance attestations
 
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: nupkg
           path: nuget_files
+
+      # Verify with: gh attestation verify <file>.nupkg -R 0xd4d/dnlib
+      - name: Generate build provenance attestations
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: 'nuget_files/dnlib.*nupkg'
 
       - name: Get a short-lived nuget.org API key (trusted publishing)
         id: nuget-login
@@ -109,7 +123,7 @@ jobs:
 
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: ${{env.CI_REQ_DOTNET_SDK_VER}}
+          global-json-file: global.json
 
       - name: Build
         shell: bash

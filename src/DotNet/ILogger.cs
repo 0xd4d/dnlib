@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using dnlib.DotNet.Writer;
 
@@ -409,7 +410,7 @@ namespace dnlib.DotNet {
 		/// <param name="exceptionToThrow">If non-<c>null</c>, this exception type is thrown on
 		/// errors. It must have a public constructor that takes a <see cref="string"/> as the only
 		/// argument.</param>
-		public DummyLogger(Type exceptionToThrow) {
+		public DummyLogger([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type exceptionToThrow) {
 			if (exceptionToThrow is not null) {
 				if (!exceptionToThrow.IsSubclassOf(typeof(Exception)))
 					throw new ArgumentException($"Not a System.Exception sub class: {exceptionToThrow.GetType()}");
