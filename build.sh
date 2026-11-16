@@ -3,5 +3,5 @@ set -euo pipefail
 
 configuration=Release
 
-dotnet build -v:m -c "$configuration"
-dotnet pack -v:m -c "$configuration" src/dnlib.csproj
+dotnet build -v:m -c "$configuration" -warnaserror
+dotnet pack -v:m -c "$configuration" -warnaserror src/dnlib.csproj
