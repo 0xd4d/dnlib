@@ -473,6 +473,12 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Same as <see cref="FieldType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>,
+		/// which it is if <see cref="FieldSig"/> or its type is <c>null</c>
+		/// </summary>
+		public TypeSig FieldTypeOrThrow => OrThrowHelper.NotNull(FieldSig.GetFieldType(), nameof(FieldType));
+
+		/// <summary>
 		/// Modify <see cref="attributes"/> field: <see cref="attributes"/> =
 		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>
