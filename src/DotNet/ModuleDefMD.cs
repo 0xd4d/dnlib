@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -173,6 +174,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="mod">An existing reflection module</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		[RequiresAssemblyFiles("The module must have been loaded from a file. Use one of the other Load() overloads in single-file apps.")]
 		public static ModuleDefMD Load(System.Reflection.Module mod) => Load(mod, (ModuleCreationOptions)null, GetImageLayout(mod));
 
 		/// <summary>
@@ -181,6 +183,7 @@ namespace dnlib.DotNet {
 		/// <param name="mod">An existing reflection module</param>
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		[RequiresAssemblyFiles("The module must have been loaded from a file. Use one of the other Load() overloads in single-file apps.")]
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context) => Load(mod, new ModuleCreationOptions(context), GetImageLayout(mod));
 
 		/// <summary>
@@ -189,8 +192,10 @@ namespace dnlib.DotNet {
 		/// <param name="mod">An existing reflection module</param>
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		[RequiresAssemblyFiles("The module must have been loaded from a file. Use one of the other Load() overloads in single-file apps.")]
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleCreationOptions options) => Load(mod, options, GetImageLayout(mod));
 
+		[RequiresAssemblyFiles]
 		static ImageLayout GetImageLayout(System.Reflection.Module mod) {
 			var fqn = mod.FullyQualifiedName;
 			if (fqn.Length > 0 && fqn[0] == '<' && fqn[fqn.Length - 1] == '>')
@@ -205,8 +210,10 @@ namespace dnlib.DotNet {
 		/// <param name="context">Module context or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the module in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		[RequiresAssemblyFiles("The module must have been loaded from a file. Use one of the other Load() overloads in single-file apps.")]
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleContext context, ImageLayout imageLayout) => Load(mod, new ModuleCreationOptions(context), imageLayout);
 
+		[RequiresAssemblyFiles]
 		static IntPtr GetModuleHandle(System.Reflection.Module mod) {
 #if NETSTANDARD
 			var GetHINSTANCE = typeof(Marshal).GetMethod("GetHINSTANCE", new[] { typeof(System.Reflection.Module) });
@@ -226,6 +233,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Module creation options or <c>null</c></param>
 		/// <param name="imageLayout">Image layout of the module in memory</param>
 		/// <returns>A new <see cref="ModuleDefMD"/> instance</returns>
+		[RequiresAssemblyFiles("The module must have been loaded from a file. Use one of the other Load() overloads in single-file apps.")]
 		public static ModuleDefMD Load(System.Reflection.Module mod, ModuleCreationOptions options, ImageLayout imageLayout) {
 			var addr = GetModuleHandle(mod);
 			if (addr != IntPtr.Zero && addr != new IntPtr(-1))

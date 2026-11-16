@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -201,6 +202,10 @@ namespace dnlib.DotNet.Resources {
 				};
 		}
 
+		const string BinaryFormatterJustification = "Nothing is deserialized: the binder throws the first time it's asked for a type, " +
+			"which is how the type name is found. If BinaryFormatter isn't supported, it throws and false is returned.";
+		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = BinaryFormatterJustification)]
+		[UnconditionalSuppressMessage("AOT", "IL3050", Justification = BinaryFormatterJustification)]
 		bool GetSerializedTypeAndAssemblyName(byte[] value, out string assemblyName, out string typeName) {
 			try {
 				var formatter = new BinaryFormatter();

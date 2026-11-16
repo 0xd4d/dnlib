@@ -54,6 +54,8 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
        SYSLIB0051: Exception serialization ctors -->
   <PropertyGroup Condition=" '$(TargetFramework)' != '' AND $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) ">
     <NoWarn>$(NoWarn);SYSLIB0011;SYSLIB0037;SYSLIB0050;SYSLIB0051</NoWarn>
+    <!-- Implies IsTrimmable and enables the trim, AOT and single-file analyzers -->
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">

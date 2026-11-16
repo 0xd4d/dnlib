@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using SR = System.Reflection;
 using System.Reflection.Emit;
 using System.IO;
@@ -30,6 +31,8 @@ namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// Reads code from a DynamicMethod
 	/// </summary>
+	[RequiresUnreferencedCode("Reads private fields of runtime types (eg. DynamicResolver) which can be removed by trimming")]
+	[RequiresDynamicCode("Some type handles are converted to types by emitting code in a dynamic assembly")]
 	public class DynamicMethodBodyReader : MethodBodyReaderBase, ISignatureReaderHelper {
 		static readonly ReflectionFieldInfo rtdmOwnerFieldInfo = new ReflectionFieldInfo("m_owner");
 		static readonly ReflectionFieldInfo dmResolverFieldInfo = new ReflectionFieldInfo("m_resolver", "_resolver");
@@ -97,6 +100,7 @@ namespace dnlib.DotNet.Emit {
 				return fieldInfo is not null;
 			}
 
+			[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Only used by DynamicMethodBodyReader which has [RequiresUnreferencedCode]")]
 			void InitializeField(Type type) {
 				if (fieldInfo is not null)
 					return;

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace dnlib.DotNet {
@@ -4264,6 +4265,8 @@ exit: ;
 		/// <param name="a">File</param>
 		/// <param name="b">Module</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
+		[UnconditionalSuppressMessage("SingleFile", "IL3002", Justification = "A FileDef is a non-manifest module of a multi-module assembly. " +
+			"Single-file apps run on .NET Core which doesn't support multi-module assemblies, so returning false (b.Name is \"<Unknown>\") is correct.")]
 		bool Equals(FileDef a, Module b) {
 			if ((object)a == (object)b)
 				return true;	// both are null
@@ -4495,9 +4498,9 @@ exit: ;
 
 			if (!CompareMethodFieldDeclaringType && b.DeclaringType.IsGenericButNotGenericTypeDefinition()) {
 				var t = b;
-				b = b.Module.ResolveMethod(b.MetadataToken);
+				b = b.ResolveMethodDefinition();
 				if (b.IsGenericButNotGenericMethodDefinition())
-					b = ((MethodInfo)b).MakeGenericMethod(t.GetGenericArguments());
+					b = ((MethodInfo)b).MakeGenericMethodForSignature(t);
 			}
 			bool result = Equals(a.GetCallingConvention(), b) &&
 					(DontCompareReturnType || ReturnTypeEquals(a.RetType, b)) &&
@@ -4540,7 +4543,7 @@ exit: ;
 
 				var oldOptions = ClearOptions(SigComparerOptions.CompareMethodFieldDeclaringType);
 				SetOptions(SigComparerOptions_DontSubstituteGenericParameters);
-				result = result && Equals(a, b.Module.ResolveMethod(b.MetadataToken));
+				result = result && Equals(a, b.ResolveMethodDefinition());
 				RestoreOptions(oldOptions);
 				result = result && DeclaringTypeEquals(a, b);
 
@@ -4650,7 +4653,7 @@ exit: ;
 			// NOTE: We must not push generic method args when comparing a.Method
 			var oldOptions = ClearOptions(SigComparerOptions.CompareMethodFieldDeclaringType);
 			SetOptions(SigComparerOptions_DontSubstituteGenericParameters);
-			result = result && Equals(a.Method, b.Module.ResolveMethod(b.MetadataToken));
+			result = result && Equals(a.Method, b.ResolveMethodDefinition());
 			RestoreOptions(oldOptions);
 			result = result && DeclaringTypeEquals(a.Method, b);
 
@@ -4699,9 +4702,9 @@ exit: ;
 
 			if (!CompareMethodFieldDeclaringType && a.DeclaringType.IsGenericButNotGenericTypeDefinition()) {
 				var t = a;
-				a = a.Module.ResolveMethod(a.MetadataToken);
+				a = a.ResolveMethodDefinition();
 				if (t.IsGenericButNotGenericMethodDefinition())
-					a = ((MethodInfo)a).MakeGenericMethod(t.GetGenericArguments());
+					a = ((MethodInfo)a).MakeGenericMethodForSignature(t);
 			}
 			hash = GetHashCode_CallingConvention(a.CallingConvention, a.IsGenericMethod) +
 					GetHashCode(a.GetParameters(), a.DeclaringType);
@@ -5017,7 +5020,7 @@ exit: ;
 				return false;
 
 			if (!CompareMethodFieldDeclaringType && b.DeclaringType.IsGenericButNotGenericTypeDefinition())
-				b = b.Module.ResolveField(b.MetadataToken);
+				b = b.ResolveFieldDefinition();
 			var bType = b.FieldType;
 			bool result = ModifiersEquals(a.Type, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
 					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedFieldType2() : null);
@@ -5097,7 +5100,7 @@ exit: ;
 			int hash;
 
 			if (!CompareMethodFieldDeclaringType && a.DeclaringType.IsGenericButNotGenericTypeDefinition())
-				a = a.Module.ResolveField(a.MetadataToken);
+				a = a.ResolveFieldDefinition();
 			hash = GetHashCode_CallingConvention(0, false) + GetHashCode(a.FieldType, a.DeclaringType);
 
 			recursionCounter.Decrement();

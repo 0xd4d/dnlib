@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 
@@ -321,6 +322,31 @@ namespace dnlib.DotNet {
 				return null;
 			}
 		}
+
+		const string ResolveOwnTokenJustification = "The token is the member's own token and it's resolved in the member's own module. The trimmer " +
+			"keeps the definition of any member that's kept, and the tokens in a trimmed module are consistent with that module.";
+
+		/// <summary>
+		/// Gets the method definition of <paramref name="method"/>, eg. the method in the generic type definition
+		/// if its declaring type is a generic type instance
+		/// </summary>
+		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
+		public static MethodBase ResolveMethodDefinition(this MethodBase method) => method.Module.ResolveMethod(method.MetadataToken);
+
+		/// <summary>
+		/// Gets the field definition of <paramref name="field"/>, eg. the field in the generic type definition
+		/// if its declaring type is a generic type instance
+		/// </summary>
+		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
+		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) => field.Module.ResolveField(field.MetadataToken);
+
+		/// <summary>
+		/// Instantiates <paramref name="methodDef"/> (a method in a generic type definition) with the generic method
+		/// arguments of <paramref name="instance"/>. The result is only used to compare and hash signatures.
+		/// </summary>
+		[UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "The result is only used to read the signature, it's never invoked")]
+		[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "The result is only used to read the signature, it's never invoked, so no native code is needed")]
+		public static MethodBase MakeGenericMethodForSignature(this MethodInfo methodDef, MethodBase instance) => methodDef.MakeGenericMethod(instance.GetGenericArguments());
 
 #if !NET8_0_OR_GREATER
 		static class FnPtrReflection {

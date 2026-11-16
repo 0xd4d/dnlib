@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -116,6 +117,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		[UnconditionalSuppressMessage("SingleFile", "IL3002", Justification = "Only called when running on Mono, which has no single-file apps")]
 		static string GetCurrentMonoPrefix() {
 			var path = typeof(object).Module.FullyQualifiedName;
 			for (int i = 0; i < 4; i++)
