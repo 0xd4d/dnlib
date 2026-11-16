@@ -276,6 +276,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				BodySize = offset;
 			}
 
+			/// <summary>
+			/// Returns <c>true</c> if <paramref name="instr"/>'s offset is <paramref name="offset"/> (<c>null</c> = end of body).
+			/// Doesn't log an error if the instruction isn't in the body.
+			/// </summary>
+			public readonly bool IsOffset(Instruction instr, uint offset) {
+				if (instr is null)
+					return offset == BodySize;
+				return toOffset.TryGetValue(instr, out uint instrOffset) && instrOffset == offset;
+			}
+
 			public readonly int GetOffset(Instruction instr) {
 				if (instr is null)
 					return (int)BodySize;
@@ -304,27 +314,20 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			// A scope can be reached twice only if the user's Scopes lists have a loop or share a
 			// scope. Write it once so a loop ends.
 			visitedScopes.Clear();
-			if (scope is null || (scope.Namespaces.Count == 0 && scope.Variables.Count == 0 && scope.Constants.Count == 0)) {
-				bool wroteScope = false;
-				if (scope is not null) {
-					visitedScopes.Add(scope);
-					var scopes = scope.Scopes;
-					int count = scopes.Count;
-					for (int i = 0; i < count; i++)
-						wroteScope |= WriteScope(ref info, scopes[i], 0);
-				}
-				if (!wroteScope) {
-					// We must open at least one sub scope (the sym writer creates the 'method' scope
-					// which covers the whole method) or the native PDB reader will fail to read all
-					// sequence points.
-					writer.OpenScope(0);
-					writer.CloseScope((int)info.BodySize);
-				}
+			// The native writer needs exactly one top-level scope and it must cover the whole method
+			// (Roslyn does the same). A second top-level scope fails with E_FAIL and sequence points
+			// after the end of the top-level scope are lost.
+			if (scope is null)
+				WriteEmptyRootScope(ref info);
+			else if (IsEmptyRootWithOneScopeCoveringBody(ref info, scope)) {
+				// The Windows PDB reader returns the method as the root scope with one child scope
+				// that covers the whole method. Write it as is so a Windows PDB is written back unchanged.
+				visitedScopes.Add(scope);
+				if (!WriteScope(ref info, scope.Scopes[0], 0, 0, (int)info.BodySize))
+					WriteEmptyRootScope(ref info);
 			}
-			else {
-				// C++/.NET (some methods)
-				WriteScope(ref info, scope, 0);
-			}
+			else
+				WriteScope(ref info, scope, 0, 0, (int)info.BodySize, isRoot: true);
 
 			GetPseudoCustomDebugInfos(method.CustomDebugInfos, cdiBuilder, out var asyncMethod);
 			if (cdiBuilder.Count != 0) {
@@ -429,7 +432,22 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return 0;
 		}
 
-		bool WriteScope(ref CurrentMethod info, PdbScope scope, int recursionCounter) {
+		bool IsEmptyRootWithOneScopeCoveringBody(ref CurrentMethod info, PdbScope scope) {
+			if (scope.Namespaces.Count != 0 || scope.Variables.Count != 0 || scope.Constants.Count != 0)
+				return false;
+			var scopes = scope.Scopes;
+			if (scopes.Count != 1)
+				return false;
+			var child = scopes[0];
+			return child is not null && info.IsOffset(child.Start, 0) && info.IsOffset(child.End, info.BodySize);
+		}
+
+		void WriteEmptyRootScope(ref CurrentMethod info) {
+			writer.OpenScope(0);
+			writer.CloseScope((int)info.BodySize);
+		}
+
+		bool WriteScope(ref CurrentMethod info, PdbScope scope, int recursionCounter, int parentStartOffset, int parentEndOffset, bool isRoot = false) {
 			if (recursionCounter >= 1000) {
 				Error("Too many PdbScopes");
 				return false;
@@ -443,11 +461,26 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return false;
 			}
 
-			int startOffset = info.GetOffset(scope.Start);
-			int endOffset = info.GetOffset(scope.End);
+			int startOffset, endOffset;
+			if (isRoot) {
+				// Ignore the root's Start/End, see the caller
+				startOffset = 0;
+				endOffset = (int)info.BodySize;
+			}
+			else {
+				startOffset = info.GetOffset(scope.Start);
+				endOffset = info.GetOffset(scope.End);
+			}
 			if (endOffset < startOffset) {
 				Error("PDB scope's end instruction is before its start instruction. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
 				endOffset = startOffset;
+			}
+			if (startOffset < parentStartOffset || endOffset > parentEndOffset) {
+				// The native writer fails if a scope starts before its parent and a debugger can't use a
+				// scope that ends after its parent
+				Error("PDB scope isn't inside its parent scope. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+				startOffset = Math.Min(Math.Max(startOffset, parentStartOffset), parentEndOffset);
+				endOffset = Math.Min(Math.Max(endOffset, startOffset), parentEndOffset);
 			}
 			writer.OpenScope(startOffset);
 			AddLocals(info.Method, scope.Variables, (uint)startOffset, (uint)endOffset);
@@ -456,9 +489,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				var sig = new FieldSig();
 				for (int i = 0; i < constants.Count; i++) {
 					var constant = constants[i];
-					sig.Type = constant.Type;
-					var token = metadata.GetToken(sig);
-					writer.DefineConstant(constant.Name, constant.Value ?? boxedZeroInt32, token.Raw);
+					// A Windows PDB constant's signature token can be 0 (eg. Pdb2Pdb if there's no StandAloneSig
+					// with the constant's type), and then the constant has no type
+					uint token;
+					if (constant.Type is null)
+						token = 0;
+					else {
+						sig.Type = constant.Type;
+						token = metadata.GetToken(sig).Raw;
+					}
+					writer.DefineConstant(constant.Name, constant.Value ?? boxedZeroInt32, token);
 				}
 			}
 			var scopeNamespaces = scope.Namespaces;
@@ -468,7 +508,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			var scopes = scope.Scopes;
 			count = scopes.Count;
 			for (int i = 0; i < count; i++)
-				WriteScope(ref info, scopes[i], recursionCounter + 1);
+				WriteScope(ref info, scopes[i], recursionCounter + 1, startOffset, endOffset);
 			writer.CloseScope(startOffset == 0 && endOffset == info.BodySize ? endOffset : endOffset - localsEndScopeIncValue);
 			return true;
 		}
