@@ -198,6 +198,11 @@ namespace dnlib.DotNet {
 			set => signature = value;
 		}
 
+		/// <summary>
+		/// Same as <see cref="FieldSig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public FieldSig FieldSigOrThrow => OrThrowHelper.NotNull(signature as FieldSig, nameof(FieldSig));
+
 		/// <inheritdoc/>
 		public ModuleDef Module => module;
 

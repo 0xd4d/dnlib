@@ -804,12 +804,19 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// Implemented by fields (<see cref="FieldDef"/> and <see cref="MemberRef"/>)
 	/// </summary>
+#nullable enable
 	public interface IField : ICodedToken, ITokenOperand, IFullName, IMemberRef {
 		/// <summary>
 		/// Gets/sets the field signature
 		/// </summary>
-		FieldSig FieldSig { get; set; }
+		FieldSig? FieldSig { get; set; }
+
+		/// <summary>
+		/// Same as <see cref="FieldSig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		FieldSig FieldSigOrThrow { get; }
 	}
+#nullable restore
 
 	/// <summary>
 	/// Implemented by methods (<see cref="MethodDef"/>, <see cref="MemberRef"/> and <see cref="MethodSpec"/>)

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -51,11 +53,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -73,11 +75,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -105,12 +107,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Field.Signature
 		/// </summary>
-		public CallingConventionSig Signature {
+		public CallingConventionSig? Signature {
 			get => signature;
 			set => signature = value;
 		}
 		/// <summary/>
-		protected CallingConventionSig signature;
+		protected CallingConventionSig? signature;
 
 		/// <summary>
 		/// Gets/sets the field layout offset
@@ -154,7 +156,7 @@ namespace dnlib.DotNet {
 		protected virtual uint? GetFieldOffset_NoLock() => null;
 
 		/// <inheritdoc/>
-		public MarshalType MarshalType {
+		public MarshalType? MarshalType {
 			get {
 				if (!marshalType_isInitialized)
 					InitializeMarshalType();
@@ -172,7 +174,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected MarshalType marshalType;
+		protected MarshalType? marshalType;
 		/// <summary/>
 		protected bool marshalType_isInitialized;
 
@@ -190,7 +192,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="marshalType"/></summary>
-		protected virtual MarshalType GetMarshalType_NoLock() => null;
+		protected virtual MarshalType? GetMarshalType_NoLock() => null;
 
 		/// <summary>Reset <see cref="MarshalType"/></summary>
 		protected void ResetMarshalType() =>
@@ -244,7 +246,7 @@ namespace dnlib.DotNet {
 		/// Gets/sets the initial value. Be sure to set <see cref="HasFieldRVA"/> to <c>true</c> if
 		/// you write to this field.
 		/// </summary>
-		public byte[] InitialValue {
+		public byte[]? InitialValue {
 			get {
 				if (!initialValue_isInitialized)
 					InitializeInitialValue();
@@ -262,7 +264,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected byte[] initialValue;
+		protected byte[]? initialValue;
 		/// <summary/>
 		protected bool initialValue_isInitialized;
 
@@ -280,13 +282,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="initialValue"/></summary>
-		protected virtual byte[] GetInitialValue_NoLock() => null;
+		protected virtual byte[]? GetInitialValue_NoLock() => null;
 
 		/// <summary>Reset <see cref="InitialValue"/></summary>
 		protected void ResetInitialValue() => initialValue_isInitialized = false;
 
 		/// <inheritdoc/>
-		public ImplMap ImplMap {
+		public ImplMap? ImplMap {
 			get {
 				if (!implMap_isInitialized)
 					InitializeImplMap();
@@ -304,7 +306,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ImplMap implMap;
+		protected ImplMap? implMap;
 		/// <summary/>
 		protected bool implMap_isInitialized;
 
@@ -322,10 +324,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="implMap"/></summary>
-		protected virtual ImplMap GetImplMap_NoLock() => null;
+		protected virtual ImplMap? GetImplMap_NoLock() => null;
 
 		/// <inheritdoc/>
-		public Constant Constant {
+		public Constant? Constant {
 			get {
 				if (!constant_isInitialized)
 					InitializeConstant();
@@ -343,7 +345,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected Constant constant;
+		protected Constant? constant;
 		/// <summary/>
 		protected bool constant_isInitialized;
 
@@ -361,7 +363,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="constant"/></summary>
-		protected virtual Constant GetConstant_NoLock() => null;
+		protected virtual Constant? GetConstant_NoLock() => null;
 
 		/// <summary>Reset <see cref="Constant"/></summary>
 		protected void ResetConstant() => constant_isInitialized = false;
@@ -375,7 +377,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
-		public TypeDef DeclaringType {
+		public TypeDef? DeclaringType {
 			get => declaringType2;
 			set {
 				var currentDeclaringType = DeclaringType2;
@@ -389,30 +391,35 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => declaringType2;
+		ITypeDefOrRef? IMemberRef.DeclaringType => declaringType2;
 
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public TypeDef DeclaringType2 {
+		public TypeDef? DeclaringType2 {
 			get => declaringType2;
 			set => declaringType2 = value;
 		}
 		/// <summary/>
-		protected TypeDef declaringType2;
+		protected TypeDef? declaringType2;
 
 		/// <summary>
 		/// Gets/sets the <see cref="FieldSig"/>
 		/// </summary>
-		public FieldSig FieldSig {
+		public FieldSig? FieldSig {
 			get => signature as FieldSig;
 			set => signature = value;
 		}
 
+		/// <summary>
+		/// Same as <see cref="FieldSig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public FieldSig FieldSigOrThrow => OrThrowHelper.NotNull(signature as FieldSig, nameof(FieldSig));
+
 		/// <inheritdoc/>
-		public ModuleDef Module => declaringType2?.Module;
+		public ModuleDef? Module => declaringType2?.Module;
 
 		bool IIsTypeOrMethod.IsType => false;
 		bool IIsTypeOrMethod.IsMethod => false;
@@ -456,7 +463,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the field type
 		/// </summary>
-		public TypeSig FieldType {
+		public TypeSig? FieldType {
 			get => FieldSig.GetFieldType();
 			set {
 				var sig = FieldSig;
@@ -643,7 +650,7 @@ namespace dnlib.DotNet {
 		/// <param name="fieldSig">The field signature of <c>this</c></param>
 		/// <param name="size">Updated with size</param>
 		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
-		protected bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, out uint size) => GetFieldSize(declaringType, fieldSig, GetPointerSize(declaringType), out size);
+		protected bool GetFieldSize(TypeDef? declaringType, FieldSig? fieldSig, out uint size) => GetFieldSize(declaringType, fieldSig, GetPointerSize(declaringType), out size);
 
 		/// <summary>
 		/// Gets the size of this field in bytes or <c>0</c> if unknown.
@@ -653,7 +660,7 @@ namespace dnlib.DotNet {
 		/// <param name="ptrSize">Size of a pointer</param>
 		/// <param name="size">Updated with size</param>
 		/// <returns><c>true</c> if <paramref name="size"/> is valid, <c>false</c> otherwise</returns>
-		protected bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, int ptrSize, out uint size) {
+		protected bool GetFieldSize(TypeDef? declaringType, FieldSig? fieldSig, int ptrSize, out uint size) {
 			var recursionCounter = new RecursionCounter();
 			return GetFieldSize(declaringType, fieldSig, ptrSize, ref recursionCounter, out size);
 		}
@@ -661,14 +668,14 @@ namespace dnlib.DotNet {
 		internal bool GetFieldSize(ref RecursionCounter recursionCounter, out uint size) =>
 			GetFieldSize(declaringType2, FieldSig, GetPointerSize(declaringType2), ref recursionCounter, out size);
 
-		bool GetFieldSize(TypeDef declaringType, FieldSig fieldSig, int ptrSize, ref RecursionCounter recursionCounter, out uint size) {
+		bool GetFieldSize(TypeDef? declaringType, FieldSig? fieldSig, int ptrSize, ref RecursionCounter recursionCounter, out uint size) {
 			size = 0;
 			if (fieldSig is null)
 				return false;
 			return GetClassSize(declaringType, fieldSig.Type, ptrSize, ref recursionCounter, out size);
 		}
 
-		bool GetClassSize(TypeDef declaringType, TypeSig ts, int ptrSize, ref RecursionCounter recursionCounter, out uint size) {
+		bool GetClassSize(TypeDef? declaringType, TypeSig? ts, int ptrSize, ref RecursionCounter recursionCounter, out uint size) {
 			size = 0;
 			ts = ts.RemovePinnedAndModifiers();
 			if (ts is null)
@@ -695,7 +702,7 @@ namespace dnlib.DotNet {
 			return false;
 		}
 
-		int GetPointerSize(TypeDef declaringType) {
+		int GetPointerSize(TypeDef? declaringType) {
 			if (declaringType is null)
 				return 4;
 			var module = declaringType.Module;
@@ -731,7 +738,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="signature">Signature</param>
-		public FieldDefUser(UTF8String name, FieldSig signature)
+		public FieldDefUser(UTF8String name, FieldSig? signature)
 			: this(name, signature, 0) {
 		}
 
@@ -741,7 +748,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="signature">Signature</param>
 		/// <param name="attributes">Flags</param>
-		public FieldDefUser(UTF8String name, FieldSig signature, FieldAttributes attributes) {
+		public FieldDefUser(UTF8String name, FieldSig? signature, FieldAttributes attributes) {
 			this.name = UTF8String.EmptyIfNull(name);
 			this.signature = signature;
 			this.attributes = (int)attributes;
@@ -784,7 +791,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override MarshalType GetMarshalType_NoLock() =>
+		protected override MarshalType? GetMarshalType_NoLock() =>
 			readerModule.ReadMarshalType(Table.Field, origRid, new GenericParamContext(declaringType2));
 
 		/// <inheritdoc/>
@@ -794,18 +801,18 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override byte[] GetInitialValue_NoLock() {
+		protected override byte[]? GetInitialValue_NoLock() {
 			if (!GetFieldRVA_NoLock(out var rva2))
 				return null;
 			return ReadInitialValue_NoLock(rva2);
 		}
 
 		/// <inheritdoc/>
-		protected override ImplMap GetImplMap_NoLock() =>
+		protected override ImplMap? GetImplMap_NoLock() =>
 			readerModule.ResolveImplMap(readerModule.Metadata.GetImplMapRid(Table.Field, origRid));
 
 		/// <inheritdoc/>
-		protected override Constant GetConstant_NoLock() =>
+		protected override Constant? GetConstant_NoLock() =>
 			readerModule.ResolveConstant(readerModule.Metadata.GetConstantRid(Table.Field, origRid));
 
 		/// <summary>
@@ -862,7 +869,7 @@ namespace dnlib.DotNet {
 			return true;
 		}
 
-		byte[] ReadInitialValue_NoLock(RVA rva) {
+		byte[]? ReadInitialValue_NoLock(RVA rva) {
 			if (!GetFieldSize(declaringType2, signature as FieldSig, out uint size))
 				return null;
 			if (size >= int.MaxValue)
