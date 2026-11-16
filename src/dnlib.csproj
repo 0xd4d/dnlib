@@ -9,7 +9,7 @@
 
     <Description>Reads and writes .NET assemblies and modules</Description>
     <Title>$(Description)</Title>
-    <Copyright>Copyright (C) 2012-2019 de4dot@gmail.com</Copyright>
+    <Copyright>Copyright (C) 2012-2026 de4dot@gmail.com</Copyright>
     <AssemblyTitle>dnlib</AssemblyTitle>
     <AssemblyTitle Condition="$(DefineConstants.Contains(THREAD_SAFE))">$(AssemblyTitle) (thread safe)</AssemblyTitle>
     <AssemblyName>dnlib</AssemblyName>
@@ -37,7 +37,7 @@ Reads and writes .NET assemblies and modules, Windows PDBs and Portable PDBs.
 
 For better *Windows PDB* writer support, you should add a reference to `Microsoft.DiaSymReader.Native` nuget package too, see the dnlib README for more info: https://github.com/0xd4d/dnlib#windows-pdbs . You don't need to do anything special for *Portable PDB* support.
     </PackageDescription>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/0xd4d/dnlib/releases</PackageReleaseNotes>
 
     <AssemblyOriginatorKeyFile>..\dnlib.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -67,7 +67,6 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.403" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
