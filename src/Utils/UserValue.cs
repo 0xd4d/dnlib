@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using dnlib.Threading;
@@ -12,9 +14,9 @@ namespace dnlib.Utils {
 	[DebuggerDisplay("{value}")]
 	struct UserValue<TValue> {
 #if THREAD_SAFE
-		Lock theLock;
+		Lock? theLock;
 #endif
-		Func<TValue> readOriginalValue;
+		Func<TValue>? readOriginalValue;
 		TValue value;
 		bool isUserValue;
 		bool isValueInitialized;
@@ -45,7 +47,7 @@ namespace dnlib.Utils {
 				theLock?.EnterWriteLock(); try {
 #endif
 				if (!isValueInitialized) {
-					value = readOriginalValue();
+					value = readOriginalValue!();
 					readOriginalValue = null;
 					isValueInitialized = true;
 				}
