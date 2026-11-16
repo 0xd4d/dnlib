@@ -47,10 +47,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column File.HashValue
@@ -156,7 +156,7 @@ namespace dnlib.DotNet {
 		/// <param name="flags">Flags</param>
 		/// <param name="hashValue">File hash</param>
 		public FileDefUser(UTF8String name, FileAttributes flags, byte[] hashValue) {
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			attributes = (int)flags;
 			this.hashValue = hashValue;
 		}

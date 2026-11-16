@@ -77,6 +77,14 @@ namespace dnlib.DotNet {
 		public static bool IsNull(UTF8String utf8) => utf8 is null || utf8.data is null;
 
 		/// <summary>
+		/// Returns <see cref="Empty"/> if <paramref name="utf8"/> is <c>null</c> or if its data is
+		/// <c>null</c>, else <paramref name="utf8"/> is returned.
+		/// </summary>
+		/// <param name="utf8">The instance to check</param>
+		/// <returns><paramref name="utf8"/> or <see cref="Empty"/>, never <c>null</c></returns>
+		internal static UTF8String EmptyIfNull(UTF8String utf8) => utf8 is null || utf8.data is null ? Empty : utf8;
+
+		/// <summary>
 		/// Checks whether <paramref name="utf8"/> is <c>null</c> or if its data is <c>null</c> or the
 		/// data is zero length.
 		/// </summary>

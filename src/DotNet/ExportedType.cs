@@ -99,7 +99,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public UTF8String Name {
 			get => typeName;
-			set => typeName = value;
+			set => typeName = UTF8String.EmptyIfNull(value);
 		}
 
 		/// <inheritdoc/>
@@ -172,20 +172,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String TypeName {
 			get => typeName;
-			set => typeName = value;
+			set => typeName = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary/>
-		protected UTF8String typeName;
+		protected UTF8String typeName = UTF8String.Empty;
 
 		/// <summary>
 		/// From column ExportedType.TypeNamespace
 		/// </summary>
 		public UTF8String TypeNamespace {
 			get => typeNamespace;
-			set => typeNamespace = value;
+			set => typeNamespace = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary/>
-		protected UTF8String typeNamespace;
+		protected UTF8String typeNamespace = UTF8String.Empty;
 
 		/// <summary>
 		/// From column ExportedType.Implementation
@@ -629,8 +629,8 @@ namespace dnlib.DotNet {
 		public ExportedTypeUser(ModuleDef module, uint typeDefId, UTF8String typeNamespace, UTF8String typeName, TypeAttributes flags, IImplementation implementation) {
 			this.module = module;
 			this.typeDefId = typeDefId;
-			this.typeName = typeName;
-			this.typeNamespace = typeNamespace;
+			this.typeName = UTF8String.EmptyIfNull(typeName);
+			this.typeNamespace = UTF8String.EmptyIfNull(typeNamespace);
 			attributes = (int)flags;
 			this.implementation = implementation;
 			implementation_isInitialized = true;

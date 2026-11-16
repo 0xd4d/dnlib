@@ -76,10 +76,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <inheritdoc/>
 		public MarshalType MarshalType {
@@ -340,7 +340,7 @@ namespace dnlib.DotNet {
 		/// <param name="sequence">Sequence</param>
 		/// <param name="flags">Flags</param>
 		public ParamDefUser(UTF8String name, ushort sequence, ParamAttributes flags) {
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.sequence = sequence;
 			attributes = (int)flags;
 		}

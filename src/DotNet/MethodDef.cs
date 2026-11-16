@@ -98,10 +98,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column Method.Signature
@@ -1055,7 +1055,7 @@ namespace dnlib.DotNet {
 		/// <param name="implFlags">Impl flags</param>
 		/// <param name="flags">Flags</param>
 		public MethodDefUser(UTF8String name, MethodSig methodSig, MethodImplAttributes implFlags, MethodAttributes flags) {
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			signature = methodSig;
 			paramDefs = new LazyList<ParamDef>(this);
 			genericParameters = new LazyList<GenericParam>(this);

@@ -90,20 +90,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column Assembly.Locale
 		/// </summary>
 		public UTF8String Culture {
 			get => culture;
-			set => culture = value;
+			set => culture = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String culture;
+		protected UTF8String culture = UTF8String.Empty;
 
 		/// <inheritdoc/>
 		public IList<DeclSecurity> DeclSecurities {
@@ -790,10 +790,10 @@ namespace dnlib.DotNet {
 			if (locale is null)
 				throw new ArgumentNullException(nameof(locale));
 			modules = new LazyList<ModuleDef>(this);
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.version = version ?? throw new ArgumentNullException(nameof(version));
 			this.publicKey = publicKey ?? new PublicKey();
-			culture = locale;
+			culture = UTF8String.EmptyIfNull(locale);
 			attributes = (int)AssemblyAttributes.None;
 		}
 
@@ -817,10 +817,10 @@ namespace dnlib.DotNet {
 			if (asmName is null)
 				throw new ArgumentNullException(nameof(asmName));
 			modules = new LazyList<ModuleDef>(this);
-			name = asmName.Name;
+			name = UTF8String.EmptyIfNull(asmName.Name);
 			version = asmName.Version ?? new Version(0, 0, 0, 0);
 			publicKey = asmName.PublicKeyOrToken as PublicKey ?? new PublicKey();
-			culture = asmName.Culture;
+			culture = UTF8String.EmptyIfNull(asmName.Culture);
 			attributes = (int)asmName.ContentType;
 			hashAlgorithm = AssemblyHashAlgorithm.SHA1;
 		}

@@ -41,10 +41,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column ImplMap.ImportScope
@@ -261,7 +261,7 @@ namespace dnlib.DotNet {
 		/// <param name="flags">Flags</param>
 		public ImplMapUser(ModuleRef scope, UTF8String name, PInvokeAttributes flags) {
 			module = scope;
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			attributes = (int)flags;
 		}
 	}

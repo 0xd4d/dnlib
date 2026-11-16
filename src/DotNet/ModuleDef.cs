@@ -99,10 +99,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// Gets/sets Module.Mvid column
@@ -1476,7 +1476,7 @@ namespace dnlib.DotNet {
 			resources = new ResourceCollection();
 			corLibTypes = new CorLibTypes(this, corLibAssemblyRef);
 			types = new LazyList<TypeDef>(this);
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.mvid = mvid;
 			types.Add(CreateModuleType());
 			UpdateRowId(this);

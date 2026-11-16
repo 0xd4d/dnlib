@@ -87,20 +87,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column AssemblyRef.Locale
 		/// </summary>
 		public UTF8String Culture {
 			get => culture;
-			set => culture = value;
+			set => culture = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Culture</summary>
-		protected UTF8String culture;
+		protected UTF8String culture = UTF8String.Empty;
 
 		/// <summary>
 		/// From column AssemblyRef.HashValue
@@ -375,10 +375,10 @@ namespace dnlib.DotNet {
 				throw new ArgumentNullException(nameof(name));
 			if (locale is null)
 				throw new ArgumentNullException(nameof(locale));
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.version = version ?? throw new ArgumentNullException(nameof(version));
 			publicKeyOrToken = publicKey;
-			culture = locale;
+			culture = UTF8String.EmptyIfNull(locale);
 			attributes = (int)(publicKey is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None);
 		}
 
@@ -401,7 +401,7 @@ namespace dnlib.DotNet {
 			version = assembly.Version ?? new Version(0, 0, 0, 0);
 			publicKeyOrToken = assembly.PublicKeyOrToken;
 			name = UTF8String.IsNullOrEmpty(assembly.Name) ? UTF8String.Empty : assembly.Name;
-			culture = assembly.Culture;
+			culture = UTF8String.EmptyIfNull(assembly.Culture);
 			attributes = (int)((publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None) | assembly.ContentType);
 		}
 	}

@@ -161,20 +161,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column TypeDef.Namespace
 		/// </summary>
 		public UTF8String Namespace {
 			get => @namespace;
-			set => @namespace = value;
+			set => @namespace = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String @namespace;
+		protected UTF8String @namespace = UTF8String.Empty;
 
 		/// <summary>
 		/// From column TypeDef.Extends
@@ -2431,8 +2431,8 @@ namespace dnlib.DotNet {
 			nestedTypes = new LazyList<TypeDef>(this);
 			events = new LazyList<EventDef>(this);
 			properties = new LazyList<PropertyDef>(this);
-			this.@namespace = @namespace;
-			this.name = name;
+			this.@namespace = UTF8String.EmptyIfNull(@namespace);
+			this.name = UTF8String.EmptyIfNull(name);
 			this.baseType = baseType;
 			baseType_isInitialized = true;
 		}

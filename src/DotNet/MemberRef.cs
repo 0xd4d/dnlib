@@ -55,10 +55,10 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column MemberRef.Signature
@@ -405,7 +405,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of ref</param>
 		public MemberRefUser(ModuleDef module, UTF8String name) {
 			this.module = module;
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 		}
 
 		/// <summary>
@@ -427,7 +427,7 @@ namespace dnlib.DotNet {
 		/// <param name="class">Owner of field</param>
 		public MemberRefUser(ModuleDef module, UTF8String name, FieldSig sig, IMemberRefParent @class) {
 			this.module = module;
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.@class = @class;
 			signature = sig;
 		}
@@ -451,7 +451,7 @@ namespace dnlib.DotNet {
 		/// <param name="class">Owner of method</param>
 		public MemberRefUser(ModuleDef module, UTF8String name, MethodSig sig, IMemberRefParent @class) {
 			this.module = module;
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.@class = @class;
 			signature = sig;
 		}

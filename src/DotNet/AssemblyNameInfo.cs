@@ -12,8 +12,8 @@ namespace dnlib.DotNet {
 		Version version;
 		AssemblyAttributes flags;
 		PublicKeyBase publicKeyOrToken;
-		UTF8String name;
-		UTF8String culture;
+		UTF8String name = UTF8String.Empty;
+		UTF8String culture = UTF8String.Empty;
 
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyHashAlgorithm"/>
@@ -52,7 +52,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 
 		/// <summary>
@@ -60,7 +60,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Culture {
 			get => culture;
-			set => culture = value;
+			set => culture = UTF8String.EmptyIfNull(value);
 		}
 
 		/// <summary>

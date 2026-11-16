@@ -34,7 +34,7 @@ namespace dnlib.DotNet {
 	public abstract class Resource : IMDTokenProvider, IHasCustomAttribute, IHasCustomDebugInformation {
 		private protected uint rid;
 		private protected uint? offset;
-		UTF8String name;
+		UTF8String name = UTF8String.Empty;
 		ManifestResourceAttributes flags;
 
 		/// <inheritdoc/>
@@ -59,7 +59,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 
 		/// <summary>
@@ -143,7 +143,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="flags">flags</param>
 		protected Resource(UTF8String name, ManifestResourceAttributes flags) {
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.flags = flags;
 		}
 	}

@@ -136,20 +136,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String name;
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column TypeRef.Namespace
 		/// </summary>
 		public UTF8String Namespace {
 			get => @namespace;
-			set => @namespace = value;
+			set => @namespace = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String @namespace;
+		protected UTF8String @namespace = UTF8String.Empty;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -323,8 +323,8 @@ namespace dnlib.DotNet {
 			this.module = module;
 			this.resolutionScope = resolutionScope;
 			resolutionScope_isInitialized = true;
-			this.name = name;
-			this.@namespace = @namespace;
+			this.name = UTF8String.EmptyIfNull(name);
+			this.@namespace = UTF8String.EmptyIfNull(@namespace);
 		}
 	}
 
