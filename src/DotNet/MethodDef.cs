@@ -445,6 +445,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Same as <see cref="MethodSig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public MethodSig MethodSigOrThrow => OrThrowHelper.NotNull(signature as MethodSig, nameof(MethodSig));
+
+		/// <summary>
 		/// Gets the parameters
 		/// </summary>
 		public ParameterList Parameters => parameterList;

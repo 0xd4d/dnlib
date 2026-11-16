@@ -100,6 +100,8 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		MethodSig IMethod.MethodSigOrThrow => OrThrowHelper.NotNull(method?.MethodSig, nameof(IMethod.MethodSig));
+
 		/// <inheritdoc/>
 		public UTF8String Name {
 			get {
