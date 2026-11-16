@@ -2,11 +2,15 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
+using System.Runtime.Versioning;
 using System.Threading;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Dss {
+#if NETCOREAPP
+	[SupportedOSPlatform("windows")]
+#endif
 	sealed class SymbolMethodImpl : SymbolMethod {
 		readonly SymbolReaderImpl reader;
 		readonly ISymUnmanagedMethod method;

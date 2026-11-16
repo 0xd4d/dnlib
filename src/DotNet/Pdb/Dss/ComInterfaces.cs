@@ -221,7 +221,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	interface ISymUnmanagedConstant {
 		void GetName([In] uint cchName, [Out] out uint pcchName, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] szName);
-		void GetValue(out object pValue);
+		// pValue is a VARIANT*, see SymbolScopeImpl.GetValue()
+		[PreserveSig]
+		int GetValue([In] IntPtr pValue);
 		[PreserveSig]
 		int GetSignature([In] uint cSig, [Out] out uint pcSig, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[] sig);
 	}
