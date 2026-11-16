@@ -60,7 +60,8 @@ namespace dnlib.Utils {
 	}
 
 	/// <summary>
-	/// Implements a <see cref="IList{T}"/> that is lazily initialized
+	/// Implements a <see cref="IList{T}"/> that is lazily initialized. <c>null</c> can't be added to the list,
+	/// an <see cref="ArgumentNullException"/> is thrown.
 	/// </summary>
 	/// <typeparam name="TValue">Type to store in list</typeparam>
 	[DebuggerDisplay("Count = {Count}")]
@@ -180,6 +181,8 @@ namespace dnlib.Utils {
 #endif
 			}
 			set {
+				if (value is null)
+					throw new ArgumentNullException(nameof(value));
 #if THREAD_SAFE
 				EnterWriteLock(); try {
 #endif
@@ -264,6 +267,8 @@ namespace dnlib.Utils {
 
 		/// <inheritdoc/>
 		public void Insert(int index, TValue item) {
+			if (item is null)
+				throw new ArgumentNullException(nameof(item));
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
@@ -304,6 +309,8 @@ namespace dnlib.Utils {
 
 		/// <inheritdoc/>
 		public void Add(TValue item) {
+			if (item is null)
+				throw new ArgumentNullException(nameof(item));
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
