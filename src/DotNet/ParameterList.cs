@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +18,7 @@ namespace dnlib.DotNet {
 		readonly MethodDef method;
 		readonly List<Parameter> parameters;
 		readonly Parameter hiddenThisParameter;
-		ParamDef hiddenThisParamDef;
+		ParamDef? hiddenThisParamDef;
 		readonly Parameter returnParameter;
 		int methodSigIndexBase;
 #if THREAD_SAFE
@@ -98,7 +100,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">The method with all parameters</param>
 		/// <param name="declaringType"><paramref name="method"/>'s declaring type</param>
-		public ParameterList(MethodDef method, TypeDef declaringType) {
+		public ParameterList(MethodDef method, TypeDef? declaringType) {
 			this.method = method;
 			parameters = new List<Parameter>();
 			methodSigIndexBase = -1;
@@ -112,7 +114,7 @@ namespace dnlib.DotNet {
 		/// Should be called when the method's declaring type has changed
 		/// </summary>
 		/// <param name="methodDeclaringType">Method declaring type</param>
-		internal void UpdateThisParameterType(TypeDef methodDeclaringType) {
+		internal void UpdateThisParameterType(TypeDef? methodDeclaringType) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -128,7 +130,7 @@ namespace dnlib.DotNet {
 				TypeSig thisTypeSig;
 				if (methodDeclaringType.HasGenericParameters) {
 					int gpCount = methodDeclaringType.GenericParameters.Count;
-					var genArgs = new List<TypeSig>(gpCount);
+					var genArgs = new List<TypeSig?>(gpCount);
 					for (int i = 0; i < gpCount; i++)
 						genArgs.Add(new GenericVar(i, methodDeclaringType));
 					thisTypeSig = new GenericInstSig(instSig, genArgs);
@@ -193,7 +195,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		internal ParamDef FindParamDef(Parameter param) {
+		internal ParamDef? FindParamDef(Parameter param) {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
@@ -203,7 +205,7 @@ namespace dnlib.DotNet {
 #endif
 		}
 
-		ParamDef FindParamDef_NoLock(Parameter param) {
+		ParamDef? FindParamDef_NoLock(Parameter param) {
 			int seq;
 			if (param.IsReturnTypeParameter)
 				seq = 0;
@@ -310,7 +312,7 @@ namespace dnlib.DotNet {
 		public struct Enumerator : IEnumerator<Parameter> {
 			readonly ParameterList list;
 			List<Parameter>.Enumerator listEnumerator;
-			Parameter current;
+			Parameter? current;
 
 			internal Enumerator(ParameterList list) {
 				this.list = list;
@@ -327,9 +329,9 @@ namespace dnlib.DotNet {
 			/// <summary>
 			/// Gets the current value
 			/// </summary>
-			public Parameter Current => current;
-			Parameter IEnumerator<Parameter>.Current => current;
-			object System.Collections.IEnumerator.Current => current;
+			public Parameter Current => current!;
+			Parameter IEnumerator<Parameter>.Current => current!;
+			object System.Collections.IEnumerator.Current => current!;
 
 			/// <summary>
 			/// Moves to the next element in the collection
@@ -368,8 +370,8 @@ namespace dnlib.DotNet {
 	/// A method parameter
 	/// </summary>
 	public sealed class Parameter : IVariable {
-		readonly ParameterList parameterList;
-		TypeSig typeSig;
+		readonly ParameterList? parameterList;
+		TypeSig? typeSig;
 		readonly int paramIndex;
 		readonly int methodSigIndex;
 
@@ -415,7 +417,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the parameter type
 		/// </summary>
-		public TypeSig Type {
+		public TypeSig? Type {
 			get => typeSig;
 			set {
 				typeSig = value;
@@ -425,14 +427,24 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Same as <see cref="Type"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeSig TypeOrThrow => OrThrowHelper.NotNull(typeSig, nameof(Type));
+
+		/// <summary>
 		/// Gets the owner method
 		/// </summary>
-		public MethodDef Method => parameterList?.Method;
+		public MethodDef? Method => parameterList?.Method;
 
 		/// <summary>
 		/// Gets the <see cref="dnlib.DotNet.ParamDef"/> or <c>null</c> if not present
 		/// </summary>
-		public ParamDef ParamDef => parameterList?.FindParamDef(this);
+		public ParamDef? ParamDef => parameterList?.FindParamDef(this);
+
+		/// <summary>
+		/// Same as <see cref="ParamDef"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ParamDef ParamDefOrThrow => OrThrowHelper.NotNull(ParamDef, nameof(ParamDef));
 
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="dnlib.DotNet.ParamDef"/>
@@ -469,7 +481,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="paramIndex">Parameter index</param>
 		/// <param name="type">Parameter type</param>
-		public Parameter(int paramIndex, TypeSig type) {
+		public Parameter(int paramIndex, TypeSig? type) {
 			this.paramIndex = paramIndex;
 			methodSigIndex = paramIndex;
 			typeSig = type;
@@ -491,7 +503,7 @@ namespace dnlib.DotNet {
 		/// <param name="paramIndex">Parameter index (0 is hidden this param if it exists)</param>
 		/// <param name="methodSigIndex">Index in method signature</param>
 		/// <param name="type">Parameter type</param>
-		public Parameter(int paramIndex, int methodSigIndex, TypeSig type) {
+		public Parameter(int paramIndex, int methodSigIndex, TypeSig? type) {
 			this.paramIndex = paramIndex;
 			this.methodSigIndex = methodSigIndex;
 			typeSig = type;

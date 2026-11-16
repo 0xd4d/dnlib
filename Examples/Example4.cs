@@ -147,9 +147,9 @@ namespace dnlib.Examples {
 			// (it's a constructor), the first arg is the 'this' pointer. The normal arguments
 			// begin at index 1.
 			ctor1.Parameters[1].CreateParamDef();
-			ctor1.Parameters[1].ParamDef.Name = "count";
+			ctor1.Parameters[1].ParamDefOrThrow.Name = "count";
 			ctor1.Parameters[2].CreateParamDef();
-			ctor1.Parameters[2].ParamDef.Name = "name";
+			ctor1.Parameters[2].ParamDefOrThrow.Name = "name";
 			// Create method body and add a few instructions
 			ctor1.Body = body = new CilBody();
 			// Make sure we call the base class' constructor

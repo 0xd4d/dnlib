@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,12 +46,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the declaring method
 		/// </summary>
-		public MethodDef DeclaringMethod {
+		public MethodDef? DeclaringMethod {
 			get => declaringMethod;
 			internal set => declaringMethod = value;
 		}
 		/// <summary/>
-		protected MethodDef declaringMethod;
+		protected MethodDef? declaringMethod;
 
 		/// <summary>
 		/// From column Param.Flags
@@ -82,7 +84,7 @@ namespace dnlib.DotNet {
 		protected UTF8String name = UTF8String.Empty;
 
 		/// <inheritdoc/>
-		public MarshalType MarshalType {
+		public MarshalType? MarshalType {
 			get {
 				if (!marshalType_isInitialized)
 					InitializeMarshalType();
@@ -100,7 +102,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected MarshalType marshalType;
+		protected MarshalType? marshalType;
 		/// <summary/>
 		protected bool marshalType_isInitialized;
 
@@ -118,13 +120,13 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="marshalType"/></summary>
-		protected virtual MarshalType GetMarshalType_NoLock() => null;
+		protected virtual MarshalType? GetMarshalType_NoLock() => null;
 
 		/// <summary>Reset <see cref="MarshalType"/></summary>
 		protected void ResetMarshalType() => marshalType_isInitialized = false;
 
 		/// <inheritdoc/>
-		public Constant Constant {
+		public Constant? Constant {
 			get {
 				if (!constant_isInitialized)
 					InitializeConstant();
@@ -142,7 +144,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected Constant constant;
+		protected Constant? constant;
 		/// <summary/>
 		protected bool constant_isInitialized;
 
@@ -160,7 +162,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="constant"/></summary>
-		protected virtual Constant GetConstant_NoLock() => null;
+		protected virtual Constant? GetConstant_NoLock() => null;
 
 		/// <summary>Reset <see cref="Constant"/></summary>
 		protected void ResetConstant() => constant_isInitialized = false;
@@ -172,11 +174,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -197,11 +199,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -361,11 +363,11 @@ namespace dnlib.DotNet {
 		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
-		protected override MarshalType GetMarshalType_NoLock() =>
+		protected override MarshalType? GetMarshalType_NoLock() =>
 			readerModule.ReadMarshalType(Table.Param, origRid, GenericParamContext.Create(declaringMethod));
 
 		/// <inheritdoc/>
-		protected override Constant GetConstant_NoLock() =>
+		protected override Constant? GetConstant_NoLock() =>
 			readerModule.ResolveConstant(readerModule.Metadata.GetConstantRid(Table.Param, origRid));
 
 		/// <inheritdoc/>
