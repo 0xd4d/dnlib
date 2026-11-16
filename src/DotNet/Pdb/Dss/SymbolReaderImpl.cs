@@ -4,11 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.DotNet.Pdb.WindowsPdb;
 
 namespace dnlib.DotNet.Pdb.Dss {
+#if NETCOREAPP
+	[SupportedOSPlatform("windows")]
+#endif
 	sealed class SymbolReaderImpl : SymbolReader {
 		ModuleDef module;
 		ISymUnmanagedReader reader;

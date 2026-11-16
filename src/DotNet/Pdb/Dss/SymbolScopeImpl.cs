@@ -3,9 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using dnlib.DotNet.Pdb.Symbols;
 
 namespace dnlib.DotNet.Pdb.Dss {
+#if NETCOREAPP
+	[SupportedOSPlatform("windows")]
+#endif
 	sealed class SymbolScopeImpl : SymbolScope {
 		readonly ISymUnmanagedScope scope;
 		readonly SymbolMethod method;
@@ -98,7 +103,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			for (uint i = 0; i < numCs; i++) {
 				var unc = unCs[i];
 				var name = GetName(unc);
-				unc.GetValue(out object value);
+				var value = GetValue(unc);
 				var sigBytes = GetSignatureBytes(unc);
 				TypeSig signature;
 				if (sigBytes.Length == 0)
@@ -108,6 +113,34 @@ namespace dnlib.DotNet.Pdb.Dss {
 				nss[i] = new PdbConstant(name, signature, value);
 			}
 			return nss;
+		}
+
+		[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+		[DllImport("oleaut32.dll")]
+		static extern int VariantClear(IntPtr pvarg);
+
+		const ushort VT_ERROR = 10;
+
+		static unsafe object GetValue(ISymUnmanagedConstant unc) {
+			// VARIANT is 16 bytes (32-bit) or 24 bytes (64-bit). It must be initialized (VT_EMPTY) since
+			// GetValue() clears it first.
+			var variant = stackalloc byte[24];
+			for (int i = 0; i < 24; i++)
+				variant[i] = 0;
+			try {
+				// Clear it even if it fails in case the reader stored something in it
+				if (unc.GetValue((IntPtr)variant) < 0)
+					return null;
+				// The readers return VT_ERROR (eg. HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER)) if they
+				// can't return the value, eg. "" (Microsoft.DiaSymReader.Native) or any string (diasymreader.dll).
+				// It's not the constant's value, and the marshaler would return it as an Int32.
+				if (*(ushort*)variant == VT_ERROR)
+					return null;
+				return Marshal.GetObjectForNativeVariant((IntPtr)variant);
+			}
+			finally {
+				VariantClear((IntPtr)variant);
+			}
 		}
 
 		string GetName(ISymUnmanagedConstant unc) {
