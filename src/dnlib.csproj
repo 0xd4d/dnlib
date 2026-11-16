@@ -58,6 +58,13 @@ For better *Windows PDB* writer support, you should add a reference to `Microsof
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <!-- Nullable reference types are enabled with '#nullable enable' in each annotated file. The annotations
+       are emitted in all builds, but only the net10.0 build reports nullable warnings since the older
+       frameworks' reference assemblies aren't annotated (eg. string.IsNullOrEmpty() has no [NotNullWhen]). -->
+  <PropertyGroup Condition=" '$(TargetFramework)' != 'net10.0' ">
+    <NoWarn>$(NoWarn);nullable</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
