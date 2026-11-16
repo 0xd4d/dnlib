@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 
@@ -13,7 +15,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
-		public abstract string Filename { get; }
+		public abstract string? Filename { get; }
 
 		/// <summary>
 		/// Gets the total length of the data
@@ -99,7 +101,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// Raised when all cached <see cref="DataReader"/>s created by this instance must be recreated
 		/// </summary>
-		public virtual event EventHandler DataReaderInvalidated { add { } remove { } }
+		public virtual event EventHandler? DataReaderInvalidated { add { } remove { } }
 
 		/// <summary>
 		/// Disposes of this instance

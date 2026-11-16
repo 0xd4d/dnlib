@@ -1,7 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
@@ -88,7 +91,8 @@ namespace dnlib.IO {
 		public DataReader(DataStream stream, uint offset, uint length) {
 			Debug.Assert(stream is not null || (offset == 0 && length == 0));
 			Debug.Assert(offset + length >= offset);
-			this.stream = stream;
+			// The assert makes the compiler think it can be null: it's only null if a default instance is sliced
+			this.stream = stream!;
 			startOffset = offset;
 			endOffset = offset + length;
 			currentOffset = offset;
@@ -101,10 +105,15 @@ namespace dnlib.IO {
 			Debug.Assert(currentOffset <= endOffset);
 		}
 
+		[DoesNotReturn]
 		static void ThrowNoMoreBytesLeft() => throw new DataReaderException("There's not enough bytes left to read");
+		[DoesNotReturn]
 		static void ThrowDataReaderException(string message) => throw new DataReaderException(message);
+		[DoesNotReturn]
 		static void ThrowInvalidOperationException() => throw new InvalidOperationException();
+		[DoesNotReturn]
 		static void ThrowArgumentNullException(string paramName) => throw new ArgumentNullException(paramName);
+		[DoesNotReturn]
 		static void ThrowInvalidArgument(string paramName) => throw new DataReaderException("Invalid argument value");
 
 		/// <summary>
@@ -785,7 +794,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="value">Terminating byte value</param>
 		/// <returns></returns>
-		public byte[] TryReadBytesUntil(byte value) {
+		public byte[]? TryReadBytesUntil(byte value) {
 			var currentOffset = this.currentOffset;
 			var endOffset = this.endOffset;
 			// This is also true if 'this' is the 'default' instance ('stream' is null)
@@ -804,7 +813,7 @@ namespace dnlib.IO {
 		/// If successful, the current offset is incremented past the terminating zero.
 		/// </summary>
 		/// <returns></returns>
-		public string TryReadZeroTerminatedUtf8String() => TryReadZeroTerminatedString(Encoding.UTF8);
+		public string? TryReadZeroTerminatedUtf8String() => TryReadZeroTerminatedString(Encoding.UTF8);
 
 		/// <summary>
 		/// Reads a zero-terminated string or returns null if the string couldn't be read.
@@ -812,7 +821,7 @@ namespace dnlib.IO {
 		/// </summary>
 		/// <param name="encoding">Encoding</param>
 		/// <returns></returns>
-		public string TryReadZeroTerminatedString(Encoding encoding) {
+		public string? TryReadZeroTerminatedString(Encoding encoding) {
 			if (encoding is null)
 				ThrowArgumentNullException(nameof(encoding));
 			VerifyState();
