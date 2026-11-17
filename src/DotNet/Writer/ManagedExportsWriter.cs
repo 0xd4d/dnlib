@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,7 +30,7 @@ namespace dnlib.DotNet.Writer {
 		readonly List<MethodInfo> sortedOrdinalMethodInfos;
 		readonly List<MethodInfo> sortedFuncMethodInfos;
 		readonly List<MethodInfo> sortedNameMethodInfos;
-		readonly CpuArch cpuArch;
+		readonly CpuArch? cpuArch;
 		uint exportDirOffset;
 
 		bool Is64Bit => machine.Is64Bit();
@@ -137,7 +139,7 @@ namespace dnlib.DotNet.Writer {
 			if (allMethodInfos.Count == 0)
 				return;
 			peHeaders.ExportDirectory = exportDir;
-			peHeaders.ImageCor20Header.VtableFixups = vtableFixups;
+			peHeaders.ImageCor20Header!.VtableFixups = vtableFixups;
 		}
 
 		internal void AddExportedMethods(List<MethodDef> methods, uint timestamp) {
@@ -165,7 +167,7 @@ namespace dnlib.DotNet.Writer {
 			public uint ManagedVtblOffset;
 			public uint NameOffset;
 			public int NameIndex;
-			public byte[] NameBytes;
+			public byte[] NameBytes = null!;
 			public MethodInfo(MethodDef method, uint stubChunkOffset) {
 				Method = method;
 				StubChunkOffset = stubChunkOffset;
@@ -186,7 +188,7 @@ namespace dnlib.DotNet.Writer {
 			var dict = new Dictionary<int, List<VTableInfo>>();
 			var baseFlags = Is64Bit ? VTableFlags.Bit64 : VTableFlags.Bit32;
 			uint stubOffset = 0;
-			uint stubAlignment = cpuArch.GetStubAlignment(stubType);
+			uint stubAlignment = cpuArch!.GetStubAlignment(stubType);
 			uint stubCodeOffset = cpuArch.GetStubCodeOffset(stubType);
 			uint stubSize = cpuArch.GetStubSize(stubType);
 			foreach (var method in methods) {
@@ -302,7 +304,7 @@ namespace dnlib.DotNet.Writer {
 				Debug.Assert(name is not null);
 				int size = Encoding.UTF8.GetByteCount(name);
 				var bytes = new byte[size + 1];
-				Encoding.UTF8.GetBytes(name, 0, name.Length, bytes, 0);
+				Encoding.UTF8.GetBytes(name, 0, name!.Length, bytes, 0);
 				if (bytes[bytes.Length - 1] != 0)
 					throw new ModuleWriterException();
 				return bytes;
@@ -360,7 +362,7 @@ namespace dnlib.DotNet.Writer {
 			var usedNames = new Dictionary<string, MethodInfo>(StringComparer.Ordinal);
 			var namedNoOrdinalMethodInfos = new List<MethodInfo>();
 			foreach (var info in allMethodInfos) {
-				var exportInfo = info.Method.ExportInfo;
+				var exportInfo = info.Method.ExportInfo!;
 				var name = exportInfo.Name;
 				var ordinal = exportInfo.Ordinal;
 				if (name is null && ordinal is null)
@@ -534,7 +536,7 @@ namespace dnlib.DotNet.Writer {
 			uint expectedOffset = 0;
 			uint stubCodeOffset = cpuArch.GetStubCodeOffset(stubType);
 			uint stubSize = cpuArch.GetStubSize(stubType);
-			uint stubAlignment = cpuArch.GetStubAlignment(stubType);
+			uint stubAlignment = cpuArch!.GetStubAlignment(stubType);
 			int zeros = (int)((stubSize + stubAlignment - 1 & ~(stubAlignment - 1)) - stubSize);
 			foreach (var info in allMethodInfos) {
 				uint currentOffset = info.StubChunkOffset - stubCodeOffset;

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -172,7 +174,7 @@ namespace dnlib.DotNet.Writer {
 	/// DOS and PE headers
 	/// </summary>
 	public sealed class PEHeaders : IChunk {
-		IList<PESection> sections;
+		IList<PESection> sections = null!;
 		readonly PEHeadersOptions options;
 		FileOffset offset;
 		RVA rva;
@@ -208,39 +210,39 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the native entry point
 		/// </summary>
-		public StartupStub StartupStub { get; set; }
+		public StartupStub? StartupStub { get; set; }
 
 		/// <summary>
 		/// Gets/sets the COR20 header
 		/// </summary>
-		public ImageCor20Header ImageCor20Header { get; set; }
+		public ImageCor20Header? ImageCor20Header { get; set; }
 
 		/// <summary>
 		/// Gets/sets the IAT
 		/// </summary>
-		public ImportAddressTable ImportAddressTable { get; set; }
+		public ImportAddressTable? ImportAddressTable { get; set; }
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImportDirectory"/>
 		/// </summary>
-		public ImportDirectory ImportDirectory { get; set; }
+		public ImportDirectory? ImportDirectory { get; set; }
 
 		/// <summary>
 		/// Gets/sets the Win32 resources
 		/// </summary>
-		public Win32ResourcesChunk Win32Resources { get; set; }
+		public Win32ResourcesChunk? Win32Resources { get; set; }
 
 		/// <summary>
 		/// Gets/sets the relocation directory
 		/// </summary>
-		public RelocDirectory RelocDirectory { get; set; }
+		public RelocDirectory? RelocDirectory { get; set; }
 
 		/// <summary>
 		/// Gets/sets the debug directory
 		/// </summary>
-		public DebugDirectory DebugDirectory { get; set; }
+		public DebugDirectory? DebugDirectory { get; set; }
 
-		internal IChunk ExportDirectory { get; set; }
+		internal IChunk? ExportDirectory { get; set; }
 
 		/// <summary>
 		/// Gets the image base
@@ -290,11 +292,11 @@ namespace dnlib.DotNet.Writer {
 		/// Constructor
 		/// </summary>
 		/// <param name="options">Options</param>
-		public PEHeaders(PEHeadersOptions options)
+		public PEHeaders(PEHeadersOptions? options)
 			: this(options, null) {
 		}
 
-		internal PEHeaders(PEHeadersOptions options, Action<string, object[]> logError) {
+		internal PEHeaders(PEHeadersOptions? options, Action<string, object[]>? logError) {
 			this.options = options ?? new PEHeadersOptions();
 			sectionAlignment = this.options.SectionAlignment ?? DEFAULT_SECTION_ALIGNMENT;
 			fileAlignment = this.options.FileAlignment ?? DEFAULT_FILE_ALIGNMENT;

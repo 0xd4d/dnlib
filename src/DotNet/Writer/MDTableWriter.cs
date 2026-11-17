@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using dnlib.DotNet.MD;
 
 namespace dnlib.DotNet.Writer {

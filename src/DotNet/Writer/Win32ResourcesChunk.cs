@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,7 +48,7 @@ namespace dnlib.DotNet.Writer {
 
 		sealed class ReferenceComparer : IEqualityComparer<DataReaderFactory> {
 			public static readonly ReferenceComparer Instance = new ReferenceComparer();
-			public bool Equals(DataReaderFactory x, DataReaderFactory y) => (object)x == y;
+			public bool Equals(DataReaderFactory? x, DataReaderFactory? y) => (object?)x == y;
 			public int GetHashCode(DataReaderFactory obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
 		}
 
@@ -256,7 +258,7 @@ namespace dnlib.DotNet.Writer {
 			return error is null;
 		}
 
-		static uint GetMaxAlignment(FileOffset offset, out string error) {
+		static uint GetMaxAlignment(FileOffset offset, out string? error) {
 			error = null;
 			uint maxAlignment = 1;
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_DIR_ALIGNMENT);
@@ -383,7 +385,7 @@ namespace dnlib.DotNet.Writer {
 					return c;
 				return a.CompareTo(b);
 			});
-			DataBlock current = null;
+			DataBlock? current = null;
 			foreach (int i in indexes) {
 				// Ranges that only touch aren't merged so normal files (no shared data) are written
 				// exactly like before. Empty ranges at the start of a block are part of the block.
@@ -553,7 +555,7 @@ namespace dnlib.DotNet.Writer {
 			var upperNames = new Dictionary<string, string>(StringComparer.Ordinal);
 			var sortedNamed = new List<KeyValuePair<string, ResourceDirectoryEntry>>(named.Count);
 			foreach (var d in named) {
-				var name = d.Name.Name;
+				var name = d.Name.Name!;
 				if (!upperNames.TryGetValue(name, out var upperName)) {
 					upperName = name.ToUpperInvariant();
 					upperNames.Add(name, upperName);
@@ -567,7 +569,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var kv in sortedNamed) {
 				var d = kv.Value;
-				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name]);
+				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name!]);
 				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}
 
