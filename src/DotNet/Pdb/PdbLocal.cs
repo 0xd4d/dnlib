@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 using dnlib.DotNet.Emit;
 
@@ -20,7 +22,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="local"></param>
 		/// <param name="name"></param>
 		/// <param name="attributes"></param>
-		public PdbLocal(Local local, string name, PdbLocalAttributes attributes) {
+		public PdbLocal(Local? local, string? name, PdbLocalAttributes attributes) {
 			Local = local;
 			Name = name;
 			Attributes = attributes;
@@ -29,12 +31,12 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the local
 		/// </summary>
-		public Local Local { get; set; }
+		public Local? Local { get; set; }
 
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
-		public string Name { get; set; }
+		public string? Name { get; set; }
 
 		/// <summary>
 		/// Gets/sets the attributes
@@ -44,7 +46,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the index of the local
 		/// </summary>
-		public int Index => Local.Index;
+		public int Index => Local!.Index;
 
 		/// <summary>
 		/// true if it should be hidden in debugger variables windows. Not all compiler generated locals have this flag set.

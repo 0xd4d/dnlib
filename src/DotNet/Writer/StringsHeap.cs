@@ -133,7 +133,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset id. This is not a #Strings offset. Call <see cref="GetOffset(uint)"/> to get the #Strings offset</returns>
-		public uint Add(UTF8String s) {
+		public uint Add(UTF8String? s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (UTF8String.IsNullOrEmpty(s))

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// A PDB method
@@ -8,7 +10,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the root scope. It contains all scopes of the method, using namespaces, variables and constants
 		/// </summary>
-		public PdbScope Scope { get; set; }
+		public PdbScope? Scope { get; set; }
 
 		/// <summary>
 		/// Constructor

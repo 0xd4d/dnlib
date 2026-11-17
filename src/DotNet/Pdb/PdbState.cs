@@ -1,6 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.DotNet.Emit;
@@ -13,7 +16,7 @@ namespace dnlib.DotNet.Pdb {
 	/// PDB state for a <see cref="ModuleDef"/>
 	/// </summary>
 	public sealed class PdbState {
-		readonly SymbolReader reader;
+		readonly SymbolReader? reader;
 		// PdbDocument's Equals()/GetHashCode() use properties the user can change at any time, so a
 		// PdbDocument is never used as a dictionary key by value here:
 		//	- docs: the inserted documents, compared by reference. Add(), Remove() and GetExisting()
@@ -27,14 +30,14 @@ namespace dnlib.DotNet.Pdb {
 		readonly Dictionary<DocumentKey, PdbDocument> valueIndex = new Dictionary<DocumentKey, PdbDocument>();
 		readonly Dictionary<DocumentKey, PdbDocument> readerIndex = new Dictionary<DocumentKey, PdbDocument>();
 		internal readonly Dictionary<MDToken, PdbDocument> tokenToDocument = new Dictionary<MDToken, PdbDocument>();
-		MethodDef userEntryPoint;
+		MethodDef? userEntryPoint;
 		readonly Compiler compiler;
 		readonly PdbFileKind originalPdbFileKind;
 		readonly object readerOriginOwner = new object();
 
 		sealed class ReferenceComparer : IEqualityComparer<PdbDocument> {
 			public static readonly ReferenceComparer Instance = new ReferenceComparer();
-			public bool Equals(PdbDocument x, PdbDocument y) => (object)x == y;
+			public bool Equals(PdbDocument? x, PdbDocument? y) => (object?)x == y;
 			public int GetHashCode(PdbDocument obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
 		}
 
@@ -64,7 +67,7 @@ namespace dnlib.DotNet.Pdb {
 			readonly string url;
 			readonly Guid language;
 			readonly Guid checkSumAlgorithmId;
-			readonly byte[] checkSum;
+			readonly byte[]? checkSum;
 			readonly int hashCode;
 
 			public DocumentKey(PdbDocument doc)
@@ -75,7 +78,7 @@ namespace dnlib.DotNet.Pdb {
 				: this(symDoc.URL, symDoc.Language, symDoc.CheckSumAlgorithmId, symDoc.CheckSum) {
 			}
 
-			DocumentKey(string url, Guid language, Guid checkSumAlgorithmId, byte[] checkSum) {
+			DocumentKey(string? url, Guid language, Guid checkSumAlgorithmId, byte[]? checkSum) {
 				// null and empty are equal, see PdbDocument.Equals()
 				this.url = url ?? string.Empty;
 				this.language = language;
@@ -101,7 +104,7 @@ namespace dnlib.DotNet.Pdb {
 				Utils.Equals(checkSum, other.checkSum) &&
 				language == other.language;
 
-			public override bool Equals(object obj) => obj is DocumentKey other && Equals(other);
+			public override bool Equals(object? obj) => obj is DocumentKey other && Equals(other);
 			public override int GetHashCode() => hashCode;
 		}
 
@@ -118,7 +121,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the user entry point method.
 		/// </summary>
-		public MethodDef UserEntryPoint {
+		public MethodDef? UserEntryPoint {
 			get => userEntryPoint;
 			set => userEntryPoint = value;
 		}
@@ -283,7 +286,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Finds an inserted document whose current values equal <paramref name="key"/>
 		/// </summary>
-		PdbDocument FindEqual_NoLock(DocumentKey key) {
+		PdbDocument? FindEqual_NoLock(DocumentKey key) {
 			if (!valueIndex.TryGetValue(key, out var doc))
 				return null;
 			var currentKey = new DocumentKey(doc);
@@ -335,7 +338,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <remarks>An inserted instance is always found. An equal document (see
 		/// <see cref="PdbDocument.Equals(object)"/>) that was changed after it was inserted isn't
 		/// always found.</remarks>
-		public PdbDocument GetExisting(PdbDocument doc) {
+		public PdbDocument? GetExisting(PdbDocument doc) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -345,7 +348,7 @@ namespace dnlib.DotNet.Pdb {
 #endif
 		}
 
-		PdbDocument GetExisting_NoLock(PdbDocument doc) {
+		PdbDocument? GetExisting_NoLock(PdbDocument doc) {
 			if (doc is null)
 				throw new ArgumentNullException(nameof(doc));
 			if (docs.ContainsKey(doc))
@@ -374,7 +377,7 @@ namespace dnlib.DotNet.Pdb {
 		/// a sequence point is written anyway, including one that's created again from the PDB file when
 		/// a method body is read after this call. To remove a document from the PDB file, also remove the
 		/// sequence points that use it.</remarks>
-		public List<PdbDocument> RemoveAllDocuments(bool returnDocs) {
+		public List<PdbDocument>? RemoveAllDocuments(bool returnDocs) {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -465,7 +468,7 @@ namespace dnlib.DotNet.Pdb {
 			public int ChildrenIndex;
 		}
 
-		PdbScope CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, bool sorted, SymbolScope symScope) {
+		PdbScope? CreateScope(ModuleDefMD module, GenericParamContext gpContext, CilBody body, bool sorted, SymbolScope? symScope) {
 			if (symScope is null)
 				return null;
 
@@ -622,7 +625,7 @@ do_return:
 			return true;
 		}
 
-		static Instruction GetInstruction(IList<Instruction> instrs, bool sorted, int offset, ref int index) {
+		static Instruction? GetInstruction(IList<Instruction> instrs, bool sorted, int offset, ref int index) {
 			// A body read from the file has sorted offsets, but a body from an IMethodDecrypter might not.
 			// Use a binary search when they're sorted so a method with many scopes or out of order
 			// sequence points doesn't scan the whole body for each one.

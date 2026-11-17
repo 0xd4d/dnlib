@@ -33,7 +33,7 @@ namespace dnlib.DotNet.Writer {
 
 		public IDisposable SetSource(object source) => this.source = new ErrorSource(this, source);
 
-		public void Append(string errorLevel, ref string message, ref object[] args) {
+		public void Append(string errorLevel, ref string message, ref object?[] args) {
 			int count = 1;
 			var stringSource = source?.Value as string;
 			var tokenSource = source?.Value as IMDTokenProvider;
@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Writer {
 			int ctxArgIndex = args.Length;
 
 			var newMessage = new StringBuilder(message);
-			var newArgs = new object[args.Length + count];
+			var newArgs = new object?[args.Length + count];
 			Array.Copy(args, 0, newArgs, 0, args.Length);
 
 			if (newMessage.Length != 0 && newMessage[newMessage.Length - 1] != '.')

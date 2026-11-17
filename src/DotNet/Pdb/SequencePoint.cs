@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Diagnostics;
 
 namespace dnlib.DotNet.Pdb {
@@ -11,7 +13,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// PDB document
 		/// </summary>
-		public PdbDocument Document { get; set; }
+		public PdbDocument? Document { get; set; }
 
 		/// <summary>
 		/// Start line

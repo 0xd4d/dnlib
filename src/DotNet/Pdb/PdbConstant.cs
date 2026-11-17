@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 
 namespace dnlib.DotNet.Pdb {
@@ -7,14 +9,14 @@ namespace dnlib.DotNet.Pdb {
 	/// A constant in a method scope, eg. "const int SomeConstant = 123;"
 	/// </summary>
 	public sealed class PdbConstant : IHasCustomDebugInformation {
-		string name;
-		TypeSig type;
-		object value;
+		string? name;
+		TypeSig? type;
+		object? value;
 
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
-		public string Name {
+		public string? Name {
 			get => name;
 			set => name = value;
 		}
@@ -22,7 +24,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the type of the constant
 		/// </summary>
-		public TypeSig Type {
+		public TypeSig? Type {
 			get => type;
 			set => type = value;
 		}
@@ -30,7 +32,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the value of the constant
 		/// </summary>
-		public object Value {
+		public object? Value {
 			get => value;
 			set => this.value = value;
 		}
@@ -47,7 +49,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="name">Name of constant</param>
 		/// <param name="type">Type of constant</param>
 		/// <param name="value">Constant value</param>
-		public PdbConstant(string name, TypeSig type, object value) {
+		public PdbConstant(string? name, TypeSig? type, object? value) {
 			this.name = name;
 			this.type = type;
 			this.value = value;

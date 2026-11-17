@@ -402,7 +402,7 @@ namespace dnlib.DotNet {
 			if (options.PdbFileOrData is not null) {
 				var pdbFileName = options.PdbFileOrData as string;
 				if (!string.IsNullOrEmpty(pdbFileName)) {
-					var symReader = SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbFileName);
+					var symReader = SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbFileName!);
 					if (symReader is not null)
 						return symReader;
 				}

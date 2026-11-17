@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,7 +16,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the document URL
 		/// </summary>
-		public string Url { get; set; }
+		public string? Url { get; set; }
 
 		/// <summary>
 		/// Gets/sets the language GUID. See <see cref="PdbDocumentConstants"/>
@@ -39,7 +41,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the checksum
 		/// </summary>
-		public byte[] CheckSum { get; set; }
+		public byte[]? CheckSum { get; set; }
 
 		/// <inheritdoc/>
 		public int HasCustomDebugInformationTag => 22;
@@ -63,7 +65,7 @@ namespace dnlib.DotNet.Pdb {
 		/// to find the document again if it's removed and then added back to that <see cref="PdbState"/>.
 		/// It must not reference the <see cref="PdbState"/>, the reader or the module.
 		/// </summary>
-		internal object readerOrigin;
+		internal object? readerOrigin;
 
 		/// <summary>
 		/// Default constructor
@@ -98,7 +100,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="documentType">Document type. See <see cref="PdbDocumentConstants"/></param>
 		/// <param name="checkSumAlgorithmId">Checksum algorithm ID. See <see cref="PdbDocumentConstants"/></param>
 		/// <param name="checkSum">Checksum</param>
-		public PdbDocument(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum) {
+		public PdbDocument(string? url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[]? checkSum) {
 			Url = url;
 			Language = language;
 			LanguageVendor = languageVendor;
@@ -128,7 +130,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Compares <see cref="Url"/>, <see cref="Language"/>, <see cref="CheckSumAlgorithmId"/> and
 		/// <see cref="CheckSum"/>. Equal documents are written as one document to the PDB file.
 		/// </summary>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			var other = obj as PdbDocument;
 			if (other is null)
 				return false;
@@ -139,7 +141,7 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		// Treat null and empty the same to be consistent with other code
-		static bool CheckSumEquals(byte[] a, byte[] b) {
+		static bool CheckSumEquals(byte[]? a, byte[]? b) {
 			if ((a is null || a.Length == 0) && (b is null || b.Length == 0))
 				return true;
 			return Utils.Equals(a, b);

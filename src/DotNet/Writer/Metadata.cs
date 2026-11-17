@@ -1431,7 +1431,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="args">Optional message arguments</param>
-		protected void Error(string message, params object[] args) {
+		protected void Error(string message, params object?[] args) {
 			errorContext.Append("Error", ref message, ref args);
 			GetLogger().Log(this, LoggerEvent.Error, message, args);
 		}
@@ -1441,7 +1441,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="message">Warning message</param>
 		/// <param name="args">Optional message arguments</param>
-		protected void Warning(string message, params object[] args) {
+		protected void Warning(string message, params object?[] args) {
 			errorContext.Append("Warning", ref message, ref args);
 			GetLogger().Log(this, LoggerEvent.Warning, message, args);
 		}
@@ -3638,7 +3638,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		void AddStateMachineMethod(PdbCustomDebugInfo cdi, uint moveNextMethodToken, MethodDef kickoffMethod) {
+		void AddStateMachineMethod(PdbCustomDebugInfo cdi, uint moveNextMethodToken, MethodDef? kickoffMethod) {
 			Debug.Assert(new MDToken(moveNextMethodToken).Table == Table.Method);
 			Debug.Assert(debugMetadata is not null);
 			if (kickoffMethod is null) {
@@ -3695,7 +3695,7 @@ namespace dnlib.DotNet.Writer {
 			return rid;
 		}
 
-		uint GetDocumentNameBlobOffset(string name) {
+		uint GetDocumentNameBlobOffset(string? name) {
 			Debug.Assert(debugMetadata is not null);
 			if (name is null) {
 				Error("Document name is null");
@@ -3734,7 +3734,7 @@ namespace dnlib.DotNet.Writer {
 			return slashes >= backslashes ? '/' : '\\';
 		}
 
-		uint AddImportScope(PdbImportScope scope) {
+		uint AddImportScope(PdbImportScope? scope) {
 			Debug.Assert(debugMetadata is not null);
 			if (scope is null)
 				return 0;

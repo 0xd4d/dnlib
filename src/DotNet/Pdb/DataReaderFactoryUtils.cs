@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Security;
@@ -7,7 +9,7 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb {
 	static class DataReaderFactoryUtils {
-		public static DataReaderFactory TryCreateDataReaderFactory(string filename) {
+		public static DataReaderFactory? TryCreateDataReaderFactory(string filename) {
 			try {
 				if (!File.Exists(filename))
 					return null;
