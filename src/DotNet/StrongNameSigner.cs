@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -159,7 +161,7 @@ namespace dnlib.DotNet {
 		byte[] GetStrongNameSignature(StrongNameKey snk, AssemblyHashAlgorithm hashAlg, byte[] hash) {
 			using (var rsa = snk.CreateRSA()) {
 				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
-				string hashName = hashAlg.GetName() ?? AssemblyHashAlgorithm.SHA1.GetName();
+				string hashName = (hashAlg.GetName() ?? AssemblyHashAlgorithm.SHA1.GetName())!;
 				rsaFmt.SetHashAlgorithm(hashName);
 				var snSig = rsaFmt.CreateSignature(hash);
 				Array.Reverse(snSig);

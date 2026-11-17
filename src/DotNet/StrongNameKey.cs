@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Runtime.Serialization;
@@ -78,8 +80,9 @@ namespace dnlib.DotNet {
 		const uint RSA1_SIG = 0x31415352;
 		readonly SignatureAlgorithm signatureAlgorithm;
 		readonly AssemblyHashAlgorithm hashAlgorithm;
-		readonly byte[] modulus;
-		readonly byte[] publicExponent;
+		// null only in an instance created by the default constructor
+		readonly byte[] modulus = null!;
+		readonly byte[] publicExponent = null!;
 
 		/// <summary>
 		/// Gets/sets the signature algorithm
@@ -145,7 +148,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="pk">Public key</param>
 		public StrongNamePublicKey(PublicKey pk)
-			: this(pk.Data) {
+			: this(pk.Data!) {
 		}
 
 		/// <summary>
@@ -236,7 +239,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class StrongNameKey {
 		const uint RSA2_SIG = 0x32415352;
-		byte[] publicKey;
+		byte[]? publicKey;
 		readonly AssemblyHashAlgorithm hashAlg;
 		readonly byte[] publicExponent;
 		readonly byte[] modulus;
@@ -254,7 +257,7 @@ namespace dnlib.DotNet {
 			get {
 				if (publicKey is null)
 					Interlocked.CompareExchange(ref publicKey, CreatePublicKey(), null);
-				return publicKey;
+				return publicKey!;
 			}
 		}
 
@@ -517,7 +520,7 @@ namespace dnlib.DotNet {
 			var hash = AssemblyHash.Hash(signaturePubKey.CreatePublicKey(), identityPubKey.HashAlgorithm);
 			using (var rsa = identityKey.CreateRSA()) {
 				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
-				string hashName = identityPubKey.HashAlgorithm.GetName();
+				string hashName = identityPubKey.HashAlgorithm.GetName()!;
 				rsaFmt.SetHashAlgorithm(hashName);
 				var snSig = rsaFmt.CreateSignature(hash);
 				Array.Reverse(snSig);

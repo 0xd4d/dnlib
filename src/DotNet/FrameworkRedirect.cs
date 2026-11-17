@@ -1,7 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -300,7 +303,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="assembly">Current assembly reference that might get updated</param>
 		/// <param name="sourceModule">Module using the assembly reference</param>
-		public static void ApplyFrameworkRedirect(ref IAssembly assembly, ModuleDef sourceModule) {
+		public static void ApplyFrameworkRedirect(ref IAssembly assembly, ModuleDef? sourceModule) {
 			if (TryApplyFrameworkRedirectCore(assembly, sourceModule, out var redirectedAssembly))
 				assembly = redirectedAssembly;
 		}
@@ -313,10 +316,10 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">Module using the assembly reference</param>
 		/// <param name="redirectedAssembly">Updated with the redirected assembly if successful</param>
 		/// <returns></returns>
-		public static bool TryApplyFrameworkRedirect(IAssembly assembly, ModuleDef sourceModule, out IAssembly redirectedAssembly) =>
+		public static bool TryApplyFrameworkRedirect(IAssembly assembly, ModuleDef? sourceModule, [NotNullWhen(true)] out IAssembly? redirectedAssembly) =>
 			TryApplyFrameworkRedirectCore(assembly, sourceModule, out redirectedAssembly);
 
-		static bool TryApplyFrameworkRedirectCore(IAssembly assembly, ModuleDef sourceModule, out IAssembly redirectedAssembly) {
+		static bool TryApplyFrameworkRedirectCore(IAssembly assembly, ModuleDef? sourceModule, [NotNullWhen(true)] out IAssembly? redirectedAssembly) {
 			if (sourceModule is not null) {
 				if (sourceModule.IsClr40)
 					return TryApplyFrameworkRedirect(assembly, frmRedir4, out redirectedAssembly);
@@ -355,7 +358,7 @@ namespace dnlib.DotNet {
 		/// <param name="assembly">Assembly reference</param>
 		/// <param name="redirectedAssembly">Updated with the redirected assembly if successful</param>
 		/// <returns></returns>
-		public static bool TryApplyFrameworkRedirectV2(IAssembly assembly, out IAssembly redirectedAssembly) =>
+		public static bool TryApplyFrameworkRedirectV2(IAssembly assembly, [NotNullWhen(true)] out IAssembly? redirectedAssembly) =>
 			TryApplyFrameworkRedirect(assembly, frmRedir2, out redirectedAssembly);
 
 		/// <summary>
@@ -365,10 +368,10 @@ namespace dnlib.DotNet {
 		/// <param name="assembly">Assembly reference</param>
 		/// <param name="redirectedAssembly">Updated with the redirected assembly if successful</param>
 		/// <returns></returns>
-		public static bool TryApplyFrameworkRedirectV4(IAssembly assembly, out IAssembly redirectedAssembly) =>
+		public static bool TryApplyFrameworkRedirectV4(IAssembly assembly, [NotNullWhen(true)] out IAssembly? redirectedAssembly) =>
 			TryApplyFrameworkRedirect(assembly, frmRedir4, out redirectedAssembly);
 
-		static bool TryApplyFrameworkRedirect(IAssembly assembly, Dictionary<string, FrameworkRedirectInfo> frmRedir, out IAssembly redirectedAssembly) {
+		static bool TryApplyFrameworkRedirect(IAssembly assembly, Dictionary<string, FrameworkRedirectInfo> frmRedir, [NotNullWhen(true)] out IAssembly? redirectedAssembly) {
 			redirectedAssembly = null;
 			if (!Utils.LocaleEquals(assembly.Culture, ""))
 				return false;

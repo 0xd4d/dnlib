@@ -644,7 +644,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(ModuleDef module, uint typeDefId, UTF8String typeNamespace, UTF8String typeName, TypeAttributes flags, IImplementation implementation) {
+		public ExportedTypeUser(ModuleDef? module, uint typeDefId, UTF8String typeNamespace, UTF8String typeName, TypeAttributes flags, IImplementation implementation) {
 			this.module = module;
 			this.typeDefId = typeDefId;
 			this.typeName = UTF8String.EmptyIfNull(typeName);
