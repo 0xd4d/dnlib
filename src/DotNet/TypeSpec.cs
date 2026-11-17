@@ -81,7 +81,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => OrThrowHelper.NotNull(((IMemberRef)this).DeclaringType, nameof(IMemberRef.DeclaringType));
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(((IMemberRef)this).DeclaringType, nameof(IMemberRef.DeclaringType));
 
 		bool IIsTypeOrMethod.IsType => true;
 		bool IIsTypeOrMethod.IsMethod => false;
@@ -150,9 +150,9 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => FullNameFactory.OwnerModule(this);
 
 		/// <summary>
-		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// From column TypeSpec.Signature

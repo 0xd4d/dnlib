@@ -694,7 +694,7 @@ namespace dnlib.DotNet {
 		ModuleDef? Module { get; }
 
 		/// <summary>
-		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
 		ModuleDef ModuleOrThrow { get; }
 	}
@@ -724,7 +724,7 @@ namespace dnlib.DotNet {
 		ITypeDefOrRef? DeclaringType { get; }
 
 		/// <summary>
-		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
 		ITypeDefOrRef DeclaringTypeOrThrow { get; }
 
@@ -797,7 +797,7 @@ namespace dnlib.DotNet {
 		new TypeDef? DeclaringType { get; }
 
 		/// <summary>
-		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
 		new TypeDef DeclaringTypeOrThrow { get; }
 	}

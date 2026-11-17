@@ -93,9 +93,9 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => module;
 
 		/// <summary>
-		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// From column TypeRef.ResolutionScope
@@ -226,9 +226,9 @@ namespace dnlib.DotNet {
 		public TypeRef? DeclaringType => ResolutionScope as TypeRef;
 
 		/// <summary>
-		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public TypeRef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+		public TypeRef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
 
 		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
 

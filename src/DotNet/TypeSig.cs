@@ -50,9 +50,9 @@ namespace dnlib.DotNet {
 		public abstract TypeSig? Next { get; }
 
 		/// <summary>
-		/// Same as <see cref="Next"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Next"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public TypeSig NextOrThrow => OrThrowHelper.NotNull(Next, nameof(Next));
+		public TypeSig NextOrThrow => OrThrowHelper.NotNullOptional(Next, nameof(Next));
 
 		/// <summary>
 		/// Gets the element type
@@ -141,9 +141,9 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => FullNameFactory.OwnerModule(this);
 
 		/// <summary>
-		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="TypeDefOrRefSig"/>

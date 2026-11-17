@@ -320,9 +320,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
 
 		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
 
@@ -345,9 +345,9 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => declaringType2?.Module;
 
 		/// <summary>
-		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// Gets the full name of the property

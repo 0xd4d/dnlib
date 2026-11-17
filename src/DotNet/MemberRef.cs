@@ -141,9 +141,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ITypeDefOrRef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+		public ITypeDefOrRef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
 
 		TypeRefUser GetGlobalTypeRef(ModuleRef mr) {
 			if (module is null)
@@ -224,9 +224,9 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => module;
 
 		/// <summary>
-		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// <c>true</c> if the method has a hidden 'this' parameter

@@ -443,9 +443,9 @@ namespace dnlib.DotNet {
 		public ParamDef? ParamDef => parameterList?.FindParamDef(this);
 
 		/// <summary>
-		/// Same as <see cref="ParamDef"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="ParamDef"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ParamDef ParamDefOrThrow => OrThrowHelper.NotNull(ParamDef, nameof(ParamDef));
+		public ParamDef ParamDefOrThrow => OrThrowHelper.NotNullOptional(ParamDef, nameof(ParamDef));
 
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="dnlib.DotNet.ParamDef"/>

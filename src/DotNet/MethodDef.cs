@@ -358,9 +358,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
 
 		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
 
@@ -383,9 +383,9 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => declaringType2?.Module;
 
 		/// <summary>
-		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		bool IIsTypeOrMethod.IsType => false;
 		bool IIsTypeOrMethod.IsMethod => true;
@@ -414,9 +414,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Same as <see cref="Body"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// Same as <see cref="Body"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
 		/// </summary>
-		public CilBody BodyOrThrow => OrThrowHelper.NotNull(Body, nameof(Body));
+		public CilBody BodyOrThrow => OrThrowHelper.NotNullOptional(Body, nameof(Body));
 
 		/// <summary>
 		/// Gets/sets the native method body
