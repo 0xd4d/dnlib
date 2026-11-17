@@ -324,7 +324,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
 
+#pragma warning disable RS0030 // Implements the OrThrow interface member
 		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+#pragma warning restore RS0030
 
 		/// <inheritdoc/>
 		ITypeDefOrRef? IMemberRef.DeclaringType => declaringType2;

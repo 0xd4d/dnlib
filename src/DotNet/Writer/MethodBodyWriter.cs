@@ -76,7 +76,9 @@ namespace dnlib.DotNet.Writer {
 		/// in <paramref name="method"/></param>
 		/// <exception cref="NullValueException">The method has no CIL body</exception>
 		public MethodBodyWriter(ITokenProvider helper, MethodDef method, bool keepMaxStack)
+#pragma warning disable RS0030 // Throwing if there's no body is documented
 			: this(helper, method.BodyOrThrow, keepMaxStack) {
+#pragma warning restore RS0030
 		}
 
 		/// <summary>

@@ -954,6 +954,7 @@ namespace dnlib.DotNet {
 			return (uint)Interlocked.Increment(ref lastUsedRids[(int)table]) & 0x00FFFFFF;
 		}
 
+#pragma warning disable RS0030 // ModuleDef.Import() throws if the import fails, like Importer.Import()
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>
 		/// </summary>
@@ -1089,6 +1090,7 @@ namespace dnlib.DotNet {
 		/// <exception cref="ImportException">It couldn't be imported. Use <see cref="Importer"/>'s <c>ImportOrNull()</c> methods to get <c>null</c> instead.</exception>
 		[return: NotNullIfNotNull(nameof(memberRef))]
 		public MemberRef? Import(MemberRef? memberRef) => new Importer(this).Import(memberRef);
+#pragma warning restore RS0030
 
 		/// <summary>
 		/// Writes the module to a file on disk. If the file exists, it will be overwritten.

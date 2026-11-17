@@ -174,6 +174,7 @@ namespace dnlib.DotNet {
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
 		public ITypeDefOrRef? ImportOrNull(Type? type) => module.UpdateRowId(ImportAsTypeSigOrNull(type).ToTypeDefOrRef());
 
+#pragma warning disable RS0030 // Obsolete alias of the throwing Import(Type)
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>. See also <see cref="Import(Type)"/>
 		/// </summary>
@@ -182,6 +183,7 @@ namespace dnlib.DotNet {
 		[Obsolete("Use 'Import(Type)' instead.")]
 		[return: NotNullIfNotNull(nameof(type))]
 		public ITypeDefOrRef? ImportDeclaringType(Type? type) => Import(type);
+#pragma warning restore RS0030
 
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>

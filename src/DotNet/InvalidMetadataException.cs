@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace dnlib.DotNet {
+#pragma warning disable RS0030 // Docs only
 	/// <summary>
 	/// Thrown by the <c>XyzOrThrow</c> properties (eg. <see cref="FieldDef.FieldSigOrThrow"/>) if the value is
 	/// <c>null</c> and it's a value that's always present in valid metadata, ie. the metadata is invalid or the
@@ -13,6 +14,7 @@ namespace dnlib.DotNet {
 	/// a <see cref="NullValueException"/> instead.
 	/// The properties without the <c>OrThrow</c> suffix return <c>null</c> instead of throwing.
 	/// </summary>
+#pragma warning restore RS0030
 	[Serializable]
 	public class InvalidMetadataException : InvalidOperationException {
 		/// <summary>
@@ -48,6 +50,7 @@ namespace dnlib.DotNet {
 		}
 	}
 
+#pragma warning disable RS0030 // Docs only
 	/// <summary>
 	/// Thrown by the <c>XyzOrThrow</c> properties of optional values if there's no value, ie. it's <c>null</c>.
 	/// These values can be <c>null</c> in valid metadata: a method doesn't need to have a body
@@ -57,6 +60,7 @@ namespace dnlib.DotNet {
 	/// is invalid throw an <see cref="InvalidMetadataException"/> instead.
 	/// The properties without the <c>OrThrow</c> suffix return <c>null</c> instead of throwing.
 	/// </summary>
+#pragma warning restore RS0030
 	[Serializable]
 	public class NullValueException : InvalidOperationException {
 		/// <summary>
