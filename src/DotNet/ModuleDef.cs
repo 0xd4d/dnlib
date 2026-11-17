@@ -915,7 +915,7 @@ namespace dnlib.DotNet {
 		/// <see cref="TypeDef.DeclaringType"/> will be set to <c>null</c>.
 		/// </summary>
 		/// <param name="typeDef">The <see cref="TypeDef"/> to insert</param>
-		public void AddAsNonNestedType(TypeDef typeDef) {
+		public void AddAsNonNestedType(TypeDef? typeDef) {
 			if (typeDef is null)
 				return;
 			typeDef.DeclaringType = null;

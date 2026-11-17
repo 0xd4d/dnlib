@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Writer {
 		/// blob offsets)
 		/// </summary>
 		/// <param name="blobStream">The #Blob stream with the original content</param>
-		public void Populate(BlobStream blobStream) {
+		public void Populate(BlobStream? blobStream) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
 			if (originalData is not null)

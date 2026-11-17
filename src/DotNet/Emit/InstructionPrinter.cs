@@ -13,7 +13,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="instr">The instruction</param>
 		/// <returns>The result</returns>
-		public static string ToString(Instruction instr) {
+		public static string ToString(Instruction? instr) {
 			if (instr is null)
 				return string.Empty;
 

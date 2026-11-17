@@ -154,7 +154,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="action">The security action</param>
 		/// <param name="securityAttrs">The security attributes (now owned by this)</param>
-		public DeclSecurityUser(SecurityAction action, IList<SecurityAttribute> securityAttrs) {
+		public DeclSecurityUser(SecurityAction action, IList<SecurityAttribute>? securityAttrs) {
 			this.action = action;
 			securityAttributes = securityAttrs;
 		}

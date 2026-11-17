@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Writer {
 		/// string offsets)
 		/// </summary>
 		/// <param name="stringsStream">The #Strings stream with the original content</param>
-		public void Populate(StringsStream stringsStream) {
+		public void Populate(StringsStream? stringsStream) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (originalData is not null)

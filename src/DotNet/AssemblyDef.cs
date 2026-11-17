@@ -579,7 +579,7 @@ namespace dnlib.DotNet {
 		/// Checks whether this assembly is a friend assembly of <paramref name="targetAsm"/>
 		/// </summary>
 		/// <param name="targetAsm">Target assembly</param>
-		public bool IsFriendAssemblyOf(AssemblyDef targetAsm) {
+		public bool IsFriendAssemblyOf(AssemblyDef? targetAsm) {
 			if (targetAsm is null)
 				return false;
 			if (this == targetAsm)

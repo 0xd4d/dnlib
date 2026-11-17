@@ -240,7 +240,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
-		public AssemblyNameInfo(AssemblyName asmName) {
+		public AssemblyNameInfo(AssemblyName? asmName) {
 			if (asmName is null)
 				return;
 			hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;

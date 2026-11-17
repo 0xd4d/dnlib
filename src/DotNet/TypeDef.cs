@@ -2024,7 +2024,7 @@ namespace dnlib.DotNet {
 		/// Removes a method from this type. It also removes it from any properties and events.
 		/// </summary>
 		/// <param name="method">The method to remove</param>
-		public void Remove(MethodDef method) => Remove(method, false);
+		public void Remove(MethodDef? method) => Remove(method, false);
 
 		/// <summary>
 		/// Removes a method from this type. It also removes it from any properties and events.
@@ -2032,7 +2032,7 @@ namespace dnlib.DotNet {
 		/// <param name="method">The method to remove</param>
 		/// <param name="removeEmptyPropertiesEvents"><c>true</c> if we should remove all
 		/// empty properties and events.</param>
-		public void Remove(MethodDef method, bool removeEmptyPropertiesEvents) {
+		public void Remove(MethodDef? method, bool removeEmptyPropertiesEvents) {
 			if (method is null)
 				return;
 
