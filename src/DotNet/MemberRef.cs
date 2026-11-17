@@ -355,12 +355,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
-		public IMemberForwarded ResolveThrow() {
+		public IMemberForwarded ResolveOrThrow() {
 			var memberDef = Resolve();
 			if (memberDef is not null)
 				return memberDef;
 			throw new MemberRefResolveException($"Could not resolve method/field: {this} ({this.GetDefinitionAssembly()})");
 		}
+
+		/// <summary>
+		/// Resolves the method/field
+		/// </summary>
+		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance</returns>
+		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
+		[Obsolete("Use ResolveOrThrow() instead")]
+		public IMemberForwarded ResolveThrow() => ResolveOrThrow();
 
 		/// <summary>
 		/// Resolves the field
@@ -373,12 +381,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="FieldDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
-		public FieldDef ResolveFieldThrow() {
+		public FieldDef ResolveFieldOrThrow() {
 			var field = ResolveField();
 			if (field is not null)
 				return field;
 			throw new MemberRefResolveException($"Could not resolve field: {this} ({this.GetDefinitionAssembly()})");
 		}
+
+		/// <summary>
+		/// Resolves the field
+		/// </summary>
+		/// <returns>A <see cref="FieldDef"/> instance</returns>
+		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
+		[Obsolete("Use ResolveFieldOrThrow() instead")]
+		public FieldDef ResolveFieldThrow() => ResolveFieldOrThrow();
 
 		/// <summary>
 		/// Resolves the method
@@ -391,12 +407,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="MethodDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
-		public MethodDef ResolveMethodThrow() {
+		public MethodDef ResolveMethodOrThrow() {
 			var method = ResolveMethod();
 			if (method is not null)
 				return method;
 			throw new MemberRefResolveException($"Could not resolve method: {this} ({this.GetDefinitionAssembly()})");
 		}
+
+		/// <summary>
+		/// Resolves the method
+		/// </summary>
+		/// <returns>A <see cref="MethodDef"/> instance</returns>
+		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
+		[Obsolete("Use ResolveMethodOrThrow() instead")]
+		public MethodDef ResolveMethodThrow() => ResolveMethodOrThrow();
 
 		bool IContainsGenericParameter.ContainsGenericParameter => TypeHelper.ContainsGenericParameter(this);
 

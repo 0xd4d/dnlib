@@ -376,7 +376,16 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="tdr">The type</param>
 		/// <returns>The base type or <c>null</c> if there's no base type</returns>
-		public static ITypeDefOrRef? GetBaseTypeThrow(this ITypeDefOrRef? tdr) => tdr.GetBaseType(true);
+		public static ITypeDefOrRef? GetBaseTypeOrThrow(this ITypeDefOrRef? tdr) => tdr.GetBaseType(true);
+
+		/// <summary>
+		/// Returns the base type of <paramref name="tdr"/>. Throws if we can't resolve
+		/// a <see cref="TypeRef"/>.
+		/// </summary>
+		/// <param name="tdr">The type</param>
+		/// <returns>The base type or <c>null</c> if there's no base type</returns>
+		[Obsolete("Use GetBaseTypeOrThrow() instead")]
+		public static ITypeDefOrRef? GetBaseTypeThrow(this ITypeDefOrRef? tdr) => GetBaseTypeOrThrow(tdr);
 
 		/// <summary>
 		/// Returns the base type of <paramref name="tdr"/>
@@ -393,7 +402,7 @@ namespace dnlib.DotNet {
 				return td.BaseType;
 
 			if (tdr is TypeRef tr) {
-				td = (throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve())!;
+				td = (throwOnResolveFailure ? tr.ResolveOrThrow() : tr.Resolve())!;
 				return td?.BaseType;
 			}
 
@@ -413,7 +422,7 @@ namespace dnlib.DotNet {
 
 			tr = (tdr as TypeRef)!;
 			if (tr is not null) {
-				td = (throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve())!;
+				td = (throwOnResolveFailure ? tr.ResolveOrThrow() : tr.Resolve())!;
 				return td?.BaseType;
 			}
 
@@ -454,12 +463,12 @@ namespace dnlib.DotNet {
 		/// <param name="tdr">Type</param>
 		/// <returns>A <see cref="TypeDef"/> instance.</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public static TypeDef ResolveTypeDefThrow(this ITypeDefOrRef? tdr) {
+		public static TypeDef ResolveTypeDefOrThrow(this ITypeDefOrRef? tdr) {
 			if (tdr is TypeDef td)
 				return td;
 
 			if (tdr is TypeRef tr)
-				return tr.ResolveThrow();
+				return tr.ResolveOrThrow();
 
 			if (tdr is null)
 				throw new TypeResolveException("Can't resolve a null pointer");
@@ -471,14 +480,23 @@ namespace dnlib.DotNet {
 
 			tr = (tdr as TypeRef)!;
 			if (tr is not null)
-				return tr.ResolveThrow();
+				return tr.ResolveOrThrow();
 
 			throw new TypeResolveException($"Could not resolve type: {tdr} ({tdr?.DefinitionAssembly})");
 		}
 
 		/// <summary>
+		/// Gets the scope type, resolves it, and returns the <see cref="TypeDef"/>
+		/// </summary>
+		/// <param name="tdr">Type</param>
+		/// <returns>A <see cref="TypeDef"/> instance.</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		[Obsolete("Use ResolveTypeDefOrThrow() instead")]
+		public static TypeDef ResolveTypeDefThrow(this ITypeDefOrRef? tdr) => ResolveTypeDefOrThrow(tdr);
+
+		/// <summary>
 		/// Resolves an <see cref="IField"/> to a <see cref="FieldDef"/>. Returns <c>null</c> if it
-		/// was not possible to resolve it. See also <see cref="ResolveFieldDefThrow"/>
+		/// was not possible to resolve it. See also <see cref="ResolveFieldDefOrThrow"/>
 		/// </summary>
 		/// <param name="field">Field to resolve</param>
 		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if <paramref name="field"/> is
@@ -500,19 +518,28 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">Field to resolve</param>
 		/// <returns>The <see cref="FieldDef"/></returns>
-		public static FieldDef ResolveFieldDefThrow(this IField? field) {
+		public static FieldDef ResolveFieldDefOrThrow(this IField? field) {
 			if (field is FieldDef fd)
 				return fd;
 
 			if (field is MemberRef mr)
-				return mr.ResolveFieldThrow();
+				return mr.ResolveFieldOrThrow();
 
 			throw new MemberRefResolveException($"Could not resolve field: {field}");
 		}
 
 		/// <summary>
+		/// Resolves an <see cref="IField"/> to a <see cref="FieldDef"/> and throws an exception if
+		/// it was not possible to resolve it. See also <see cref="ResolveFieldDef"/>
+		/// </summary>
+		/// <param name="field">Field to resolve</param>
+		/// <returns>The <see cref="FieldDef"/></returns>
+		[Obsolete("Use ResolveFieldDefOrThrow() instead")]
+		public static FieldDef ResolveFieldDefThrow(this IField? field) => ResolveFieldDefOrThrow(field);
+
+		/// <summary>
 		/// Resolves an <see cref="IMethod"/> to a <see cref="MethodDef"/>. Returns <c>null</c> if it
-		/// was not possible to resolve it. See also <see cref="ResolveMethodDefThrow"/>. If
+		/// was not possible to resolve it. See also <see cref="ResolveMethodDefOrThrow"/>. If
 		/// <paramref name="method"/> is a <see cref="MethodSpec"/>, then the
 		/// <see cref="MethodSpec.Method"/> property is resolved and returned.
 		/// </summary>
@@ -548,12 +575,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">Method to resolve</param>
 		/// <returns>The <see cref="MethodDef"/></returns>
-		public static MethodDef ResolveMethodDefThrow(this IMethod? method) {
+		public static MethodDef ResolveMethodDefOrThrow(this IMethod? method) {
 			if (method is MethodDef md)
 				return md;
 
 			if (method is MemberRef mr)
-				return mr.ResolveMethodThrow();
+				return mr.ResolveMethodOrThrow();
 
 			if (method is MethodSpec ms) {
 				md = (ms.Method as MethodDef)!;
@@ -562,11 +589,22 @@ namespace dnlib.DotNet {
 
 				mr = (ms.Method as MemberRef)!;
 				if (mr is not null)
-					return mr.ResolveMethodThrow();
+					return mr.ResolveMethodOrThrow();
 			}
 
 			throw new MemberRefResolveException($"Could not resolve method: {method}");
 		}
+
+		/// <summary>
+		/// Resolves an <see cref="IMethod"/> to a <see cref="MethodDef"/> and throws an exception
+		/// if it was not possible to resolve it. See also <see cref="ResolveMethodDef"/>. If
+		/// <paramref name="method"/> is a <see cref="MethodSpec"/>, then the
+		/// <see cref="MethodSpec.Method"/> property is resolved and returned.
+		/// </summary>
+		/// <param name="method">Method to resolve</param>
+		/// <returns>The <see cref="MethodDef"/></returns>
+		[Obsolete("Use ResolveMethodDefOrThrow() instead")]
+		public static MethodDef ResolveMethodDefThrow(this IMethod? method) => ResolveMethodDefOrThrow(method);
 
 		/// <summary>
 		/// Returns the definition assembly of a <see cref="MemberRef"/>

@@ -274,7 +274,15 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public TypeDef ResolveThrow() => ResolveThrow(null);
+		public TypeDef ResolveOrThrow() => ResolveOrThrow(null);
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		[Obsolete("Use ResolveOrThrow() instead")]
+		public TypeDef ResolveThrow() => ResolveOrThrow();
 
 		/// <summary>
 		/// Resolves the type
@@ -282,12 +290,21 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public TypeDef ResolveThrow(ModuleDef? sourceModule) {
+		public TypeDef ResolveOrThrow(ModuleDef? sourceModule) {
 			var type = Resolve(sourceModule);
 			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not resolve type: {this} ({DefinitionAssembly})");
 		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		[Obsolete("Use ResolveOrThrow() instead")]
+		public TypeDef ResolveThrow(ModuleDef? sourceModule) => ResolveOrThrow(sourceModule);
 
 		/// <summary>
 		/// Gets the top-most (non-nested) <see cref="TypeRef"/>

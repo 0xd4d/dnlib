@@ -566,12 +566,20 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public TypeDef ResolveThrow() {
+		public TypeDef ResolveOrThrow() {
 			var type = Resolve();
 			if (type is not null)
 				return type;
 			throw new TypeResolveException($"Could not resolve type: {this} ({DefinitionAssembly})");
 		}
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		[Obsolete("Use ResolveOrThrow() instead")]
+		public TypeDef ResolveThrow() => ResolveOrThrow();
 
 		/// <summary>
 		/// Converts this instance to a <see cref="TypeRef"/>

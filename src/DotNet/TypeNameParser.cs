@@ -77,8 +77,19 @@ namespace dnlib.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) =>
-			ParseReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
+		public static ITypeDefOrRef ParseReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) =>
+			ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
+
+		/// <summary>
+		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
+		/// </summary>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="typeFullName">Full name of type</param>
+		/// <param name="typeNameParserHelper">Helper class</param>
+		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
+		/// <exception cref="TypeNameParserException">If parsing failed</exception>
+		[Obsolete("Use ParseReflectionOrThrow() instead")]
+		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) => ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper);
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
@@ -89,10 +100,22 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
+		public static ITypeDefOrRef ParseReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
 			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper, gpContext))
 				return parser.Parse();
 		}
+
+		/// <summary>
+		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
+		/// </summary>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="typeFullName">Full name of type</param>
+		/// <param name="typeNameParserHelper">Helper class</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
+		/// <exception cref="TypeNameParserException">If parsing failed</exception>
+		[Obsolete("Use ParseReflectionOrThrow() instead")]
+		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) => ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
@@ -114,7 +137,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance or <c>null</c> if parsing failed</returns>
 		public static ITypeDefOrRef? ParseReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
 			try {
-				return ParseReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
+				return ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 			}
 			catch (TypeNameParserException) {
 				return null;
@@ -129,8 +152,19 @@ namespace dnlib.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) =>
-			ParseAsTypeSigReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
+		public static TypeSig ParseAsTypeSigReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) =>
+			ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, new GenericParamContext());
+
+		/// <summary>
+		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="typeFullName">Full name of type</param>
+		/// <param name="typeNameParserHelper">Helper class</param>
+		/// <returns>A new <see cref="TypeSig"/> instance</returns>
+		/// <exception cref="TypeNameParserException">If parsing failed</exception>
+		[Obsolete("Use ParseAsTypeSigReflectionOrThrow() instead")]
+		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) => ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper);
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
@@ -141,10 +175,22 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
+		public static TypeSig ParseAsTypeSigReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
 			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper, gpContext))
 				return parser.ParseAsTypeSig();
 		}
+
+		/// <summary>
+		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
+		/// </summary>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="typeFullName">Full name of type</param>
+		/// <param name="typeNameParserHelper">Helper class</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="TypeSig"/> instance</returns>
+		/// <exception cref="TypeNameParserException">If parsing failed</exception>
+		[Obsolete("Use ParseAsTypeSigReflectionOrThrow() instead")]
+		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) => ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
@@ -166,7 +212,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if parsing failed</returns>
 		public static TypeSig? ParseAsTypeSigReflection(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
 			try {
-				return ParseAsTypeSigReflectionThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
+				return ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 			}
 			catch (TypeNameParserException) {
 				return null;
