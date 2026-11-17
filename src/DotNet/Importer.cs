@@ -552,9 +552,6 @@ namespace dnlib.DotNet {
 					method = ImportInternal(origMethod) as IMethodDefOrRef;
 
 				method = TryResolveMethod(method);
-				if (methodBase.ContainsGenericParameters)
-					return method; // Declaring type is instantiated but method itself is not
-
 				var gim = CreateGenericInstMethodSig(methodBase);
 				var methodSpec = module.UpdateRowId(new MethodSpecUser(method, gim));
 				if (FixSignature && !forceFixSignature) {
