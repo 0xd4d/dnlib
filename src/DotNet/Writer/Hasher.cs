@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -66,7 +68,7 @@ namespace dnlib.DotNet.Writer {
 					length -= read;
 				}
 				hasher.TransformFinalBlock(Array2.Empty<byte>(), 0, 0);
-				return hasher.Hash;
+				return hasher.Hash!;
 			}
 		}
 	}

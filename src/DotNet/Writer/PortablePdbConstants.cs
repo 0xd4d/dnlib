@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.Writer {
 	static class PortablePdbConstants {
 		// See System.Reflection.Metadata.PortablePdbVersions

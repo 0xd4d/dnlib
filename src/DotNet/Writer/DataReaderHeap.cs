@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using dnlib.DotNet.MD;
 using dnlib.IO;
@@ -14,7 +16,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public override string Name { get; }
 
-		internal DotNetStream OptionalOriginalStream { get; }
+		internal DotNetStream? OptionalOriginalStream { get; }
 
 		readonly DataReader heapReader;
 

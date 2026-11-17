@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -9,7 +11,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class GuidHeap : HeapBase, IOffsetHeap<Guid> {
 		readonly Dictionary<Guid, uint> guids = new Dictionary<Guid, uint>();
-		Dictionary<uint, byte[]> userRawData;
+		Dictionary<uint, byte[]>? userRawData;
 
 		/// <inheritdoc/>
 		public override string Name => "#GUID";

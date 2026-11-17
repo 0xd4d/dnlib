@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using dnlib.IO;
 using dnlib.PE;
 
@@ -15,7 +17,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the <see cref="ImportDirectory"/>
 		/// </summary>
-		public ImportDirectory ImportDirectory { get; set; }
+		public ImportDirectory ImportDirectory { get; set; } = null!;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;

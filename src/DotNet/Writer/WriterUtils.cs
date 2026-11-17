@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.Writer {
 	static class WriterUtils {
 		public static uint WriteCompressedUInt32(this DataWriter writer, IWriterError helper, uint value) {

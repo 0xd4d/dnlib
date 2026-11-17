@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// All <see cref="Metadata"/> events

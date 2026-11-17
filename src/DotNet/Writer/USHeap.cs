@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,8 +16,8 @@ namespace dnlib.DotNet.Writer {
 		readonly Dictionary<string, uint> cachedDict = new Dictionary<string, uint>(StringComparer.Ordinal);
 		readonly List<string> cached = new List<string>();
 		uint nextOffset = 1;
-		byte[] originalData;
-		Dictionary<uint, byte[]> userRawData;
+		byte[]? originalData;
+		Dictionary<uint, byte[]>? userRawData;
 
 		/// <inheritdoc/>
 		public override string Name => "#US";

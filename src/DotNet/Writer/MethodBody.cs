@@ -1,6 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -13,7 +16,7 @@ namespace dnlib.DotNet.Writer {
 
 		readonly bool isTiny;
 		readonly byte[] code;
-		readonly byte[] extraSections;
+		readonly byte[]? extraSections;
 		uint length;
 		FileOffset offset;
 		RVA rva;
@@ -33,7 +36,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the extra sections (exception handlers) or <c>null</c>
 		/// </summary>
-		public byte[] ExtraSections => extraSections;
+		public byte[]? ExtraSections => extraSections;
 
 		/// <summary>
 		/// Gets the token of the locals
@@ -53,6 +56,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// <c>true</c> if there's an extra section
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(extraSections))]
 		public bool HasExtraSections => extraSections is not null && extraSections.Length > 0;
 
 		/// <summary>
@@ -68,7 +72,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="code">Code</param>
 		/// <param name="extraSections">Extra sections or <c>null</c></param>
-		public MethodBody(byte[] code, byte[] extraSections)
+		public MethodBody(byte[] code, byte[]? extraSections)
 			: this(code, extraSections, 0) {
 		}
 
@@ -78,7 +82,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="code">Code</param>
 		/// <param name="extraSections">Extra sections or <c>null</c></param>
 		/// <param name="localVarSigTok">Token of locals</param>
-		public MethodBody(byte[] code, byte[] extraSections, uint localVarSigTok) {
+		public MethodBody(byte[] code, byte[]? extraSections, uint localVarSigTok) {
 			isTiny = (code[0] & 3) == 2;
 			this.code = code;
 			this.extraSections = extraSections;
@@ -152,7 +156,7 @@ namespace dnlib.DotNet.Writer {
 		public override int GetHashCode() => Utils.GetHashCode(code) + Utils.GetHashCode(extraSections);
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			var other = obj as MethodBody;
 			if (other is null)
 				return false;

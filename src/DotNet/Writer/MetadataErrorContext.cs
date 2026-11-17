@@ -1,13 +1,15 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Text;
 
 namespace dnlib.DotNet.Writer {
 	sealed class MetadataErrorContext {
 		sealed class ErrorSource : IDisposable {
-			MetadataErrorContext context;
-			readonly ErrorSource originalValue;
+			MetadataErrorContext? context;
+			readonly ErrorSource? originalValue;
 
 			public object Value { get; }
 
@@ -25,7 +27,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		ErrorSource source;
+		ErrorSource? source;
 
 		public MetadataEvent Event { get; set; }
 

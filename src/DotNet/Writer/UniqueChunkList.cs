@@ -1,7 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -11,7 +14,7 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	/// <typeparam name="T">Chunk type</typeparam>
 	public sealed class UniqueChunkList<T> : ChunkListBase<T> where T : class, IChunk {
-		Dictionary<Elem, Elem> dict;
+		Dictionary<Elem, Elem>? dict;
 
 		/// <summary>
 		/// Default constructor
@@ -41,13 +44,14 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="chunk">The chunk to add or <c>null</c> if none</param>
 		/// <param name="alignment">Chunk alignment</param>
 		/// <returns>The original input if it wasn't present, or the cached one</returns>
-		public T Add(T chunk, uint alignment) {
+		[return: NotNullIfNotNull(nameof(chunk))]
+		public T? Add(T? chunk, uint alignment) {
 			if (setOffsetCalled)
 				throw new InvalidOperationException("SetOffset() has already been called");
 			if (chunk is null)
 				return null;
 			var elem = new Elem(chunk, alignment);
-			if (dict.TryGetValue(elem, out var other))
+			if (dict!.TryGetValue(elem, out var other))
 				return other.chunk;
 			dict[elem] = elem;
 			chunks.Add(elem);
