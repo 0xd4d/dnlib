@@ -27,7 +27,7 @@ namespace dnlib.DotNet.Writer {
 				_ => throw new ArgumentOutOfRangeException(nameof(checksumAlgorithm)),
 			};
 
-		public static bool TryGetChecksumAlgorithm(string checksumName, out ChecksumAlgorithm pdbChecksumAlgorithm, out int checksumSize) {
+		public static bool TryGetChecksumAlgorithm(string? checksumName, out ChecksumAlgorithm pdbChecksumAlgorithm, out int checksumSize) {
 			switch (checksumName) {
 			case "SHA1":
 				pdbChecksumAlgorithm = ChecksumAlgorithm.SHA1;

@@ -1,7 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.W32Resources;
@@ -65,17 +68,17 @@ namespace dnlib.DotNet.Writer {
 		readonly ModuleDefMD module;
 
 		/// <summary>All options</summary>
-		NativeModuleWriterOptions options;
+		NativeModuleWriterOptions? options;
 
 		/// <summary>
 		/// Any extra data found at the end of the original file. This is <c>null</c> if there's
 		/// no extra data or if <see cref="NativeModuleWriterOptions.KeepExtraPEData"/> is
 		/// <c>false</c>.
 		/// </summary>
-		DataReaderChunk extraData;
+		DataReaderChunk? extraData;
 
 		/// <summary>The original PE sections and their data</summary>
-		List<OrigSection> origSections;
+		List<OrigSection> origSections = null!;
 
 		readonly struct ReusedChunkInfo {
 			public IReuseChunk Chunk { get; }
@@ -92,20 +95,20 @@ namespace dnlib.DotNet.Writer {
 		readonly IPEImage peImage;
 
 		/// <summary>New sections we've added and their data</summary>
-		List<PESection> sections;
+		List<PESection> sections = null!;
 
 		/// <summary>New .text section where we put some stuff, eg. .NET metadata</summary>
-		PESection textSection;
+		PESection textSection = null!;
 
 		/// <summary>The new COR20 header</summary>
-		ByteArrayChunk imageCor20Header;
+		ByteArrayChunk imageCor20Header = null!;
 
 		/// <summary>
 		/// New .rsrc section where we put the new Win32 resources. This is <c>null</c> if there
 		/// are no Win32 resources or if <see cref="NativeModuleWriterOptions.KeepWin32Resources"/>
 		/// is <c>true</c>
 		/// </summary>
-		PESection rsrcSection;
+		PESection? rsrcSection;
 
 		/// <summary>
 		/// Offset in <see cref="ModuleWriterBase.destStream"/> of the PE checksum field.
@@ -120,7 +123,7 @@ namespace dnlib.DotNet.Writer {
 			/// <summary>PE section</summary>
 			public ImageSectionHeader PESection;
 			/// <summary>PE section data</summary>
-			public DataReaderChunk Chunk;
+			public DataReaderChunk Chunk = null!;
 
 			/// <summary>
 			/// Constructor
@@ -131,8 +134,8 @@ namespace dnlib.DotNet.Writer {
 
 			/// <inheritdoc/>
 			public void Dispose() {
-				Chunk = null;
-				PESection = null;
+				Chunk = null!;
+				PESection = null!;
 			}
 
 			/// <inheritdoc/>
@@ -156,6 +159,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
+		[AllowNull]
 		public NativeModuleWriterOptions Options {
 			get => options ??= new NativeModuleWriterOptions(module, optimizeImageSize: true);
 			set => options = value;
@@ -164,29 +168,29 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets all <see cref="PESection"/>s
 		/// </summary>
-		public override List<PESection> Sections => sections;
+		public override List<PESection>? Sections => sections;
 
 		/// <summary>
 		/// Gets the original PE sections and their data
 		/// </summary>
-		public List<OrigSection> OrigSections => origSections;
+		public List<OrigSection>? OrigSections => origSections;
 
 		/// <summary>
 		/// Gets the <c>.text</c> section
 		/// </summary>
-		public override PESection TextSection => textSection;
+		public override PESection? TextSection => textSection;
 
 		/// <summary>
 		/// Gets the <c>.rsrc</c> section or <c>null</c> if there's none
 		/// </summary>
-		public override PESection RsrcSection => rsrcSection;
+		public override PESection? RsrcSection => rsrcSection;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">The module</param>
 		/// <param name="options">Options or <c>null</c></param>
-		public NativeModuleWriter(ModuleDefMD module, NativeModuleWriterOptions options) {
+		public NativeModuleWriter(ModuleDefMD module, NativeModuleWriterOptions? options) {
 			this.module = module;
 			this.options = options;
 			peImage = module.Metadata.PEImage;
@@ -258,7 +262,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override Win32Resources GetWin32Resources() {
+		protected override Win32Resources? GetWin32Resources() {
 			if (Options.KeepWin32Resources)
 				return null;
 			if (Options.NoWin32Resources)
@@ -293,7 +297,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Creates the PE header "section"
 		/// </summary>
-		IChunk CreateHeaderSection(out IChunk extraHeaderData) {
+		IChunk CreateHeaderSection(out IChunk? extraHeaderData) {
 			uint afterLastSectHeader = GetOffsetAfterLastSectionHeader() + (uint)sections.Count * 0x28;
 			uint firstRawOffset = Math.Min(GetFirstRawDataFileOffset(), peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
 			uint headerLen = afterLastSectHeader;
@@ -425,7 +429,7 @@ namespace dnlib.DotNet.Writer {
 			return (uint)Math.Min(end, peImage.CreateReader().Length);
 		}
 
-		void ReuseIfPossible(PESection section, IReuseChunk chunk, RVA origRva, uint origSize, uint requiredAlignment) {
+		void ReuseIfPossible(PESection section, IReuseChunk? chunk, RVA origRva, uint origSize, uint requiredAlignment) {
 			if (origRva == 0 || origSize == 0)
 				return;
 			if (chunk is null)
@@ -454,7 +458,7 @@ namespace dnlib.DotNet.Writer {
 		/// Returns the section whose data in the output file contains <paramref name="rva"/>, or null.
 		/// RVAs without file data (eg. .bss, or past SizeOfRawData) aren't matched, see <see cref="GetFileDataSize(OrigSection)"/>.
 		/// </summary>
-		OrigSection GetOrigSectionWithFileData(RVA rva) {
+		OrigSection? GetOrigSectionWithFileData(RVA rva) {
 			foreach (var sect in origSections) {
 				var section = sect.PESection;
 				if (section.VirtualAddress <= rva && rva < section.VirtualAddress + GetFileDataSize(sect))
@@ -524,7 +528,7 @@ namespace dnlib.DotNet.Writer {
 					var win32ResourcesOffset = peImage.ToFileOffset(resourceDataDir.VirtualAddress);
 					if (win32Resources.CheckValidOffset(win32ResourcesOffset)) {
 						win32Resources.SetOffset(win32ResourcesOffset, resourceDataDir.VirtualAddress);
-						ReuseIfPossible(rsrcSection, win32Resources, resourceDataDir.VirtualAddress, resourceDataDir.Size, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
+						ReuseIfPossible(rsrcSection!, win32Resources, resourceDataDir.VirtualAddress, resourceDataDir.Size, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 					}
 				}
 
@@ -619,7 +623,7 @@ namespace dnlib.DotNet.Writer {
 			if (IsDeterministic)
 				WriteDeterministicTimeDateStamp(writer, imageLength, new List<long> { timeDateStampOffset });
 			if (Options.StrongNameKey is not null)
-				StrongNameSign((long)strongNameSignature.FileOffset);
+				StrongNameSign((long)strongNameSignature!.FileOffset);
 			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);
 
 			OnWriterEvent(ModuleWriterEvent.BeginWritePEChecksum);
@@ -1034,7 +1038,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		uint GetMethodToken(IMethod method) {
+		uint GetMethodToken(IMethod? method) {
 			if (method is MethodDef md)
 				return new MDToken(Table.Method, metadata.GetRid(md)).Raw;
 
