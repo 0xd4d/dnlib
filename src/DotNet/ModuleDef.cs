@@ -951,14 +951,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public ITypeDefOrRef Import(Type type) => new Importer(this).Import(type);
+		public ITypeDefOrRef? Import(Type? type) => new Importer(this).Import(type);
 
 		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public TypeSig ImportAsTypeSig(Type type) => new Importer(this).ImportAsTypeSig(type);
+		public TypeSig? ImportAsTypeSig(Type? type) => new Importer(this).ImportAsTypeSig(type);
 
 		/// <summary>
 		/// Imports a <see cref="FieldInfo"/> as a <see cref="MemberRef"/>
@@ -966,7 +966,7 @@ namespace dnlib.DotNet {
 		/// <param name="fieldInfo">The field</param>
 		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
 		/// or if we failed to import the field</returns>
-		public MemberRef Import(FieldInfo fieldInfo) => (MemberRef)new Importer(this).Import(fieldInfo);
+		public MemberRef? Import(FieldInfo? fieldInfo) => (MemberRef?)new Importer(this).Import(fieldInfo);
 
 		/// <summary>
 		/// Imports a <see cref="MethodBase"/> as a <see cref="IMethod"/>. This will be either
@@ -975,84 +975,84 @@ namespace dnlib.DotNet {
 		/// <param name="methodBase">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="methodBase"/> is invalid
 		/// or if we failed to import the method</returns>
-		public IMethod Import(MethodBase methodBase) => new Importer(this).Import(methodBase);
+		public IMethod? Import(MethodBase? methodBase) => new Importer(this).Import(methodBase);
 
 		/// <summary>
 		/// Imports a <see cref="IType"/>
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public IType Import(IType type) => new Importer(this).Import(type);
+		public IType? Import(IType? type) => new Importer(this).Import(type);
 
 		/// <summary>
 		/// Imports a <see cref="TypeDef"/> as a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeRef Import(TypeDef type) => (TypeRef)new Importer(this).Import(type);
+		public TypeRef? Import(TypeDef? type) => (TypeRef?)new Importer(this).Import(type);
 
 		/// <summary>
 		/// Imports a <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeRef Import(TypeRef type) => (TypeRef)new Importer(this).Import(type);
+		public TypeRef? Import(TypeRef? type) => (TypeRef?)new Importer(this).Import(type);
 
 		/// <summary>
 		/// Imports a <see cref="TypeSpec"/>
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeSpec Import(TypeSpec type) => new Importer(this).Import(type);
+		public TypeSpec? Import(TypeSpec? type) => new Importer(this).Import(type);
 
 		/// <summary>
 		/// Imports a <see cref="TypeSig"/>
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
-		public TypeSig Import(TypeSig type) => new Importer(this).Import(type);
+		public TypeSig? Import(TypeSig? type) => new Importer(this).Import(type);
 
 		/// <summary>
 		/// Imports a <see cref="IField"/>
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public MemberRef Import(IField field) => (MemberRef)new Importer(this).Import(field);
+		public MemberRef? Import(IField? field) => (MemberRef?)new Importer(this).Import(field);
 
 		/// <summary>
 		/// Imports a <see cref="FieldDef"/> as a <see cref="MemberRef"/>
 		/// </summary>
 		/// <param name="field">The field</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="field"/> is invalid</returns>
-		public MemberRef Import(FieldDef field) => (MemberRef)new Importer(this).Import(field);
+		public MemberRef? Import(FieldDef? field) => (MemberRef?)new Importer(this).Import(field);
 
 		/// <summary>
 		/// Imports a <see cref="IMethod"/>
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
-		public IMethod Import(IMethod method) => new Importer(this).Import(method);
+		public IMethod? Import(IMethod? method) => new Importer(this).Import(method);
 
 		/// <summary>
 		/// Imports a <see cref="MethodDef"/> as a <see cref="MemberRef"/>
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
-		public MemberRef Import(MethodDef method) => (MemberRef)new Importer(this).Import(method);
+		public MemberRef? Import(MethodDef? method) => (MemberRef?)new Importer(this).Import(method);
 
 		/// <summary>
 		/// Imports a <see cref="MethodSpec"/>
 		/// </summary>
 		/// <param name="method">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="method"/> is invalid</returns>
-		public MethodSpec Import(MethodSpec method) => new Importer(this).Import(method);
+		public MethodSpec? Import(MethodSpec? method) => new Importer(this).Import(method);
 
 		/// <summary>
 		/// Imports a <see cref="MemberRef"/>
 		/// </summary>
 		/// <param name="memberRef">The member ref</param>
 		/// <returns>The imported member ref or <c>null</c> if <paramref name="memberRef"/> is invalid</returns>
-		public MemberRef Import(MemberRef memberRef) => new Importer(this).Import(memberRef);
+		public MemberRef? Import(MemberRef? memberRef) => new Importer(this).Import(memberRef);
 
 		/// <summary>
 		/// Writes the module to a file on disk. If the file exists, it will be overwritten.
