@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 
 namespace dnlib.DotNet.Emit {
@@ -156,7 +158,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
-		public Instruction ToInstruction(CorLibTypeSig type) => Instruction.Create(this, type.TypeDefOrRef);
+		public Instruction ToInstruction(CorLibTypeSig type) => Instruction.Create(this, type.TypeDefOrRef!);
 
 		/// <summary>
 		/// Creates a new instruction with a method/field operand

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A CIL opcode. If the high byte is 0 or if it's <see cref="UNKNOWN1"/>, it's a 1-byte opcode,
@@ -256,7 +258,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="code">The code</param>
 		/// <returns>A <see cref="OpCode"/> or <c>null</c> if it's invalid</returns>
-		public static OpCode ToOpCode(this Code code) {
+		public static OpCode? ToOpCode(this Code code) {
 			byte hi = (byte)((ushort)code >> 8);
 			byte lo = (byte)code;
 			if (hi == 0)
@@ -277,7 +279,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="code">The code</param>
 		/// <param name="context">The module context</param>
 		/// <returns>A <see cref="OpCode"/> or <c>null</c> if it's invalid</returns>
-		public static OpCode ToOpCode(this Code code, ModuleContext context) {
+		public static OpCode? ToOpCode(this Code code, ModuleContext context) {
 			byte hi = (byte)((ushort)code >> 8);
 			byte lo = (byte)code;
 			if (hi == 0)

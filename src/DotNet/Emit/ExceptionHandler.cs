@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A CIL method exception handler
@@ -8,35 +10,35 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// First instruction of try block
 		/// </summary>
-		public Instruction TryStart;
+		public Instruction? TryStart;
 
 		/// <summary>
 		/// One instruction past the end of try block or <c>null</c> if it ends at the end
 		/// of the method.
 		/// </summary>
-		public Instruction TryEnd;
+		public Instruction? TryEnd;
 
 		/// <summary>
 		/// Start of filter handler or <c>null</c> if none. The end of filter handler is
 		/// always <see cref="HandlerStart"/>.
 		/// </summary>
-		public Instruction FilterStart;
+		public Instruction? FilterStart;
 
 		/// <summary>
 		/// First instruction of try handler block
 		/// </summary>
-		public Instruction HandlerStart;
+		public Instruction? HandlerStart;
 
 		/// <summary>
 		/// One instruction past the end of try handler block or <c>null</c> if it ends at the end
 		/// of the method.
 		/// </summary>
-		public Instruction HandlerEnd;
+		public Instruction? HandlerEnd;
 
 		/// <summary>
 		/// The catch type if <see cref="IsCatch"/> is <see langword="true" />
 		/// </summary>
-		public ITypeDefOrRef CatchType;
+		public ITypeDefOrRef? CatchType;
 
 		/// <summary>
 		/// Type of exception handler clause

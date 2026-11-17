@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -55,7 +57,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="self">An <see cref="IInstructionOperandResolver"/> object</param>
 		/// <param name="token">The metadata token</param>
 		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		public static IMDTokenProvider ResolveToken(this IInstructionOperandResolver self, uint token) =>
+		public static IMDTokenProvider? ResolveToken(this IInstructionOperandResolver self, uint token) =>
 			self.ResolveToken(token, new GenericParamContext());
 	}
 
@@ -127,7 +129,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">The module context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader reader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) =>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader reader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext? context) =>
 			CreateCilBody(opResolver, reader, null, parameters, gpContext, context);
 
 		/// <summary>
@@ -191,7 +193,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">The module context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context) =>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext? context) =>
 			CreateCilBody(opResolver, codeReader, ehReader, parameters, gpContext, context, MethodBodyReaderOptions.None);
 
 		/// <summary>
@@ -206,7 +208,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">The module context</param>
 		/// <param name="options">Options</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context, MethodBodyReaderOptions options) {
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext? context, MethodBodyReaderOptions options) {
 			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context, options);
 			if (!mbReader.Read())
 				return new CilBody();
@@ -261,7 +263,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">The module context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext, ModuleContext context) {
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext, ModuleContext? context) {
 			var codeReader = ByteArrayDataReaderFactory.CreateReader(code);
 			var ehReader = exceptions is null ? (DataReader?)null : ByteArrayDataReaderFactory.CreateReader(exceptions);
 			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context);
@@ -348,7 +350,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">Module context</param>
-		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context)
+		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext? context)
 			: this(opResolver, codeReader, ehReader, parameters, gpContext, context, MethodBodyReaderOptions.None) {
 		}
 
@@ -363,7 +365,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">Module context</param>
 		/// <param name="options">Options</param>
-		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext context, MethodBodyReaderOptions options)
+		public MethodBodyReader(IInstructionOperandResolver opResolver, DataReader codeReader, DataReader? ehReader, IList<Parameter> parameters, GenericParamContext gpContext, ModuleContext? context, MethodBodyReaderOptions options)
 			: base(codeReader, parameters, context) {
 			this.opResolver = opResolver;
 			exceptionsReader = ehReader;
@@ -470,7 +472,7 @@ namespace dnlib.DotNet.Emit {
 		/// Reads the locals
 		/// </summary>
 		/// <returns>All locals or <c>null</c> if there are none</returns>
-		IList<TypeSig> ReadLocals() {
+		IList<TypeSig?>? ReadLocals() {
 			var standAloneSig = opResolver.ResolveToken(localVarSigTok, gpContext) as StandAloneSig;
 			if (standAloneSig is null)
 				return null;
@@ -486,13 +488,13 @@ namespace dnlib.DotNet.Emit {
 		void ReadInstructions() => ReadInstructionsNumBytes(codeSize);
 
 		/// <inheritdoc/>
-		protected override IField ReadInlineField(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as IField;
+		protected override IField? ReadInlineField(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as IField;
 
 		/// <inheritdoc/>
-		protected override IMethod ReadInlineMethod(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as IMethod;
+		protected override IMethod? ReadInlineMethod(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as IMethod;
 
 		/// <inheritdoc/>
-		protected override MethodSig ReadInlineSig(Instruction instr) {
+		protected override MethodSig? ReadInlineSig(Instruction instr) {
 			var standAloneSig = opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as StandAloneSig;
 			if (standAloneSig is null)
 				return null;
@@ -509,10 +511,10 @@ namespace dnlib.DotNet.Emit {
 		protected override string ReadInlineString(Instruction instr) => opResolver.ReadUserString(reader.ReadUInt32()) ?? string.Empty;
 
 		/// <inheritdoc/>
-		protected override ITokenOperand ReadInlineTok(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as ITokenOperand;
+		protected override ITokenOperand? ReadInlineTok(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as ITokenOperand;
 
 		/// <inheritdoc/>
-		protected override ITypeDefOrRef ReadInlineType(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as ITypeDefOrRef;
+		protected override ITypeDefOrRef? ReadInlineType(Instruction instr) => opResolver.ResolveToken(reader.ReadUInt32(), gpContext) as ITypeDefOrRef;
 
 		/// <summary>
 		/// Reads all exception handlers
@@ -621,9 +623,9 @@ namespace dnlib.DotNet.Emit {
 			cilBody.MaxStack = maxStack;
 			cilBody.LocalVarSigTok = localVarSigTok;
 			cilBody.MetadataBodySize = totalBodySize;
-			instructions = null;
-			exceptionHandlers = null;
-			locals = null;
+			instructions = null!;
+			exceptionHandlers = null!;
+			locals = null!;
 			return cilBody;
 		}
 	}

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 
 namespace dnlib.DotNet.Emit {
@@ -152,7 +154,7 @@ namespace dnlib.DotNet.Emit {
 
 				case Code.Ldc_I4_S:
 					instr.OpCode = OpCodes.Ldc_I4;
-					instr.Operand = (int)(sbyte)instr.Operand;
+					instr.Operand = (int)(sbyte)instr.Operand!;
 					break;
 
 				case Code.Ldloc_0:
@@ -218,7 +220,7 @@ namespace dnlib.DotNet.Emit {
 			}
 		}
 
-		static T ReadList<T>(IList<T> list, int index) {
+		static T? ReadList<T>(IList<T>? list, int index) {
 			if (list is null)
 				return default;
 			if ((uint)index < (uint)list.Count)
@@ -235,8 +237,8 @@ namespace dnlib.DotNet.Emit {
 			int count = instructions.Count;
 			for (int i = 0; i < count; i++) {
 				var instr = instructions[i];
-				Parameter arg;
-				Local local;
+				Parameter? arg;
+				Local? local;
 				switch (instr.OpCode.Code) {
 				case Code.Ldarg:
 				case Code.Ldarg_S:
