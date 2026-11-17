@@ -211,6 +211,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Constant))]
 		public bool HasConstant => Constant is not null;
 
 		/// <summary>
@@ -226,6 +227,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(MarshalType))]
 		public bool HasMarshalType => MarshalType is not null;
 
 		/// <inheritdoc/>

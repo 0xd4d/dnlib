@@ -560,6 +560,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="ClassLayout"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(ClassLayout))]
 		public bool HasClassLayout => ClassLayout is not null;
 
 		/// <summary>
@@ -685,6 +686,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if this is a nested type (it has a declaring type)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(DeclaringType))]
 		public bool IsNested => DeclaringType is not null;
 
 		/// <inheritdoc/>

@@ -448,6 +448,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="dnlib.DotNet.ParamDef"/>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(ParamDef))]
 		public bool HasParamDef => ParamDef is not null;
 
 		/// <summary>

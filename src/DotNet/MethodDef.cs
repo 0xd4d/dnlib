@@ -440,6 +440,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="Body"/>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Body))]
 		public bool HasBody => Body is not null;
 
 		/// <summary>
@@ -450,6 +451,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="ImplMap"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(ImplMap))]
 		public bool HasImplMap => ImplMap is not null;
 
 		/// <summary>

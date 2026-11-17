@@ -629,12 +629,14 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if it has an owner <see cref="TypeDef"/> (<see cref="OwnerType"/> is
 		/// not <c>null</c>)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(OwnerType))]
 		public bool HasOwnerType => OwnerType is not null;
 
 		/// <summary>
 		/// <c>true</c> if it has an owner <see cref="MethodDef"/> (<see cref="OwnerMethod"/> is
 		/// not <c>null</c>)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(OwnerMethod))]
 		public bool HasOwnerMethod => OwnerMethod is not null;
 
 		/// <summary>

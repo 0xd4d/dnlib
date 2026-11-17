@@ -209,6 +209,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(DeclaringType))]
 		public bool IsNested => DeclaringType is not null;
 
 		/// <inheritdoc/>

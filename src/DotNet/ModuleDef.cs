@@ -312,11 +312,13 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="ManagedEntryPoint"/> is non-null
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(ManagedEntryPoint))]
 		public bool IsManagedEntryPointValid => ManagedEntryPoint is not null;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="EntryPoint"/> is non-null
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(EntryPoint))]
 		public bool IsEntryPointValid => EntryPoint is not null;
 
 		/// <summary>
@@ -456,6 +458,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if this is the manifest (main) module
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Assembly))]
 		public bool IsManifestModule {
 			get {
 				var asm = assembly;
@@ -1441,7 +1444,7 @@ namespace dnlib.DotNet {
 		/// <param name="simpleName">Simple name of assembly (eg. "mscorlib")</param>
 		/// <returns>The found <see cref="AssemblyRef"/> or <c>null</c> if there's no such
 		/// assembly reference.</returns>
-		public AssemblyRef? GetAssemblyRef(UTF8String simpleName) {
+		public AssemblyRef? GetAssemblyRef(UTF8String? simpleName) {
 			AssemblyRef? found = null;
 			foreach (var asmRef in GetAssemblyRefs()) {
 				if (asmRef.Name != simpleName)

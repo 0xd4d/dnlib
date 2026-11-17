@@ -372,6 +372,7 @@ namespace dnlib.DotNet {
 		public bool HasCustomAttributes => CustomAttributes.Count > 0;
 
 		/// <inheritdoc/>
+		[MemberNotNullWhen(true, nameof(ImplMap))]
 		public bool HasImplMap => ImplMap is not null;
 
 		/// <summary>
@@ -457,6 +458,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Constant))]
 		public bool HasConstant => Constant is not null;
 
 		/// <summary>
@@ -472,6 +474,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="MarshalType"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(MarshalType))]
 		public bool HasMarshalType => MarshalType is not null;
 
 		/// <summary>

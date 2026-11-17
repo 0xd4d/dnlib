@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet.Pdb;
 using dnlib.PE;
 
@@ -150,6 +151,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// <c>true</c> if <see cref="PdbMethod"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(PdbMethod))]
 		public bool HasPdbMethod => PdbMethod is not null;
 
 		/// <summary>
