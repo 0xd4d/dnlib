@@ -754,7 +754,7 @@ namespace dnlib.DotNet {
 			// Could be an exported type. Resolve it and check again.
 
 			var td = b.Resolve(sourceModule);
-			return td is not null && Equals(aAsm, td.Module!.Assembly);
+			return td is not null && Equals(aAsm, td.Module?.Assembly);
 		}
 
 		bool Equals(IAssembly? aAsm, IAssembly? bAsm, ExportedType b) {
@@ -762,7 +762,7 @@ namespace dnlib.DotNet {
 				return true;
 
 			var td = b.Resolve();
-			return td is not null && Equals(aAsm, td.Module!.Assembly);
+			return td is not null && Equals(aAsm, td.Module?.Assembly);
 		}
 
 		bool Equals(IAssembly? aAsm, TypeRef a, IAssembly? bAsm, TypeRef b) {
@@ -773,7 +773,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve(sourceModule);
-			return tda is not null && tdb is not null && Equals(tda.Module!.Assembly, tdb.Module!.Assembly);
+			return tda is not null && tdb is not null && Equals(tda.Module?.Assembly, tdb.Module?.Assembly);
 		}
 
 		bool Equals(IAssembly? aAsm, ExportedType a, IAssembly? bAsm, ExportedType b) {
@@ -782,7 +782,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve();
 			var tdb = b.Resolve();
-			return tda is not null && tdb is not null && Equals(tda.Module!.Assembly, tdb.Module!.Assembly);
+			return tda is not null && tdb is not null && Equals(tda.Module?.Assembly, tdb.Module?.Assembly);
 		}
 
 		bool Equals(IAssembly? aAsm, TypeRef a, IAssembly? bAsm, ExportedType b) {
@@ -793,7 +793,7 @@ namespace dnlib.DotNet {
 
 			var tda = a.Resolve(sourceModule);
 			var tdb = b.Resolve();
-			return tda is not null && tdb is not null && Equals(tda.Module!.Assembly, tdb.Module!.Assembly);
+			return tda is not null && tdb is not null && Equals(tda.Module?.Assembly, tdb.Module?.Assembly);
 		}
 
 		bool Equals(TypeDef a, IModule? bMod, TypeRef b) {
@@ -937,7 +937,7 @@ namespace dnlib.DotNet {
 			// Could be an exported type. Resolve it and check again.
 
 			var td = b.Resolve(sourceModule);
-			return td is not null && Equals(td.Module!.Assembly, aAsm);
+			return td is not null && Equals(td.Module?.Assembly, aAsm);
 		}
 
 		bool Equals(Assembly? aAsm, IAssembly? bAsm, ExportedType b) {
@@ -945,7 +945,7 @@ namespace dnlib.DotNet {
 				return true;
 
 			var td = b.Resolve();
-			return td is not null && Equals(td.Module!.Assembly, aAsm);
+			return td is not null && Equals(td.Module?.Assembly, aAsm);
 		}
 
 		bool Equals(Type a, IModule? bMod, TypeRef b) {
