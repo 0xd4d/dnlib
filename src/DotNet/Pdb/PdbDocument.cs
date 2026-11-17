@@ -16,12 +16,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the document URL
 		/// </summary>
-		public string? Url { get; set; }
-
-		/// <summary>
-		/// Same as <see cref="Url"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
-		/// </summary>
-		public string UrlOrThrow => OrThrowHelper.NotNull(Url, nameof(Url));
+		public string Url { get; set; }
 
 		/// <summary>
 		/// Gets/sets the language GUID. See <see cref="PdbDocumentConstants"/>
@@ -46,7 +41,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the checksum
 		/// </summary>
-		public byte[]? CheckSum { get; set; }
+		public byte[] CheckSum { get; set; }
 
 		/// <inheritdoc/>
 		public int HasCustomDebugInformationTag => 22;
@@ -75,7 +70,11 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public PdbDocument() => customDebugInfos = new List<PdbCustomDebugInfo>();
+		public PdbDocument() {
+			Url = string.Empty;
+			CheckSum = Array2.Empty<byte>();
+			customDebugInfos = new List<PdbCustomDebugInfo>();
+		}
 
 		/// <summary>
 		/// Constructor
@@ -105,7 +104,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="documentType">Document type. See <see cref="PdbDocumentConstants"/></param>
 		/// <param name="checkSumAlgorithmId">Checksum algorithm ID. See <see cref="PdbDocumentConstants"/></param>
 		/// <param name="checkSum">Checksum</param>
-		public PdbDocument(string? url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[]? checkSum) {
+		public PdbDocument(string url, Guid language, Guid languageVendor, Guid documentType, Guid checkSumAlgorithmId, byte[] checkSum) {
 			Url = url;
 			Language = language;
 			LanguageVendor = languageVendor;

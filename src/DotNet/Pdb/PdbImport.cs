@@ -88,19 +88,20 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target namespace
 		/// </summary>
-		public string? TargetNamespace { get; set; }
+		public string TargetNamespace { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbImportNamespace() {
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="targetNamespace"></param>
-		public PdbImportNamespace(string? targetNamespace) => TargetNamespace = targetNamespace;
+		public PdbImportNamespace(string targetNamespace) => TargetNamespace = targetNamespace;
 
 		internal sealed override void PreventNewClasses() { }
 
@@ -125,12 +126,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target namespace
 		/// </summary>
-		public string? TargetNamespace { get; set; }
+		public string TargetNamespace { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbImportAssemblyNamespace() {
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -138,7 +140,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="targetAssembly"></param>
 		/// <param name="targetNamespace"></param>
-		public PdbImportAssemblyNamespace(AssemblyRef? targetAssembly, string? targetNamespace) {
+		public PdbImportAssemblyNamespace(AssemblyRef? targetAssembly, string targetNamespace) {
 			TargetAssembly = targetAssembly;
 			TargetNamespace = targetNamespace;
 		}
@@ -193,17 +195,19 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the alias
 		/// </summary>
-		public string? Alias { get; set; }
+		public string Alias { get; set; }
 
 		/// <summary>
 		/// Gets the target namespace
 		/// </summary>
-		public string? TargetNamespace { get; set; }
+		public string TargetNamespace { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbImportXmlNamespace() {
+			Alias = string.Empty;
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -211,7 +215,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="alias"></param>
 		/// <param name="targetNamespace"></param>
-		public PdbImportXmlNamespace(string? alias, string? targetNamespace) {
+		public PdbImportXmlNamespace(string alias, string targetNamespace) {
 			Alias = alias;
 			TargetNamespace = targetNamespace;
 		}
@@ -234,19 +238,20 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the alias
 		/// </summary>
-		public string? Alias { get; set; }
+		public string Alias { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbImportAssemblyReferenceAlias() {
+			Alias = string.Empty;
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="alias"></param>
-		public PdbImportAssemblyReferenceAlias(string? alias) => Alias = alias;
+		public PdbImportAssemblyReferenceAlias(string alias) => Alias = alias;
 
 		internal sealed override void PreventNewClasses() { }
 
@@ -266,7 +271,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the alias
 		/// </summary>
-		public string? Alias { get; set; }
+		public string Alias { get; set; }
 
 		/// <summary>
 		/// Gets the target assembly
@@ -277,6 +282,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbAliasAssemblyReference() {
+			Alias = string.Empty;
 		}
 
 		/// <summary>
@@ -284,7 +290,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="alias"></param>
 		/// <param name="targetAssembly"></param>
-		public PdbAliasAssemblyReference(string? alias, AssemblyRef? targetAssembly) {
+		public PdbAliasAssemblyReference(string alias, AssemblyRef? targetAssembly) {
 			Alias = alias;
 			TargetAssembly = targetAssembly;
 		}
@@ -307,17 +313,19 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the alias
 		/// </summary>
-		public string? Alias { get; set; }
+		public string Alias { get; set; }
 
 		/// <summary>
 		/// Gets the target namespace
 		/// </summary>
-		public string? TargetNamespace { get; set; }
+		public string TargetNamespace { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbAliasNamespace() {
+			Alias = string.Empty;
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -325,7 +333,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="alias"></param>
 		/// <param name="targetNamespace"></param>
-		public PdbAliasNamespace(string? alias, string? targetNamespace) {
+		public PdbAliasNamespace(string alias, string targetNamespace) {
 			Alias = alias;
 			TargetNamespace = targetNamespace;
 		}
@@ -348,7 +356,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the alias
 		/// </summary>
-		public string? Alias { get; set; }
+		public string Alias { get; set; }
 
 		/// <summary>
 		/// Gets the target assembly
@@ -358,12 +366,14 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target namespace
 		/// </summary>
-		public string? TargetNamespace { get; set; }
+		public string TargetNamespace { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbAliasAssemblyNamespace() {
+			Alias = string.Empty;
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -372,7 +382,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="alias"></param>
 		/// <param name="targetAssembly"></param>
 		/// <param name="targetNamespace"></param>
-		public PdbAliasAssemblyNamespace(string? alias, AssemblyRef? targetAssembly, string? targetNamespace) {
+		public PdbAliasAssemblyNamespace(string alias, AssemblyRef? targetAssembly, string targetNamespace) {
 			Alias = alias;
 			TargetAssembly = targetAssembly;
 			TargetNamespace = targetNamespace;
@@ -396,7 +406,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the alias
 		/// </summary>
-		public string? Alias { get; set; }
+		public string Alias { get; set; }
 
 		/// <summary>
 		/// Gets the target type
@@ -407,6 +417,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbAliasType() {
+			Alias = string.Empty;
 		}
 
 		/// <summary>
@@ -414,7 +425,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="alias"></param>
 		/// <param name="targetType"></param>
-		public PdbAliasType(string? alias, ITypeDefOrRef? targetType) {
+		public PdbAliasType(string alias, ITypeDefOrRef? targetType) {
 			Alias = alias;
 			TargetType = targetType;
 		}
