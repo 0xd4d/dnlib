@@ -405,7 +405,7 @@ namespace dnlib.DotNet.Emit {
 						eh.FilterStart = null;	// not supported by DynamicMethod.ILGenerator
 						eh.HandlerStart = GetInstructionThrow((uint)ehInfo.CatchAddr[i]);
 						eh.HandlerEnd = GetInstruction((uint)ehInfo.CatchEndAddr[i]);
-						eh.CatchType = importer.Import(ehInfo.CatchClass[i]);
+						eh.CatchType = importer.ImportAsOperand(ehInfo.CatchClass[i]);
 						exceptionHandlers.Add(eh);
 					}
 				}
@@ -448,6 +448,9 @@ namespace dnlib.DotNet.Emit {
 		protected override string ReadInlineString(Instruction instr) => ReadToken(reader.ReadUInt32()) as string ?? string.Empty;
 
 		/// <inheritdoc/>
+		// Reflection returns the same Type for typeof(My<>) and typeof(My<T>) (inside My<T>) so we can't know which
+		// one it is. Importer.ImportAsOperand() returns My<T> which is much more common (and is the only one used
+		// by the compiler for ldtoken method/field, eg. expression trees).
 		protected override ITokenOperand ReadInlineTok(Instruction instr) => ReadToken(reader.ReadUInt32()) as ITokenOperand;
 
 		/// <inheritdoc/>
@@ -486,22 +489,22 @@ namespace dnlib.DotNet.Emit {
 				if ((options & DynamicMethodBodyReaderOptions.GuessDeclaringType) != 0) {
 					// Sometimes it's a generic type but obj != `GenericMethodInfo`, so pass in 'default' and the
 					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
-					return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
+					return importer.ImportAsOperand(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
 				}
 				else
-					return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
+					return importer.ImportAsOperand(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericMethodInfo") {
 				var context = (RuntimeTypeHandle)gmiContextFieldInfo.Read(obj);
 				var method = SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)gmiMethodHandleFieldInfo.Read(obj), context);
-				return importer.Import(method);
+				return importer.ImportAsOperand(method);
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.VarArgMethod") {
 				var method = GetVarArgMethod(obj);
 				if (!(method is DynamicMethod))
-					return importer.Import(method);
+					return importer.ImportAsOperand(method);
 				obj = method;
 			}
 
@@ -534,16 +537,16 @@ namespace dnlib.DotNet.Emit {
 				if ((options & DynamicMethodBodyReaderOptions.GuessDeclaringType) != 0) {
 					// Sometimes it's a generic type but obj != `GenericFieldInfo`, so pass in 'default' and the
 					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
-					return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
+					return importer.ImportAsOperand(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
 				}
 				else
-					return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj));
+					return importer.ImportAsOperand(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj));
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericFieldInfo") {
 				var context = (RuntimeTypeHandle)gfiContextFieldInfo.Read(obj);
 				var field = SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)gfiFieldHandleFieldInfo.Read(obj), context);
-				return importer.Import(field);
+				return importer.ImportAsOperand(field);
 			}
 
 			return null;
@@ -552,7 +555,7 @@ namespace dnlib.DotNet.Emit {
 		ITypeDefOrRef ImportType(uint rid) {
 			var obj = Resolve(rid);
 			if (obj is RuntimeTypeHandle)
-				return importer.Import(Type.GetTypeFromHandle((RuntimeTypeHandle)obj));
+				return importer.ImportAsOperand(Type.GetTypeFromHandle((RuntimeTypeHandle)obj));
 
 			return null;
 		}
