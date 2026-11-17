@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using dnlib.PE;
 
 namespace dnlib.DotNet.Pdb {

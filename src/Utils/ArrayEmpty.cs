@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 // System namespace so it can easily be replaced with Array.Empty<T> later
 namespace System {
 	static class Array2 {

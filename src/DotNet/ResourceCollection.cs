@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using dnlib.Utils;
 using System;
 

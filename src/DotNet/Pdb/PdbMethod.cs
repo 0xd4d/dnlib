@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.DotNet.Pdb {
 	/// <summary>
 	/// A PDB method

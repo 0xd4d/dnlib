@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.DotNet.Writer {
 	/// <summary>
 	/// Gets notified of errors. The default handler should normally throw since the written data

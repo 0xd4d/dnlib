@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using dnlib.IO;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Pdb;

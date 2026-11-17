@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.IO {
 	/// <summary>
 	/// Represents a section in a file

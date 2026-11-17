@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.DotNet.Pdb.Managed {
 	enum NumericLeaf : ushort {
 		LF_NUMERIC			= 0x8000,

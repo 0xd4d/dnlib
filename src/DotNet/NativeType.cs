@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Native types used by field marshals. See CorHdr.h/CorNativeType

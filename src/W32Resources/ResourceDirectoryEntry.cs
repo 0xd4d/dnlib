@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.W32Resources {
 	/// <summary>
 	/// Base class of <see cref="ResourceDirectory"/> and <see cref="ResourceData"/>

@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Interface to access a local or a parameter

@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 // https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md
 
 using System;

@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using System.IO;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;

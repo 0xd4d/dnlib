@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;

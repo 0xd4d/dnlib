@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 // The trim/AOT analyzers only run on the net10.0 build, but the trimmer also reads these
 // attributes (by name) from the netstandard2.0 build when an app references it.
 #if !NET

@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using System.IO;
 using System.Runtime.Serialization;
 using dnlib.IO;

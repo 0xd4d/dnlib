@@ -1,7 +1,5 @@
 using System.IO;
 
-#nullable enable
-
 namespace dnlib.DotNet.Resources {
 	/// <summary>
 	/// Extension of <see cref="BinaryWriter"/> for writing resource set elements

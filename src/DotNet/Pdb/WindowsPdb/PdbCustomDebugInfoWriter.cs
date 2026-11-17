@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 // C# & Visual Basic compiler's Custom Debug Info is "documented" in source code only, see Roslyn classes:
 //	CustomDebugInfoReader, CustomDebugInfoWriter, CustomDebugInfoEncoder
 

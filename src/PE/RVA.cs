@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.PE {
 	/// <summary>
 	/// Represents an RVA (relative virtual address)

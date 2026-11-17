@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A CIL method exception handler

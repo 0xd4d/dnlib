@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 // See coreclr/src/vm/siginfo.cpp
 
 using System;

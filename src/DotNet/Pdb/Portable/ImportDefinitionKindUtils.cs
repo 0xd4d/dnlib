@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using System.Diagnostics;
 
 namespace dnlib.DotNet.Pdb.Portable {

@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 using System.Collections.Generic;
 
 #pragma warning disable 1591	// XML doc comments

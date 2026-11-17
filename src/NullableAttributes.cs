@@ -1,7 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-#nullable enable
-
 // The compiler finds these attributes by name, so they can be internal. Nullable warnings are only
 // enabled in the net10.0 build, but the attributes must also be present in the other builds since
 // they're part of the public API's nullable annotations.
