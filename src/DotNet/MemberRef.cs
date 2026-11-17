@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +22,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// The owner module
 		/// </summary>
-		protected ModuleDef module;
+		protected ModuleDef? module;
 
 		/// <inheritdoc/>
 		public MDToken MDToken => new MDToken(Table.MemberRef, rid);
@@ -43,12 +45,17 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column MemberRef.Class
 		/// </summary>
-		public IMemberRefParent Class {
+		public IMemberRefParent? Class {
 			get => @class;
 			set => @class = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="Class"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public IMemberRefParent ClassOrThrow => OrThrowHelper.NotNull(@class, nameof(Class));
 		/// <summary/>
-		protected IMemberRefParent @class;
+		protected IMemberRefParent? @class;
 
 		/// <summary>
 		/// From column MemberRef.Name
@@ -63,12 +70,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column MemberRef.Signature
 		/// </summary>
-		public CallingConventionSig Signature {
+		public CallingConventionSig? Signature {
 			get => signature;
 			set => signature = value;
 		}
 		/// <summary/>
-		protected CallingConventionSig signature;
+		protected CallingConventionSig? signature;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -77,11 +84,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -102,17 +109,17 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <inheritdoc/>
-		public ITypeDefOrRef DeclaringType {
+		public ITypeDefOrRef? DeclaringType {
 			get {
 				var owner = @class;
 
@@ -185,7 +192,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the method sig
 		/// </summary>
-		public MethodSig MethodSig {
+		public MethodSig? MethodSig {
 			get => signature as MethodSig;
 			set => signature = value;
 		}
@@ -198,7 +205,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the field sig
 		/// </summary>
-		public FieldSig FieldSig {
+		public FieldSig? FieldSig {
 			get => signature as FieldSig;
 			set => signature = value;
 		}
@@ -209,7 +216,7 @@ namespace dnlib.DotNet {
 		public FieldSig FieldSigOrThrow => OrThrowHelper.NotNull(signature as FieldSig, nameof(FieldSig));
 
 		/// <inheritdoc/>
-		public ModuleDef Module => module;
+		public ModuleDef? Module => module;
 
 		/// <summary>
 		/// <c>true</c> if the method has a hidden 'this' parameter
@@ -244,7 +251,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the method return type
 		/// </summary>
-		public TypeSig ReturnType {
+		public TypeSig? ReturnType {
 			get => MethodSig?.RetType;
 			set {
 				var ms = MethodSig;
@@ -252,6 +259,11 @@ namespace dnlib.DotNet {
 					ms.RetType = value;
 			}
 		}
+
+		/// <summary>
+		/// Same as <see cref="ReturnType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeSig ReturnTypeOrThrow => OrThrowHelper.NotNull(MethodSig?.RetType, nameof(ReturnType));
 
 		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters => (int)(MethodSig?.GenParamCount ?? 0);
@@ -262,7 +274,7 @@ namespace dnlib.DotNet {
 		public string FullName {
 			get {
 				var parent = @class;
-				IList<TypeSig> typeGenArgs = null;
+				IList<TypeSig?>? typeGenArgs = null;
 				if (parent is TypeSpec) {
 					if (((TypeSpec)parent).TypeSig is GenericInstSig sig)
 						typeGenArgs = sig.GenericArguments;
@@ -281,9 +293,9 @@ namespace dnlib.DotNet {
 		/// Get the declaring type's full name
 		/// </summary>
 		/// <returns>Full name or <c>null</c> if there's no declaring type</returns>
-		public string GetDeclaringTypeFullName() => GetDeclaringTypeFullName(@class);
+		public string? GetDeclaringTypeFullName() => GetDeclaringTypeFullName(@class);
 
-		string GetDeclaringTypeFullName(IMemberRefParent parent) {
+		string? GetDeclaringTypeFullName(IMemberRefParent? parent) {
 			if (parent is null)
 				return null;
 			if (parent is ITypeDefOrRef)
@@ -301,9 +313,9 @@ namespace dnlib.DotNet {
 		/// Get the declaring type's name
 		/// </summary>
 		/// <returns>Name or <c>null</c> if there's no declaring type</returns>
-		internal string GetDeclaringTypeName() => GetDeclaringTypeName(@class);
+		internal string? GetDeclaringTypeName() => GetDeclaringTypeName(@class);
 
-		string GetDeclaringTypeName(IMemberRefParent parent) {
+		string? GetDeclaringTypeName(IMemberRefParent? parent) {
 			if (parent is null)
 				return null;
 			if (parent is ITypeDefOrRef)
@@ -322,7 +334,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
 		/// if it couldn't be resolved.</returns>
-		public IMemberForwarded Resolve() {
+		public IMemberForwarded? Resolve() {
 			if (module is null)
 				return null;
 			return module.Context.Resolver.Resolve(this);
@@ -344,7 +356,7 @@ namespace dnlib.DotNet {
 		/// Resolves the field
 		/// </summary>
 		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
-		public FieldDef ResolveField() => Resolve() as FieldDef;
+		public FieldDef? ResolveField() => Resolve() as FieldDef;
 
 		/// <summary>
 		/// Resolves the field
@@ -362,7 +374,7 @@ namespace dnlib.DotNet {
 		/// Resolves the method
 		/// </summary>
 		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
-		public MethodDef ResolveMethod() => Resolve() as MethodDef;
+		public MethodDef? ResolveMethod() => Resolve() as MethodDef;
 
 		/// <summary>
 		/// Resolves the method
@@ -384,8 +396,8 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Context passed to the constructor</param>
 		/// <param name="class">Field/method class owner</param>
 		/// <returns></returns>
-		protected static GenericParamContext GetSignatureGenericParamContext(GenericParamContext gpContext, IMemberRefParent @class) {
-			TypeDef type = null;
+		protected static GenericParamContext GetSignatureGenericParamContext(GenericParamContext gpContext, IMemberRefParent? @class) {
+			TypeDef? type = null;
 			var method = gpContext.Method;
 
 			if (@class is TypeSpec ts && ts.TypeSig is GenericInstSig gis)
@@ -406,14 +418,14 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Owner module</param>
-		public MemberRefUser(ModuleDef module) => this.module = module;
+		public MemberRefUser(ModuleDef? module) => this.module = module;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Name of ref</param>
-		public MemberRefUser(ModuleDef module, UTF8String name) {
+		public MemberRefUser(ModuleDef? module, UTF8String name) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 		}
@@ -424,7 +436,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Name of field ref</param>
 		/// <param name="sig">Field sig</param>
-		public MemberRefUser(ModuleDef module, UTF8String name, FieldSig sig)
+		public MemberRefUser(ModuleDef? module, UTF8String name, FieldSig? sig)
 			: this(module, name, sig, null) {
 		}
 
@@ -435,7 +447,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of field ref</param>
 		/// <param name="sig">Field sig</param>
 		/// <param name="class">Owner of field</param>
-		public MemberRefUser(ModuleDef module, UTF8String name, FieldSig sig, IMemberRefParent @class) {
+		public MemberRefUser(ModuleDef? module, UTF8String name, FieldSig? sig, IMemberRefParent? @class) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 			this.@class = @class;
@@ -448,7 +460,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Name of method ref</param>
 		/// <param name="sig">Method sig</param>
-		public MemberRefUser(ModuleDef module, UTF8String name, MethodSig sig)
+		public MemberRefUser(ModuleDef? module, UTF8String name, MethodSig? sig)
 			: this(module, name, sig, null) {
 		}
 
@@ -459,7 +471,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of method ref</param>
 		/// <param name="sig">Method sig</param>
 		/// <param name="class">Owner of method</param>
-		public MemberRefUser(ModuleDef module, UTF8String name, MethodSig sig, IMemberRefParent @class) {
+		public MemberRefUser(ModuleDef? module, UTF8String name, MethodSig? sig, IMemberRefParent? @class) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 			this.@class = @class;

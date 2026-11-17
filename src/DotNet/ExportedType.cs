@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -24,7 +26,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// The owner module
 		/// </summary>
-		protected ModuleDef module;
+		protected ModuleDef? module;
 
 		/// <inheritdoc/>
 		public MDToken MDToken => new MDToken(Table.ExportedType, rid);
@@ -48,11 +50,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -73,11 +75,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -121,13 +123,13 @@ namespace dnlib.DotNet {
 		public string AssemblyQualifiedName => FullNameFactory.AssemblyQualifiedName(this, null, null);
 
 		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
+		public IAssembly? DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
 
 		/// <inheritdoc/>
-		public IScope Scope => FullNameFactory.Scope(this);
+		public IScope? Scope => FullNameFactory.Scope(this);
 
 		/// <inheritdoc/>
-		public ITypeDefOrRef ScopeType => FullNameFactory.ScopeType(this);
+		public ITypeDefOrRef? ScopeType => FullNameFactory.ScopeType(this);
 
 		/// <summary>
 		/// Always returns <c>false</c> since a <see cref="ExportedType"/> does not contain any
@@ -136,7 +138,7 @@ namespace dnlib.DotNet {
 		public bool ContainsGenericParameter => false;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => module;
+		public ModuleDef? Module => module;
 
 		/// <inheritdoc/>
 		bool IIsTypeOrMethod.IsMethod => false;
@@ -190,7 +192,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ExportedType.Implementation
 		/// </summary>
-		public IImplementation Implementation {
+		public IImplementation? Implementation {
 			get {
 				if (!implementation_isInitialized)
 					InitializeImplementation();
@@ -207,8 +209,13 @@ namespace dnlib.DotNet {
 #endif
 			}
 		}
+
+		/// <summary>
+		/// Same as <see cref="Implementation"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public IImplementation ImplementationOrThrow => OrThrowHelper.NotNull(Implementation, nameof(Implementation));
 		/// <summary/>
-		protected IImplementation implementation;
+		protected IImplementation? implementation;
 		/// <summary/>
 		protected bool implementation_isInitialized;
 
@@ -226,7 +233,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="implementation"/></summary>
-		protected virtual IImplementation GetImplementation_NoLock() => null;
+		protected virtual IImplementation? GetImplementation_NoLock() => null;
 
 		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="ExportedType"/>
@@ -236,7 +243,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the declaring type, if any
 		/// </summary>
-		public ExportedType DeclaringType {
+		public ExportedType? DeclaringType {
 			get {
 				if (!implementation_isInitialized)
 					InitializeImplementation();
@@ -491,21 +498,21 @@ namespace dnlib.DotNet {
 		/// Resolves the type
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		public TypeDef Resolve() => Resolve(null);
+		public TypeDef? Resolve() => Resolve(null);
 
 		/// <summary>
 		/// Resolves the type
 		/// </summary>
 		/// <param name="sourceModule">Source module or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		public TypeDef Resolve(ModuleDef sourceModule) {
+		public TypeDef? Resolve(ModuleDef? sourceModule) {
 			if (module is null)
 				return null;
 
 			return Resolve(sourceModule, this);
 		}
 
-		static TypeDef Resolve(ModuleDef sourceModule, ExportedType et) {
+		static TypeDef? Resolve(ModuleDef? sourceModule, ExportedType? et) {
 			for (int i = 0; i < MAX_LOOP_ITERS; i++) {
 				if (et is null || et.module is null)
 					break;
@@ -524,7 +531,7 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		static ExportedType FindExportedType(AssemblyDef asm, ExportedType et) {
+		static ExportedType? FindExportedType(AssemblyDef asm, ExportedType et) {
 			var modules = asm.Modules;
 			int count = modules.Count;
 			for (int i = 0; i < count; i++) {
@@ -559,12 +566,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A new <see cref="TypeRef"/> instance</returns>
 		public TypeRef ToTypeRef() {
-			TypeRef result = null, prev = null;
+			TypeRef? result = null, prev = null;
 			var mod = module;
-			IImplementation impl = this;
+			IImplementation? impl = this;
 			for (int i = 0; i < MAX_LOOP_ITERS && impl is not null; i++) {
 				if (impl is ExportedType et) {
-					var newTr = mod.UpdateRowId(new TypeRefUser(mod, et.TypeNamespace, et.TypeName));
+					var newTr = mod!.UpdateRowId(new TypeRefUser(mod, et.TypeNamespace, et.TypeName));
 					if (result is null)
 						result = newTr;
 					if (prev is not null)
@@ -577,22 +584,23 @@ namespace dnlib.DotNet {
 
 				if (impl is AssemblyRef asmRef) {
 					// prev is never null when we're here
-					prev.ResolutionScope = asmRef;
-					return result;
+					prev!.ResolutionScope = asmRef;
+					return result!;
 				}
 
 				if (impl is FileDef file) {
 					// prev is never null when we're here
-					prev.ResolutionScope = FindModule(mod, file);
-					return result;
+					prev!.ResolutionScope = FindModule(mod, file);
+					return result!;
 				}
 
 				break;
 			}
-			return result;
+			// The first iteration always sets it
+			return result!;
 		}
 
-		static ModuleDef FindModule(ModuleDef module, FileDef file) {
+		static ModuleDef? FindModule(ModuleDef? module, FileDef? file) {
 			if (module is null || file is null)
 				return null;
 			if (UTF8String.CaseInsensitiveEquals(module.Name, file.Name))
@@ -615,7 +623,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Owner module</param>
-		public ExportedTypeUser(ModuleDef module) => this.module = module;
+		public ExportedTypeUser(ModuleDef? module) => this.module = module;
 
 		/// <summary>
 		/// Constructor
@@ -664,7 +672,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override IImplementation GetImplementation_NoLock() =>
+		protected override IImplementation? GetImplementation_NoLock() =>
 			readerModule.ResolveImplementation(implementationRid);
 
 		/// <summary>

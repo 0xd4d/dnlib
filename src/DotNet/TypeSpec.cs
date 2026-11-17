@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -62,7 +64,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType {
+		ITypeDefOrRef? IMemberRef.DeclaringType {
 			get {
 				var sig = TypeSig.RemovePinnedAndModifiers();
 
@@ -71,7 +73,7 @@ namespace dnlib.DotNet {
 
 				if (sig is TypeDefOrRefSig tdr) {
 					if (tdr.IsTypeDef || tdr.IsTypeRef)
-						return tdr.TypeDefOrRef.DeclaringType;
+						return tdr.TypeDefOrRef!.DeclaringType;
 					return null;	// If it's another TypeSpec, just stop. Don't want possible inf recursion.
 				}
 
@@ -131,24 +133,24 @@ namespace dnlib.DotNet {
 		public string AssemblyQualifiedName => FullNameFactory.AssemblyQualifiedName(this, null, null);
 
 		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
+		public IAssembly? DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
 
 		/// <inheritdoc/>
-		public IScope Scope => FullNameFactory.Scope(this);
+		public IScope? Scope => FullNameFactory.Scope(this);
 
 		/// <inheritdoc/>
-		public ITypeDefOrRef ScopeType => FullNameFactory.ScopeType(this);
+		public ITypeDefOrRef? ScopeType => FullNameFactory.ScopeType(this);
 
 		/// <inheritdoc/>
 		public bool ContainsGenericParameter => TypeHelper.ContainsGenericParameter(this);
 
 		/// <inheritdoc/>
-		public ModuleDef Module => FullNameFactory.OwnerModule(this);
+		public ModuleDef? Module => FullNameFactory.OwnerModule(this);
 
 		/// <summary>
 		/// From column TypeSpec.Signature
 		/// </summary>
-		public TypeSig TypeSig {
+		public TypeSig? TypeSig {
 			get {
 				if (!typeSigAndExtraData_isInitialized)
 					InitializeTypeSigAndExtraData();
@@ -167,10 +169,15 @@ namespace dnlib.DotNet {
 #endif
 			}
 		}
+
+		/// <summary>
+		/// Same as <see cref="TypeSig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeSig TypeSigOrThrow => OrThrowHelper.NotNull(TypeSig, nameof(TypeSig));
 		/// <summary>
 		/// Gets/sets the extra data that was found after the signature
 		/// </summary>
-		public byte[] ExtraData {
+		public byte[]? ExtraData {
 			get {
 				if (!typeSigAndExtraData_isInitialized)
 					InitializeTypeSigAndExtraData();
@@ -183,9 +190,9 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected TypeSig typeSig;
+		protected TypeSig? typeSig;
 		/// <summary/>
-		protected byte[] extraData;
+		protected byte[]? extraData;
 		/// <summary/>
 		protected bool typeSigAndExtraData_isInitialized;
 
@@ -203,7 +210,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="typeSig"/></summary>
-		protected virtual TypeSig GetTypeSigAndExtraData_NoLock(out byte[] extraData) {
+		protected virtual TypeSig? GetTypeSigAndExtraData_NoLock(out byte[]? extraData) {
 			extraData = null;
 			return null;
 		}
@@ -215,11 +222,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -241,11 +248,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -267,7 +274,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="typeSig">A type sig</param>
-		public TypeSpecUser(TypeSig typeSig) {
+		public TypeSpecUser(TypeSig? typeSig) {
 			this.typeSig = typeSig;
 			extraData = null;
 			typeSigAndExtraData_isInitialized = true;
@@ -293,7 +300,7 @@ namespace dnlib.DotNet {
 		/// references a TypeSpec that is still being read is part of a cycle.
 		/// </summary>
 		[ThreadStatic]
-		static List<TypeSpecMD> signaturesBeingRead;
+		static List<TypeSpecMD>? signaturesBeingRead;
 
 		/// <summary>
 		/// Max number of nested TypeSpec signatures that are read at the same time. Each signature can
@@ -312,7 +319,7 @@ namespace dnlib.DotNet {
 		/// <param name="readerModule">Module</param>
 		/// <param name="rid">TypeSpec rid</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		internal static TypeSpecMD Create(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
+		internal static TypeSpecMD? Create(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 			// Only one thread static access since it's slower than a normal static field access
 			var list = signaturesBeingRead ??= new List<TypeSpecMD>();
 			int count = list.Count;
@@ -339,7 +346,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override TypeSig GetTypeSigAndExtraData_NoLock(out byte[] extraData) {
+		protected override TypeSig? GetTypeSigAndExtraData_NoLock(out byte[]? extraData) {
 			var sig = readerModule.ReadTypeSignature(signatureOffset, gpContext, out extraData);
 			if (sig is not null)
 				sig.Rid = origRid;

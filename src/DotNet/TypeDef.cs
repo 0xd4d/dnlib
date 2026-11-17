@@ -2289,7 +2289,7 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		internal static bool GetClassSize(TypeDef td, ref RecursionCounter recursionCounter, out uint size) {
+		internal static bool GetClassSize(TypeDef? td, ref RecursionCounter recursionCounter, out uint size) {
 			size = 0;
 			if (td is null)
 				return false;

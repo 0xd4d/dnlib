@@ -393,7 +393,7 @@ namespace dnlib.DotNet {
 				return td.BaseType;
 
 			if (tdr is TypeRef tr) {
-				td = throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve();
+				td = (throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve())!;
 				return td?.BaseType;
 			}
 
@@ -413,7 +413,7 @@ namespace dnlib.DotNet {
 
 			tr = (tdr as TypeRef)!;
 			if (tr is not null) {
-				td = throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve();
+				td = (throwOnResolveFailure ? tr.ResolveThrow() : tr.Resolve())!;
 				return td?.BaseType;
 			}
 
