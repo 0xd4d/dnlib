@@ -29,6 +29,11 @@ namespace dnlib.DotNet.Pdb {
 		public Instruction? Start { get; set; }
 
 		/// <summary>
+		/// Same as <see cref="Start"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public Instruction StartOrThrow => OrThrowHelper.NotNull(Start, nameof(Start));
+
+		/// <summary>
 		/// Gets/sets the last instruction. It's <c>null</c> if it ends at the end of the method.
 		/// </summary>
 		public Instruction? End { get; set; }

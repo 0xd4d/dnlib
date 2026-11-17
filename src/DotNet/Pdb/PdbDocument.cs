@@ -19,6 +19,11 @@ namespace dnlib.DotNet.Pdb {
 		public string? Url { get; set; }
 
 		/// <summary>
+		/// Same as <see cref="Url"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public string UrlOrThrow => OrThrowHelper.NotNull(Url, nameof(Url));
+
+		/// <summary>
 		/// Gets/sets the language GUID. See <see cref="PdbDocumentConstants"/>
 		/// </summary>
 		public Guid Language { get; set; }

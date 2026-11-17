@@ -16,6 +16,11 @@ namespace dnlib.DotNet.Pdb {
 		public PdbDocument? Document { get; set; }
 
 		/// <summary>
+		/// Same as <see cref="Document"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public PdbDocument DocumentOrThrow => OrThrowHelper.NotNull(Document, nameof(Document));
+
+		/// <summary>
 		/// Start line
 		/// </summary>
 		public int StartLine { get; set; }

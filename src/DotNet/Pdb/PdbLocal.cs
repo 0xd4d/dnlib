@@ -34,6 +34,11 @@ namespace dnlib.DotNet.Pdb {
 		public Local? Local { get; set; }
 
 		/// <summary>
+		/// Same as <see cref="Local"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public Local LocalOrThrow => OrThrowHelper.NotNull(Local, nameof(Local));
+
+		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
 		public string? Name { get; set; }
@@ -46,7 +51,8 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the index of the local
 		/// </summary>
-		public int Index => Local!.Index;
+		/// <exception cref="InvalidMetadataException"><see cref="Local"/> is <c>null</c></exception>
+		public int Index => LocalOrThrow.Index;
 
 		/// <summary>
 		/// true if it should be hidden in debugger variables windows. Not all compiler generated locals have this flag set.

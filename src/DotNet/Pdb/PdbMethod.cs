@@ -13,6 +13,11 @@ namespace dnlib.DotNet.Pdb {
 		public PdbScope? Scope { get; set; }
 
 		/// <summary>
+		/// Same as <see cref="Scope"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public PdbScope ScopeOrThrow => OrThrowHelper.NotNull(Scope, nameof(Scope));
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbMethod() {

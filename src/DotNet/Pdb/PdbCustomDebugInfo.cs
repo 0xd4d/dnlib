@@ -384,6 +384,11 @@ namespace dnlib.DotNet.Pdb {
 		public TypeDef? Type { get; set; }
 
 		/// <summary>
+		/// Same as <see cref="Type"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef TypeOrThrow => OrThrowHelper.NotNull(Type, nameof(Type));
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbStateMachineTypeNameCustomDebugInfo() {
@@ -901,6 +906,11 @@ namespace dnlib.DotNet.Pdb {
 		public MethodDef? KickoffMethod { get; set; }
 
 		/// <summary>
+		/// Same as <see cref="KickoffMethod"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public MethodDef KickoffMethodOrThrow => OrThrowHelper.NotNull(KickoffMethod, nameof(KickoffMethod));
+
+		/// <summary>
 		/// Gets/sets the instruction for the compiler generated catch handler that wraps an async method.
 		/// This can be null.
 		/// </summary>
@@ -973,6 +983,11 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets the kickoff method
 		/// </summary>
 		public MethodDef? KickoffMethod { get; set; }
+
+		/// <summary>
+		/// Same as <see cref="KickoffMethod"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public MethodDef KickoffMethodOrThrow => OrThrowHelper.NotNull(KickoffMethod, nameof(KickoffMethod));
 
 		/// <summary>
 		/// Constructor
