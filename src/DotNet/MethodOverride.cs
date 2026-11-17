@@ -11,9 +11,19 @@ namespace dnlib.DotNet {
 		public IMethodDefOrRef? MethodBody;
 
 		/// <summary>
+		/// Same as <see cref="MethodBody"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public readonly IMethodDefOrRef MethodBodyOrThrow => OrThrowHelper.NotNull(MethodBody, nameof(MethodBody));
+
+		/// <summary>
 		/// The method <see cref="MethodBody"/> implements
 		/// </summary>
 		public IMethodDefOrRef? MethodDeclaration;
+
+		/// <summary>
+		/// Same as <see cref="MethodDeclaration"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public readonly IMethodDefOrRef MethodDeclarationOrThrow => OrThrowHelper.NotNull(MethodDeclaration, nameof(MethodDeclaration));
 
 		/// <summary>
 		/// Constructor

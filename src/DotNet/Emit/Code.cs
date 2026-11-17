@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
+
 namespace dnlib.DotNet.Emit {
 	/// <summary>
 	/// A CIL opcode. If the high byte is 0 or if it's <see cref="UNKNOWN1"/>, it's a 1-byte opcode,
@@ -271,6 +273,14 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Same as <see cref="ToOpCode(Code)"/> but throws if <paramref name="code"/> is invalid
+		/// </summary>
+		/// <param name="code">The code</param>
+		/// <returns>The <see cref="OpCode"/></returns>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="code"/> is invalid</exception>
+		public static OpCode ToOpCodeOrThrow(this Code code) => code.ToOpCode() ?? ThrowInvalidCode(code);
+
+		/// <summary>
 		/// Converts a <see cref="Code"/> to an <see cref="OpCode"/>, using a module context to look
 		/// up potential experimental opcodes
 		/// </summary>
@@ -292,5 +302,17 @@ namespace dnlib.DotNet.Emit {
 				return OpCodes.UNKNOWN2;
 			return null;
 		}
+
+		/// <summary>
+		/// Same as <see cref="ToOpCode(Code, ModuleContext)"/> but throws if <paramref name="code"/> is invalid
+		/// </summary>
+		/// <param name="code">The code</param>
+		/// <param name="context">The module context</param>
+		/// <returns>The <see cref="OpCode"/></returns>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="code"/> is invalid</exception>
+		public static OpCode ToOpCodeOrThrow(this Code code, ModuleContext context) => code.ToOpCode(context) ?? ThrowInvalidCode(code);
+
+		static OpCode ThrowInvalidCode(Code code) =>
+			throw new ArgumentOutOfRangeException(nameof(code), code, "Invalid opcode");
 	}
 }

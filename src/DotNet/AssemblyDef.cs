@@ -203,6 +203,12 @@ namespace dnlib.DotNet {
 		public ModuleDef? ManifestModule => Modules.Count == 0 ? null : Modules[0];
 
 		/// <summary>
+		/// Same as <see cref="ManifestModule"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>,
+		/// which it is if <see cref="Modules"/> is empty
+		/// </summary>
+		public ModuleDef ManifestModuleOrThrow => OrThrowHelper.NotNull(ManifestModule, nameof(ManifestModule));
+
+		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
 		/// (<see cref="attributes"/> &amp; <paramref name="andMask"/>) | <paramref name="orMask"/>.
 		/// </summary>

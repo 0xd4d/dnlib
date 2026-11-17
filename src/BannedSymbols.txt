@@ -38,6 +38,7 @@ M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeDef);It throws if the import fa
 M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeRef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()
 M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()
 M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeSpec);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()
+P:dnlib.DotNet.AssemblyDef.ManifestModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.CustomAttribute.ConstructorOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.Emit.ExceptionHandler.CatchTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.Emit.ExceptionHandler.FilterStartOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
@@ -84,6 +85,8 @@ P:dnlib.DotNet.MethodDef.DeclaringTypeOrThrow;dnlib must not throw when reading 
 P:dnlib.DotNet.MethodDef.MethodSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.MethodDef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.MethodDef.ReturnTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodOverride.MethodBodyOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodOverride.MethodDeclarationOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.MethodSpec.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.MethodSpec.GenericInstMethodSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.MethodSpec.MethodOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
