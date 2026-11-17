@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -60,6 +61,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column MemberRef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -435,7 +437,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Name of ref</param>
-		public MemberRefUser(ModuleDef? module, UTF8String name) {
+		public MemberRefUser(ModuleDef? module, UTF8String? name) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 		}
@@ -446,7 +448,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Name of field ref</param>
 		/// <param name="sig">Field sig</param>
-		public MemberRefUser(ModuleDef? module, UTF8String name, FieldSig? sig)
+		public MemberRefUser(ModuleDef? module, UTF8String? name, FieldSig? sig)
 			: this(module, name, sig, null) {
 		}
 
@@ -457,7 +459,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of field ref</param>
 		/// <param name="sig">Field sig</param>
 		/// <param name="class">Owner of field</param>
-		public MemberRefUser(ModuleDef? module, UTF8String name, FieldSig? sig, IMemberRefParent? @class) {
+		public MemberRefUser(ModuleDef? module, UTF8String? name, FieldSig? sig, IMemberRefParent? @class) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 			this.@class = @class;
@@ -470,7 +472,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Name of method ref</param>
 		/// <param name="sig">Method sig</param>
-		public MemberRefUser(ModuleDef? module, UTF8String name, MethodSig? sig)
+		public MemberRefUser(ModuleDef? module, UTF8String? name, MethodSig? sig)
 			: this(module, name, sig, null) {
 		}
 
@@ -481,7 +483,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of method ref</param>
 		/// <param name="sig">Method sig</param>
 		/// <param name="class">Owner of method</param>
-		public MemberRefUser(ModuleDef? module, UTF8String name, MethodSig? sig, IMemberRefParent? @class) {
+		public MemberRefUser(ModuleDef? module, UTF8String? name, MethodSig? sig, IMemberRefParent? @class) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 			this.@class = @class;

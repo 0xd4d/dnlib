@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using dnlib.Utils;
@@ -166,6 +167,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column TypeDef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -176,6 +178,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column TypeDef.Namespace
 		/// </summary>
+		[AllowNull]
 		public UTF8String Namespace {
 			get => @namespace;
 			set => @namespace = UTF8String.EmptyIfNull(value);
@@ -2412,7 +2415,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		public TypeDefUser(UTF8String name)
+		public TypeDefUser(UTF8String? name)
 			: this(null, name, null) {
 		}
 
@@ -2421,7 +2424,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		public TypeDefUser(UTF8String? @namespace, UTF8String name)
+		public TypeDefUser(UTF8String? @namespace, UTF8String? name)
 			: this(@namespace, name, null) {
 		}
 
@@ -2430,7 +2433,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(UTF8String name, ITypeDefOrRef? baseType)
+		public TypeDefUser(UTF8String? name, ITypeDefOrRef? baseType)
 			: this(null, name, baseType) {
 		}
 
@@ -2440,7 +2443,7 @@ namespace dnlib.DotNet {
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
 		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(UTF8String? @namespace, UTF8String name, ITypeDefOrRef? baseType) {
+		public TypeDefUser(UTF8String? @namespace, UTF8String? name, ITypeDefOrRef? baseType) {
 			fields = new LazyList<FieldDef>(this);
 			methods = new LazyList<MethodDef>(this);
 			genericParameters = new LazyList<GenericParam>(this);

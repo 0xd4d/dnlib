@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace dnlib.DotNet {
@@ -52,6 +53,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -60,6 +62,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the culture or <c>null</c> if none specified
 		/// </summary>
+		[AllowNull]
 		public UTF8String Culture {
 			get => culture;
 			set => culture = UTF8String.EmptyIfNull(value);

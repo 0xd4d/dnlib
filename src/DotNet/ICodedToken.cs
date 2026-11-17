@@ -57,6 +57,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Locale, aka culture
 		/// </summary>
+		[AllowNull]
 		UTF8String Culture { get; set; }
 
 		/// <summary>
@@ -681,6 +682,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Simple name of implementer
 		/// </summary>
+		[AllowNull]
 		UTF8String Name { get; set; }
 	}
 

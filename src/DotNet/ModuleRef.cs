@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -51,6 +52,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ModuleRef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -152,7 +154,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Module name</param>
-		public ModuleRefUser(ModuleDef? module, UTF8String name) {
+		public ModuleRefUser(ModuleDef? module, UTF8String? name) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 		}

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet.MD;
 
 /*
@@ -105,6 +106,7 @@ namespace dnlib.DotNet {
 		public string TypeName => FullNameFactory.Name(this, false, null);
 
 		/// <inheritdoc/>
+		[AllowNull]
 		UTF8String IFullName.Name {
 			get => new UTF8String(FullNameFactory.Name(this, false, null));
 			set => throw new NotSupportedException();

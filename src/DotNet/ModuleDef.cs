@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -97,6 +98,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets Module.Name column
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);

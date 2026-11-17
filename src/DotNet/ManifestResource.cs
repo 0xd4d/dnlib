@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -55,6 +56,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ManifestResource.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -156,7 +158,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="implementation">Implementation</param>
-		public ManifestResourceUser(UTF8String name, IImplementation? implementation)
+		public ManifestResourceUser(UTF8String? name, IImplementation? implementation)
 			: this(name, implementation, 0) {
 		}
 
@@ -166,7 +168,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="implementation">Implementation</param>
 		/// <param name="flags">Flags</param>
-		public ManifestResourceUser(UTF8String name, IImplementation? implementation, ManifestResourceAttributes flags)
+		public ManifestResourceUser(UTF8String? name, IImplementation? implementation, ManifestResourceAttributes flags)
 			: this(name, implementation, flags, 0) {
 		}
 
@@ -177,7 +179,7 @@ namespace dnlib.DotNet {
 		/// <param name="implementation">Implementation</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="offset">Offset</param>
-		public ManifestResourceUser(UTF8String name, IImplementation? implementation, ManifestResourceAttributes flags, uint offset) {
+		public ManifestResourceUser(UTF8String? name, IImplementation? implementation, ManifestResourceAttributes flags, uint offset) {
 			this.name = UTF8String.EmptyIfNull(name);
 			this.implementation = implementation;
 			attributes = (int)flags;

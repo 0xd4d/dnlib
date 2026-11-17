@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using dnlib.DotNet.MD;
@@ -41,6 +42,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ImplMap.ImportName
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -266,7 +268,7 @@ namespace dnlib.DotNet {
 		/// <param name="scope">Scope</param>
 		/// <param name="name">Name</param>
 		/// <param name="flags">Flags</param>
-		public ImplMapUser(ModuleRef? scope, UTF8String name, PInvokeAttributes flags) {
+		public ImplMapUser(ModuleRef? scope, UTF8String? name, PInvokeAttributes flags) {
 			module = scope;
 			this.name = UTF8String.EmptyIfNull(name);
 			attributes = (int)flags;

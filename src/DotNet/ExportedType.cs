@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -99,6 +100,7 @@ namespace dnlib.DotNet {
 		string IType.TypeName => TypeName;
 
 		/// <inheritdoc/>
+		[AllowNull]
 		public UTF8String Name {
 			get => typeName;
 			set => typeName = UTF8String.EmptyIfNull(value);
@@ -177,6 +179,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ExportedType.TypeName
 		/// </summary>
+		[AllowNull]
 		public UTF8String TypeName {
 			get => typeName;
 			set => typeName = UTF8String.EmptyIfNull(value);
@@ -187,6 +190,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ExportedType.TypeNamespace
 		/// </summary>
+		[AllowNull]
 		public UTF8String TypeNamespace {
 			get => typeNamespace;
 			set => typeNamespace = UTF8String.EmptyIfNull(value);
@@ -644,7 +648,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeNamespace">Type namespace</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="implementation">Implementation</param>
-		public ExportedTypeUser(ModuleDef? module, uint typeDefId, UTF8String typeNamespace, UTF8String typeName, TypeAttributes flags, IImplementation implementation) {
+		public ExportedTypeUser(ModuleDef? module, uint typeDefId, UTF8String? typeNamespace, UTF8String? typeName, TypeAttributes flags, IImplementation implementation) {
 			this.module = module;
 			this.typeDefId = typeDefId;
 			this.typeName = UTF8String.EmptyIfNull(typeName);

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -51,6 +52,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
+		[AllowNull]
 		UTF8String IFullName.Name {
 			get {
 				var mr = ScopeType;

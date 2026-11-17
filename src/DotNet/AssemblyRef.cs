@@ -89,6 +89,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column AssemblyRef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -99,6 +100,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column AssemblyRef.Locale
 		/// </summary>
+		[AllowNull]
 		public UTF8String Culture {
 			get => culture;
 			set => culture = UTF8String.EmptyIfNull(value);

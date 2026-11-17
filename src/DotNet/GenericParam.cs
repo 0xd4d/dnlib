@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
@@ -88,6 +89,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column GenericParam.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -356,7 +358,7 @@ namespace dnlib.DotNet {
 		/// <param name="number">The generic param number</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="name">Name</param>
-		public GenericParamUser(ushort number, GenericParamAttributes flags, UTF8String name) {
+		public GenericParamUser(ushort number, GenericParamAttributes flags, UTF8String? name) {
 			genericParamConstraints = new LazyList<GenericParamConstraint>(this);
 			this.number = number;
 			attributes = (int)flags;

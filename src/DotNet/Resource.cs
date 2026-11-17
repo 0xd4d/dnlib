@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.IO;
 using dnlib.DotNet.MD;
@@ -59,6 +60,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -144,7 +146,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="flags">flags</param>
-		protected Resource(UTF8String name, ManifestResourceAttributes flags) {
+		protected Resource(UTF8String? name, ManifestResourceAttributes flags) {
 			this.name = UTF8String.EmptyIfNull(name);
 			this.flags = flags;
 		}
@@ -172,7 +174,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <param name="data">Resource data</param>
 		/// <param name="flags">Resource flags</param>
-		public EmbeddedResource(UTF8String name, byte[] data, ManifestResourceAttributes flags = ManifestResourceAttributes.Private)
+		public EmbeddedResource(UTF8String? name, byte[] data, ManifestResourceAttributes flags = ManifestResourceAttributes.Private)
 			: this(name, ByteArrayDataReaderFactory.Create(data, filename: null), 0, (uint)data.Length, flags) {
 		}
 
@@ -184,7 +186,7 @@ namespace dnlib.DotNet {
 		/// <param name="offset">Offset of resource data</param>
 		/// <param name="length">Length of resource data</param>
 		/// <param name="flags">Resource flags</param>
-		public EmbeddedResource(UTF8String name, DataReaderFactory dataReaderFactory, uint offset, uint length, ManifestResourceAttributes flags = ManifestResourceAttributes.Private)
+		public EmbeddedResource(UTF8String? name, DataReaderFactory dataReaderFactory, uint offset, uint length, ManifestResourceAttributes flags = ManifestResourceAttributes.Private)
 			: base(name, flags) {
 			this.dataReaderFactory = dataReaderFactory ?? throw new ArgumentNullException(nameof(dataReaderFactory));
 			resourceStartOffset = offset;
@@ -258,7 +260,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <param name="asmRef">Assembly reference</param>
 		/// <param name="flags">Resource flags</param>
-		public AssemblyLinkedResource(UTF8String name, AssemblyRef asmRef, ManifestResourceAttributes flags)
+		public AssemblyLinkedResource(UTF8String? name, AssemblyRef asmRef, ManifestResourceAttributes flags)
 			: base(name, flags) => this.asmRef = asmRef ?? throw new ArgumentNullException(nameof(asmRef));
 
 		/// <inheritdoc/>
@@ -330,7 +332,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of resource</param>
 		/// <param name="file">The file</param>
 		/// <param name="flags">Resource flags</param>
-		public LinkedResource(UTF8String name, FileDef file, ManifestResourceAttributes flags)
+		public LinkedResource(UTF8String? name, FileDef file, ManifestResourceAttributes flags)
 			: base(name, flags) => this.file = file;
 
 		/// <inheritdoc/>

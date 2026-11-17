@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -52,6 +53,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Event.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -331,7 +333,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		public EventDefUser(UTF8String name)
+		public EventDefUser(UTF8String? name)
 			: this(name, null, 0) {
 		}
 
@@ -340,7 +342,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="type">Type</param>
-		public EventDefUser(UTF8String name, ITypeDefOrRef? type)
+		public EventDefUser(UTF8String? name, ITypeDefOrRef? type)
 			: this(name, type, 0) {
 		}
 
@@ -350,7 +352,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="type">Type</param>
 		/// <param name="flags">Flags</param>
-		public EventDefUser(UTF8String name, ITypeDefOrRef? type, EventAttributes flags) {
+		public EventDefUser(UTF8String? name, ITypeDefOrRef? type, EventAttributes flags) {
 			this.name = UTF8String.EmptyIfNull(name);
 			eventType = type;
 			attributes = (int)flags;

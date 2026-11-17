@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -47,6 +48,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column File.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -157,7 +159,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of file</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="hashValue">File hash</param>
-		public FileDefUser(UTF8String name, FileAttributes flags, byte[]? hashValue) {
+		public FileDefUser(UTF8String? name, FileAttributes flags, byte[]? hashValue) {
 			this.name = UTF8String.EmptyIfNull(name);
 			attributes = (int)flags;
 			this.hashValue = hashValue;

@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.PE;
@@ -98,6 +99,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Method.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -1043,7 +1045,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Method name</param>
-		public MethodDefUser(UTF8String name)
+		public MethodDefUser(UTF8String? name)
 			: this(name, null, 0, 0) {
 		}
 
@@ -1052,7 +1054,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Method name</param>
 		/// <param name="methodSig">Method sig</param>
-		public MethodDefUser(UTF8String name, MethodSig? methodSig)
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig)
 			: this(name, methodSig, 0, 0) {
 		}
 
@@ -1062,7 +1064,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="methodSig">Method sig</param>
 		/// <param name="flags">Flags</param>
-		public MethodDefUser(UTF8String name, MethodSig? methodSig, MethodAttributes flags)
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig, MethodAttributes flags)
 			: this(name, methodSig, 0, flags) {
 		}
 
@@ -1072,7 +1074,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="methodSig">Method sig</param>
 		/// <param name="implFlags">Impl flags</param>
-		public MethodDefUser(UTF8String name, MethodSig? methodSig, MethodImplAttributes implFlags)
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig, MethodImplAttributes implFlags)
 			: this(name, methodSig, implFlags, 0) {
 		}
 
@@ -1083,7 +1085,7 @@ namespace dnlib.DotNet {
 		/// <param name="methodSig">Method sig</param>
 		/// <param name="implFlags">Impl flags</param>
 		/// <param name="flags">Flags</param>
-		public MethodDefUser(UTF8String name, MethodSig? methodSig, MethodImplAttributes implFlags, MethodAttributes flags) {
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig, MethodImplAttributes implFlags, MethodAttributes flags) {
 			this.name = UTF8String.EmptyIfNull(name);
 			signature = methodSig;
 			paramDefs = new LazyList<ParamDef>(this);

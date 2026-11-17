@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -146,6 +147,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column TypeRef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -156,6 +158,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column TypeRef.Namespace
 		/// </summary>
+		[AllowNull]
 		public UTF8String Namespace {
 			get => @namespace;
 			set => @namespace = UTF8String.EmptyIfNull(value);
@@ -316,7 +319,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(ModuleDef? module, UTF8String name)
+		public TypeRefUser(ModuleDef? module, UTF8String? name)
 			: this(module, UTF8String.Empty, name) {
 		}
 
@@ -326,7 +329,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="namespace">Type namespace</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(ModuleDef? module, UTF8String? @namespace, UTF8String name)
+		public TypeRefUser(ModuleDef? module, UTF8String? @namespace, UTF8String? name)
 			: this(module, @namespace, name, null) {
 		}
 
@@ -338,7 +341,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Type name</param>
 		/// <param name="resolutionScope">Resolution scope (a <see cref="ModuleDef"/>,
 		/// <see cref="ModuleRef"/>, <see cref="AssemblyRef"/> or <see cref="TypeRef"/>)</param>
-		public TypeRefUser(ModuleDef? module, UTF8String? @namespace, UTF8String name, IResolutionScope? resolutionScope) {
+		public TypeRefUser(ModuleDef? module, UTF8String? @namespace, UTF8String? name, IResolutionScope? resolutionScope) {
 			this.module = module;
 			this.resolutionScope = resolutionScope;
 			resolutionScope_isInitialized = true;

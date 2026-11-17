@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -97,6 +98,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Field.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -747,7 +749,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		public FieldDefUser(UTF8String name)
+		public FieldDefUser(UTF8String? name)
 			: this(name, null) {
 		}
 
@@ -756,7 +758,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="signature">Signature</param>
-		public FieldDefUser(UTF8String name, FieldSig? signature)
+		public FieldDefUser(UTF8String? name, FieldSig? signature)
 			: this(name, signature, 0) {
 		}
 
@@ -766,7 +768,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="signature">Signature</param>
 		/// <param name="attributes">Flags</param>
-		public FieldDefUser(UTF8String name, FieldSig? signature, FieldAttributes attributes) {
+		public FieldDefUser(UTF8String? name, FieldSig? signature, FieldAttributes attributes) {
 			this.name = UTF8String.EmptyIfNull(name);
 			this.signature = signature;
 			this.attributes = (int)attributes;

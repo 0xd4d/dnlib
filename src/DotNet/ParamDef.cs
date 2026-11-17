@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -76,6 +77,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Param.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
@@ -322,7 +324,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		public ParamDefUser(UTF8String name)
+		public ParamDefUser(UTF8String? name)
 			: this(name, 0) {
 		}
 
@@ -331,7 +333,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="sequence">Sequence</param>
-		public ParamDefUser(UTF8String name, ushort sequence)
+		public ParamDefUser(UTF8String? name, ushort sequence)
 			: this(name, sequence, 0) {
 		}
 
@@ -341,7 +343,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="sequence">Sequence</param>
 		/// <param name="flags">Flags</param>
-		public ParamDefUser(UTF8String name, ushort sequence, ParamAttributes flags) {
+		public ParamDefUser(UTF8String? name, ushort sequence, ParamAttributes flags) {
 			this.name = UTF8String.EmptyIfNull(name);
 			this.sequence = sequence;
 			attributes = (int)flags;
