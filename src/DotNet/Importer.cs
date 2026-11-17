@@ -99,6 +99,9 @@ namespace dnlib.DotNet {
 		readonly ImportMapper mapper;
 		RecursionCounter recursionCounter;
 		ImporterOptions options;
+		// true if a generic type definition should be imported as a generic instance type
+		// with its own generic parameters as generic arguments, see ImportAsOperand()
+		bool treatGenericTypeDefsAsGenericInsts;
 
 		bool TryToUseTypeDefs => (options & ImporterOptions.TryToUseTypeDefs) != 0;
 		bool TryToUseMethodDefs => (options & ImporterOptions.TryToUseMethodDefs) != 0;
@@ -182,6 +185,70 @@ namespace dnlib.DotNet {
 		public ITypeDefOrRef ImportDeclaringType(Type type) => Import(type);
 
 		/// <summary>
+		/// Imports a <see cref="Type"/> used as an instruction operand (eg. <c>newarr</c>, <c>castclass</c>, catch type),
+		/// see <see cref="ImportAsOperand(MethodBase)"/>.
+		/// </summary>
+		/// <param name="type">The type</param>
+		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
+		public ITypeDefOrRef ImportAsOperand(Type type) {
+			bool old = treatGenericTypeDefsAsGenericInsts;
+			treatGenericTypeDefsAsGenericInsts = true;
+			try {
+				return Import(type);
+			}
+			finally {
+				treatGenericTypeDefsAsGenericInsts = old;
+			}
+		}
+
+		/// <summary>
+		/// Imports a <see cref="MethodBase"/> used as an instruction operand (eg. <c>call</c>, <c>newobj</c>, <c>ldftn</c>).
+		/// <para>
+		/// Reflection returns the same <see cref="Type"/> for a generic type definition (eg. <c>My&lt;&gt;</c>) and
+		/// for the generic type instantiated with its own generic parameters (eg. <c>My&lt;T&gt;</c> inside <c>My&lt;T&gt;</c>).
+		/// <see cref="Import(MethodBase)"/> imports it as the generic type definition, but an instruction operand can't
+		/// reference a member of an uninstantiated generic type, so this method imports all generic type definitions
+		/// as generic instance types instantiated with their own generic parameters, eg. <c>My`1&lt;!0&gt;</c>.
+		/// </para>
+		/// <para>
+		/// <c>ldtoken</c> is the only instruction that can reference both of them (eg. <c>typeof(My&lt;&gt;)</c> and
+		/// <c>typeof(My&lt;T&gt;)</c>). This method returns the generic instance type which is the most common one. Use
+		/// <see cref="Import(MethodBase)"/> if it's the generic type definition.
+		/// </para>
+		/// </summary>
+		/// <param name="methodBase">The method</param>
+		/// <returns>The imported method or <c>null</c> if <paramref name="methodBase"/> is invalid
+		/// or if we failed to import the method</returns>
+		public IMethod ImportAsOperand(MethodBase methodBase) {
+			bool old = treatGenericTypeDefsAsGenericInsts;
+			treatGenericTypeDefsAsGenericInsts = true;
+			try {
+				return Import(methodBase);
+			}
+			finally {
+				treatGenericTypeDefsAsGenericInsts = old;
+			}
+		}
+
+		/// <summary>
+		/// Imports a <see cref="FieldInfo"/> used as an instruction operand (eg. <c>ldfld</c>, <c>stsfld</c>),
+		/// see <see cref="ImportAsOperand(MethodBase)"/>.
+		/// </summary>
+		/// <param name="fieldInfo">The field</param>
+		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
+		/// or if we failed to import the field</returns>
+		public IField ImportAsOperand(FieldInfo fieldInfo) {
+			bool old = treatGenericTypeDefsAsGenericInsts;
+			treatGenericTypeDefsAsGenericInsts = true;
+			try {
+				return Import(fieldInfo);
+			}
+			finally {
+				treatGenericTypeDefsAsGenericInsts = old;
+			}
+		}
+
+		/// <summary>
 		/// Imports a <see cref="Type"/> as a <see cref="ITypeDefOrRef"/>
 		/// </summary>
 		/// <param name="type">The type</param>
@@ -196,7 +263,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public TypeSig ImportAsTypeSig(Type type) => ImportAsTypeSig(type, null, false);
+		public TypeSig ImportAsTypeSig(Type type) => ImportAsTypeSig(type, null, null);
 
 		/// <param name="type">The type</param>
 		/// <param name="declaringType">Declaring type of the member or null</param>
@@ -210,7 +277,8 @@ namespace dnlib.DotNet {
 				return null;
 
 			TypeSig result;
-			bool treatAsGenericInst2 = treatAsGenericInst ?? declaringType.MustTreatTypeAsGenericInstType(type);
+			bool treatAsGenericInst2 = treatAsGenericInst ??
+				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type));
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
 			case ElementType.Void:		result = module.CorLibTypes.Void; break;
 			case ElementType.Boolean:	result = module.CorLibTypes.Boolean; break;
