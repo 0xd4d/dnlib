@@ -67,7 +67,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="data">The data</param>
 		/// <returns>The offset of the data in the #Blob heap</returns>
-		public uint Add(byte[] data) {
+		public uint Add(byte[]? data) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
 			if (data is null || data.Length == 0)

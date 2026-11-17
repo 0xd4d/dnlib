@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Linq;
 using dnlib.DotNet.MD;
 
@@ -22,7 +24,7 @@ namespace dnlib.DotNet.Writer {
 
 		protected override int NumberOfMethods => methodDefInfos.Count;
 
-		public NormalMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
+		public NormalMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions? options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
 			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
 		}
 
@@ -233,7 +235,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddTypeRef(TypeRef tr) {
+		protected override uint AddTypeRef(TypeRef? tr) {
 			if (tr is null) {
 				Error("TypeRef is null");
 				return 0;
@@ -268,7 +270,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddTypeSpec(TypeSpec ts) {
+		protected override uint AddTypeSpec(TypeSpec? ts) {
 			if (ts is null) {
 				Error("TypeSpec is null");
 				return 0;
@@ -288,7 +290,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddMemberRef(MemberRef mr) {
+		protected override uint AddMemberRef(MemberRef? mr) {
 			if (mr is null) {
 				Error("MemberRef is null");
 				return 0;
@@ -310,7 +312,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddStandAloneSig(StandAloneSig sas) {
+		protected override uint AddStandAloneSig(StandAloneSig? sas) {
 			if (sas is null) {
 				Error("StandAloneSig is null");
 				return 0;
@@ -326,7 +328,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddMethodSpec(MethodSpec ms) {
+		protected override uint AddMethodSpec(MethodSpec? ms) {
 			if (ms is null) {
 				Error("MethodSpec is null");
 				return 0;
