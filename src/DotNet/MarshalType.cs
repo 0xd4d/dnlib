@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -123,6 +124,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="UserDefinedSubType"/> is valid
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(UserDefinedSubType), nameof(userDefinedSubType))]
 		public bool IsUserDefinedSubTypeValid => userDefinedSubType is not null;
 
 		/// <summary>

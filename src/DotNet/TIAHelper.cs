@@ -437,7 +437,8 @@ namespace dnlib.DotNet {
 		static byte[] GetMarshalBlob(ModuleDef? module, MarshalType marshalType) {
 			// The CLR compares the raw blobs. dnlib compares the blobs created from the (possibly modified)
 			// MarshalTypes. Errors are ignored: invalid marshal types are still written deterministically.
-			return Writer.MarshalBlobWriter.Write(module, marshalType, IgnoreWriterErrors.Instance);
+			// module is only used if optimizeCustomAttributeSerializedTypeNames is true, so null is OK here
+			return Writer.MarshalBlobWriter.Write(module!, marshalType, IgnoreWriterErrors.Instance);
 		}
 
 		sealed class IgnoreWriterErrors : Writer.IWriterError2 {

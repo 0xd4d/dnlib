@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 using dnlib.DotNet.Emit;
 
@@ -9,9 +11,9 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public abstract class MethodBodyWriterBase {
 		/// <summary/>
-		protected IList<Instruction> instructions;
+		protected IList<Instruction> instructions = null!;
 		/// <summary/>
-		protected IList<ExceptionHandler> exceptionHandlers;
+		protected IList<ExceptionHandler> exceptionHandlers = null!;
 		readonly Dictionary<Instruction, uint> offsets = new Dictionary<Instruction, uint>();
 		uint firstInstructionOffset;
 		int errors;
@@ -81,7 +83,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">The instruction</param>
 		/// <returns>The offset or <c>0</c> if <paramref name="instr"/> is <c>null</c> or not
 		/// present in the list of all instructions.</returns>
-		protected uint GetOffset(Instruction instr) {
+		protected uint GetOffset(Instruction? instr) {
 			if (instr is null) {
 				Error("Instruction is null");
 				return 0;

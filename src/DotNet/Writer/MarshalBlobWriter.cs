@@ -1,7 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.IO;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.DotNet.Writer {
 	/// <summary>
@@ -22,7 +25,8 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">Helps this class</param>
 		/// <returns>A field marshal blob or <c>null</c> if <paramref name="marshalType"/> is
 		/// <c>null</c></returns>
-		public static byte[] Write(ModuleDef module, MarshalType marshalType, IWriterError helper) =>
+		[return: NotNullIfNotNull(nameof(marshalType))]
+		public static byte[]? Write(ModuleDef module, MarshalType? marshalType, IWriterError helper) =>
 			Write(module, marshalType, helper, false);
 
 		/// <summary>
@@ -35,7 +39,8 @@ namespace dnlib.DotNet.Writer {
 		/// For more info, see <see cref="MetadataFlags.OptimizeCustomAttributeSerializedTypeNames"/></param>
 		/// <returns>A field marshal blob or <c>null</c> if <paramref name="marshalType"/> is
 		/// <c>null</c></returns>
-		public static byte[] Write(ModuleDef module, MarshalType marshalType, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames) {
+		[return: NotNullIfNotNull(nameof(marshalType))]
+		public static byte[]? Write(ModuleDef module, MarshalType? marshalType, IWriterError helper, bool optimizeCustomAttributeSerializedTypeNames) {
 			using (var writer = new MarshalBlobWriter(module, helper, optimizeCustomAttributeSerializedTypeNames))
 				return writer.Write(marshalType);
 		}
@@ -48,7 +53,8 @@ namespace dnlib.DotNet.Writer {
 			this.optimizeCustomAttributeSerializedTypeNames = optimizeCustomAttributeSerializedTypeNames;
 		}
 
-		byte[] Write(MarshalType marshalType) {
+		[return: NotNullIfNotNull(nameof(marshalType))]
+		byte[]? Write(MarshalType? marshalType) {
 			if (marshalType is null)
 				return null;
 
@@ -71,7 +77,7 @@ namespace dnlib.DotNet.Writer {
 				if (UpdateCanWrite(safeArray.IsVariantTypeValid, "VariantType", ref canWrite))
 					WriteCompressedUInt32((uint)safeArray.VariantType);
 				if (UpdateCanWrite(safeArray.IsUserDefinedSubTypeValid, "UserDefinedSubType", ref canWrite))
-					Write(safeArray.UserDefinedSubType.AssemblyQualifiedName);
+					Write(safeArray.UserDefinedSubType!.AssemblyQualifiedName);
 				break;
 
 			case NativeType.FixedArray:
@@ -99,7 +105,7 @@ namespace dnlib.DotNet.Writer {
 				Write(custMarshaler.Guid);
 				Write(custMarshaler.NativeTypeName);
 				var cm = custMarshaler.CustomMarshaler;
-				UTF8String cmName = cm is null ? custMarshaler.CustomMarshalerTypeName : FullNameFactory.AssemblyQualifiedName(cm, this);
+				UTF8String? cmName = cm is null ? custMarshaler.CustomMarshalerTypeName : FullNameFactory.AssemblyQualifiedName(cm, this);
 				Write(cmName);
 				Write(custMarshaler.Cookie);
 				break;
@@ -140,12 +146,12 @@ namespace dnlib.DotNet.Writer {
 
 		uint WriteCompressedUInt32(uint value) => writer.WriteCompressedUInt32(helper, value);
 
-		void Write(UTF8String s) => writer.Write(helper, s);
+		void Write(UTF8String? s) => writer.Write(helper, s);
 
 		/// <inheritdoc/>
 		public void Dispose() => outStream?.Dispose();
 
-		bool IFullNameFactoryHelper.MustUseAssemblyName(IType type) =>
+		bool IFullNameFactoryHelper.MustUseAssemblyName(IType? type) =>
 			FullNameFactory.MustUseAssemblyName(module, type, optimizeCustomAttributeSerializedTypeNames);
 	}
 }

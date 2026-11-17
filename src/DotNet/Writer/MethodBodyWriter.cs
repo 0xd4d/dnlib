@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using dnlib.DotNet.Emit;
@@ -14,7 +16,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="o">A token type or a string or a signature</param>
 		/// <returns>The token</returns>
-		MDToken GetToken(object o);
+		MDToken GetToken(object? o);
 
 		/// <summary>
 		/// Gets a <c>StandAloneSig</c> token
@@ -23,7 +25,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="origToken">The original token or <c>0</c> if none</param>
 		/// <returns>A <c>StandAloneSig</c> token or <c>0</c> if <paramref name="locals"/> is
 		/// empty.</returns>
-		MDToken GetToken(IList<TypeSig> locals, uint origToken);
+		MDToken GetToken(IList<TypeSig?> locals, uint origToken);
 	}
 
 	/// <summary>
@@ -31,12 +33,12 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MethodBodyWriter : MethodBodyWriterBase {
 		readonly ITokenProvider helper;
-		CilBody cilBody;
+		CilBody cilBody = null!;
 		bool keepMaxStack;
 		uint codeSize;
 		uint maxStack;
-		byte[] code;
-		byte[] extraSections;
+		byte[] code = null!;
+		byte[]? extraSections;
 		uint localVarSigTok;
 
 		/// <summary>
@@ -50,7 +52,7 @@ namespace dnlib.DotNet.Writer {
 		/// Gets the extra sections (exception handlers) as a byte array or <c>null</c> if there
 		/// are no exception handlers. This is valid only after calling <see cref="Write()"/>
 		/// </summary>
-		public byte[] ExtraSections => extraSections;
+		public byte[]? ExtraSections => extraSections;
 
 		/// <summary>
 		/// Gets the token of the locals
@@ -74,7 +76,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="keepMaxStack">Keep the original max stack value that has been initialized
 		/// in <paramref name="method"/></param>
 		public MethodBodyWriter(ITokenProvider helper, MethodDef method, bool keepMaxStack)
-			: base(method.Body.Instructions, method.Body.ExceptionHandlers) {
+			: base(method.Body!.Instructions, method.Body.ExceptionHandlers) {
 			this.helper = helper;
 			cilBody = method.Body;
 			this.keepMaxStack = keepMaxStack;
@@ -113,7 +115,7 @@ namespace dnlib.DotNet.Writer {
 			this.keepMaxStack = keepMaxStack;
 			codeSize = 0;
 			maxStack = 0;
-			code = null;
+			code = null!;
 			extraSections = null;
 			localVarSigTok = 0;
 		}
@@ -187,8 +189,8 @@ namespace dnlib.DotNet.Writer {
 				Error("Didn't write all code bytes");
 		}
 
-		IList<TypeSig> GetLocals() {
-			var localsSig = new TypeSig[cilBody.Variables.Count];
+		IList<TypeSig?> GetLocals() {
+			var localsSig = new TypeSig?[cilBody.Variables.Count];
 			for (int i = 0; i < cilBody.Variables.Count; i++)
 				localsSig[i] = cilBody.Variables[i].Type;
 			return localsSig;
@@ -228,7 +230,7 @@ namespace dnlib.DotNet.Writer {
 			return false;
 		}
 
-		bool FitsInSmallExceptionClause(Instruction start, Instruction end) {
+		bool FitsInSmallExceptionClause(Instruction? start, Instruction? end) {
 			uint offs1 = GetOffset2(start);
 			uint offs2 = GetOffset2(end);
 			if (offs2 < offs1)
@@ -236,7 +238,7 @@ namespace dnlib.DotNet.Writer {
 			return offs1 <= ushort.MaxValue && offs2 - offs1 <= byte.MaxValue;
 		}
 
-		uint GetOffset2(Instruction instr) {
+		uint GetOffset2(Instruction? instr) {
 			if (instr is null)
 				return codeSize;
 			return GetOffset(instr);

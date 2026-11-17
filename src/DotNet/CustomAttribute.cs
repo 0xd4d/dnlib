@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -73,6 +74,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if the raw custom attribute blob hasn't been parsed
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(RawData), nameof(rawData))]
 		public bool IsRawBlob => rawData is not null;
 
 		/// <summary>
