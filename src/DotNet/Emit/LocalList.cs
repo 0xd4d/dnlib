@@ -132,6 +132,11 @@ namespace dnlib.DotNet.Emit {
 		}
 
 		/// <summary>
+		/// Same as <see cref="Type"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeSig TypeOrThrow => OrThrowHelper.NotNull(typeSig, nameof(Type));
+
+		/// <summary>
 		/// Local index
 		/// </summary>
 		public int Index {

@@ -13,6 +13,11 @@ namespace dnlib.DotNet.Emit {
 		public Instruction? TryStart;
 
 		/// <summary>
+		/// Same as <see cref="TryStart"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public Instruction TryStartOrThrow => OrThrowHelper.NotNull(TryStart, nameof(TryStart));
+
+		/// <summary>
 		/// One instruction past the end of try block or <c>null</c> if it ends at the end
 		/// of the method.
 		/// </summary>
@@ -25,9 +30,19 @@ namespace dnlib.DotNet.Emit {
 		public Instruction? FilterStart;
 
 		/// <summary>
+		/// Same as <see cref="FilterStart"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>. Only use it if <see cref="IsFilter"/> is <see langword="true" />
+		/// </summary>
+		public Instruction FilterStartOrThrow => OrThrowHelper.NotNull(FilterStart, nameof(FilterStart));
+
+		/// <summary>
 		/// First instruction of try handler block
 		/// </summary>
 		public Instruction? HandlerStart;
+
+		/// <summary>
+		/// Same as <see cref="HandlerStart"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public Instruction HandlerStartOrThrow => OrThrowHelper.NotNull(HandlerStart, nameof(HandlerStart));
 
 		/// <summary>
 		/// One instruction past the end of try handler block or <c>null</c> if it ends at the end
@@ -39,6 +54,11 @@ namespace dnlib.DotNet.Emit {
 		/// The catch type if <see cref="IsCatch"/> is <see langword="true" />
 		/// </summary>
 		public ITypeDefOrRef? CatchType;
+
+		/// <summary>
+		/// Same as <see cref="CatchType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>. Only use it if <see cref="IsCatch"/> is <see langword="true" />
+		/// </summary>
+		public ITypeDefOrRef CatchTypeOrThrow => OrThrowHelper.NotNull(CatchType, nameof(CatchType));
 
 		/// <summary>
 		/// Type of exception handler clause
