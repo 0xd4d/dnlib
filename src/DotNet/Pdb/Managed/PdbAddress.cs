@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using dnlib.IO;
@@ -113,7 +115,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// </summary>
 		/// <param name="obj">The other one</param>
 		/// <returns><c>true</c> if they're equal</returns>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			if (!(obj is PdbAddress))
 				return false;
 			return Equals((PdbAddress)obj);

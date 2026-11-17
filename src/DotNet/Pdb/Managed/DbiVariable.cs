@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
@@ -7,7 +9,7 @@ using dnlib.IO;
 namespace dnlib.DotNet.Pdb.Managed {
 	sealed class DbiVariable : SymbolVariable {
 		public override string Name => name;
-		string name;
+		string name = null!;
 
 		public override PdbLocalAttributes Attributes => attributes;
 		PdbLocalAttributes attributes;

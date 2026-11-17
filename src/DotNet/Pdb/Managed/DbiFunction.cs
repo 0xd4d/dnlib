@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using dnlib.DotNet.Emit;
@@ -11,16 +13,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public override int Token => token;
 		internal int token;
 
-		internal PdbReader reader;
+		internal PdbReader reader = null!;
 
-		public string Name { get; private set; }
+		public string Name { get; private set; } = null!;
 		public PdbAddress Address { get; private set; }
-		public DbiScope Root { get; private set; }
-		public List<SymbolSequencePoint> Lines {
+		public DbiScope Root { get; private set; } = null!;
+		public List<SymbolSequencePoint>? Lines {
 			get => lines;
 			set => lines = value;
 		}
-		List<SymbolSequencePoint> lines;
+		List<SymbolSequencePoint>? lines;
 
 		public void Read(ref DataReader reader, uint recEnd) {
 			reader.Position += 4;
@@ -91,7 +93,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				return asyncStepInfos;
 			}
 		}
-		volatile SymbolAsyncStepInfo[] asyncStepInfos;
+		volatile SymbolAsyncStepInfo[]? asyncStepInfos;
 
 		SymbolAsyncStepInfo[] CreateSymbolAsyncStepInfos() {
 			var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);

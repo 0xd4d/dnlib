@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,11 +16,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 	/// A managed PDB reader implementation for .NET modules.
 	/// </summary>
 	sealed class PdbReader : SymbolReader {
-		MsfStream[] streams;
-		Dictionary<string, uint> names;
-		Dictionary<uint, string> strings;
-		List<DbiModule> modules;
-		ModuleDef module;
+		MsfStream?[] streams = null!;
+		Dictionary<string, uint> names = null!;
+		Dictionary<uint, string> strings = null!;
+		List<DbiModule> modules = null!;
+		ModuleDef module = null!;
 
 		const int STREAM_ROOT = 0;
 		const int STREAM_NAMES = 1;
@@ -26,11 +28,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 		const int STREAM_DBI = 3;
 		const ushort STREAM_INVALID_INDEX = ushort.MaxValue;
 
-		Dictionary<string, DbiDocument> documents;
-		HashSet<uint> documentStreams;
-		Dictionary<int, DbiFunction> functions;
-		byte[] sourcelinkData;
-		byte[] srcsrvData;
+		Dictionary<string, DbiDocument> documents = null!;
+		HashSet<uint> documentStreams = null!;
+		Dictionary<int, DbiFunction> functions = null!;
+		byte[]? sourcelinkData;
+		byte[]? srcsrvData;
 		uint entryPt;
 
 		public override PdbFileKind PdbFileKind => PdbFileKind.WindowsPDB;
@@ -63,11 +65,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 				throw new PdbException(ex);
 			}
 			finally {
-				streams = null;
-				names = null;
-				strings = null;
-				modules = null;
-				documentStreams = null;
+				streams = null!;
+				names = null!;
+				strings = null!;
+				modules = null!;
+				documentStreams = null!;
 			}
 		}
 
@@ -123,11 +125,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 			documentStreams = new HashSet<uint>();
 			foreach (var module in modules) {
 				if (IsValidStreamIndex(module.StreamId))
-					module.LoadFunctions(this, ref streams[module.StreamId].Content);
+					module.LoadFunctions(this, ref streams[module.StreamId]!.Content);
 			}
 
 			if (IsValidStreamIndex(tokenMapStream ?? STREAM_INVALID_INDEX))
-				ApplyRidMap(ref streams[tokenMapStream.Value].Content);
+				ApplyRidMap(ref streams[tokenMapStream!.Value]!.Content);
 
 			functions = new Dictionary<int, DbiFunction>();
 			foreach (var module in modules) {
@@ -141,12 +143,12 @@ namespace dnlib.DotNet.Pdb.Managed {
 			srcsrvData = TryGetRawFileData("srcsrv");
 		}
 
-		byte[] TryGetRawFileData(string name) {
+		byte[]? TryGetRawFileData(string name) {
 			if (!names.TryGetValue(name, out uint streamId))
 				return null;
 			if (streamId > ushort.MaxValue || !IsValidStreamIndex((ushort)streamId))
 				return null;
-			return streams[streamId].Content.ToArray();
+			return streams[streamId]!.Content.ToArray();
 		}
 
 		bool IsValidStreamIndex(ushort index) => index != STREAM_INVALID_INDEX && index < streams.Length;
@@ -181,7 +183,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		void ReadNames() {
-			ref var stream = ref streams[STREAM_NAMES].Content;
+			ref var stream = ref streams[STREAM_NAMES]!.Content;
 			stream.Position = 8;
 			Age = stream.ReadUInt32();
 			Guid = stream.ReadGuid();
@@ -221,7 +223,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!names.TryGetValue("/names", out uint streamId))
 				throw new PdbException("String table not found");
 
-			ref var stream = ref streams[streamId].Content;
+			ref var stream = ref streams[streamId]!.Content;
 			stream.Position = 8;
 
 			uint strSize = stream.ReadUInt32();
@@ -259,7 +261,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		}
 
 		ushort? ReadModules() {
-			ref var stream = ref streams[STREAM_DBI].Content;
+			ref var stream = ref streams[STREAM_DBI]!.Content;
 			modules = new List<DbiModule>();
 			if (stream.Length == 0)
 				return null;
@@ -285,7 +287,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 
 			if (IsValidStreamIndex(symrecStream))
-				ReadGlobalSymbols(ref streams[symrecStream].Content);
+				ReadGlobalSymbols(ref streams[symrecStream]!.Content);
 
 			if (dbghdrSize != 0) {
 				stream.Position += gpmodiSize;
@@ -308,7 +310,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					// own copy of the embedded source code and all of them could use the same big stream.
 					if (!documentStreams.Add(streamId))
 						throw new PdbException("Documents share a stream");
-					doc.Read(ref streams[streamId].Content);
+					doc.Read(ref streams[streamId]!.Content);
 				}
 				documents.Add(name, doc);
 			}
@@ -378,7 +380,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return name;
 		}
 
-		public override SymbolMethod GetMethod(MethodDef method, int version) {
+		public override SymbolMethod? GetMethod(MethodDef method, int version) {
 			if (version != 1)
 				return null;
 			if (functions.TryGetValue(method.MDToken.ToInt32(), out var symMethod))
@@ -398,7 +400,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				return documentsResult;
 			}
 		}
-		volatile SymbolDocument[] documentsResult;
+		volatile SymbolDocument[]? documentsResult;
 
 		public override int UserEntryPoint => (int)entryPt;
 

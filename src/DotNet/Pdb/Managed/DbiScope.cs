@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +12,7 @@ using dnlib.IO;
 namespace dnlib.DotNet.Pdb.Managed {
 	sealed class DbiScope : SymbolScope {
 		readonly SymbolMethod method;
-		readonly SymbolScope parent;
+		readonly SymbolScope? parent;
 		internal int startOffset;
 		internal int endOffset;
 		readonly List<SymbolScope> childrenList;
@@ -18,16 +20,16 @@ namespace dnlib.DotNet.Pdb.Managed {
 		readonly List<SymbolNamespace> namespacesList;
 
 		public override SymbolMethod Method => method;
-		public override SymbolScope Parent => parent;
+		public override SymbolScope? Parent => parent;
 		public override int StartOffset => startOffset;
 		public override int EndOffset => endOffset;
 		public override IList<SymbolScope> Children => childrenList;
 		public override IList<SymbolVariable> Locals => localsList;
 		public override IList<SymbolNamespace> Namespaces => namespacesList;
 		public override IList<PdbCustomDebugInfo> CustomDebugInfos => Array2.Empty<PdbCustomDebugInfo>();
-		public override PdbImportScope ImportScope => null;
+		public override PdbImportScope? ImportScope => null;
 
-		public DbiScope(SymbolMethod method, SymbolScope parent, string name, uint offset, uint length) {
+		public DbiScope(SymbolMethod method, SymbolScope? parent, string name, uint offset, uint length) {
 			this.method = method;
 			this.parent = parent;
 			Name = name;
@@ -41,14 +43,14 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		public string Name { get; private set; }
 
-		List<OemInfo> oemInfos;
-		List<ConstantInfo> constants;
+		List<OemInfo>? oemInfos;
+		List<ConstantInfo>? constants;
 
 		readonly struct ConstantInfo {
 			public readonly string Name;
 			public readonly uint SignatureToken;
-			public readonly object Value;
-			public ConstantInfo(string name, uint signatureToken, object value) {
+			public readonly object? Value;
+			public ConstantInfo(string name, uint signatureToken, object? value) {
 				Name = name;
 				SignatureToken = signatureToken;
 				Value = value;
@@ -79,9 +81,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var end = begin + size;
 
 				var type = (SymbolType)reader.ReadUInt16();
-				DbiScope child = null;
+				DbiScope? child = null;
 				uint? childEnd = null;
-				string name;
+				string? name;
 				switch (type) {
 					case SymbolType.S_BLOCK32: {
 						reader.Position += 4;
@@ -120,7 +122,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 						break;
 					case SymbolType.S_MANCONSTANT:
 						uint signatureToken = reader.ReadUInt32();
-						object value;
+						object? value;
 						if (!NumericReader.TryReadNumeric(ref reader, end, out value))
 							break;
 						name = PdbReader.ReadCString(ref reader, end);
@@ -136,7 +138,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 				reader.Position = end;
 				if (child is not null) {
-					child.Read(counter, ref reader, childEnd.Value);
+					child.Read(counter, ref reader, childEnd!.Value);
 					childrenList.Add(child);
 					child = null;
 				}
@@ -146,7 +148,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				Debugger.Break();
 		}
 
-		static string ReadUnicodeString(ref DataReader reader, uint end) {
+		static string? ReadUnicodeString(ref DataReader reader, uint end) {
 			var sb = new StringBuilder();
 			for (;;) {
 				if ((ulong)reader.Position + 2 > end)
@@ -175,7 +177,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var res = new PdbConstant[constants.Count];
 			for (int i = 0; i < res.Length; i++) {
 				var info = constants[i];
-				TypeSig signature;
+				TypeSig? signature;
 				var saSig = module.ResolveToken(info.SignatureToken, gpContext) as StandAloneSig;
 				var fieldSig = saSig is null ? null : saSig.Signature as FieldSig;
 				// The signature token can be 0 (eg. Pdb2Pdb if the module has no StandAloneSig with the constant's type)
@@ -185,7 +187,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			return res;
 		}
 
-		internal byte[] GetSymAttribute(string name) {
+		internal byte[]? GetSymAttribute(string name) {
 			if (oemInfos is null)
 				return null;
 			foreach (var info in oemInfos) {
