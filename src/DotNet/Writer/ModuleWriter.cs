@@ -72,6 +72,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="section">New section to add to the list</param>
 		public override void AddSection(PESection section) {
+			var sections = SectionsOrThrow;
 			if (sections.Count > 0 && sections[sections.Count - 1] == relocSection)
 				sections.Insert(sections.Count - 1, section);
 			else
