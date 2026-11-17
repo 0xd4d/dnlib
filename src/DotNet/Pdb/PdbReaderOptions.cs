@@ -40,5 +40,20 @@ namespace dnlib.DotNet.Pdb {
 		/// Only used if <see cref="MicrosoftComReader"/> is set and if it's a Windows PDB file
 		/// </summary>
 		NoOldDiaSymReader		= 0x00000004,
+
+		/// <summary>
+		/// If the module has a PDB checksum debug directory entry, verify that the PDB's checksum matches it
+		/// and don't use the PDB if it doesn't match. This is done for Portable PDB files, embedded Portable
+		/// PDB files and Windows PDB files. It's ignored if the module has no PDB checksum debug directory entry
+		/// with a supported hash algorithm.
+		/// 
+		/// The checksum is the checksum of the PDB file the compiler created. A converted PDB file (eg. a
+		/// Portable PDB file converted to a Windows PDB file with Pdb2Pdb) won't match it and isn't used.
+		/// 
+		/// The whole PDB file is hashed so this could be slow if it's a big PDB file.
+		/// 
+		/// See https://github.com/dotnet/runtime/blob/main/docs/design/specs/PE-COFF.md#pdb-checksum-debug-directory-entry-type-19
+		/// </summary>
+		ValidatePdbChecksum		= 0x00000008,
 	}
 }

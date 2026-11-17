@@ -142,6 +142,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 				symReader = new SymbolReaderImpl(unmanagedReader, new object[] { pdbStream, mdImporter, comPdbStream });
 				if (!symReader.MatchesModule(pdbGuid, debugDir.TimeDateStamp, age))
 					return null;
+				if (!PdbChecksumValidator.IsValidWindowsPdb(pdbContext, pdbStream.CreateReader()))
+					return null;
 
 				error = false;
 				return symReader;

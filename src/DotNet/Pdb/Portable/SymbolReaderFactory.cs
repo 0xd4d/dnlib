@@ -35,6 +35,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var reader = new PortablePdbReader(pdbStream, isEmbeddedPortablePdb ? PdbFileKind.EmbeddedPortablePDB : PdbFileKind.PortablePDB);
 				if (!reader.MatchesModule(pdbGuid, debugDir.TimeDateStamp, age))
 					return null;
+				if (!PdbChecksumValidator.IsValidPortablePdb(pdbContext, pdbStream.CreateReader(), reader.PdbIdOffset))
+					return null;
 				disposePdbStream = false;
 				return reader;
 			}

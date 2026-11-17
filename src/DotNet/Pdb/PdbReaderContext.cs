@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -21,6 +22,18 @@ namespace dnlib.DotNet.Pdb {
 
 		public ImageDebugDirectory TryGetDebugDirectoryEntry(ImageDebugType imageDebugType) =>
 			TryGetDebugDirectoryEntry(peImage, imageDebugType);
+
+		public List<ImageDebugDirectory> GetDebugDirectoryEntries(ImageDebugType imageDebugType) {
+			var result = new List<ImageDebugDirectory>();
+			var list = peImage.ImageDebugDirectories;
+			int count = list.Count;
+			for (int i = 0; i < count; i++) {
+				var entry = list[i];
+				if (entry.Type == imageDebugType)
+					result.Add(entry);
+			}
+			return result;
+		}
 
 		static ImageDebugDirectory TryGetDebugDirectoryEntry(IPEImage peImage, ImageDebugType imageDebugType) {
 			var list = peImage.ImageDebugDirectories;
