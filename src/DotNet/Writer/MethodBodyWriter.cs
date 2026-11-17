@@ -64,6 +64,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="helper">Helps this instance</param>
 		/// <param name="method">The method</param>
+		/// <exception cref="NullValueException">The method has no CIL body</exception>
 		public MethodBodyWriter(ITokenProvider helper, MethodDef method)
 			: this(helper, method, false) {
 		}
@@ -75,11 +76,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="method">The method</param>
 		/// <param name="keepMaxStack">Keep the original max stack value that has been initialized
 		/// in <paramref name="method"/></param>
+		/// <exception cref="NullValueException">The method has no CIL body</exception>
 		public MethodBodyWriter(ITokenProvider helper, MethodDef method, bool keepMaxStack)
-			: base(method.Body!.Instructions, method.Body.ExceptionHandlers) {
-			this.helper = helper;
-			cilBody = method.Body;
-			this.keepMaxStack = keepMaxStack;
+			: this(helper, method.BodyOrThrow, keepMaxStack) {
 		}
 
 		/// <summary>
