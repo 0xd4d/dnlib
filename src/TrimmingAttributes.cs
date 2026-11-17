@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 // The trim/AOT analyzers only run on the net10.0 build, but the trimmer also reads these
 // attributes (by name) from the netstandard2.0 build when an app references it.
 #if !NET
@@ -8,22 +10,22 @@ namespace System.Diagnostics.CodeAnalysis {
 	sealed class RequiresUnreferencedCodeAttribute : Attribute {
 		public RequiresUnreferencedCodeAttribute(string message) => Message = message;
 		public string Message { get; }
-		public string Url { get; set; }
+		public string? Url { get; set; }
 	}
 
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
 	sealed class RequiresDynamicCodeAttribute : Attribute {
 		public RequiresDynamicCodeAttribute(string message) => Message = message;
 		public string Message { get; }
-		public string Url { get; set; }
+		public string? Url { get; set; }
 	}
 
 	[AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false)]
 	sealed class RequiresAssemblyFilesAttribute : Attribute {
 		public RequiresAssemblyFilesAttribute() { }
 		public RequiresAssemblyFilesAttribute(string message) => Message = message;
-		public string Message { get; }
-		public string Url { get; set; }
+		public string? Message { get; }
+		public string? Url { get; set; }
 	}
 
 	[AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
@@ -34,10 +36,10 @@ namespace System.Diagnostics.CodeAnalysis {
 		}
 		public string Category { get; }
 		public string CheckId { get; }
-		public string Scope { get; set; }
-		public string Target { get; set; }
-		public string MessageId { get; set; }
-		public string Justification { get; set; }
+		public string? Scope { get; set; }
+		public string? Target { get; set; }
+		public string? MessageId { get; set; }
+		public string? Justification { get; set; }
 	}
 
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.ReturnValue | AttributeTargets.GenericParameter |
