@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using dnlib.DotNet.MD;
@@ -142,7 +144,7 @@ namespace dnlib.DotNet {
 		public bool Equals(MDToken other) => CompareTo(other) == 0;
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			if (!(obj is MDToken))
 				return false;
 			return Equals((MDToken)obj);

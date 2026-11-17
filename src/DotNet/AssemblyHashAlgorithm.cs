@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Any ALG_CLASS_HASH type in WinCrypt.h can be used by Microsoft's CLI implementation
@@ -34,7 +36,7 @@ namespace dnlib.DotNet {
 	}
 
 	public static partial class Extensions {
-		internal static string GetName(this AssemblyHashAlgorithm hashAlg) =>
+		internal static string? GetName(this AssemblyHashAlgorithm hashAlg) =>
 			hashAlg switch {
 				AssemblyHashAlgorithm.MD2 => null,
 				AssemblyHashAlgorithm.MD4 => null,

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Runtime.CompilerServices;
 
 namespace dnlib.DotNet {

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Generic parameter context
@@ -8,12 +10,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Type context
 		/// </summary>
-		public readonly TypeDef Type;
+		public readonly TypeDef? Type;
 
 		/// <summary>
 		/// Method context
 		/// </summary>
-		public readonly MethodDef Method;
+		public readonly MethodDef? Method;
 
 		/// <summary>
 		/// true if <see cref="Type"/> and <see cref="Method"/> are both <c>null</c>
@@ -27,7 +29,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">Method</param>
 		/// <returns>A new <see cref="GenericParamContext"/> instance</returns>
-		public static GenericParamContext Create(MethodDef method) {
+		public static GenericParamContext Create(MethodDef? method) {
 			if (method is null)
 				return new GenericParamContext();
 			return new GenericParamContext(method.DeclaringType, method);
@@ -40,13 +42,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">Type</param>
 		/// <returns>A new <see cref="GenericParamContext"/> instance</returns>
-		public static GenericParamContext Create(TypeDef type) => new GenericParamContext(type);
+		public static GenericParamContext Create(TypeDef? type) => new GenericParamContext(type);
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="type">Type context</param>
-		public GenericParamContext(TypeDef type) {
+		public GenericParamContext(TypeDef? type) {
 			Type = type;
 			Method = null;
 		}
@@ -57,7 +59,7 @@ namespace dnlib.DotNet {
 		/// <see cref="Create(MethodDef)"/> if you want that behavior.
 		/// </summary>
 		/// <param name="method">Method context</param>
-		public GenericParamContext(MethodDef method) {
+		public GenericParamContext(MethodDef? method) {
 			Type = null;
 			Method = method;
 		}
@@ -67,7 +69,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">Type context</param>
 		/// <param name="method">Method context</param>
-		public GenericParamContext(TypeDef type, MethodDef method) {
+		public GenericParamContext(TypeDef? type, MethodDef? method) {
 			Type = type;
 			Method = method;
 		}
