@@ -406,7 +406,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		internal void GetCustomDebugInfos(DbiFunction symMethod, MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) {
 			const string CDI_NAME = "MD2";
-			var asyncMethod = PseudoCustomDebugInfoFactory.TryCreateAsyncMethod(method.Module, method, body, symMethod.AsyncKickoffMethod, symMethod.AsyncStepInfos, symMethod.AsyncCatchHandlerILOffset);
+			var asyncMethod = PseudoCustomDebugInfoFactory.TryCreateAsyncMethod(method.Module!, method, body, symMethod.AsyncKickoffMethod, symMethod.AsyncStepInfos, symMethod.AsyncCatchHandlerILOffset);
 			if (asyncMethod is not null)
 				result.Add(asyncMethod);
 

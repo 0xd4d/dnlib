@@ -1,10 +1,13 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 // C# & Visual Basic compiler's Custom Debug Info is "documented" in source code only, see Roslyn classes:
 //	CustomDebugInfoReader, CustomDebugInfoWriter, CustomDebugInfoEncoder
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using dnlib.DotNet.Emit;
@@ -12,7 +15,7 @@ using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.WindowsPdb {
 	sealed class PdbCustomDebugInfoWriterContext {
-		public ILogger Logger;
+		public ILogger Logger = null!;
 		public readonly MemoryStream MemoryStream;
 		public readonly DataWriter Writer;
 		public readonly Dictionary<Instruction, uint> InstructionToOffsetDict;
@@ -46,7 +49,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		/// <param name="method">Method</param>
 		/// <param name="customDebugInfos">Custom debug infos to write</param>
 		/// <returns></returns>
-		public static byte[] Write(Metadata metadata, MethodDef method, PdbCustomDebugInfoWriterContext context, IList<PdbCustomDebugInfo> customDebugInfos) {
+		public static byte[]? Write(Metadata metadata, MethodDef method, PdbCustomDebugInfoWriterContext context, IList<PdbCustomDebugInfo> customDebugInfos) {
 			var writer = new PdbCustomDebugInfoWriter(metadata, method, context);
 			return writer.Write(customDebugInfos);
 		}
@@ -81,7 +84,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			instructionToOffsetDictInitd = true;
 		}
 
-		uint GetInstructionOffset(Instruction instr, bool nullIsEndOfMethod) {
+		uint GetInstructionOffset(Instruction? instr, bool nullIsEndOfMethod) {
 			if (!instructionToOffsetDictInitd)
 				InitializeInstructionDictionary();
 			if (instr is null) {
@@ -96,9 +99,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return uint.MaxValue;
 		}
 
-		void Error(string message, params object[] args) => logger.Log(this, LoggerEvent.Error, message, args);
+		void Error(string message, params object?[] args) => logger.Log(this, LoggerEvent.Error, message, args);
 
-		byte[] Write(IList<PdbCustomDebugInfo> customDebugInfos) {
+		byte[]? Write(IList<PdbCustomDebugInfo> customDebugInfos) {
 			if (customDebugInfos.Count == 0)
 				return null;
 			if (customDebugInfos.Count > byte.MaxValue) {
@@ -344,7 +347,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return memoryStream.ToArray();
 		}
 
-		string MetadataNameToRoslynName(string name) {
+		[return: NotNullIfNotNull(nameof(name))]
+		string? MetadataNameToRoslynName(string? name) {
 			if (name is null)
 				return name;
 			int index = name.LastIndexOf('`');
@@ -353,7 +357,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return name.Substring(0, index);
 		}
 
-		void WriteUnicodeZ(string s) {
+		void WriteUnicodeZ(string? s) {
 			if (s is null) {
 				Error("String is null");
 				return;
@@ -369,7 +373,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.WriteUInt16(0);
 		}
 
-		void WriteUTF8Z(string s) {
+		void WriteUTF8Z(string? s) {
 			if (s is null) {
 				Error("String is null");
 				return;
@@ -384,7 +388,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.WriteByte(0);
 		}
 
-		uint GetMethodToken(IMethodDefOrRef method) {
+		uint GetMethodToken(IMethodDefOrRef? method) {
 			if (method is null) {
 				Error("Method is null");
 				return 0;

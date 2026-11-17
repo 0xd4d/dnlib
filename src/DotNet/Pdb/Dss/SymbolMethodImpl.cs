@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.Runtime.Versioning;
@@ -14,7 +16,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 	sealed class SymbolMethodImpl : SymbolMethod {
 		readonly SymbolReaderImpl reader;
 		readonly ISymUnmanagedMethod method;
-		readonly ISymUnmanagedAsyncMethod asyncMethod;
+		readonly ISymUnmanagedAsyncMethod? asyncMethod;
 
 		public SymbolMethodImpl(SymbolReaderImpl reader, ISymUnmanagedMethod method) {
 			this.reader = reader;
@@ -29,7 +31,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public override SymbolScope RootScope {
+		public override SymbolScope? RootScope {
 			get {
 				if (rootScope is null) {
 					method.GetRootScope(out var scope);
@@ -38,7 +40,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return rootScope;
 			}
 		}
-		volatile SymbolScope rootScope;
+		volatile SymbolScope? rootScope;
 
 		public override IList<SymbolSequencePoint> SequencePoints {
 			get {
@@ -70,7 +72,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return sequencePoints;
 			}
 		}
-		volatile SymbolSequencePoint[] sequencePoints;
+		volatile SymbolSequencePoint[]? sequencePoints;
 
 		public int AsyncKickoffMethod {
 			get {
@@ -90,7 +92,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public IList<SymbolAsyncStepInfo> AsyncStepInfos {
+		public IList<SymbolAsyncStepInfo>? AsyncStepInfos {
 			get {
 				if (asyncMethod is null || !asyncMethod.IsAsyncMethod())
 					return null;
@@ -108,7 +110,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return asyncStepInfos;
 			}
 		}
-		volatile SymbolAsyncStepInfo[] asyncStepInfos;
+		volatile SymbolAsyncStepInfo[]? asyncStepInfos;
 
 		public override void GetCustomDebugInfos(MethodDef method, CilBody body, IList<PdbCustomDebugInfo> result) =>
 			reader.GetCustomDebugInfos(this, method, body, result);

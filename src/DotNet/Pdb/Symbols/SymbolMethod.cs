@@ -18,7 +18,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets the root scope
 		/// </summary>
-		public abstract SymbolScope RootScope { get; }
+		public abstract SymbolScope? RootScope { get; }
 
 		/// <summary>
 		/// Gets all sequence points

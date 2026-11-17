@@ -1164,7 +1164,7 @@ namespace dnlib.DotNet.Writer {
 				return Pdb.Dss.SymbolReaderWriterFactory.Create(options, TheOptions.PdbStream,
 							pdbFilename = TheOptions.PdbFileName ??
 							GetStreamName(TheOptions.PdbStream) ??
-							GetDefaultPdbFileName());
+							GetDefaultPdbFileName()!);
 			}
 
 			if (!string.IsNullOrEmpty(TheOptions.PdbFileName))

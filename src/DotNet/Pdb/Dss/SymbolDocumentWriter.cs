@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics.SymbolStore;
 
@@ -8,7 +10,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		readonly ISymUnmanagedDocumentWriter writer;
 		public ISymUnmanagedDocumentWriter SymUnmanagedDocumentWriter => writer;
 		public SymbolDocumentWriter(ISymUnmanagedDocumentWriter writer) => this.writer = writer;
-		public void SetCheckSum(Guid algorithmId, byte[] checkSum) {
+		public void SetCheckSum(Guid algorithmId, byte[]? checkSum) {
 			if (checkSum is not null && checkSum.Length != 0 && algorithmId != Guid.Empty)
 				writer.SetCheckSum(algorithmId, (uint)checkSum.Length, checkSum);
 		}

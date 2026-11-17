@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -50,10 +52,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		static extern void CreateSymWriter_arm64(ref Guid guid, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
 		static readonly Guid CLSID_CorSymReader_SxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
-		static Type CorSymReader_Type;
+		static Type? CorSymReader_Type;
 
 		static readonly Guid CLSID_CorSymWriter_SxS = new Guid(0x0AE2DEB0, 0xF901, 0x478B, 0xBB, 0x9F, 0x88, 0x1E, 0xE8, 0x06, 0x67, 0x88);
-		static Type CorSymWriterType;
+		static Type? CorSymWriterType;
 
 		static volatile bool canTry_Microsoft_DiaSymReader_Native = true;
 
@@ -114,11 +116,11 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter8))]
 		static void KeepComInterfaces() { }
 
-		public static SymbolReader Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream) {
-			ISymUnmanagedReader unmanagedReader = null;
-			SymbolReaderImpl symReader = null;
-			ReaderMetaDataImport mdImporter = null;
-			DataReaderIStream comPdbStream = null;
+		public static SymbolReader? Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream) {
+			ISymUnmanagedReader? unmanagedReader = null;
+			SymbolReaderImpl? symReader = null;
+			ReaderMetaDataImport? mdImporter = null;
+			DataReaderIStream? comPdbStream = null;
 			bool error = true;
 			try {
 				if (pdbStream is null)
@@ -167,7 +169,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[UnconditionalSuppressMessage("Trimming", "IL2050", Justification = ComJustification)]
 		[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = ComTypeJustification)]
 		[UnconditionalSuppressMessage("Trimming", "IL2077", Justification = ComTypeJustification)]
-		static ISymUnmanagedReader CreateSymUnmanagedReader(PdbReaderOptions options) {
+		static ISymUnmanagedReader? CreateSymUnmanagedReader(PdbReaderOptions options) {
 			if (!IsBuiltInComSupported)
 				return null;
 			KeepComInterfaces();
@@ -177,7 +179,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (useDiaSymReader && canTry_Microsoft_DiaSymReader_Native) {
 				try {
 					var guid = CLSID_CorSymReader_SxS;
-					object symReaderObj;
+					object? symReaderObj;
 					var machine = ProcessorArchUtils.GetProcessCpuArchitecture();
 					switch (machine) {
 					case Machine.AMD64:
@@ -213,7 +215,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 
 			if (useOldDiaSymReader)
-				return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS));
+				return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS)!)!;
 
 			return null;
 		}
@@ -221,7 +223,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[UnconditionalSuppressMessage("Trimming", "IL2050", Justification = ComJustification)]
 		[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = ComTypeJustification)]
 		[UnconditionalSuppressMessage("Trimming", "IL2077", Justification = ComTypeJustification)]
-		static ISymUnmanagedWriter2 CreateSymUnmanagedWriter2(PdbWriterOptions options) {
+		static ISymUnmanagedWriter2? CreateSymUnmanagedWriter2(PdbWriterOptions options) {
 			if (!IsBuiltInComSupported)
 				return null;
 			KeepComInterfaces();
@@ -231,7 +233,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			if (useDiaSymReader && canTry_Microsoft_DiaSymReader_Native) {
 				try {
 					var guid = CLSID_CorSymWriter_SxS;
-					object symWriterObj;
+					object? symWriterObj;
 					var machine = ProcessorArchUtils.GetProcessCpuArchitecture();
 					switch (machine) {
 					case Machine.AMD64:
@@ -267,17 +269,17 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 
 			if (useOldDiaSymReader)
-				return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS));
+				return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS)!)!;
 
 			return null;
 		}
 
-		public static SymbolWriter Create(PdbWriterOptions options, string pdbFileName) {
+		public static SymbolWriter? Create(PdbWriterOptions options, string pdbFileName) {
 			// Create the COM writer first so the old PDB isn't deleted if there's no COM writer
 			var writer = CreateSymUnmanagedWriter2(options);
 			if (writer is null)
 				return null;
-			FileStream pdbStream = null;
+			FileStream? pdbStream = null;
 			try {
 				if (File.Exists(pdbFileName))
 					File.Delete(pdbFileName);
@@ -299,7 +301,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		public static SymbolWriter Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) {
+		public static SymbolWriter? Create(PdbWriterOptions options, Stream pdbStream, string pdbFileName) {
 			var writer = CreateSymUnmanagedWriter2(options);
 			if (writer is null)
 				return null;
