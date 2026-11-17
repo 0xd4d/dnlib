@@ -357,6 +357,13 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+
 		/// <inheritdoc/>
 		ITypeDefOrRef? IMemberRef.DeclaringType => declaringType2;
 
@@ -374,6 +381,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public ModuleDef? Module => declaringType2?.Module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
 
 		bool IIsTypeOrMethod.IsType => false;
 		bool IIsTypeOrMethod.IsMethod => true;

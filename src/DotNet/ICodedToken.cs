@@ -692,6 +692,11 @@ namespace dnlib.DotNet {
 		/// Gets the owner module
 		/// </summary>
 		ModuleDef? Module { get; }
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		ModuleDef ModuleOrThrow { get; }
 	}
 
 	/// <summary>
@@ -717,6 +722,11 @@ namespace dnlib.DotNet {
 		/// Gets the declaring type
 		/// </summary>
 		ITypeDefOrRef? DeclaringType { get; }
+
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		ITypeDefOrRef DeclaringTypeOrThrow { get; }
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="FieldDef"/> or a <see cref="MemberRef"/> that's
@@ -785,6 +795,11 @@ namespace dnlib.DotNet {
 		/// Gets the declaring type
 		/// </summary>
 		new TypeDef? DeclaringType { get; }
+
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		new TypeDef DeclaringTypeOrThrow { get; }
 	}
 
 	/// <summary>

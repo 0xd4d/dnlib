@@ -94,6 +94,11 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => FullNameFactory.OwnerModule(this);
 
 		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+
+		/// <summary>
 		/// Gets/sets the owner module
 		/// </summary>
 		internal ModuleDef? Module2 {
@@ -371,6 +376,13 @@ namespace dnlib.DotNet {
 				Module2 = null;
 			}
 		}
+
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
 
 		/// <inheritdoc/>
 		ITypeDefOrRef? IMemberRef.DeclaringType => DeclaringType;

@@ -126,6 +126,11 @@ namespace dnlib.DotNet {
 		public ITypeDefOrRef? DeclaringType => method?.DeclaringType;
 
 		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ITypeDefOrRef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+
+		/// <summary>
 		/// Gets/sets the generic instance method sig
 		/// </summary>
 		public GenericInstMethodSig? GenericInstMethodSig {
@@ -143,6 +148,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public ModuleDef? Module => method?.Module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
 
 		/// <summary>
 		/// Gets the full name

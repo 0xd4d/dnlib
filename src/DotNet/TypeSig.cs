@@ -141,6 +141,11 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => FullNameFactory.OwnerModule(this);
 
 		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+
+		/// <summary>
 		/// <c>true</c> if it's a <see cref="TypeDefOrRefSig"/>
 		/// </summary>
 		public bool IsTypeDefOrRef => this is TypeDefOrRefSig;

@@ -103,6 +103,11 @@ namespace dnlib.DotNet {
 		public ModuleDef? Module => module;
 
 		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+
+		/// <summary>
 		/// Gets the definition module, i.e., the module which it references, or <c>null</c>
 		/// if the module can't be found.
 		/// </summary>

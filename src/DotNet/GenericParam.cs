@@ -49,6 +49,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public TypeDef? DeclaringType => owner as TypeDef;
 
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
+
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+
 		/// <inheritdoc/>
 		ITypeDefOrRef? IMemberRef.DeclaringType => owner as TypeDef;
 
@@ -162,6 +169,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		public ModuleDef? Module => owner?.Module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
 
 		/// <inheritdoc/>
 		public string FullName => UTF8String.ToSystemStringOrEmpty(name);

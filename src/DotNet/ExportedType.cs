@@ -140,6 +140,11 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public ModuleDef? Module => module;
 
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNull(Module, nameof(Module));
+
 		/// <inheritdoc/>
 		bool IIsTypeOrMethod.IsMethod => false;
 
@@ -250,6 +255,11 @@ namespace dnlib.DotNet {
 				return implementation as ExportedType;
 			}
 		}
+
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ExportedType DeclaringTypeOrThrow => OrThrowHelper.NotNull(DeclaringType, nameof(DeclaringType));
 
 		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
