@@ -182,7 +182,7 @@ namespace dnlib.DotNet {
 			get => typeName;
 			set => typeName = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary/>
+		/// <summary>Type name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
 		protected UTF8String typeName = UTF8String.Empty;
 
 		/// <summary>
@@ -193,7 +193,7 @@ namespace dnlib.DotNet {
 			get => typeNamespace;
 			set => typeNamespace = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary/>
+		/// <summary>Type namespace. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
 		protected UTF8String typeNamespace = UTF8String.Empty;
 
 		/// <summary>

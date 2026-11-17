@@ -103,7 +103,7 @@ namespace dnlib.DotNet {
 			get => name;
 			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
 		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>

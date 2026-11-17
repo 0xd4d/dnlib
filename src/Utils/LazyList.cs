@@ -565,7 +565,8 @@ namespace dnlib.Utils {
 		/// </summary>
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
-		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
+		/// <param name="readOriginalValue">Delegate instance that returns original values. It must not return <c>null</c>:
+		/// the list doesn't check the value it returns, but the list is annotated as never containing <c>null</c>.</param>
 		public LazyList(int length, TContext context, Func<TContext, int, TValue> readOriginalValue)
 			: this(length, null, context, readOriginalValue) {
 		}
@@ -576,7 +577,8 @@ namespace dnlib.Utils {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="listener">List listener</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
-		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
+		/// <param name="readOriginalValue">Delegate instance that returns original values. It must not return <c>null</c>:
+		/// the list doesn't check the value it returns, but the list is annotated as never containing <c>null</c>.</param>
 		public LazyList(int length, IListListener<TValue>? listener, TContext context, Func<TContext, int, TValue> readOriginalValue) : base(length, listener) {
 			this.context = context;
 			this.readOriginalValue = readOriginalValue;
