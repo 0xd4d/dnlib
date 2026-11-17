@@ -51,7 +51,7 @@ namespace dnlib.DotNet {
 			return module.CorLibTypes.AssemblyRef;
 		}
 
-		AssemblyRef GetCurrentAssemblyRef(AssemblyDef modAsm) {
+		AssemblyRef GetCurrentAssemblyRef(AssemblyDef? modAsm) {
 			if (modAsm is not null)
 				return module.UpdateRowId(new AssemblyRefUser(modAsm));
 			return AssemblyRef.CurrentAssembly;
@@ -59,7 +59,7 @@ namespace dnlib.DotNet {
 
 		// Returns true if one of this module's original types is still in the module's assembly
 		// (or in the module if it has no assembly) and still has the name of nonNestedTypeRef
-		bool IsOriginalTypeInModule(TypeRef nonNestedTypeRef, AssemblyDef modAsm) {
+		bool IsOriginalTypeInModule(TypeRef nonNestedTypeRef, AssemblyDef? modAsm) {
 			// If the type cache is enabled, the normal search is fast
 			if (module is not ModuleDefMD readerModule || readerModule.EnableTypeDefFindCache)
 				return false;

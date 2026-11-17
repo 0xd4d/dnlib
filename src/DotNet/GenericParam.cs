@@ -395,7 +395,7 @@ namespace dnlib.DotNet {
 		protected override void InitializeGenericParamConstraints() {
 			var list = readerModule.Metadata.GetGenericParamConstraintRidList(origRid);
 			var tmp = list.Count == 0 ? new LazyList<GenericParamConstraint>(this) :
-				new LazyList<GenericParamConstraint, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(list2[index], GetGenericParamContext(owner)));
+				new LazyList<GenericParamConstraint, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(list2[index], GetGenericParamContext(owner))!);
 			Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 		}
 

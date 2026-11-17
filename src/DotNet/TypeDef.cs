@@ -2501,7 +2501,7 @@ namespace dnlib.DotNet {
 		protected override void InitializeInterfaces() {
 			var list = readerModule.Metadata.GetInterfaceImplRidList(origRid);
 			var tmp = list.Count == 0 ? new LazyList<InterfaceImpl>() :
-				new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this)));
+				new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this))!);
 			Interlocked.CompareExchange(ref interfaces, tmp, null);
 		}
 
@@ -2614,8 +2614,8 @@ namespace dnlib.DotNet {
 
 				for (int i = 0; i < overrides.Count; i++) {
 					var ovr = overrides[i];
-					var newMethodBody = (IMethodDefOrRef)readerModule.ResolveToken(ovr.MethodBodyToken, gpContext);
-					var newMethodDeclaration = (IMethodDefOrRef)readerModule.ResolveToken(ovr.MethodDeclarationToken, gpContext);
+					var newMethodBody = (IMethodDefOrRef?)readerModule.ResolveToken(ovr.MethodBodyToken, gpContext);
+					var newMethodDeclaration = (IMethodDefOrRef?)readerModule.ResolveToken(ovr.MethodDeclarationToken, gpContext);
 					newList.Add(new MethodOverride(newMethodBody, newMethodDeclaration));
 				}
 				return newList;

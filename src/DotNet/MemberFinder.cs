@@ -182,7 +182,7 @@ namespace dnlib.DotNet {
 			Add(mod.Resources);
 		}
 
-		void Add(VTableFixups fixups) {
+		void Add(VTableFixups? fixups) {
 			if (fixups is null)
 				return;
 			foreach (var fixup in fixups) {

@@ -859,7 +859,7 @@ namespace dnlib.DotNet {
 		protected override void InitializeModules() {
 			var list = readerModule.GetModuleRidList();
 			var tmp = new LazyList<ModuleDef, RidList>(list.Count + 1, this, list, (list2, index) => {
-				ModuleDef module;
+				ModuleDef? module;
 				if (index == 0)
 					module = readerModule;
 				else
