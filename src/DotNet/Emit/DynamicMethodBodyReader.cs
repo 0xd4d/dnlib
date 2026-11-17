@@ -296,14 +296,14 @@ namespace dnlib.DotNet.Emit {
 
 		TypeSig GetReturnType(SR.MethodBase mb) {
 			if (mb is SR.MethodInfo mi)
-				return importer.ImportAsTypeSig(mi.ReturnType);
+				return importer.ImportAsTypeSigOrNull(mi.ReturnType);
 			return module.CorLibTypes.Void;
 		}
 
 		List<TypeSig> GetParameters(SR.MethodBase delMethod) {
 			var pms = new List<TypeSig>();
 			foreach (var param in delMethod.GetParameters())
-				pms.Add(importer.ImportAsTypeSig(param.ParameterType));
+				pms.Add(importer.ImportAsTypeSigOrNull(param.ParameterType));
 			return pms;
 		}
 
@@ -389,7 +389,7 @@ namespace dnlib.DotNet.Emit {
 						eh.FilterStart = null;	// not supported by DynamicMethod.ILGenerator
 						eh.HandlerStart = GetInstructionThrow((uint)ehInfo.CatchAddr[i]);
 						eh.HandlerEnd = GetInstruction((uint)ehInfo.CatchEndAddr[i]);
-						eh.CatchType = importer.Import(ehInfo.CatchClass[i]);
+						eh.CatchType = importer.ImportOrNull(ehInfo.CatchClass[i]);
 						exceptionHandlers.Add(eh);
 					}
 				}
@@ -470,22 +470,22 @@ namespace dnlib.DotNet.Emit {
 				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
 					// Sometimes it's a generic type but obj != `GenericMethodInfo`, so pass in 'default' and the
 					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
-					return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
+					return importer.ImportOrNull(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
 				}
 				else
-					return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
+					return importer.ImportOrNull(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj));
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericMethodInfo") {
 				var context = (RuntimeTypeHandle)gmiContextFieldInfo.Read(obj);
 				var method = SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)gmiMethodHandleFieldInfo.Read(obj), context);
-				return importer.Import(method);
+				return importer.ImportOrNull(method);
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.VarArgMethod") {
 				var method = GetVarArgMethod(obj);
 				if (!(method is DynamicMethod))
-					return importer.Import(method);
+					return importer.ImportOrNull(method);
 				obj = method;
 			}
 
@@ -518,16 +518,16 @@ namespace dnlib.DotNet.Emit {
 				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
 					// Sometimes it's a generic type but obj != `GenericFieldInfo`, so pass in 'default' and the
 					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
-					return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
+					return importer.ImportOrNull(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
 				}
 				else
-					return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj));
+					return importer.ImportOrNull(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj));
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.GenericFieldInfo") {
 				var context = (RuntimeTypeHandle)gfiContextFieldInfo.Read(obj);
 				var field = SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)gfiFieldHandleFieldInfo.Read(obj), context);
-				return importer.Import(field);
+				return importer.ImportOrNull(field);
 			}
 
 			return null;
@@ -536,7 +536,7 @@ namespace dnlib.DotNet.Emit {
 		ITypeDefOrRef ImportType(uint rid) {
 			var obj = Resolve(rid);
 			if (obj is RuntimeTypeHandle)
-				return importer.Import(Type.GetTypeFromHandle((RuntimeTypeHandle)obj));
+				return importer.ImportOrNull(Type.GetTypeFromHandle((RuntimeTypeHandle)obj));
 
 			return null;
 		}
@@ -576,6 +576,6 @@ namespace dnlib.DotNet.Emit {
 			return null;
 		}
 
-		TypeSig ISignatureReaderHelper.ConvertRTInternalAddress(IntPtr address) => importer.ImportAsTypeSig(MethodTableToTypeConverter.Convert(address));
+		TypeSig ISignatureReaderHelper.ConvertRTInternalAddress(IntPtr address) => importer.ImportAsTypeSigOrNull(MethodTableToTypeConverter.Convert(address));
 	}
 }
