@@ -51,7 +51,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
-		[Obsolete("Use FindOrThrow() instead")]
+		[Obsolete("Use " + nameof(FindOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindThrow(this ITypeDefFinder self, TypeRef? typeRef) => FindOrThrow(self, typeRef);
 
@@ -82,7 +82,7 @@ namespace dnlib.DotNet {
 		/// are separated by a <c>/</c> character.</param>
 		/// <returns>An existing <see cref="TypeDef"/></returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
-		[Obsolete("Use FindOrThrow() instead")]
+		[Obsolete("Use " + nameof(FindOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindThrow(this ITypeDefFinder self, string fullName, bool isReflectionName) => FindOrThrow(self, fullName, isReflectionName);
 
@@ -115,7 +115,7 @@ namespace dnlib.DotNet {
 		/// <param name="fullName">Full name of the type (no assembly information). Nested types are separated by <c>/</c></param>
 		/// <returns>An existing <see cref="TypeDef"/></returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
-		[Obsolete("Use FindNormalOrThrow() instead")]
+		[Obsolete("Use " + nameof(FindNormalOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindNormalThrow(this ITypeDefFinder self, string fullName) => FindNormalOrThrow(self, fullName);
 
@@ -148,7 +148,7 @@ namespace dnlib.DotNet {
 		/// <param name="fullName">Full name of the type (no assembly information). Nested types are separated by <c>+</c></param>
 		/// <returns>An existing <see cref="TypeDef"/></returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
-		[Obsolete("Use FindReflectionOrThrow() instead")]
+		[Obsolete("Use " + nameof(FindReflectionOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindReflectionThrow(this ITypeDefFinder self, string fullName) => FindReflectionOrThrow(self, fullName);
 

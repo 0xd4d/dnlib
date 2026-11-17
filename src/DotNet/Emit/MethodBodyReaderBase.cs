@@ -221,7 +221,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>The instruction</returns>
 		/// <exception cref="InvalidOperationException">There's no instruction at
 		/// <paramref name="offset"/></exception>
-		[Obsolete("Use GetInstructionOrThrow() instead")]
+		[Obsolete("Use " + nameof(GetInstructionOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		protected Instruction GetInstructionThrow(uint offset) => GetInstructionOrThrow(offset);
 

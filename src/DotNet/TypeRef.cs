@@ -282,7 +282,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		[Obsolete("Use ResolveOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public TypeDef ResolveThrow() => ResolveOrThrow();
 
@@ -305,7 +305,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		[Obsolete("Use ResolveOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public TypeDef ResolveThrow(ModuleDef? sourceModule) => ResolveOrThrow(sourceModule);
 

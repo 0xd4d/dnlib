@@ -368,7 +368,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
-		[Obsolete("Use ResolveOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public IMemberForwarded ResolveThrow() => ResolveOrThrow();
 
@@ -395,7 +395,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="FieldDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
-		[Obsolete("Use ResolveFieldOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveFieldOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public FieldDef ResolveFieldThrow() => ResolveFieldOrThrow();
 
@@ -422,7 +422,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="MethodDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
-		[Obsolete("Use ResolveMethodOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveMethodOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public MethodDef ResolveMethodThrow() => ResolveMethodOrThrow();
 

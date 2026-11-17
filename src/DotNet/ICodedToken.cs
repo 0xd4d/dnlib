@@ -385,7 +385,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="tdr">The type</param>
 		/// <returns>The base type or <c>null</c> if there's no base type</returns>
-		[Obsolete("Use GetBaseTypeOrThrow() instead")]
+		[Obsolete("Use " + nameof(GetBaseTypeOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static ITypeDefOrRef? GetBaseTypeThrow(this ITypeDefOrRef? tdr) => GetBaseTypeOrThrow(tdr);
 
@@ -493,7 +493,7 @@ namespace dnlib.DotNet {
 		/// <param name="tdr">Type</param>
 		/// <returns>A <see cref="TypeDef"/> instance.</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		[Obsolete("Use ResolveTypeDefOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveTypeDefOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef ResolveTypeDefThrow(this ITypeDefOrRef? tdr) => ResolveTypeDefOrThrow(tdr);
 
@@ -537,7 +537,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="field">Field to resolve</param>
 		/// <returns>The <see cref="FieldDef"/></returns>
-		[Obsolete("Use ResolveFieldDefOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveFieldDefOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static FieldDef ResolveFieldDefThrow(this IField? field) => ResolveFieldDefOrThrow(field);
 
@@ -607,7 +607,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">Method to resolve</param>
 		/// <returns>The <see cref="MethodDef"/></returns>
-		[Obsolete("Use ResolveMethodDefOrThrow() instead")]
+		[Obsolete("Use " + nameof(ResolveMethodDefOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static MethodDef ResolveMethodDefThrow(this IMethod? method) => ResolveMethodDefOrThrow(method);
 

@@ -183,7 +183,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns></returns>
-		[Obsolete("Use 'Import(Type)' instead.")]
+		[Obsolete("Use '" + nameof(Import) + "(Type)' instead.")]
 		[return: NotNullIfNotNull(nameof(type))]
 		public ITypeDefOrRef? ImportDeclaringType(Type? type) => Import(type);
 #pragma warning restore RS0030

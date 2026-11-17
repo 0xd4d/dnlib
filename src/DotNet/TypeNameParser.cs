@@ -89,7 +89,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		[Obsolete("Use ParseReflectionOrThrow() instead")]
+		[Obsolete("Use " + nameof(ParseReflectionOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) => ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper);
 
@@ -116,7 +116,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		[Obsolete("Use ParseReflectionOrThrow() instead")]
+		[Obsolete("Use " + nameof(ParseReflectionOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) => ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 
@@ -166,7 +166,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		[Obsolete("Use ParseAsTypeSigReflectionOrThrow() instead")]
+		[Obsolete("Use " + nameof(ParseAsTypeSigReflectionOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) => ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper);
 
@@ -193,7 +193,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
-		[Obsolete("Use ParseAsTypeSigReflectionOrThrow() instead")]
+		[Obsolete("Use " + nameof(ParseAsTypeSigReflectionOrThrow) + "() instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) => ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 
