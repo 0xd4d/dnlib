@@ -6,7 +6,14 @@ using System.Security.Cryptography;
 
 namespace dnlib.DotNet.Writer {
 	static class Hasher {
-		static HashAlgorithm CreateHasher(ChecksumAlgorithm checksumAlgorithm) =>
+		/// <summary>
+		/// Max size of a valid PDB checksum debug directory entry: "SHA512\0" + 64-byte hash, plus some
+		/// extra bytes for future algorithms. Bigger entries are ignored so the algorithm name of a huge
+		/// (invalid) entry isn't read, it could allocate a lot of memory.
+		/// </summary>
+		public const uint MaxPdbChecksumEntrySize = 0x100;
+
+		public static HashAlgorithm CreateHasher(ChecksumAlgorithm checksumAlgorithm) =>
 			checksumAlgorithm switch {
 				ChecksumAlgorithm.SHA1 => SHA1.Create(),
 				ChecksumAlgorithm.SHA256 => SHA256.Create(),
@@ -55,7 +62,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		public static byte[] Hash(ChecksumAlgorithm checksumAlgorithm, Stream stream, long length) {
-			var buffer = new byte[(int)Math.Min(0x2000, length)];
+			var buffer = new byte[(int)Math.Min(0x10000, length)];
 			using (var hasher = CreateHasher(checksumAlgorithm)) {
 				while (length > 0) {
 					int len = (int)Math.Min(length, buffer.Length);
