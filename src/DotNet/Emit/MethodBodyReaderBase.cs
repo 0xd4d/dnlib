@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using dnlib.IO;
 
@@ -206,12 +207,23 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>The instruction</returns>
 		/// <exception cref="InvalidOperationException">There's no instruction at
 		/// <paramref name="offset"/></exception>
-		protected Instruction GetInstructionThrow(uint offset) {
+		protected Instruction GetInstructionOrThrow(uint offset) {
 			var instr = GetInstruction(offset);
 			if (instr is not null)
 				return instr;
 			throw new InvalidOperationException($"There's no instruction @ {offset:X4}");
 		}
+
+		/// <summary>
+		/// Finds an instruction and throws if it's not present
+		/// </summary>
+		/// <param name="offset">Offset of instruction</param>
+		/// <returns>The instruction</returns>
+		/// <exception cref="InvalidOperationException">There's no instruction at
+		/// <paramref name="offset"/></exception>
+		[Obsolete("Use GetInstructionOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		protected Instruction GetInstructionThrow(uint offset) => GetInstructionOrThrow(offset);
 
 		/// <summary>
 		/// Reads the next instruction

@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -282,6 +283,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public TypeDef ResolveThrow() => ResolveOrThrow();
 
 		/// <summary>
@@ -304,6 +306,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public TypeDef ResolveThrow(ModuleDef? sourceModule) => ResolveOrThrow(sourceModule);
 
 		/// <summary>

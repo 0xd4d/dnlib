@@ -334,10 +334,10 @@ namespace dnlib.DotNet.Emit {
 						var eh = new ExceptionHandler();
 						eh.HandlerType = (ExceptionHandlerType)reader.ReadUInt16();
 						int offs = reader.ReadUInt16();
-						eh.TryStart = GetInstructionThrow((uint)offs);
+						eh.TryStart = GetInstructionOrThrow((uint)offs);
 						eh.TryEnd = GetInstruction((uint)(reader.ReadByte() + offs));
 						offs = reader.ReadUInt16();
-						eh.HandlerStart = GetInstructionThrow((uint)offs);
+						eh.HandlerStart = GetInstructionOrThrow((uint)offs);
 						eh.HandlerEnd = GetInstruction((uint)(reader.ReadByte() + offs));
 
 						if (eh.IsCatch)
@@ -359,10 +359,10 @@ namespace dnlib.DotNet.Emit {
 						var eh = new ExceptionHandler();
 						eh.HandlerType = (ExceptionHandlerType)reader.ReadUInt32();
 						var offs = reader.ReadUInt32();
-						eh.TryStart = GetInstructionThrow((uint)offs);
+						eh.TryStart = GetInstructionOrThrow((uint)offs);
 						eh.TryEnd = GetInstruction((uint)(reader.ReadUInt32() + offs));
 						offs = reader.ReadUInt32();
-						eh.HandlerStart = GetInstructionThrow((uint)offs);
+						eh.HandlerStart = GetInstructionOrThrow((uint)offs);
 						eh.HandlerEnd = GetInstruction((uint)(reader.ReadUInt32() + offs));
 
 						if (eh.IsCatch)
@@ -378,7 +378,7 @@ namespace dnlib.DotNet.Emit {
 			}
 			else if (ehInfos is not null) {
 				foreach (var ehInfo in CreateExceptionInfos(ehInfos)) {
-					var tryStart = GetInstructionThrow((uint)ehInfo.StartAddr);
+					var tryStart = GetInstructionOrThrow((uint)ehInfo.StartAddr);
 					var tryEnd = GetInstruction((uint)ehInfo.EndAddr);
 					var endFinally = ehInfo.EndFinally < 0 ? null : GetInstruction((uint)ehInfo.EndFinally);
 					for (int i = 0; i < ehInfo.CurrentCatch; i++) {
@@ -387,7 +387,7 @@ namespace dnlib.DotNet.Emit {
 						eh.TryStart = tryStart;
 						eh.TryEnd = eh.IsFinally ? endFinally : tryEnd;
 						eh.FilterStart = null;	// not supported by DynamicMethod.ILGenerator
-						eh.HandlerStart = GetInstructionThrow((uint)ehInfo.CatchAddr[i]);
+						eh.HandlerStart = GetInstructionOrThrow((uint)ehInfo.CatchAddr[i]);
 						eh.HandlerEnd = GetInstruction((uint)ehInfo.CatchEndAddr[i]);
 						eh.CatchType = importer.ImportOrNull(ehInfo.CatchClass[i]);
 						exceptionHandlers.Add(eh);

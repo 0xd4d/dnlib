@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -89,6 +90,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		[Obsolete("Use ParseReflectionOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) => ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper);
 
 		/// <summary>
@@ -115,6 +117,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		[Obsolete("Use ParseReflectionOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static ITypeDefOrRef ParseReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) => ParseReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 
 		/// <summary>
@@ -164,6 +167,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		[Obsolete("Use ParseAsTypeSigReflectionOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper) => ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper);
 
 		/// <summary>
@@ -190,6 +194,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		[Obsolete("Use ParseAsTypeSigReflectionOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeSig ParseAsTypeSigReflectionThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) => ParseAsTypeSigReflectionOrThrow(ownerModule, typeFullName, typeNameParserHelper, gpContext);
 
 		/// <summary>

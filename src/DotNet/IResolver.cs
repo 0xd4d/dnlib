@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.ComponentModel;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -61,6 +62,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef? typeRef) => ResolveOrThrow(self, typeRef);
 
 		/// <summary>
@@ -87,6 +89,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef ResolveThrow(this ITypeResolver self, TypeRef? typeRef, ModuleDef? sourceModule) => ResolveOrThrow(self, typeRef, sourceModule);
 
 		/// <summary>
@@ -111,6 +114,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance</returns>
 		/// <exception cref="MemberRefResolveException">If the method/field couldn't be resolved</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static IMemberForwarded ResolveThrow(this IMemberRefResolver self, MemberRef? memberRef) => ResolveOrThrow(self, memberRef);
 
 		/// <summary>
@@ -142,6 +146,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="FieldDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
 		/// <exception cref="MemberRefResolveException">If the field couldn't be resolved</exception>
 		[Obsolete("Use ResolveFieldOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static FieldDef ResolveFieldThrow(this IMemberRefResolver self, MemberRef? memberRef) => ResolveFieldOrThrow(self, memberRef);
 
 		/// <summary>
@@ -173,6 +178,7 @@ namespace dnlib.DotNet {
 		/// <returns>A <see cref="MethodDef"/> instance or <c>null</c> if it couldn't be resolved.</returns>
 		/// <exception cref="MemberRefResolveException">If the method couldn't be resolved</exception>
 		[Obsolete("Use ResolveMethodOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static MethodDef ResolveMethodThrow(this IMemberRefResolver self, MemberRef? memberRef) => ResolveMethodOrThrow(self, memberRef);
 	}
 }

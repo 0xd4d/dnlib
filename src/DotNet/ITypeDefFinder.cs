@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.ComponentModel;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -51,6 +52,7 @@ namespace dnlib.DotNet {
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		[Obsolete("Use FindOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindThrow(this ITypeDefFinder self, TypeRef? typeRef) => FindOrThrow(self, typeRef);
 
 		/// <summary>
@@ -81,6 +83,7 @@ namespace dnlib.DotNet {
 		/// <returns>An existing <see cref="TypeDef"/></returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		[Obsolete("Use FindOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindThrow(this ITypeDefFinder self, string fullName, bool isReflectionName) => FindOrThrow(self, fullName, isReflectionName);
 
 		/// <summary>
@@ -113,6 +116,7 @@ namespace dnlib.DotNet {
 		/// <returns>An existing <see cref="TypeDef"/></returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		[Obsolete("Use FindNormalOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindNormalThrow(this ITypeDefFinder self, string fullName) => FindNormalOrThrow(self, fullName);
 
 		/// <summary>
@@ -145,6 +149,7 @@ namespace dnlib.DotNet {
 		/// <returns>An existing <see cref="TypeDef"/></returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
 		[Obsolete("Use FindReflectionOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static TypeDef FindReflectionThrow(this ITypeDefFinder self, string fullName) => FindReflectionOrThrow(self, fullName);
 
 		/// <summary>

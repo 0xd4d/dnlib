@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -75,6 +76,7 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[return: NotNullIfNotNull(nameof(assembly))]
 		public static AssemblyDef? ResolveThrow(this IAssemblyResolver self, IAssembly? assembly, ModuleDef? sourceModule) => ResolveOrThrow(self, assembly, sourceModule);
 
@@ -105,6 +107,7 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[return: NotNullIfNotNull(nameof(assembly))]
 		public static AssemblyDef? ResolveThrow(this IAssemblyResolver self, AssemblyName? assembly, ModuleDef? sourceModule) => ResolveOrThrow(self, assembly, sourceModule);
 
@@ -135,6 +138,7 @@ namespace dnlib.DotNet {
 		/// <returns>An <see cref="AssemblyDef"/> instance owned by the assembly resolver</returns>
 		/// <exception cref="AssemblyResolveException">If the assembly couldn't be found.</exception>
 		[Obsolete("Use ResolveOrThrow() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[return: NotNullIfNotNull(nameof(asmFullName))]
 		public static AssemblyDef? ResolveThrow(this IAssemblyResolver self, string? asmFullName, ModuleDef? sourceModule) => ResolveOrThrow(self, asmFullName, sourceModule);
 	}
