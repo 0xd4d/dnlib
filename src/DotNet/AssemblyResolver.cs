@@ -383,12 +383,13 @@ namespace dnlib.DotNet {
 		/// Gets the cached assemblies in this resolver.
 		/// </summary>
 		/// <returns>The cached assemblies.</returns>
-		public IEnumerable<AssemblyDef?> GetCachedAssemblies() {
-			AssemblyDef?[] assemblies;
+		public IEnumerable<AssemblyDef> GetCachedAssemblies() {
+			AssemblyDef[] assemblies;
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
-			assemblies = cachedAssemblies.Values.ToArray();
+			// A failed resolve is cached as a null value
+			assemblies = cachedAssemblies.Values.Where(a => a is not null).ToArray()!;
 #if THREAD_SAFE
 			} finally { theLock.ExitReadLock(); }
 #endif
