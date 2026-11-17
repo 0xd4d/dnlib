@@ -448,13 +448,7 @@ namespace dnlib.DotNet.Pdb {
 				var instr = GetInstruction(body.Instructions, sorted, sp.Offset, ref instrIndex);
 				if (instr is null)
 					continue;
-				var seqPoint = new SequencePoint() {
-					Document = Add_NoLock(sp.Document),
-					StartLine = sp.Line,
-					StartColumn = sp.Column,
-					EndLine = sp.EndLine,
-					EndColumn = sp.EndColumn,
-				};
+				var seqPoint = new SequencePoint(Add_NoLock(sp.Document), sp.Line, sp.Column, sp.EndLine, sp.EndColumn);
 				instr.SequencePoint = seqPoint;
 			}
 		}
