@@ -31,7 +31,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="innerException">Other exception</param>
-		public InvalidKeyException(string message, Exception innerException)
+		public InvalidKeyException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 

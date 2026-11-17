@@ -48,7 +48,8 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="assemblyResolver">Assembly resolver or <c>null</c></param>
+		/// <param name="assemblyResolver">Assembly resolver</param>
+		/// <exception cref="System.ArgumentNullException">If <paramref name="assemblyResolver"/> is <c>null</c></exception>
 		public ModuleContext(IAssemblyResolver assemblyResolver)
 			: this(assemblyResolver, new Resolver(assemblyResolver)) {
 		}

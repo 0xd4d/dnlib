@@ -32,7 +32,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Exception message</param>
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
-		public TypeNameParserException(string message, Exception innerException)
+		public TypeNameParserException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 
@@ -73,7 +73,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
@@ -84,7 +84,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
@@ -96,7 +96,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
@@ -110,7 +110,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
@@ -123,7 +123,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance or <c>null</c> if parsing failed</returns>
@@ -133,7 +133,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="ITypeDefOrRef"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="ITypeDefOrRef"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
@@ -150,7 +150,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
@@ -161,7 +161,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
@@ -173,7 +173,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
@@ -187,7 +187,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
@@ -200,7 +200,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if parsing failed</returns>
@@ -210,7 +210,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Parses a Reflection type name and creates a <see cref="TypeSig"/>
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="TypeSig"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
@@ -227,7 +227,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		protected TypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper)
@@ -237,7 +237,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>
@@ -543,7 +543,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		public ReflectionTypeNameParser(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper)
@@ -553,7 +553,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/> or <c>null</c></param>
+		/// <param name="ownerModule">Module that will own the returned <see cref="IType"/></param>
 		/// <param name="typeFullName">Full name of type</param>
 		/// <param name="typeNameParserHelper">Helper class</param>
 		/// <param name="gpContext">Generic parameter context</param>

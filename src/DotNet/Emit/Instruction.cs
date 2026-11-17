@@ -801,7 +801,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static OpCode GetOpCode(this Instruction self) => self?.OpCode ?? OpCodes.UNKNOWN1;
+		public static OpCode GetOpCode(this Instruction? self) => self?.OpCode ?? OpCodes.UNKNOWN1;
 
 		/// <summary>
 		/// Gets the operand or <c>null</c> if <paramref name="self"/> is <c>null</c>
@@ -815,7 +815,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static uint GetOffset(this Instruction self) => self?.Offset ?? 0;
+		public static uint GetOffset(this Instruction? self) => self?.Offset ?? 0;
 
 		/// <summary>
 		/// Gets the sequence point or <c>null</c> if <paramref name="self"/> is <c>null</c>

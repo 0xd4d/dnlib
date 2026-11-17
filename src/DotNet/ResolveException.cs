@@ -28,7 +28,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Exception message</param>
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
-		public ResolveException(string message, Exception innerException)
+		public ResolveException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 
@@ -66,7 +66,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Exception message</param>
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
-		public AssemblyResolveException(string message, Exception innerException)
+		public AssemblyResolveException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 
@@ -104,7 +104,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Exception message</param>
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
-		public TypeResolveException(string message, Exception innerException)
+		public TypeResolveException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 
@@ -142,7 +142,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Exception message</param>
 		/// <param name="innerException">Inner exception or <c>null</c> if none</param>
-		public MemberRefResolveException(string message, Exception innerException)
+		public MemberRefResolveException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 

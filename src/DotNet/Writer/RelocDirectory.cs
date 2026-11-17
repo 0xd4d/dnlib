@@ -114,7 +114,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="chunk">Chunk or null. If it's null, <paramref name="offset"/> is the RVA</param>
 		/// <param name="offset">Offset relative to the start of <paramref name="chunk"/>, or if <paramref name="chunk"/> is null, this is the RVA</param>
-		public void Add(IChunk chunk, uint offset) {
+		public void Add(IChunk? chunk, uint offset) {
 			if (isReadOnly)
 				throw new InvalidOperationException("Can't add a relocation when the relocs section is read-only");
 			allRelocRvas.Add(new RelocInfo(chunk, offset));

@@ -139,7 +139,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="exceptions">Exceptions or <c>null</c> if all exception handlers are in
 		/// <paramref name="code"/></param>
 		/// <param name="parameters">Method parameters</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters) =>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[]? exceptions, IList<Parameter> parameters) =>
 			CreateCilBody(opResolver, ByteArrayDataReaderFactory.CreateReader(code), exceptions is null ? (DataReader?)null : ByteArrayDataReaderFactory.CreateReader(exceptions), parameters, new GenericParamContext());
 
 		/// <summary>
@@ -152,7 +152,7 @@ namespace dnlib.DotNet.Emit {
 		/// <paramref name="code"/></param>
 		/// <param name="parameters">Method parameters</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, GenericParamContext gpContext) =>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[]? exceptions, IList<Parameter> parameters, GenericParamContext gpContext) =>
 			CreateCilBody(opResolver, ByteArrayDataReaderFactory.CreateReader(code), exceptions is null ? (DataReader?)null : ByteArrayDataReaderFactory.CreateReader(exceptions), parameters, gpContext);
 
 		/// <summary>
@@ -226,7 +226,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="maxStack">Max stack</param>
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) =>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[]? exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok) =>
 			CreateCilBody(opResolver, code, exceptions, parameters, flags, maxStack, codeSize, localVarSigTok, new GenericParamContext());
 
 		/// <summary>
@@ -243,7 +243,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="codeSize">Code size</param>
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
 		/// <param name="gpContext">Generic parameter context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext) =>
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[]? exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext) =>
 			CreateCilBody(opResolver, code, exceptions, parameters, flags, maxStack, codeSize, localVarSigTok, gpContext, null);
 
 		/// <summary>
@@ -261,7 +261,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="localVarSigTok">Local variable signature token or 0 if none</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <param name="context">The module context</param>
-		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[] exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext, ModuleContext? context) {
+		public static CilBody CreateCilBody(IInstructionOperandResolver opResolver, byte[] code, byte[]? exceptions, IList<Parameter> parameters, ushort flags, ushort maxStack, uint codeSize, uint localVarSigTok, GenericParamContext gpContext, ModuleContext? context) {
 			var codeReader = ByteArrayDataReaderFactory.CreateReader(code);
 			var ehReader = exceptions is null ? (DataReader?)null : ByteArrayDataReaderFactory.CreateReader(exceptions);
 			var mbReader = new MethodBodyReader(opResolver, codeReader, ehReader, parameters, gpContext, context);

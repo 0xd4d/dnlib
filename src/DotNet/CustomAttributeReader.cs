@@ -89,7 +89,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="innerException">Other exception</param>
-		public CABlobParserException(string message, Exception innerException)
+		public CABlobParserException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 

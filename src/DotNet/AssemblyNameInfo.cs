@@ -58,7 +58,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Gets/sets the culture or <c>null</c> if none specified
+		/// Gets/sets the culture or <see cref="UTF8String.Empty"/> if none specified. It's never <c>null</c>: <c>null</c> is converted to <see cref="UTF8String.Empty"/>
 		/// </summary>
 		[AllowNull]
 		public UTF8String Culture {
