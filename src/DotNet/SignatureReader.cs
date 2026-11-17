@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -51,7 +53,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">#Blob stream offset of signature</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig) =>
+		public static CallingConventionSig? ReadSig(ModuleDefMD readerModule, uint sig) =>
 			ReadSig(readerModule, sig, new GenericParamContext());
 
 		/// <summary>
@@ -62,7 +64,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
+		public static CallingConventionSig? ReadSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
 			try {
 				var reader = new SignatureReader(readerModule, sig, gpContext);
 				if (reader.reader.Length == 0)
@@ -84,7 +86,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature data</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ModuleDefMD module, byte[] signature) =>
+		public static CallingConventionSig? ReadSig(ModuleDefMD module, byte[] signature) =>
 			ReadSig(module, module.CorLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), new GenericParamContext());
 
 		/// <summary>
@@ -95,7 +97,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ModuleDefMD module, byte[] signature, GenericParamContext gpContext) =>
+		public static CallingConventionSig? ReadSig(ModuleDefMD module, byte[] signature, GenericParamContext gpContext) =>
 			ReadSig(module, module.CorLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), gpContext);
 
 		/// <summary>
@@ -105,7 +107,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ModuleDefMD module, DataReader signature) =>
+		public static CallingConventionSig? ReadSig(ModuleDefMD module, DataReader signature) =>
 			ReadSig(module, module.CorLibTypes, signature, new GenericParamContext());
 
 		/// <summary>
@@ -116,7 +118,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ModuleDefMD module, DataReader signature, GenericParamContext gpContext) =>
+		public static CallingConventionSig? ReadSig(ModuleDefMD module, DataReader signature, GenericParamContext gpContext) =>
 			ReadSig(module, module.CorLibTypes, signature, gpContext);
 
 		/// <summary>
@@ -127,7 +129,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature data</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature) =>
+		public static CallingConventionSig? ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature) =>
 			ReadSig(helper, corLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), new GenericParamContext());
 
 		/// <summary>
@@ -139,7 +141,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) =>
+		public static CallingConventionSig? ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) =>
 			ReadSig(helper, corLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), gpContext);
 
 		/// <summary>
@@ -150,7 +152,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature) =>
+		public static CallingConventionSig? ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature) =>
 			ReadSig(helper, corLibTypes, signature, new GenericParamContext());
 
 		/// <summary>
@@ -162,7 +164,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static CallingConventionSig ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature, GenericParamContext gpContext) {
+		public static CallingConventionSig? ReadSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature, GenericParamContext gpContext) {
 			try {
 				var reader = new SignatureReader(helper, corLibTypes, ref signature, gpContext);
 				if (reader.reader.Length == 0)
@@ -181,7 +183,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">#Blob stream offset of signature</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig) =>
+		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig) =>
 			ReadTypeSig(readerModule, sig, new GenericParamContext());
 
 		/// <summary>
@@ -192,7 +194,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
+		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
 			try {
 				var reader = new SignatureReader(readerModule, sig, gpContext);
 				return reader.ReadType();
@@ -211,7 +213,7 @@ namespace dnlib.DotNet {
 		/// here, else this will be <c>null</c></param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig, out byte[] extraData) =>
+		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, out byte[]? extraData) =>
 			ReadTypeSig(readerModule, sig, new GenericParamContext(), out extraData);
 
 		/// <summary>
@@ -224,10 +226,10 @@ namespace dnlib.DotNet {
 		/// here, else this will be <c>null</c></param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, out byte[] extraData) {
+		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, out byte[]? extraData) {
 			try {
 				var reader = new SignatureReader(readerModule, sig, gpContext);
-				TypeSig ts;
+				TypeSig? ts;
 				try {
 					ts = reader.ReadType();
 				}
@@ -251,7 +253,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature data</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD module, byte[] signature) =>
+		public static TypeSig? ReadTypeSig(ModuleDefMD module, byte[] signature) =>
 			ReadTypeSig(module, module.CorLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), new GenericParamContext());
 
 		/// <summary>
@@ -262,7 +264,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD module, byte[] signature, GenericParamContext gpContext) =>
+		public static TypeSig? ReadTypeSig(ModuleDefMD module, byte[] signature, GenericParamContext gpContext) =>
 			ReadTypeSig(module, module.CorLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), gpContext);
 
 		/// <summary>
@@ -272,7 +274,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD module, DataReader signature) =>
+		public static TypeSig? ReadTypeSig(ModuleDefMD module, DataReader signature) =>
 			ReadTypeSig(module, module.CorLibTypes, signature, new GenericParamContext());
 
 		/// <summary>
@@ -283,7 +285,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ModuleDefMD module, DataReader signature, GenericParamContext gpContext) =>
+		public static TypeSig? ReadTypeSig(ModuleDefMD module, DataReader signature, GenericParamContext gpContext) =>
 			ReadTypeSig(module, module.CorLibTypes, signature, gpContext);
 
 		/// <summary>
@@ -294,7 +296,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature data</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature) =>
+		public static TypeSig? ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature) =>
 			ReadTypeSig(helper, corLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), new GenericParamContext());
 
 		/// <summary>
@@ -306,7 +308,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) =>
+		public static TypeSig? ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) =>
 			ReadTypeSig(helper, corLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), gpContext);
 
 		/// <summary>
@@ -317,7 +319,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature reader</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature) =>
+		public static TypeSig? ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature) =>
 			ReadTypeSig(helper, corLibTypes, signature, new GenericParamContext());
 
 		/// <summary>
@@ -329,7 +331,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature, GenericParamContext gpContext) =>
+		public static TypeSig? ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature, GenericParamContext gpContext) =>
 			ReadTypeSig(helper, corLibTypes, signature, gpContext, out var extraData);
 
 		/// <summary>
@@ -343,7 +345,7 @@ namespace dnlib.DotNet {
 		/// here, else this will be <c>null</c></param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext, out byte[] extraData) =>
+		public static TypeSig? ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext, out byte[]? extraData) =>
 			ReadTypeSig(helper, corLibTypes, ByteArrayDataReaderFactory.CreateReader(signature), gpContext, out extraData);
 
 		/// <summary>
@@ -357,10 +359,10 @@ namespace dnlib.DotNet {
 		/// here, else this will be <c>null</c></param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="signature"/> is invalid.</returns>
-		public static TypeSig ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature, GenericParamContext gpContext, out byte[] extraData) {
+		public static TypeSig? ReadTypeSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, DataReader signature, GenericParamContext gpContext, out byte[]? extraData) {
 			try {
 				var reader = new SignatureReader(helper, corLibTypes, ref signature, gpContext);
-				TypeSig ts;
+				TypeSig? ts;
 				try {
 					ts = reader.ReadType();
 				}
@@ -415,7 +417,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">#Blob stream offset of signature</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="MethodSig"/> instance or <c>null</c> if <paramref name="sig"/> is invalid</returns>
-		internal static MethodSig ReadCalliSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
+		internal static MethodSig? ReadCalliSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
 			try {
 				return new SignatureReader(readerModule, sig, gpContext).ReadCalliSig();
 			}
@@ -432,7 +434,7 @@ namespace dnlib.DotNet {
 		/// <param name="signature">The signature data</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="MethodSig"/> instance or <c>null</c> if <paramref name="signature"/> is invalid</returns>
-		internal static MethodSig ReadCalliSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) {
+		internal static MethodSig? ReadCalliSig(ISignatureReaderHelper helper, ICorLibTypes corLibTypes, byte[] signature, GenericParamContext gpContext) {
 			try {
 				var reader = ByteArrayDataReaderFactory.CreateReader(signature);
 				return new SignatureReader(helper, corLibTypes, ref reader, gpContext).ReadCalliSig();
@@ -442,7 +444,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		MethodSig ReadCalliSig() {
+		MethodSig? ReadCalliSig() {
 			if (reader.Length == 0)
 				return null;
 			var callingConvention = (CallingConvention)reader.ReadByte();
@@ -468,7 +470,7 @@ namespace dnlib.DotNet {
 			return sig;
 		}
 
-		byte[] GetExtraData() {
+		byte[]? GetExtraData() {
 			if (reader.Position == reader.Length)
 				return null;
 			return reader.ReadRemainingBytes();
@@ -478,14 +480,14 @@ namespace dnlib.DotNet {
 		/// Reads the signature
 		/// </summary>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if invalid signature</returns>
-		CallingConventionSig ReadSig() {
+		CallingConventionSig? ReadSig() {
 			if (!recursionCounter.Increment()) {
 				// Skip it so the rest of the signature is read from the correct position
 				SkipSig();
 				return null;
 			}
 
-			CallingConventionSig result;
+			CallingConventionSig? result;
 			var callingConvention = (CallingConvention)reader.ReadByte();
 			switch (callingConvention & CallingConvention.Mask) {
 			case CallingConvention.Default:
@@ -537,16 +539,16 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="MethodSig"/> instance</returns>
-		MethodSig ReadMethod(CallingConvention callingConvention) => ReadSig(new MethodSig(callingConvention));
+		MethodSig? ReadMethod(CallingConvention callingConvention) => ReadSig(new MethodSig(callingConvention));
 
 		/// <summary>
 		/// Reads a <see cref="PropertySig"/>
 		/// </summary>
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="PropertySig"/> instance</returns>
-		PropertySig ReadProperty(CallingConvention callingConvention) => ReadSig(new PropertySig(callingConvention));
+		PropertySig? ReadProperty(CallingConvention callingConvention) => ReadSig(new PropertySig(callingConvention));
 
-		T ReadSig<T>(T methodSig) where T : MethodBaseSig {
+		T? ReadSig<T>(T methodSig) where T : MethodBaseSig {
 			if (methodSig.Generic) {
 				// The CLR only allows up to 0xFFFF generic parameters
 				if (!reader.TryReadCompressedUInt32(out uint count) || count > 0xFFFF)
@@ -564,7 +566,7 @@ namespace dnlib.DotNet {
 			for (uint i = 0; i < numParams; i++) {
 				// A sentinel is part of the next param, ReadType() skips it
 				if (methodSig.ParamsAfterSentinel is null && PeekIsSentinel())
-					methodSig.ParamsAfterSentinel = parameters = new List<TypeSig>((int)(numParams - i));
+					methodSig.ParamsAfterSentinel = parameters = new List<TypeSig?>((int)(numParams - i));
 				parameters.Add(ReadType());
 			}
 
@@ -576,7 +578,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="LocalSig"/> instance</returns>
-		LocalSig ReadLocalSig(CallingConvention callingConvention) {
+		LocalSig? ReadLocalSig(CallingConvention callingConvention) {
 			// The CLR only allows up to 0xFFFF locals
 			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0xFFFF || count > reader.BytesLeft)
 				return null;
@@ -592,7 +594,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="callingConvention">First byte of signature</param>
 		/// <returns>A new <see cref="GenericInstMethodSig"/> instance</returns>
-		GenericInstMethodSig ReadGenericInstMethod(CallingConvention callingConvention) {
+		GenericInstMethodSig? ReadGenericInstMethod(CallingConvention callingConvention) {
 			// The CLR only allows up to 0xFFFF generic arguments
 			if (!reader.TryReadCompressedUInt32(out uint count) || count > 0xFFFF || count > reader.BytesLeft)
 				return null;
@@ -608,7 +610,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="allowTypeSpec"><c>true</c> if a <c>TypeSpec</c> is allowed if the next type is a class/value-type</param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if invalid element type</returns>
-		TypeSig ReadType(bool allowTypeSpec = false) {
+		TypeSig? ReadType(bool allowTypeSpec = false) {
 			if (!recursionCounter.Increment()) {
 				// Skip it so the rest of the signature is read from the correct position
 				SkipType();
@@ -616,7 +618,7 @@ namespace dnlib.DotNet {
 			}
 
 			uint num, i;
-			TypeSig nextType, result = null;
+			TypeSig? nextType, result = null;
 			var etype = (ElementType)reader.ReadByte();
 			// The CLR ignores one sentinel before any type (SigParser::SkipAnyVASentinel())
 			if (etype == ElementType.Sentinel)
@@ -1021,7 +1023,7 @@ exit:
 			return etype == ElementType.Sentinel;
 		}
 
-		ITypeDefOrRef ReadTypeDefOrRef(bool allowTypeSpec) {
+		ITypeDefOrRef? ReadTypeDefOrRef(bool allowTypeSpec) {
 			if (!reader.TryReadCompressedUInt32(out uint codedToken))
 				return null;
 			if (!allowTypeSpec && CodedToken.TypeDefOrRef.Decode2(codedToken).Table == Table.TypeSpec)

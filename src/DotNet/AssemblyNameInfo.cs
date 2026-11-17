@@ -223,7 +223,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asm">The assembly</param>
-		public AssemblyNameInfo(IAssembly asm) {
+		public AssemblyNameInfo(IAssembly? asm) {
 			if (asm is null)
 				return;
 			var asmDef = asm as AssemblyDef;
