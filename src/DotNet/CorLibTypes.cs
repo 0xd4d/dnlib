@@ -1,29 +1,31 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Default implementation of <see cref="ICorLibTypes"/>
 	/// </summary>
 	public sealed class CorLibTypes : ICorLibTypes {
 		readonly ModuleDef module;
-		CorLibTypeSig typeVoid;
-		CorLibTypeSig typeBoolean;
-		CorLibTypeSig typeChar;
-		CorLibTypeSig typeSByte;
-		CorLibTypeSig typeByte;
-		CorLibTypeSig typeInt16;
-		CorLibTypeSig typeUInt16;
-		CorLibTypeSig typeInt32;
-		CorLibTypeSig typeUInt32;
-		CorLibTypeSig typeInt64;
-		CorLibTypeSig typeUInt64;
-		CorLibTypeSig typeSingle;
-		CorLibTypeSig typeDouble;
-		CorLibTypeSig typeString;
-		CorLibTypeSig typeTypedReference;
-		CorLibTypeSig typeIntPtr;
-		CorLibTypeSig typeUIntPtr;
-		CorLibTypeSig typeObject;
+		CorLibTypeSig typeVoid = null!;
+		CorLibTypeSig typeBoolean = null!;
+		CorLibTypeSig typeChar = null!;
+		CorLibTypeSig typeSByte = null!;
+		CorLibTypeSig typeByte = null!;
+		CorLibTypeSig typeInt16 = null!;
+		CorLibTypeSig typeUInt16 = null!;
+		CorLibTypeSig typeInt32 = null!;
+		CorLibTypeSig typeUInt32 = null!;
+		CorLibTypeSig typeInt64 = null!;
+		CorLibTypeSig typeUInt64 = null!;
+		CorLibTypeSig typeSingle = null!;
+		CorLibTypeSig typeDouble = null!;
+		CorLibTypeSig typeString = null!;
+		CorLibTypeSig typeTypedReference = null!;
+		CorLibTypeSig typeIntPtr = null!;
+		CorLibTypeSig typeUIntPtr = null!;
+		CorLibTypeSig typeObject = null!;
 		readonly AssemblyRef corLibAssemblyRef;
 
 		/// <inheritdoc/>
@@ -97,7 +99,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">The owner module</param>
 		/// <param name="corLibAssemblyRef">Corlib assembly reference or <c>null</c> if a default
 		/// assembly reference should be created</param>
-		public CorLibTypes(ModuleDef module, AssemblyRef corLibAssemblyRef) {
+		public CorLibTypes(ModuleDef module, AssemblyRef? corLibAssemblyRef) {
 			this.module = module;
 			this.corLibAssemblyRef = corLibAssemblyRef ?? CreateCorLibAssemblyRef();
 			Initialize();

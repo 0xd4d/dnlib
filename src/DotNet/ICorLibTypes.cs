@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Access to .NET core library's simple types
@@ -116,8 +118,8 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="CorLibTypeSig"/> or <c>null</c> if it didn't match any primitive type</returns>
-		public static CorLibTypeSig GetCorLibTypeSig(this ICorLibTypes self, ITypeDefOrRef type) {
-			CorLibTypeSig corLibType;
+		public static CorLibTypeSig? GetCorLibTypeSig(this ICorLibTypes self, ITypeDefOrRef? type) {
+			CorLibTypeSig? corLibType;
 
 			if (type is TypeDef td &&
 				td.DeclaringType is null &&
@@ -143,7 +145,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="defAsm">Definition assembly</param>
 		/// <returns>A <see cref="CorLibTypeSig"/> or <c>null</c> if it didn't match any primitive type</returns>
-		public static CorLibTypeSig GetCorLibTypeSig(this ICorLibTypes self, UTF8String @namespace, UTF8String name, IAssembly defAsm) =>
+		public static CorLibTypeSig? GetCorLibTypeSig(this ICorLibTypes self, UTF8String? @namespace, UTF8String? name, IAssembly? defAsm) =>
 			self.GetCorLibTypeSig(UTF8String.ToSystemStringOrEmpty(@namespace), UTF8String.ToSystemStringOrEmpty(name), defAsm);
 
 		/// <summary>
@@ -155,7 +157,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="defAsm">Definition assembly</param>
 		/// <returns>A <see cref="CorLibTypeSig"/> or <c>null</c> if it didn't match any primitive type</returns>
-		public static CorLibTypeSig GetCorLibTypeSig(this ICorLibTypes self, string @namespace, string name, IAssembly defAsm) {
+		public static CorLibTypeSig? GetCorLibTypeSig(this ICorLibTypes self, string @namespace, string name, IAssembly? defAsm) {
 			if (@namespace != "System")
 				return null;
 			if (defAsm is null || !defAsm.IsCorLib())

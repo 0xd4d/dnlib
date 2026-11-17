@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Finds <see cref="TypeDef"/>s
@@ -13,7 +15,7 @@ namespace dnlib.DotNet {
 		/// type names are separated by a <c>+</c> character. If <c>false</c>, nested type names
 		/// are separated by a <c>/</c> character.</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
-		TypeDef Find(string fullName, bool isReflectionName);
+		TypeDef? Find(string fullName, bool isReflectionName);
 
 		/// <summary>
 		/// Finds a <see cref="TypeDef"/>. <paramref name="typeRef"/>'s scope (i.e., module or
@@ -21,7 +23,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
-		TypeDef Find(TypeRef typeRef);
+		TypeDef? Find(TypeRef? typeRef);
 	}
 
 	public static partial class Extensions {
@@ -33,7 +35,7 @@ namespace dnlib.DotNet {
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
 		/// <exception cref="TypeResolveException">If type couldn't be found</exception>
-		public static TypeDef FindThrow(this ITypeDefFinder self, TypeRef typeRef) {
+		public static TypeDef FindThrow(this ITypeDefFinder self, TypeRef? typeRef) {
 			var type = self.Find(typeRef);
 			if (type is not null)
 				return type;
@@ -63,7 +65,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="fullName">Full name of the type (no assembly information). Nested types are separated by <c>/</c></param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
-		public static TypeDef FindNormal(this ITypeDefFinder self, string fullName) => self.Find(fullName, false);
+		public static TypeDef? FindNormal(this ITypeDefFinder self, string fullName) => self.Find(fullName, false);
 
 		/// <summary>
 		/// Finds a <see cref="TypeDef"/>
@@ -85,7 +87,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="fullName">Full name of the type (no assembly information). Nested types are separated by <c>+</c></param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
-		public static TypeDef FindReflection(this ITypeDefFinder self, string fullName) => self.Find(fullName, true);
+		public static TypeDef? FindReflection(this ITypeDefFinder self, string fullName) => self.Find(fullName, true);
 
 		/// <summary>
 		/// Finds a <see cref="TypeDef"/>
@@ -108,7 +110,7 @@ namespace dnlib.DotNet {
 		/// <param name="self">this</param>
 		/// <param name="typeRef">The type ref</param>
 		/// <returns><c>true</c> if the <see cref="TypeDef"/> exists, <c>false</c> otherwise</returns>
-		public static bool TypeExists(this ITypeDefFinder self, TypeRef typeRef) => self.Find(typeRef) is not null;
+		public static bool TypeExists(this ITypeDefFinder self, TypeRef? typeRef) => self.Find(typeRef) is not null;
 
 		/// <summary>
 		/// Checks whether a <see cref="TypeDef"/> exists

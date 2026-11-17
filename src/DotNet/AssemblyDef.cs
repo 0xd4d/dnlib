@@ -543,7 +543,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
-		public TypeDef? Find(TypeRef typeRef) {
+		public TypeDef? Find(TypeRef? typeRef) {
 			var modules = Modules;
 			int count = modules.Count;
 			for (int i = 0; i < count; i++) {
