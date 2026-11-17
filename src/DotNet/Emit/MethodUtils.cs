@@ -15,7 +15,8 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="locals">All locals</param>
 		/// <param name="parameters">All method parameters, including the hidden 'this' parameter
 		/// if it's an instance method. Use <see cref="MethodDef.Parameters"/>.</param>
-		public static void SimplifyMacros(this IList<Instruction> instructions, IList<Local> locals, IList<Parameter> parameters) {
+		/// <returns><paramref name="instructions"/></returns>
+		public static IList<Instruction> SimplifyMacros(this IList<Instruction> instructions, IList<Local> locals, IList<Parameter> parameters) {
 			int count = instructions.Count;
 			for (int i = 0; i < count; i++) {
 				var instr = instructions[i];
@@ -216,6 +217,7 @@ namespace dnlib.DotNet.Emit {
 					break;
 				}
 			}
+			return instructions;
 		}
 
 		static T? ReadList<T>(IList<T>? list, int index) {
@@ -231,7 +233,8 @@ namespace dnlib.DotNet.Emit {
 		/// will be replaced with <c>Ldc_I4_1</c>.
 		/// </summary>
 		/// <param name="instructions">All instructions</param>
-		public static void OptimizeMacros(this IList<Instruction> instructions) {
+		/// <returns><paramref name="instructions"/></returns>
+		public static IList<Instruction> OptimizeMacros(this IList<Instruction> instructions) {
 			int count = instructions.Count;
 			for (int i = 0; i < count; i++) {
 				var instr = instructions[i];
@@ -408,7 +411,7 @@ namespace dnlib.DotNet.Emit {
 				}
 			}
 
-			OptimizeBranches(instructions);
+			return OptimizeBranches(instructions);
 		}
 
 		/// <summary>
@@ -416,7 +419,8 @@ namespace dnlib.DotNet.Emit {
 		/// converted to <c>Beq</c>.
 		/// </summary>
 		/// <param name="instructions">All instructions</param>
-		public static void SimplifyBranches(this IList<Instruction> instructions) {
+		/// <returns><paramref name="instructions"/></returns>
+		public static IList<Instruction> SimplifyBranches(this IList<Instruction> instructions) {
 			int count = instructions.Count;
 			for (int i = 0; i < count; i++) {
 				var instr = instructions[i];
@@ -437,13 +441,15 @@ namespace dnlib.DotNet.Emit {
 				case Code.Leave_S:	instr.OpCode = OpCodes.Leave; break;
 				}
 			}
+			return instructions;
 		}
 
 		/// <summary>
 		/// Optimizes branches by using the smallest possible branch
 		/// </summary>
 		/// <param name="instructions">All instructions</param>
-		public static void OptimizeBranches(this IList<Instruction> instructions) {
+		/// <returns><paramref name="instructions"/></returns>
+		public static IList<Instruction> OptimizeBranches(this IList<Instruction> instructions) {
 			while (true) {
 				UpdateInstructionOffsets(instructions);
 
@@ -493,7 +499,7 @@ namespace dnlib.DotNet.Emit {
 					}
 				}
 				if (!modified)
-					break;
+					return instructions;
 			}
 		}
 

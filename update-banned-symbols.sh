@@ -18,6 +18,6 @@ ids=$(grep -o 'name="[^"]*"' "$xml" | sed 's/^name="//;s/"$//')
 {
 	echo "$ids" | grep -E '^P:.*OrThrow$' |
 		sed 's/$/;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix/'
-	echo "$ids" | grep -E '^M:dnlib\.DotNet\.(Importer\.(Import|ImportAsTypeSig)|ModuleDef\.Import)\(' |
-		sed 's|$|;It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()|'
+	echo "$ids" | grep -E '^M:dnlib\.DotNet\.(Importer\.(Import|ImportAsTypeSig|ImportAsOperand)|ModuleDef\.Import)\(' |
+		sed 's|$|;It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()|'
 } | LC_ALL=C sort > src/BannedSymbols.txt

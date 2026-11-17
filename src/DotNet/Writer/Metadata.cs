@@ -274,6 +274,15 @@ namespace dnlib.DotNet.Writer {
 		public MetadataFlags Flags;
 
 		/// <summary>
+		/// Debug (portable PDB) metadata options. Only the <see cref="MetadataFlags.AlwaysCreateStringsHeap"/>,
+		/// <see cref="MetadataFlags.AlwaysCreateUSHeap"/>, <see cref="MetadataFlags.AlwaysCreateGuidHeap"/> and
+		/// <see cref="MetadataFlags.AlwaysCreateBlobHeap"/> bits are used. All of them are set by default since some
+		/// readers (eg. Unity's mono) fail to load portable PDB files with missing heaps.
+		/// </summary>
+		public MetadataFlags DebugFlags = MetadataFlags.AlwaysCreateStringsHeap | MetadataFlags.AlwaysCreateUSHeap |
+			MetadataFlags.AlwaysCreateGuidHeap | MetadataFlags.AlwaysCreateBlobHeap;
+
+		/// <summary>
 		/// Extra heaps to add to the metadata. Also see <see cref="MetadataHeapsAdded"/> and <see cref="PreserveHeapOrder(ModuleDef, bool)"/>
 		/// </summary>
 		public List<IHeap> CustomHeaps => customHeaps ??= new List<IHeap>();
@@ -4045,13 +4054,14 @@ namespace dnlib.DotNet.Writer {
 			if (isStandaloneDebugMetadata) {
 				heaps.Add(pdbHeap);
 				heaps.Add(tablesHeap);
-				if (!stringsHeap.IsEmpty)
+				var debugFlags = options.DebugFlags;
+				if (!stringsHeap.IsEmpty || (debugFlags & MetadataFlags.AlwaysCreateStringsHeap) != 0)
 					heaps.Add(stringsHeap);
-				if (!usHeap.IsEmpty)
+				if (!usHeap.IsEmpty || (debugFlags & MetadataFlags.AlwaysCreateUSHeap) != 0)
 					heaps.Add(usHeap);
-				if (!guidHeap.IsEmpty)
+				if (!guidHeap.IsEmpty || (debugFlags & MetadataFlags.AlwaysCreateGuidHeap) != 0)
 					heaps.Add(guidHeap);
-				if (!blobHeap.IsEmpty)
+				if (!blobHeap.IsEmpty || (debugFlags & MetadataFlags.AlwaysCreateBlobHeap) != 0)
 					heaps.Add(blobHeap);
 			}
 			else {

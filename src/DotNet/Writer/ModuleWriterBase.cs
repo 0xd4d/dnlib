@@ -475,7 +475,7 @@ namespace dnlib.DotNet.Writer {
 			int count = debugDirs.Count;
 			for (int i = 0; i < count; i++) {
 				var dir = debugDirs[i];
-				if (dir.Type == ImageDebugType.PdbChecksum) {
+				if (dir.Type == ImageDebugType.PdbChecksum && dir.SizeOfData <= Hasher.MaxPdbChecksumEntrySize) {
 					var reader = peImage.CreateReader(dir.AddressOfRawData, dir.SizeOfData);
 					if (TryGetPdbChecksumAlgorithm(ref reader, out pdbChecksumAlgorithm))
 						return true;

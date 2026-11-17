@@ -29,6 +29,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			pdbMetadata = MetadataFactory.CreateStandalonePortablePDB(pdbStream, true);
 		}
 
+		/// <summary>
+		/// Offset of the 20-byte PDB ID in the PDB file. Only valid if <see cref="MatchesModule(Guid, uint, uint)"/> returned <c>true</c>.
+		/// </summary>
+		internal uint PdbIdOffset => (uint)pdbMetadata.PdbStream!.StartOffset;
+
 		internal bool MatchesModule(Guid pdbGuid, uint timestamp, uint age) {
 			if (pdbMetadata.PdbStream is PdbStream pdbStream) {
 				var pdbGuidArray = pdbStream.Id;
