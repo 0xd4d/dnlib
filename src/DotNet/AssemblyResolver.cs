@@ -777,7 +777,7 @@ namespace dnlib.DotNet {
 			try {
 				var imageName = module.Location;
 				if (imageName != string.Empty) {
-					var directoryInfo = Directory.GetParent(imageName!);
+					var directoryInfo = Directory.GetParent(imageName);
 					if (directoryInfo is not null) {
 						baseDir = directoryInfo.FullName;
 						var configName = imageName + ".config";

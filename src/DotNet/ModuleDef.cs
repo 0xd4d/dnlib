@@ -393,14 +393,16 @@ namespace dnlib.DotNet {
 		public string FullName => UTF8String.ToSystemStringOrEmpty(name);
 
 		/// <summary>
-		/// Gets/sets the path of the module or an empty string if it wasn't loaded from disk
+		/// Gets/sets the path of the module or an empty string if it wasn't loaded from disk.
+		/// It's never <c>null</c>: <c>null</c> is converted to an empty string.
 		/// </summary>
-		public string? Location {
+		[AllowNull]
+		public string Location {
 			get => location;
-			set => location = value;
+			set => location = value ?? string.Empty;
 		}
 		/// <summary/>
-		protected string? location;
+		protected string location = string.Empty;
 
 		/// <summary>
 		/// Gets the <see cref="ICorLibTypes"/>
@@ -533,21 +535,24 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Gets/sets the runtime version which is stored in the metadata header.
-		/// See <see cref="MDHeaderRuntimeVersion"/>.
+		/// See <see cref="MDHeaderRuntimeVersion"/>. It's never <c>null</c>: <c>null</c> is converted to
+		/// <see cref="MDHeaderRuntimeVersion.MS_CLR_20"/>, the version the writer uses if there's no version.
 		/// </summary>
 		/// <remarks>Not thread safe</remarks>
-		public string? RuntimeVersion {
+		[AllowNull]
+		public string RuntimeVersion {
 			get => runtimeVersion;
 			set {
-				if (runtimeVersion != value) {
-					runtimeVersion = value;
+				var newValue = value ?? MDHeaderRuntimeVersion.MS_CLR_20;
+				if (runtimeVersion != newValue) {
+					runtimeVersion = newValue;
 					cachedWinMDStatus = null;
 					runtimeVersionWinMD = null;
 					winMDVersion = null;
 				}
 			}
 		}
-		string? runtimeVersion;
+		string runtimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 
 		/// <summary>
 		/// Gets the WinMD status
