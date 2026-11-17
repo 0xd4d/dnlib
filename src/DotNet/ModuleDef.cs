@@ -184,6 +184,11 @@ namespace dnlib.DotNet {
 			get => assembly;
 			internal set => assembly = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="Assembly"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public AssemblyDef AssemblyOrThrow => OrThrowHelper.NotNullOptional(Assembly, nameof(Assembly));
 		/// <summary/>
 		protected AssemblyDef? assembly;
 
@@ -464,6 +469,11 @@ namespace dnlib.DotNet {
 		/// Gets the global (aka. &lt;Module&gt;) type or <c>null</c> if there are no types
 		/// </summary>
 		public TypeDef? GlobalType => Types.Count == 0 ? null : Types[0];
+
+		/// <summary>
+		/// Same as <see cref="GlobalType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef GlobalTypeOrThrow => OrThrowHelper.NotNull(GlobalType, nameof(GlobalType));
 
 		/// <summary>
 		/// true if it's the core library module, false if it's not the core library module,
