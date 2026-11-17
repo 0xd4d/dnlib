@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using dnlib.Utils;
 using System;
 
@@ -7,7 +9,7 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// A collection of <see cref="Resource"/>s
 	/// </summary>
-	public class ResourceCollection : LazyList<Resource, object> {
+	public class ResourceCollection : LazyList<Resource, object?> {
 		/// <summary>
 		/// Default constructor
 		/// </summary>
@@ -28,7 +30,7 @@ namespace dnlib.DotNet {
 		/// <param name="length">Initial length of the list</param>
 		/// <param name="context">Context passed to <paramref name="readOriginalValue"/></param>
 		/// <param name="readOriginalValue">Delegate instance that returns original values</param>
-		public ResourceCollection(int length, object context, Func<object, int, Resource> readOriginalValue)
+		public ResourceCollection(int length, object? context, Func<object?, int, Resource> readOriginalValue)
 			: base(length, context, readOriginalValue) {
 		}
 
@@ -103,7 +105,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="Resource"/> or <c>null</c> if none was found</returns>
-		public Resource Find(UTF8String name) {
+		public Resource? Find(UTF8String? name) {
 			foreach (var resource in this) {
 				if (resource is not null && resource.Name == name)
 					return resource;
@@ -116,7 +118,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="EmbeddedResource"/> or <c>null</c> if none was found</returns>
-		public EmbeddedResource FindEmbeddedResource(UTF8String name) {
+		public EmbeddedResource? FindEmbeddedResource(UTF8String? name) {
 			foreach (var resource in this) {
 				if (resource is not null &&
 					resource.ResourceType == ResourceType.Embedded &&
@@ -131,7 +133,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="AssemblyLinkedResource"/> or <c>null</c> if none was found</returns>
-		public AssemblyLinkedResource FindAssemblyLinkedResource(UTF8String name) {
+		public AssemblyLinkedResource? FindAssemblyLinkedResource(UTF8String? name) {
 			foreach (var resource in this) {
 				if (resource is not null &&
 					resource.ResourceType == ResourceType.AssemblyLinked &&
@@ -146,7 +148,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The <see cref="LinkedResource"/> or <c>null</c> if none was found</returns>
-		public LinkedResource FindLinkedResource(UTF8String name) {
+		public LinkedResource? FindLinkedResource(UTF8String? name) {
 			foreach (var resource in this) {
 				if (resource is not null &&
 					resource.ResourceType == ResourceType.Linked &&

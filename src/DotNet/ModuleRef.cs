@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +22,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// The owner module
 		/// </summary>
-		protected ModuleDef module;
+		protected ModuleDef? module;
 
 		/// <inheritdoc/>
 		public MDToken MDToken => new MDToken(Table.ModuleRef, rid);
@@ -63,11 +65,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -88,23 +90,23 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <inheritdoc/>
-		public ModuleDef Module => module;
+		public ModuleDef? Module => module;
 
 		/// <summary>
 		/// Gets the definition module, i.e., the module which it references, or <c>null</c>
 		/// if the module can't be found.
 		/// </summary>
-		public ModuleDef DefinitionModule {
+		public ModuleDef? DefinitionModule {
 			get {
 				if (module is null)
 					return null;
@@ -119,7 +121,7 @@ namespace dnlib.DotNet {
 		/// Gets the definition assembly, i.e., the assembly of the module it references, or
 		/// <c>null</c> if the assembly can't be found.
 		/// </summary>
-		public AssemblyDef DefinitionAssembly => module?.Assembly;
+		public AssemblyDef? DefinitionAssembly => module?.Assembly;
 
 		/// <inheritdoc/>
 		public string FullName => UTF8String.ToSystemStringOrEmpty(name);
@@ -136,7 +138,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="module">Owner module</param>
-		public ModuleRefUser(ModuleDef module)
+		public ModuleRefUser(ModuleDef? module)
 			: this(module, UTF8String.Empty) {
 		}
 
@@ -145,7 +147,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Module name</param>
-		public ModuleRefUser(ModuleDef module, UTF8String name) {
+		public ModuleRefUser(ModuleDef? module, UTF8String name) {
 			this.module = module;
 			this.name = UTF8String.EmptyIfNull(name);
 		}

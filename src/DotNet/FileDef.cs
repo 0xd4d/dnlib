@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -55,12 +57,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column File.HashValue
 		/// </summary>
-		public byte[] HashValue {
+		public byte[]? HashValue {
 			get => hashValue;
 			set => hashValue = value;
 		}
 		/// <summary/>
-		protected byte[] hashValue;
+		protected byte[]? hashValue;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -69,11 +71,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -94,11 +96,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -155,7 +157,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of file</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="hashValue">File hash</param>
-		public FileDefUser(UTF8String name, FileAttributes flags, byte[] hashValue) {
+		public FileDefUser(UTF8String name, FileAttributes flags, byte[]? hashValue) {
 			this.name = UTF8String.EmptyIfNull(name);
 			attributes = (int)flags;
 			this.hashValue = hashValue;

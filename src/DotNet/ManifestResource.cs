@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,12 +65,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ManifestResource.Implementation
 		/// </summary>
-		public IImplementation Implementation {
+		public IImplementation? Implementation {
 			get => implementation;
 			set => implementation = value;
 		}
 		/// <summary/>
-		protected IImplementation implementation;
+		protected IImplementation? implementation;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -77,11 +79,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -102,11 +104,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -154,7 +156,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="implementation">Implementation</param>
-		public ManifestResourceUser(UTF8String name, IImplementation implementation)
+		public ManifestResourceUser(UTF8String name, IImplementation? implementation)
 			: this(name, implementation, 0) {
 		}
 
@@ -164,7 +166,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="implementation">Implementation</param>
 		/// <param name="flags">Flags</param>
-		public ManifestResourceUser(UTF8String name, IImplementation implementation, ManifestResourceAttributes flags)
+		public ManifestResourceUser(UTF8String name, IImplementation? implementation, ManifestResourceAttributes flags)
 			: this(name, implementation, flags, 0) {
 		}
 
@@ -175,7 +177,7 @@ namespace dnlib.DotNet {
 		/// <param name="implementation">Implementation</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="offset">Offset</param>
-		public ManifestResourceUser(UTF8String name, IImplementation implementation, ManifestResourceAttributes flags, uint offset) {
+		public ManifestResourceUser(UTF8String name, IImplementation? implementation, ManifestResourceAttributes flags, uint offset) {
 			this.name = UTF8String.EmptyIfNull(name);
 			this.implementation = implementation;
 			attributes = (int)flags;

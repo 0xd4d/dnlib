@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Reflection;
 
@@ -9,9 +11,9 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class AssemblyNameInfo : IAssembly {
 		AssemblyHashAlgorithm hashAlgId;
-		Version version;
+		Version? version;
 		AssemblyAttributes flags;
-		PublicKeyBase publicKeyOrToken;
+		PublicKeyBase? publicKeyOrToken;
 		UTF8String name = UTF8String.Empty;
 		UTF8String culture = UTF8String.Empty;
 
@@ -26,7 +28,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the <see cref="Version"/> or <c>null</c> if none specified
 		/// </summary>
-		public Version Version {
+		public Version? Version {
 			get => version;
 			set => version = value;
 		}
@@ -42,7 +44,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the public key or token
 		/// </summary>
-		public PublicKeyBase PublicKeyOrToken {
+		public PublicKeyBase? PublicKeyOrToken {
 			get => publicKeyOrToken;
 			set => publicKeyOrToken = value;
 		}
@@ -243,7 +245,7 @@ namespace dnlib.DotNet {
 			hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			version = asmName.Version ?? new Version(0, 0, 0, 0);
 			flags = GetAttributes(asmName);
-			publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
+			publicKeyOrToken = (PublicKeyBase?)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			name = asmName.Name ?? string.Empty;
 			culture = asmName.CultureInfo is not null && asmName.CultureInfo.Name is not null ? asmName.CultureInfo.Name : string.Empty;

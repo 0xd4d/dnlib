@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -98,7 +100,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		public int CompareTo(IAssembly a, IAssembly b) {
+		public int CompareTo(IAssembly? a, IAssembly? b) {
 			if (a == b)
 				return 0;
 			if (a is null)
@@ -128,7 +130,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if equal, <c>false</c> otherwise</returns>
-		public bool Equals(IAssembly a, IAssembly b) => CompareTo(a, b) == 0;
+		public bool Equals(IAssembly? a, IAssembly? b) => CompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Figures out which of two assembly names is closer to another assembly name

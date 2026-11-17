@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Reflection;
@@ -11,6 +13,7 @@ using System.Text.RegularExpressions;
 using dnlib.DotNet.Pdb;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.DotNet {
 	/// <summary>
@@ -57,7 +60,7 @@ namespace dnlib.DotNet {
 			set => version = value ?? throw new ArgumentNullException(nameof(value));
 		}
 		/// <summary/>
-		protected Version version;
+		protected Version version = null!;
 
 		/// <summary>
 		/// From column Assembly.Flags
@@ -78,12 +81,12 @@ namespace dnlib.DotNet {
 			set => publicKey = value ?? new PublicKey();
 		}
 		/// <summary/>
-		protected PublicKey publicKey;
+		protected PublicKey publicKey = null!;
 
 		/// <summary>
 		/// Gets the public key token which is calculated from <see cref="PublicKey"/>
 		/// </summary>
-		public PublicKeyToken PublicKeyToken => publicKey.Token;
+		public PublicKeyToken? PublicKeyToken => publicKey.Token;
 
 		/// <summary>
 		/// From column Assembly.Name
@@ -110,11 +113,11 @@ namespace dnlib.DotNet {
 			get {
 				if (declSecurities is null)
 					InitializeDeclSecurities();
-				return declSecurities;
+				return declSecurities!;
 			}
 		}
 		/// <summary/>
-		protected IList<DeclSecurity> declSecurities;
+		protected IList<DeclSecurity>? declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
 		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
@@ -135,11 +138,11 @@ namespace dnlib.DotNet {
 			get {
 				if (modules is null)
 					InitializeModules();
-				return modules;
+				return modules!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<ModuleDef> modules;
+		protected LazyList<ModuleDef>? modules;
 		/// <summary>Initializes <see cref="modules"/></summary>
 		protected virtual void InitializeModules() =>
 			Interlocked.CompareExchange(ref modules, new LazyList<ModuleDef>(this), null);
@@ -151,11 +154,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -177,11 +180,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -197,7 +200,7 @@ namespace dnlib.DotNet {
 		/// Gets the manifest (main) module. This is always the first module in <see cref="Modules"/>.
 		/// <c>null</c> is returned if <see cref="Modules"/> is empty.
 		/// </summary>
-		public ModuleDef ManifestModule => Modules.Count == 0 ? null : Modules[0];
+		public ModuleDef? ManifestModule => Modules.Count == 0 ? null : Modules[0];
 
 		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
@@ -335,7 +338,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of module</param>
 		/// <returns>A <see cref="ModuleDef"/> instance or <c>null</c> if it wasn't found.</returns>
-		public ModuleDef FindModule(UTF8String name) {
+		public ModuleDef? FindModule(UTF8String? name) {
 			var modules = Modules;
 			int count = modules.Count;
 			for (int i = 0; i < count; i++) {
@@ -356,7 +359,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(string fileName, ModuleContext context) =>
+		public static AssemblyDef Load(string fileName, ModuleContext? context) =>
 			Load(fileName, new ModuleCreationOptions(context));
 
 		/// <summary>
@@ -367,10 +370,10 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="fileName"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(string fileName, ModuleCreationOptions options = null) {
+		public static AssemblyDef Load(string fileName, ModuleCreationOptions? options = null) {
 			if (fileName is null)
 				throw new ArgumentNullException(nameof(fileName));
-			ModuleDef module = null;
+			ModuleDef? module = null;
 			try {
 				module = ModuleDefMD.Load(fileName, options);
 				var asm = module.Assembly;
@@ -393,7 +396,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(byte[] data, ModuleContext context) =>
+		public static AssemblyDef Load(byte[] data, ModuleContext? context) =>
 			Load(data, new ModuleCreationOptions(context));
 
 		/// <summary>
@@ -404,10 +407,10 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(byte[] data, ModuleCreationOptions options = null) {
+		public static AssemblyDef Load(byte[] data, ModuleCreationOptions? options = null) {
 			if (data is null)
 				throw new ArgumentNullException(nameof(data));
-			ModuleDef module = null;
+			ModuleDef? module = null;
 			try {
 				module = ModuleDefMD.Load(data, options);
 				var asm = module.Assembly;
@@ -430,7 +433,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(IntPtr addr, ModuleContext context) =>
+		public static AssemblyDef Load(IntPtr addr, ModuleContext? context) =>
 			Load(addr, new ModuleCreationOptions(context));
 
 		/// <summary>
@@ -441,10 +444,10 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="addr"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(IntPtr addr, ModuleCreationOptions options = null) {
+		public static AssemblyDef Load(IntPtr addr, ModuleCreationOptions? options = null) {
 			if (addr == IntPtr.Zero)
 				throw new ArgumentNullException(nameof(addr));
-			ModuleDef module = null;
+			ModuleDef? module = null;
 			try {
 				module = ModuleDefMD.Load(addr, options);
 				var asm = module.Assembly;
@@ -469,7 +472,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(Stream stream, ModuleContext context) =>
+		public static AssemblyDef Load(Stream stream, ModuleContext? context) =>
 			Load(stream, new ModuleCreationOptions(context));
 
 		/// <summary>
@@ -482,10 +485,10 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="AssemblyDef"/> instance</returns>
 		/// <exception cref="ArgumentNullException">If <paramref name="stream"/> is <c>null</c></exception>
 		/// <exception cref="BadImageFormatException">If it's not a .NET assembly (eg. not a .NET file or only a .NET module)</exception>
-		public static AssemblyDef Load(Stream stream, ModuleCreationOptions options = null) {
+		public static AssemblyDef Load(Stream stream, ModuleCreationOptions? options = null) {
 			if (stream is null)
 				throw new ArgumentNullException(nameof(stream));
-			ModuleDef module = null;
+			ModuleDef? module = null;
 			try {
 				module = ModuleDefMD.Load(stream, options);
 				var asm = module.Assembly;
@@ -519,7 +522,7 @@ namespace dnlib.DotNet {
 		/// type names are separated by a <c>+</c> character. If <c>false</c>, nested type names
 		/// are separated by a <c>/</c> character.</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
-		public TypeDef Find(string fullName, bool isReflectionName) {
+		public TypeDef? Find(string fullName, bool isReflectionName) {
 			var modules = Modules;
 			int count = modules.Count;
 			for (int i = 0; i < count; i++) {
@@ -540,7 +543,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="typeRef">The type ref</param>
 		/// <returns>An existing <see cref="TypeDef"/> or <c>null</c> if it wasn't found.</returns>
-		public TypeDef Find(TypeRef typeRef) {
+		public TypeDef? Find(TypeRef typeRef) {
 			var modules = Modules;
 			int count = modules.Count;
 			for (int i = 0; i < count; i++) {
@@ -559,16 +562,16 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="filename">Filename</param>
 		/// <param name="options">Writer options</param>
-		public void Write(string filename, ModuleWriterOptions options = null) =>
-			ManifestModule.Write(filename, options);
+		public void Write(string filename, ModuleWriterOptions? options = null) =>
+			ManifestModule!.Write(filename, options);
 
 		/// <summary>
 		/// Writes the assembly to a stream.
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		/// <param name="options">Writer options</param>
-		public void Write(Stream dest, ModuleWriterOptions options = null) =>
-			ManifestModule.Write(dest, options);
+		public void Write(Stream dest, ModuleWriterOptions? options = null) =>
+			ManifestModule!.Write(dest, options);
 
 		/// <summary>
 		/// Checks whether this assembly is a friend assembly of <paramref name="targetAsm"/>
@@ -625,7 +628,7 @@ namespace dnlib.DotNet {
 				return;
 
 			// Remove all existing attributes
-			CustomAttribute ca = null;
+			CustomAttribute? ca = null;
 			for (int i = 0; i < CustomAttributes.Count; i++) {
 				var caTmp = CustomAttributes[i];
 				if (caTmp.TypeFullName != "System.Reflection.AssemblySignatureKeyAttribute")
@@ -647,7 +650,7 @@ namespace dnlib.DotNet {
 			CustomAttributes.Add(ca);
 		}
 
-		bool IsValidAssemblySignatureKeyAttribute(CustomAttribute ca) {
+		bool IsValidAssemblySignatureKeyAttribute([NotNullWhen(true)] CustomAttribute? ca) {
 			if (dnlib.Settings.IsThreadSafe)
 				return false;
 			if (ca is null)
@@ -668,7 +671,7 @@ namespace dnlib.DotNet {
 		}
 
 		CustomAttribute CreateAssemblySignatureKeyAttribute() {
-			var manifestModule = ManifestModule;
+			var manifestModule = ManifestModule!;
 			var owner = manifestModule.UpdateRowId(new TypeRefUser(manifestModule, "System.Reflection", "AssemblySignatureKeyAttribute", manifestModule.CorLibTypes.AssemblyRef));
 			var methodSig = MethodSig.CreateInstance(manifestModule.CorLibTypes.Void, manifestModule.CorLibTypes.String, manifestModule.CorLibTypes.String);
 			var ctor = manifestModule.UpdateRowId(new MemberRefUser(manifestModule, MethodDef.InstanceConstructorName, methodSig, owner));
@@ -687,7 +690,7 @@ namespace dnlib.DotNet {
 		/// <param name="version">Version</param>
 		/// <param name="profile">Profile</param>
 		/// <returns></returns>
-		public virtual bool TryGetOriginalTargetFrameworkAttribute(out string framework, out Version version, out string profile) {
+		public virtual bool TryGetOriginalTargetFrameworkAttribute([NotNullWhen(true)] out string? framework, [NotNullWhen(true)] out Version? version, out string? profile) {
 			framework = null;
 			version = null;
 			profile = null;
@@ -725,7 +728,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ModuleDef>.OnClear() {
-			foreach (var module in modules.GetEnumerable_NoLock()) {
+			foreach (var module in modules!.GetEnumerable_NoLock()) {
 				if (module is not null)
 					module.Assembly = null;
 			}
@@ -772,7 +775,7 @@ namespace dnlib.DotNet {
 		/// <param name="version">Version</param>
 		/// <param name="publicKey">Public key</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(UTF8String name, Version version, PublicKey publicKey)
+		public AssemblyDefUser(UTF8String name, Version version, PublicKey? publicKey)
 			: this(name, version, publicKey, UTF8String.Empty) {
 		}
 
@@ -784,7 +787,7 @@ namespace dnlib.DotNet {
 		/// <param name="publicKey">Public key</param>
 		/// <param name="locale">Locale</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyDefUser(UTF8String name, Version version, PublicKey publicKey, UTF8String locale) {
+		public AssemblyDefUser(UTF8String name, Version version, PublicKey? publicKey, UTF8String locale) {
 			if (name is null)
 				throw new ArgumentNullException(nameof(name));
 			if (locale is null)
@@ -876,7 +879,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override bool TryGetOriginalTargetFrameworkAttribute(out string framework, out Version version, out string profile) {
+		public override bool TryGetOriginalTargetFrameworkAttribute([NotNullWhen(true)] out string? framework, [NotNullWhen(true)] out Version? version, out string? profile) {
 			if (!hasInitdTFA)
 				InitializeTargetFrameworkAttribute();
 			framework = tfaFramework;
@@ -885,9 +888,9 @@ namespace dnlib.DotNet {
 			return tfaReturnValue;
 		}
 		volatile bool hasInitdTFA;
-		string tfaFramework;
-		Version tfaVersion;
-		string tfaProfile;
+		string? tfaFramework;
+		Version? tfaVersion;
+		string? tfaProfile;
 		bool tfaReturnValue;
 
 		void InitializeTargetFrameworkAttribute() {
@@ -940,8 +943,8 @@ namespace dnlib.DotNet {
 		static readonly UTF8String nameSystemRuntimeVersioning = new UTF8String("System.Runtime.Versioning");
 		static readonly UTF8String nameTargetFrameworkAttribute = new UTF8String("TargetFrameworkAttribute");
 
-		static bool TryGetName(ICustomAttributeType caType, out UTF8String ns, out UTF8String name) {
-			ITypeDefOrRef type;
+		static bool TryGetName(ICustomAttributeType? caType, [NotNullWhen(true)] out UTF8String? ns, [NotNullWhen(true)] out UTF8String? name) {
+			ITypeDefOrRef? type;
 			if (caType is MemberRef mr)
 				type = mr.DeclaringType;
 			else
@@ -961,7 +964,7 @@ namespace dnlib.DotNet {
 			return false;
 		}
 
-		static bool TryCreateTargetFrameworkInfo(string attrString, out string framework, out Version version, out string profile) {
+		static bool TryCreateTargetFrameworkInfo(string attrString, [NotNullWhen(true)] out string? framework, [NotNullWhen(true)] out Version? version, out string? profile) {
 			framework = null;
 			version = null;
 			profile = null;
@@ -974,8 +977,8 @@ namespace dnlib.DotNet {
 			if (frameworkRes.Length == 0)
 				return false;
 
-			Version versionRes = null;
-			string profileRes = null;
+			Version? versionRes = null;
+			string? profileRes = null;
 			for (int i = 1; i < values.Length; i++) {
 				var kvp = values[i].Split('=');
 				if (kvp.Length != 2)
@@ -1007,7 +1010,7 @@ namespace dnlib.DotNet {
 
 		static int ParseInt32(string s) => int.TryParse(s, out int res) ? res : 0;
 
-		static bool TryParse(string s, out Version version) {
+		static bool TryParse(string s, [NotNullWhen(true)] out Version? version) {
 			Match m;
 
 			m = Regex.Match(s, @"^(\d+)\.(\d+)$");

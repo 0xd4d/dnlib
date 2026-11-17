@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Threading;
 
 namespace dnlib.DotNet {
@@ -8,12 +10,12 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class PublicKey : PublicKeyBase {
 		const AssemblyHashAlgorithm DEFAULT_ALGORITHM = AssemblyHashAlgorithm.SHA1;
-		PublicKeyToken publicKeyToken;
+		PublicKeyToken? publicKeyToken;
 
 		/// <summary>
 		/// Gets the <see cref="PublicKeyToken"/>
 		/// </summary>
-		public override PublicKeyToken Token {
+		public override PublicKeyToken? Token {
 			get {
 				if (publicKeyToken is null && !IsNullOrEmpty)
 					Interlocked.CompareExchange(ref publicKeyToken, AssemblyHash.CreatePublicKeyToken(data), null);
@@ -22,18 +24,18 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override byte[] Data => data;
+		public override byte[]? Data => data;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PublicKey() : base((byte[])null) { }
+		public PublicKey() : base((byte[]?)null) { }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="data">Public key data</param>
-		public PublicKey(byte[] data)
+		public PublicKey(byte[]? data)
 			: base(data) {
 		}
 
@@ -42,12 +44,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="hexString">Public key data as a hex string or the string <c>"null"</c>
 		/// to set public key data to <c>null</c></param>
-		public PublicKey(string hexString)
+		public PublicKey(string? hexString)
 			: base(hexString) {
 		}
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			if ((object)this == obj)
 				return true;
 			var other = obj as PublicKey;
