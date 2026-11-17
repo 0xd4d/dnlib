@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -34,27 +36,27 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the owner type/method
 		/// </summary>
-		public ITypeOrMethodDef Owner {
+		public ITypeOrMethodDef? Owner {
 			get => owner;
 			internal set => owner = value;
 		}
 		/// <summary/>
-		protected ITypeOrMethodDef owner;
+		protected ITypeOrMethodDef? owner;
 
 		/// <summary>
 		/// Gets the declaring type or <c>null</c> if none or if <see cref="Owner"/> is
 		/// not a <see cref="TypeDef"/>
 		/// </summary>
-		public TypeDef DeclaringType => owner as TypeDef;
+		public TypeDef? DeclaringType => owner as TypeDef;
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => owner as TypeDef;
+		ITypeDefOrRef? IMemberRef.DeclaringType => owner as TypeDef;
 
 		/// <summary>
 		/// Gets the declaring method or <c>null</c> if none or if <see cref="Owner"/> is
 		/// not a <see cref="MethodDef"/>
 		/// </summary>
-		public MethodDef DeclaringMethod => owner as MethodDef;
+		public MethodDef? DeclaringMethod => owner as MethodDef;
 
 		/// <summary>
 		/// From column GenericParam.Number
@@ -89,12 +91,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column GenericParam.Kind (v1.1 only)
 		/// </summary>
-		public ITypeDefOrRef Kind {
+		public ITypeDefOrRef? Kind {
 			get => kind;
 			set => kind = value;
 		}
 		/// <summary/>
-		protected ITypeDefOrRef kind;
+		protected ITypeDefOrRef? kind;
 
 		/// <summary>
 		/// Gets the generic param constraints
@@ -103,11 +105,11 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParamConstraints is null)
 					InitializeGenericParamConstraints();
-				return genericParamConstraints;
+				return genericParamConstraints!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<GenericParamConstraint> genericParamConstraints;
+		protected LazyList<GenericParamConstraint>? genericParamConstraints;
 		/// <summary>Initializes <see cref="genericParamConstraints"/></summary>
 		protected virtual void InitializeGenericParamConstraints() =>
 			Interlocked.CompareExchange(ref genericParamConstraints, new LazyList<GenericParamConstraint>(this), null);
@@ -119,11 +121,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -144,11 +146,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -159,7 +161,7 @@ namespace dnlib.DotNet {
 		public bool HasGenericParamConstraints => GenericParamConstraints.Count > 0;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => owner?.Module;
+		public ModuleDef? Module => owner?.Module;
 
 		/// <inheritdoc/>
 		public string FullName => UTF8String.ToSystemStringOrEmpty(name);
@@ -294,7 +296,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParamConstraint>.OnClear() {
-			foreach (var gpc in genericParamConstraints.GetEnumerable_NoLock())
+			foreach (var gpc in genericParamConstraints!.GetEnumerable_NoLock())
 				gpc.Owner = null;
 		}
 
@@ -383,7 +385,7 @@ namespace dnlib.DotNet {
 			Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 		}
 
-		static GenericParamContext GetGenericParamContext(ITypeOrMethodDef tmOwner) {
+		static GenericParamContext GetGenericParamContext(ITypeOrMethodDef? tmOwner) {
 			if (tmOwner is MethodDef md)
 				return GenericParamContext.Create(md);
 			return new GenericParamContext(tmOwner as TypeDef);

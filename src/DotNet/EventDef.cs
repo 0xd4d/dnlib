@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -60,12 +62,17 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Event.EventType
 		/// </summary>
-		public ITypeDefOrRef EventType {
+		public ITypeDefOrRef? EventType {
 			get => eventType;
 			set => eventType = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="EventType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ITypeDefOrRef EventTypeOrThrow => OrThrowHelper.NotNull(eventType, nameof(EventType));
 		/// <summary/>
-		protected ITypeDefOrRef eventType;
+		protected ITypeDefOrRef? eventType;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -74,11 +81,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -96,11 +103,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -108,7 +115,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the adder method
 		/// </summary>
-		public MethodDef AddMethod {
+		public MethodDef? AddMethod {
 			get {
 				if (otherMethods is null)
 					InitializeEventMethods();
@@ -124,7 +131,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the invoker method
 		/// </summary>
-		public MethodDef InvokeMethod {
+		public MethodDef? InvokeMethod {
 			get {
 				if (otherMethods is null)
 					InitializeEventMethods();
@@ -140,7 +147,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the remover method
 		/// </summary>
-		public MethodDef RemoveMethod {
+		public MethodDef? RemoveMethod {
 			get {
 				if (otherMethods is null)
 					InitializeEventMethods();
@@ -160,7 +167,7 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods is null)
 					InitializeEventMethods();
-				return otherMethods;
+				return otherMethods!;
 			}
 		}
 
@@ -183,13 +190,13 @@ namespace dnlib.DotNet {
 			otherMethods = new List<MethodDef>();
 
 		/// <summary/>
-		protected MethodDef addMethod;
+		protected MethodDef? addMethod;
 		/// <summary/>
-		protected MethodDef invokeMethod;
+		protected MethodDef? invokeMethod;
 		/// <summary/>
-		protected MethodDef removeMethod;
+		protected MethodDef? removeMethod;
 		/// <summary/>
-		protected IList<MethodDef> otherMethods;
+		protected IList<MethodDef>? otherMethods;
 
 		/// <summary>Reset <see cref="AddMethod"/>, <see cref="InvokeMethod"/>, <see cref="RemoveMethod"/>, <see cref="OtherMethods"/></summary>
 		protected void ResetMethods() => otherMethods = null;
@@ -202,7 +209,7 @@ namespace dnlib.DotNet {
 			AddMethod is null &&
 			removeMethod is null &&
 			invokeMethod is null &&
-			otherMethods.Count == 0;
+			otherMethods!.Count == 0;
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes => CustomAttributes.Count > 0;
@@ -215,7 +222,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
-		public TypeDef DeclaringType {
+		public TypeDef? DeclaringType {
 			get => declaringType2;
 			set {
 				var currentDeclaringType = DeclaringType2;
@@ -229,22 +236,22 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => declaringType2;
+		ITypeDefOrRef? IMemberRef.DeclaringType => declaringType2;
 
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public TypeDef DeclaringType2 {
+		public TypeDef? DeclaringType2 {
 			get => declaringType2;
 			set => declaringType2 = value;
 		}
 		/// <summary/>
-		protected TypeDef declaringType2;
+		protected TypeDef? declaringType2;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => declaringType2?.Module;
+		public ModuleDef? Module => declaringType2?.Module;
 
 		/// <summary>
 		/// Gets the full name of the event
@@ -321,7 +328,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="type">Type</param>
-		public EventDefUser(UTF8String name, ITypeDefOrRef type)
+		public EventDefUser(UTF8String name, ITypeDefOrRef? type)
 			: this(name, type, 0) {
 		}
 
@@ -331,7 +338,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="type">Type</param>
 		/// <param name="flags">Flags</param>
-		public EventDefUser(UTF8String name, ITypeDefOrRef type, EventAttributes flags) {
+		public EventDefUser(UTF8String name, ITypeDefOrRef? type, EventAttributes flags) {
 			this.name = UTF8String.EmptyIfNull(name);
 			eventType = type;
 			attributes = (int)flags;

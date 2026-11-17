@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,12 +34,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column StandAloneSig.Signature
 		/// </summary>
-		public CallingConventionSig Signature {
+		public CallingConventionSig? Signature {
 			get => signature;
 			set => signature = value;
 		}
 		/// <summary/>
-		protected CallingConventionSig signature;
+		protected CallingConventionSig? signature;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -46,11 +48,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -71,11 +73,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -83,7 +85,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the method sig
 		/// </summary>
-		public MethodSig MethodSig {
+		public MethodSig? MethodSig {
 			get => signature as MethodSig;
 			set => signature = value;
 		}
@@ -91,7 +93,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the locals sig
 		/// </summary>
-		public LocalSig LocalSig {
+		public LocalSig? LocalSig {
 			get => signature as LocalSig;
 			set => signature = value;
 		}
@@ -114,13 +116,13 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="localSig">A locals sig</param>
-		public StandAloneSigUser(LocalSig localSig) => signature = localSig;
+		public StandAloneSigUser(LocalSig? localSig) => signature = localSig;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="methodSig">A method sig</param>
-		public StandAloneSigUser(MethodSig methodSig) => signature = methodSig;
+		public StandAloneSigUser(MethodSig? methodSig) => signature = methodSig;
 	}
 
 	/// <summary>
@@ -183,7 +185,7 @@ namespace dnlib.DotNet {
 		/// Reads the signature as a <c>calli</c> signature
 		/// </summary>
 		/// <param name="gpContext">Generic parameter context</param>
-		internal MethodSig ReadCalliSig(GenericParamContext gpContext) {
+		internal MethodSig? ReadCalliSig(GenericParamContext gpContext) {
 			if (!readerModule.TablesStream.TryReadStandAloneSigRow(origRid, out var row))
 				return null;
 			return SignatureReader.ReadCalliSig(readerModule, row.Signature, gpContext);

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -49,12 +51,17 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ImplMap.ImportScope
 		/// </summary>
-		public ModuleRef Module {
+		public ModuleRef? Module {
 			get => module;
 			set => module = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleRef ModuleOrThrow => OrThrowHelper.NotNull(module, nameof(Module));
 		/// <summary/>
-		protected ModuleRef module;
+		protected ModuleRef? module;
 
 		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
@@ -259,7 +266,7 @@ namespace dnlib.DotNet {
 		/// <param name="scope">Scope</param>
 		/// <param name="name">Name</param>
 		/// <param name="flags">Flags</param>
-		public ImplMapUser(ModuleRef scope, UTF8String name, PInvokeAttributes flags) {
+		public ImplMapUser(ModuleRef? scope, UTF8String name, PInvokeAttributes flags) {
 			module = scope;
 			this.name = UTF8String.EmptyIfNull(name);
 			attributes = (int)flags;

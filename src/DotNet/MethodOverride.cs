@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Describes which method some method implements
@@ -8,19 +10,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// The method body. Usually a <see cref="MethodDef"/> but could be a <see cref="MemberRef"/>
 		/// </summary>
-		public IMethodDefOrRef MethodBody;
+		public IMethodDefOrRef? MethodBody;
 
 		/// <summary>
 		/// The method <see cref="MethodBody"/> implements
 		/// </summary>
-		public IMethodDefOrRef MethodDeclaration;
+		public IMethodDefOrRef? MethodDeclaration;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="methodBody">Method body</param>
 		/// <param name="methodDeclaration">The method <paramref name="methodBody"/> implements</param>
-		public MethodOverride(IMethodDefOrRef methodBody, IMethodDefOrRef methodDeclaration) {
+		public MethodOverride(IMethodDefOrRef? methodBody, IMethodDefOrRef? methodDeclaration) {
 			MethodBody = methodBody;
 			MethodDeclaration = methodDeclaration;
 		}

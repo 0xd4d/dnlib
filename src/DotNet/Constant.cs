@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using dnlib.DotNet.MD;
@@ -37,12 +39,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Constant.Value
 		/// </summary>
-		public object Value {
+		public object? Value {
 			get => value;
 			set => this.value = value;
 		}
 		/// <summary/>
-		protected object value;
+		protected object? value;
 	}
 
 	/// <summary>
@@ -59,7 +61,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="value">Value</param>
-		public ConstantUser(object value) {
+		public ConstantUser(object? value) {
 			type = GetElementType(value);
 			this.value = value;
 		}
@@ -69,12 +71,12 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="value">Value</param>
 		/// <param name="type">Type</param>
-		public ConstantUser(object value, ElementType type) {
+		public ConstantUser(object? value, ElementType type) {
 			this.type = type;
 			this.value = value;
 		}
 
-		static ElementType GetElementType(object value) {
+		static ElementType GetElementType(object? value) {
 			if (value is null)
 				return ElementType.Class;
 			return System.Type.GetTypeCode(value.GetType()) switch {
@@ -128,7 +130,7 @@ namespace dnlib.DotNet {
 			value = GetValue(type, ref reader);
 		}
 
-		static object GetValue(ElementType etype, ref DataReader reader) {
+		static object? GetValue(ElementType etype, ref DataReader reader) {
 			switch (etype) {
 			case ElementType.Boolean:
 				if (reader.Length < 1)

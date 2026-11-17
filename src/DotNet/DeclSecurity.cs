@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -47,11 +49,11 @@ namespace dnlib.DotNet {
 			get {
 				if (securityAttributes is null)
 					InitializeSecurityAttributes();
-				return securityAttributes;
+				return securityAttributes!;
 			}
 		}
 		/// <summary/>
-		protected IList<SecurityAttribute> securityAttributes;
+		protected IList<SecurityAttribute>? securityAttributes;
 		/// <summary>Initializes <see cref="securityAttributes"/></summary>
 		protected virtual void InitializeSecurityAttributes() =>
 			Interlocked.CompareExchange(ref securityAttributes, new List<SecurityAttribute>(), null);
@@ -63,11 +65,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -88,11 +90,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -106,15 +108,15 @@ namespace dnlib.DotNet {
 		/// Gets the blob data or <c>null</c> if there's none
 		/// </summary>
 		/// <returns>Blob data or <c>null</c></returns>
-		public abstract byte[] GetBlob();
+		public abstract byte[]? GetBlob();
 
 		/// <summary>
 		/// Returns the .NET Framework 1.x XML string or null if it's not a .NET Framework 1.x format
 		/// </summary>
 		/// <returns></returns>
-		public string GetNet1xXmlString() => GetNet1xXmlStringInternal(SecurityAttributes);
+		public string? GetNet1xXmlString() => GetNet1xXmlStringInternal(SecurityAttributes);
 
-		internal static string GetNet1xXmlStringInternal(IList<SecurityAttribute> secAttrs) {
+		internal static string? GetNet1xXmlStringInternal(IList<SecurityAttribute>? secAttrs) {
 			if (secAttrs is null || secAttrs.Count != 1)
 				return null;
 			var sa = secAttrs[0];
@@ -160,7 +162,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override byte[] GetBlob() => null;
+		public override byte[]? GetBlob() => null;
 	}
 
 	/// <summary>
@@ -221,6 +223,6 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public override byte[] GetBlob() => readerModule.BlobStream.Read(permissionSet);
+		public override byte[]? GetBlob() => readerModule.BlobStream.Read(permissionSet);
 	}
 }

@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 
 namespace dnlib.DotNet {
@@ -11,7 +13,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the attribute type
 		/// </summary>
-		ITypeDefOrRef AttributeType { get; }
+		ITypeDefOrRef? AttributeType { get; }
 
 		/// <summary>
 		/// Gets the full name of the attribute type

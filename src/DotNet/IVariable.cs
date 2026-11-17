@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet {
 	/// <summary>
 	/// Interface to access a local or a parameter
@@ -8,7 +10,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the variable type
 		/// </summary>
-		TypeSig Type { get; }
+		TypeSig? Type { get; }
 
 		/// <summary>
 		/// Gets the 0-based position
@@ -18,6 +20,6 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the variable name
 		/// </summary>
-		string Name { get; set; }
+		string? Name { get; set; }
 	}
 }
