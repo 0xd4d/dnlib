@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -20,7 +22,7 @@ namespace dnlib.DotNet {
 		static readonly string[] winMDAssemblyExtensions = new string[] { ".winmd" };
 
 		static readonly List<GacInfo> gacInfos;
-		static readonly string[] extraMonoPaths;
+		static readonly string[]? extraMonoPaths;
 		static readonly string[] monoVerDirs = new string[] {
 			// The "-api" dirs are reference assembly dirs.
 			"4.5", @"4.5\Facades", "4.5-api", @"4.5-api\Facades", "4.0", "4.0-api",
@@ -28,9 +30,9 @@ namespace dnlib.DotNet {
 			"1.1", "1.0",
 		};
 
-		ModuleContext defaultModuleContext;
+		ModuleContext? defaultModuleContext;
 		readonly Dictionary<ModuleDef, List<string>> moduleSearchPaths = new Dictionary<ModuleDef, List<string>>();
-		readonly Dictionary<string, AssemblyDef> cachedAssemblies = new Dictionary<string, AssemblyDef>(StringComparer.OrdinalIgnoreCase);
+		readonly Dictionary<string, AssemblyDef?> cachedAssemblies = new Dictionary<string, AssemblyDef?>(StringComparer.OrdinalIgnoreCase);
 		readonly List<string> preSearchPaths = new List<string>();
 		readonly List<string> postSearchPaths = new List<string>();
 		bool findExactMatch;
@@ -68,12 +70,12 @@ namespace dnlib.DotNet {
 					dirs[dir] = true;
 
 					if (Directory.Exists(dir)) {
-						gacInfos.Add(new GacInfo(-1, "", Path.GetDirectoryName(dir), new string[] {
+						gacInfos.Add(new GacInfo(-1, "", Path.GetDirectoryName(dir)!, new string[] {
 							Path.GetFileName(dir)
 						}));
 					}
 
-					dir = Path.GetDirectoryName(dir);
+					dir = Path.GetDirectoryName(dir)!;
 					foreach (var verDir in monoVerDirs) {
 						var dir2 = dir;
 						foreach (var d in verDir.Split(new char[] { '\\' }))
@@ -122,7 +124,7 @@ namespace dnlib.DotNet {
 			var path = typeof(object).Module.FullyQualifiedName;
 			for (int i = 0; i < 4; i++)
 				path = Path.GetDirectoryName(path);
-			return path;
+			return path!;
 		}
 
 		static IEnumerable<string> FindMonoPrefixes() {
@@ -141,7 +143,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the default <see cref="ModuleContext"/>
 		/// </summary>
-		public ModuleContext DefaultModuleContext {
+		public ModuleContext? DefaultModuleContext {
 			get => defaultModuleContext;
 			set => defaultModuleContext = value;
 		}
@@ -206,13 +208,13 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="defaultModuleContext">Module context for all resolved assemblies</param>
-		public AssemblyResolver(ModuleContext defaultModuleContext) {
+		public AssemblyResolver(ModuleContext? defaultModuleContext) {
 			this.defaultModuleContext = defaultModuleContext;
 			enableFrameworkRedirect = true;
 		}
 
 		/// <inheritdoc/>
-		public AssemblyDef Resolve(IAssembly assembly, ModuleDef sourceModule) {
+		public AssemblyDef? Resolve(IAssembly? assembly, ModuleDef? sourceModule) {
 			if (assembly is null)
 				return null;
 
@@ -292,7 +294,7 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if <paramref name="module"/>'s assembly is cached, <c>false</c>
 		/// if it's not cached because some other assembly with the exact same full name has
 		/// already been cached or if <paramref name="module"/> or its assembly is <c>null</c>.</returns>
-		public bool AddToCache(ModuleDef module) => module is not null && AddToCache(module.Assembly);
+		public bool AddToCache(ModuleDef? module) => module is not null && AddToCache(module.Assembly);
 
 		/// <summary>
 		/// Add an assembly to the assembly cache
@@ -301,7 +303,7 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if <paramref name="asm"/> is cached, <c>false</c> if it's not
 		/// cached because some other assembly with the exact same full name has already been
 		/// cached or if <paramref name="asm"/> is <c>null</c>.</returns>
-		public bool AddToCache(AssemblyDef asm) {
+		public bool AddToCache(AssemblyDef? asm) {
 			if (asm is null)
 				return false;
 			var asmKey = GetAssemblyNameKey(asm);
@@ -324,7 +326,7 @@ namespace dnlib.DotNet {
 		/// <returns><c>true</c> if its assembly was removed, <c>false</c> if it wasn't removed
 		/// since it wasn't in the cache, it has no assembly, or <paramref name="module"/> was
 		/// <c>null</c></returns>
-		public bool Remove(ModuleDef module) => module is not null && Remove(module.Assembly);
+		public bool Remove(ModuleDef? module) => module is not null && Remove(module.Assembly);
 
 		/// <summary>
 		/// Removes the assembly from the cache
@@ -332,7 +334,7 @@ namespace dnlib.DotNet {
 		/// <param name="asm">The assembly</param>
 		/// <returns><c>true</c> if it was removed, <c>false</c> if it wasn't removed since it
 		/// wasn't in the cache or if <paramref name="asm"/> was <c>null</c></returns>
-		public bool Remove(AssemblyDef asm) {
+		public bool Remove(AssemblyDef? asm) {
 			if (asm is null)
 				return false;
 			var asmKey = GetAssemblyNameKey(asm);
@@ -359,11 +361,11 @@ namespace dnlib.DotNet {
 		/// them disposed.
 		/// </summary>
 		public void Clear() {
-			List<AssemblyDef> asms;
+			List<AssemblyDef?> asms;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			asms = new List<AssemblyDef>(cachedAssemblies.Values);
+			asms = new List<AssemblyDef?>(cachedAssemblies.Values);
 			cachedAssemblies.Clear();
 		    moduleSearchPaths.Clear();
 #if THREAD_SAFE
@@ -381,8 +383,8 @@ namespace dnlib.DotNet {
 		/// Gets the cached assemblies in this resolver.
 		/// </summary>
 		/// <returns>The cached assemblies.</returns>
-		public IEnumerable<AssemblyDef> GetCachedAssemblies() {
-			AssemblyDef[] assemblies;
+		public IEnumerable<AssemblyDef?> GetCachedAssemblies() {
+			AssemblyDef?[] assemblies;
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
@@ -398,7 +400,7 @@ namespace dnlib.DotNet {
 			return asmName.FullNameToken;
 		}
 
-		AssemblyDef Resolve2(IAssembly assembly, ModuleDef sourceModule) {
+		AssemblyDef? Resolve2(IAssembly assembly, ModuleDef? sourceModule) {
 			if (cachedAssemblies.TryGetValue(GetAssemblyNameKey(assembly), out var resolvedAssembly))
 				return resolvedAssembly;
 
@@ -430,12 +432,12 @@ namespace dnlib.DotNet {
 		/// <param name="moduleContext">Module context</param>
 		/// <returns>An <see cref="AssemblyDef"/> instance or <c>null</c> if an exact match
 		/// couldn't be found.</returns>
-		AssemblyDef FindExactAssembly(IAssembly assembly, IEnumerable<string> paths, ModuleContext moduleContext) {
+		AssemblyDef? FindExactAssembly(IAssembly assembly, IEnumerable<string>? paths, ModuleContext? moduleContext) {
 			if (paths is null)
 				return null;
 			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var path in paths) {
-				ModuleDefMD mod = null;
+				ModuleDefMD? mod = null;
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
@@ -459,8 +461,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="assembly">Assembly to find</param>
 		/// <returns>The closest <see cref="AssemblyDef"/> or <c>null</c> if none found</returns>
-		AssemblyDef FindClosestAssembly(IAssembly assembly) {
-			AssemblyDef closest = null;
+		AssemblyDef? FindClosestAssembly(IAssembly assembly) {
+			AssemblyDef? closest = null;
 			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var kv in cachedAssemblies) {
 				var asm = kv.Value;
@@ -472,12 +474,12 @@ namespace dnlib.DotNet {
 			return closest;
 		}
 
-		AssemblyDef FindClosestAssembly(IAssembly assembly, AssemblyDef closest, IEnumerable<string> paths, ModuleContext moduleContext) {
+		AssemblyDef? FindClosestAssembly(IAssembly assembly, AssemblyDef? closest, IEnumerable<string>? paths, ModuleContext? moduleContext) {
 			if (paths is null)
 				return closest;
 			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var path in paths) {
-				ModuleDefMD mod = null;
+				ModuleDefMD? mod = null;
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
@@ -506,14 +508,14 @@ namespace dnlib.DotNet {
 		/// Returns <c>true</c> if <paramref name="asm"/> is inserted in <see cref="cachedAssemblies"/>
 		/// </summary>
 		/// <param name="asm">Assembly to check</param>
-		bool IsCached(AssemblyDef asm) {
+		bool IsCached(AssemblyDef? asm) {
 			if (asm is null)
 				return false;
 			return cachedAssemblies.TryGetValue(GetAssemblyNameKey(asm), out var cachedAsm) &&
 					cachedAsm == asm;
 		}
 
-		IEnumerable<string> FindAssemblies2(IAssembly assembly, IEnumerable<string> paths) {
+		IEnumerable<string> FindAssemblies2(IAssembly assembly, IEnumerable<string>? paths) {
 			if (paths is not null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
@@ -541,7 +543,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> PreFindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string>? PreFindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			foreach (var path in FindAssemblies2(assembly, preSearchPaths))
 				yield return path;
 		}
@@ -553,7 +555,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> PostFindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string>? PostFindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			foreach (var path in FindAssemblies2(assembly, postSearchPaths))
 				yield return path;
 		}
@@ -565,9 +567,9 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve an assembly or <c>null</c></param>
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
-		protected virtual IEnumerable<string> FindAssemblies(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		protected virtual IEnumerable<string>? FindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			if (assembly.IsContentTypeWindowsRuntime) {
-				string path;
+				string? path;
 				try {
 					path = Path.Combine(Path.Combine(Environment.SystemDirectory, "WinMetadata"), assembly.Name + ".winmd");
 				}
@@ -576,7 +578,7 @@ namespace dnlib.DotNet {
 					path = null;
 				}
 				if (File.Exists(path))
-					yield return path;
+					yield return path!;
 			}
 			else {
 				if (UseGAC) {
@@ -588,13 +590,13 @@ namespace dnlib.DotNet {
 				yield return path;
 		}
 
-		IEnumerable<string> FindAssembliesGac(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		IEnumerable<string> FindAssembliesGac(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			if (matchExactly)
 				return FindAssembliesGacExactly(assembly, sourceModule);
 			return FindAssembliesGacAny(assembly, sourceModule);
 		}
 
-		IEnumerable<GacInfo> GetGacInfos(ModuleDef sourceModule) {
+		IEnumerable<GacInfo> GetGacInfos(ModuleDef? sourceModule) {
 			int version = sourceModule is null ? int.MinValue : sourceModule.IsClr40 ? 4 : 2;
 			// Try the correct GAC first (eg. GAC4 if it's a .NET Framework 4 assembly)
 			foreach (var gacInfo in gacInfos) {
@@ -607,7 +609,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacExactly(IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacExactly(IAssembly assembly, ModuleDef? sourceModule) {
 			foreach (var gacInfo in GetGacInfos(sourceModule)) {
 				foreach (var path in FindAssembliesGacExactly(gacInfo, assembly, sourceModule))
 					yield return path;
@@ -618,7 +620,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		static IEnumerable<string> GetExtraMonoPaths(IAssembly assembly, ModuleDef sourceModule) {
+		static IEnumerable<string> GetExtraMonoPaths(IAssembly assembly, ModuleDef? sourceModule) {
 			if (extraMonoPaths is not null) {
 				foreach (var dir in extraMonoPaths) {
 					string file;
@@ -635,7 +637,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacExactly(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacExactly(GacInfo gacInfo, IAssembly assembly, ModuleDef? sourceModule) {
 			var pkt = PublicKeyBase.ToPublicKeyToken(assembly.PublicKeyOrToken);
 			if (gacInfo is not null && pkt is not null) {
 				string pktString = pkt.ToString();
@@ -661,7 +663,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacAny(IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacAny(IAssembly assembly, ModuleDef? sourceModule) {
 			foreach (var gacInfo in GetGacInfos(sourceModule)) {
 				foreach (var path in FindAssembliesGacAny(gacInfo, assembly, sourceModule))
 					yield return path;
@@ -672,7 +674,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		IEnumerable<string> FindAssembliesGacAny(GacInfo gacInfo, IAssembly assembly, ModuleDef sourceModule) {
+		IEnumerable<string> FindAssembliesGacAny(GacInfo gacInfo, IAssembly assembly, ModuleDef? sourceModule) {
 			if (gacInfo is not null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 				foreach (var subDir in gacInfo.SubDirs) {
@@ -706,7 +708,7 @@ namespace dnlib.DotNet {
 			return dirs;
 		}
 
-		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef sourceModule, bool matchExactly) {
+		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
 			var searchPaths = GetSearchPaths(sourceModule);
 			var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
@@ -736,7 +738,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of all search paths to use for this module</returns>
-		IEnumerable<string> GetSearchPaths(ModuleDef module) {
+		IEnumerable<string> GetSearchPaths(ModuleDef? module) {
 			var keyModule = module;
 			if (keyModule is null)
 				keyModule = nullModule;
@@ -753,14 +755,14 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of search paths</returns>
-		protected virtual IEnumerable<string> GetModuleSearchPaths(ModuleDef module) => GetModulePrivateSearchPaths(module);
+		protected virtual IEnumerable<string> GetModuleSearchPaths(ModuleDef? module) => GetModulePrivateSearchPaths(module);
 
 		/// <summary>
 		/// Gets all private assembly search paths as found in the module's <c>.config</c> file.
 		/// </summary>
 		/// <param name="module">The module or <c>null</c> if unknown</param>
 		/// <returns>A list of search paths</returns>
-		protected IEnumerable<string> GetModulePrivateSearchPaths(ModuleDef module) {
+		protected IEnumerable<string> GetModulePrivateSearchPaths(ModuleDef? module) {
 			if (module is null)
 				return Array2.Empty<string>();
 			var asm = module.Assembly;
@@ -770,7 +772,7 @@ namespace dnlib.DotNet {
 			if (module is null)
 				return Array2.Empty<string>();  // Should never happen
 
-			string baseDir = null;
+			string? baseDir = null;
 			try {
 				var imageName = module.Location;
 				if (imageName != string.Empty) {
@@ -794,7 +796,7 @@ namespace dnlib.DotNet {
 			var searchPaths = new List<string>();
 
 			try {
-				var dirName = Path.GetDirectoryName(Path.GetFullPath(configFileName));
+				var dirName = Path.GetDirectoryName(Path.GetFullPath(configFileName))!;
 				searchPaths.Add(dirName);
 
 				using (var xmlStream = new FileStream(configFileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {

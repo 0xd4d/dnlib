@@ -140,11 +140,11 @@ namespace dnlib.DotNet {
 		/// <param name="b">Second</param>
 		/// <returns>-1 if both are equally close, 0 if <paramref name="a"/> is closest, 1 if
 		/// <paramref name="b"/> is closest</returns>
-		public int CompareClosest(IAssembly requested, IAssembly a, IAssembly b) {
+		public int CompareClosest(IAssembly requested, IAssembly? a, IAssembly? b) {
 			if (a == b)
 				return 0;
 			if (a is null)
-				return !CompareName ? 1 : UTF8String.CaseInsensitiveEquals(requested.Name, b.Name) ? 1 : 0;
+				return !CompareName ? 1 : UTF8String.CaseInsensitiveEquals(requested.Name, b!.Name) ? 1 : 0;
 			if (b is null)
 				return !CompareName ? 0 : UTF8String.CaseInsensitiveEquals(requested.Name, a.Name) ? 0 : 1;
 

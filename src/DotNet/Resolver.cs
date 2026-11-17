@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -29,7 +31,7 @@ namespace dnlib.DotNet {
 			this.assemblyResolver = assemblyResolver ?? throw new ArgumentNullException(nameof(assemblyResolver));
 
 		/// <inheritdoc/>
-		public TypeDef Resolve(TypeRef typeRef, ModuleDef sourceModule) {
+		public TypeDef? Resolve(TypeRef? typeRef, ModuleDef? sourceModule) {
 			if (typeRef is null)
 				return null;
 
@@ -83,13 +85,13 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		TypeDef ResolveExportedType(IList<ModuleDef> modules, TypeRef typeRef, ModuleDef sourceModule) {
+		TypeDef? ResolveExportedType(IList<ModuleDef> modules, TypeRef typeRef, ModuleDef? sourceModule) {
 			for (int i = 0; i < 30; i++) {
 				var exportedType = FindExportedType(modules, typeRef, out var etModule);
 				if (exportedType is null)
 					return null;
 
-				var asmResolver = etModule.Context.AssemblyResolver;
+				var asmResolver = etModule!.Context.AssemblyResolver;
 				var etAsm = asmResolver.Resolve(exportedType.DefinitionAssembly, sourceModule ?? typeRef.Module);
 				if (etAsm is null)
 					return null;
@@ -104,7 +106,7 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		static ExportedType FindExportedType(IList<ModuleDef> modules, TypeRef typeRef, out ModuleDef module) {
+		static ExportedType? FindExportedType(IList<ModuleDef> modules, TypeRef? typeRef, out ModuleDef? module) {
 			module = null;
 			if (typeRef is null)
 				return null;
@@ -127,7 +129,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public IMemberForwarded Resolve(MemberRef memberRef) {
+		public IMemberForwarded? Resolve(MemberRef? memberRef) {
 			if (memberRef is null)
 				return null;
 			if (ProjectWinMDRefs)
@@ -138,7 +140,7 @@ namespace dnlib.DotNet {
 			return GetDeclaringType(memberRef, parent)?.Resolve(memberRef);
 		}
 
-		TypeDef GetDeclaringType(MemberRef memberRef, IMemberRefParent parent) {
+		TypeDef? GetDeclaringType(MemberRef? memberRef, IMemberRefParent? parent) {
 			if (memberRef is null || parent is null)
 				return null;
 
@@ -157,7 +159,7 @@ namespace dnlib.DotNet {
 				var module = memberRef.Module;
 				if (module is null)
 					return null;
-				TypeDef globalType = null;
+				TypeDef? globalType = null;
 				if (new SigComparer().Equals(module, moduleRef))
 					globalType = module.GlobalType;
 				var modAsm = module.Assembly;
