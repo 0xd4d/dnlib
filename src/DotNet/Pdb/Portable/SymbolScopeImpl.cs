@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,13 +11,13 @@ using dnlib.DotNet.Pdb.Symbols;
 namespace dnlib.DotNet.Pdb.Portable {
 	sealed class SymbolScopeImpl : SymbolScope {
 		readonly PortablePdbReader owner;
-		internal SymbolMethod method;
-		readonly SymbolScopeImpl parent;
+		internal SymbolMethod? method;
+		readonly SymbolScopeImpl? parent;
 		readonly int startOffset;
 		readonly int endOffset;
 		internal readonly List<SymbolScope> childrenList;
 		internal readonly List<SymbolVariable> localsList;
-		internal PdbImportScope importScope;
+		internal PdbImportScope? importScope;
 		readonly PdbCustomDebugInfo[] customDebugInfos;
 
 		public override SymbolMethod Method {
@@ -24,25 +26,25 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return method;
 				var p = parent;
 				if (p is null)
-					return method;
+					return method!;
 				for (;;) {
 					if (p.parent is null)
-						return method = p.method;
+						return method = p.method!;
 					p = p.parent;
 				}
 			}
 		}
 
-		public override SymbolScope Parent => parent;
+		public override SymbolScope? Parent => parent;
 		public override int StartOffset => startOffset;
 		public override int EndOffset => endOffset;
 		public override IList<SymbolScope> Children => childrenList;
 		public override IList<SymbolVariable> Locals => localsList;
 		public override IList<SymbolNamespace> Namespaces => Array2.Empty<SymbolNamespace>();
 		public override IList<PdbCustomDebugInfo> CustomDebugInfos => customDebugInfos;
-		public override PdbImportScope ImportScope => importScope;
+		public override PdbImportScope? ImportScope => importScope;
 
-		public SymbolScopeImpl(PortablePdbReader owner, SymbolScopeImpl parent, int startOffset, int endOffset, PdbCustomDebugInfo[] customDebugInfos) {
+		public SymbolScopeImpl(PortablePdbReader owner, SymbolScopeImpl? parent, int startOffset, int endOffset, PdbCustomDebugInfo[] customDebugInfos) {
 			this.owner = owner;
 			method = null;
 			this.parent = parent;
@@ -53,7 +55,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.customDebugInfos = customDebugInfos;
 		}
 
-		Metadata constantsMetadata;
+		Metadata? constantsMetadata;
 		RidList constantRidList;
 
 		internal void SetConstants(Metadata metadata, RidList rids) {
@@ -70,13 +72,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 			int w = 0;
 			for (int i = 0; i < res.Length; i++) {
 				uint rid = constantRidList[i];
-				bool b = constantsMetadata.TablesStream.TryReadLocalConstantRow(rid, out var row);
+				bool b = constantsMetadata!.TablesStream.TryReadLocalConstantRow(rid, out var row);
 				Debug.Assert(b);
 				var name = constantsMetadata.StringsStream.Read(row.Name);
 				if (!constantsMetadata.BlobStream.TryCreateReader(row.Signature, out var reader))
 					continue;
 				var localConstantSigBlobReader = new LocalConstantSigBlobReader(module, ref reader, gpContext);
-				b = localConstantSigBlobReader.Read(out var type, out object value);
+				b = localConstantSigBlobReader.Read(out var type, out object? value);
 				Debug.Assert(b);
 				if (b) {
 					var pdbConstant = new PdbConstant(name, type, value);

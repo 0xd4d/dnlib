@@ -1,6 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using dnlib.DotNet.Writer;
 
@@ -14,12 +17,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.systemMetadata = systemMetadata;
 		}
 
-		public static void Write(IWriterError helper, Metadata systemMetadata, DataWriter writer, TypeSig type, object value) {
+		public static void Write(IWriterError helper, Metadata systemMetadata, DataWriter writer, TypeSig? type, object? value) {
 			var sigWriter = new LocalConstantSigBlobWriter(helper, systemMetadata);
 			sigWriter.Write(writer, type, value);
 		}
 
-		void Write(DataWriter writer, TypeSig type, object value) {
+		void Write(DataWriter writer, TypeSig? type, object? value) {
 			for (; ; type = type.Next) {
 				if (type is null)
 					return;
@@ -124,7 +127,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					bool isValueType = gis.GenericType is ValueTypeSig;
 					var gisTypeSpec = new TypeSpecUser(gis);
 					if (isValueType) {
-						if (!TryGetEnumElementType(gis.GenericType.TypeDefOrRef, value, out enumEt))
+						if (!TryGetEnumElementType(gis.GenericType!.TypeDefOrRef, value, out enumEt))
 							return;
 						if (enumEt != ElementType.End) {
 							WriteEnumValue(writer, enumEt, value, gisTypeSpec);
@@ -182,7 +185,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		/// Gets the enum's underlying element type or <see cref="ElementType.End"/> if it's not an enum
 		/// </summary>
 		/// <returns><c>false</c> if it's an enum with an invalid underlying type</returns>
-		bool TryGetEnumElementType(ITypeDefOrRef tdr, object value, out ElementType enumEt) {
+		bool TryGetEnumElementType(ITypeDefOrRef? tdr, object? value, out ElementType enumEt) {
 			var td = tdr.ResolveTypeDef();
 			if (td is null) {
 				// Couldn't resolve it, but if the value is a primitive, it must be an enum constant
@@ -199,14 +202,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return false;
 		}
 
-		void WriteValueTypeValue(DataWriter writer, object value) {
+		void WriteValueTypeValue(DataWriter writer, object? value) {
 			if (value is byte[])
 				writer.WriteBytes((byte[])value);
 			else if (value is not null)
 				helper.Error2("Unsupported constant: {0}.", value.GetType().FullName);
 		}
 
-		void WriteClassValue(DataWriter writer, object value) {
+		void WriteClassValue(DataWriter writer, object? value) {
 			if (value is byte[])
 				writer.WriteBytes((byte[])value);
 			else if (value is not null)
@@ -214,7 +217,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		// The element type byte has already been written
-		void WriteEnumValue(DataWriter writer, ElementType underlyingEt, object value, ITypeDefOrRef enumType) {
+		void WriteEnumValue(DataWriter writer, ElementType underlyingEt, object? value, ITypeDefOrRef? enumType) {
 			writer.Position--;
 			writer.WriteByte((byte)underlyingEt);
 			WritePrimitiveValue(writer, underlyingEt, value);
@@ -239,7 +242,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		static ElementType GetPrimitiveElementType(object value) =>
+		static ElementType GetPrimitiveElementType(object? value) =>
 			value switch {
 				bool => ElementType.Boolean,
 				char => ElementType.Char,
@@ -258,7 +261,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		static readonly UTF8String stringDecimal = new UTF8String("Decimal");
 		static readonly UTF8String stringDateTime = new UTF8String("DateTime");
 
-		static bool GetName(ITypeDefOrRef tdr, out UTF8String @namespace, out UTF8String name) {
+		static bool GetName([NotNullWhen(true)] ITypeDefOrRef? tdr, [NotNullWhen(true)] out UTF8String? @namespace, [NotNullWhen(true)] out UTF8String? name) {
 			if (tdr is TypeRef tr) {
 				@namespace = tr.Namespace;
 				name = tr.Name;
@@ -276,7 +279,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return false;
 		}
 
-		void WritePrimitiveValue(DataWriter writer, ElementType et, object value) {
+		void WritePrimitiveValue(DataWriter writer, ElementType et, object? value) {
 			switch (et) {
 			case ElementType.Boolean:
 				if (value is bool)
@@ -373,7 +376,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		void WriteTypeDefOrRef(DataWriter writer, ITypeDefOrRef tdr) {
+		void WriteTypeDefOrRef(DataWriter writer, ITypeDefOrRef? tdr) {
 			if (!MD.CodedToken.TypeDefOrRef.Encode(systemMetadata.GetToken(tdr), out uint codedToken)) {
 				helper.Error("Couldn't encode a TypeDefOrRef");
 				return;

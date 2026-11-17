@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 namespace dnlib.DotNet.Pdb.Symbols {
 	/// <summary>
 	/// A variable
@@ -8,7 +10,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets the name
 		/// </summary>
-		public abstract string Name { get; }
+		public abstract string? Name { get; }
 
 		/// <summary>
 		/// Gets the attributes

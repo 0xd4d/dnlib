@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -18,7 +20,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		readonly MemoryStream outStream;
 		readonly DataWriter writer;
 
-		public static byte[] Write(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, PdbCustomDebugInfo cdi, DataWriterContext context) {
+		public static byte[]? Write(IPortablePdbCustomDebugInfoWriterHelper helper, SerializerMethodContext methodContext, Metadata systemMetadata, PdbCustomDebugInfo cdi, DataWriterContext context) {
 			var writer = new PortablePdbCustomDebugInfoWriter(helper, methodContext, systemMetadata, context);
 			return writer.Write(cdi);
 		}
@@ -33,7 +35,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			outStream.Position = 0;
 		}
 
-		byte[] Write(PdbCustomDebugInfo cdi) {
+		byte[]? Write(PdbCustomDebugInfo cdi) {
 			switch (cdi.Kind) {
 			case PdbCustomDebugInfoKind.UsingGroups:
 			case PdbCustomDebugInfoKind.ForwardMethodInfo:

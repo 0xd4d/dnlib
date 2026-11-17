@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -35,7 +37,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <param name="method">Method</param>
 		/// <param name="version">Edit and continue version. The first version is 1</param>
 		/// <returns></returns>
-		public abstract SymbolMethod GetMethod(MethodDef method, int version);
+		public abstract SymbolMethod? GetMethod(MethodDef method, int version);
 
 		/// <summary>
 		/// Reads custom debug info

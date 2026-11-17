@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -42,9 +44,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 			while (reader.Position < reader.Length) {
 				var kind = ImportDefinitionKindUtils.ToPdbImportDefinitionKind(reader.ReadCompressedUInt32());
 				string targetNamespace, alias;
-				AssemblyRef targetAssembly;
-				PdbImport import;
-				ITypeDefOrRef targetType;
+				AssemblyRef? targetAssembly;
+				PdbImport? import;
+				ITypeDefOrRef? targetType;
 				switch (kind) {
 				case PdbImportDefinitionKind.ImportNamespace:
 					// <import> ::= ImportNamespace <target-namespace>
@@ -180,7 +182,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		long GetUTF8Size(uint offset) => blobStream.TryCreateReader(offset, out var reader) ? reader.Length : 0;
 
-		ITypeDefOrRef TryReadType(uint codedToken) {
+		ITypeDefOrRef? TryReadType(uint codedToken) {
 			bool b = CodedToken.TypeDefOrRef.Decode(codedToken, out uint token);
 			Debug.Assert(b);
 			if (!b)
@@ -190,7 +192,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return type;
 		}
 
-		AssemblyRef TryReadAssemblyRef(uint rid) {
+		AssemblyRef? TryReadAssemblyRef(uint rid) {
 			var asmRef = module.ResolveToken(0x23000000 + rid) as AssemblyRef;
 			Debug.Assert(asmRef is not null);
 			return asmRef;

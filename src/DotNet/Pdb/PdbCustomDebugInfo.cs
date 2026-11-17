@@ -312,20 +312,20 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// The instruction of the first operation in the scope. Can be null if it's a synthesized local
 		/// </summary>
-		public Instruction Start;
+		public Instruction? Start;
 
 		/// <summary>
 		/// The instruction of the first operation outside of the scope or null if it ends at the last instruction in the body.
 		/// Can also be null if it's a synthesized local (in which case <see cref="Start"/> is also null, see <see cref="IsSynthesizedLocal"/>)
 		/// </summary>
-		public Instruction End;
+		public Instruction? End;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="start">Start of the scope</param>
 		/// <param name="end">First instruction after the end of the scope</param>
-		public StateMachineHoistedLocalScope(Instruction start, Instruction end) {
+		public StateMachineHoistedLocalScope(Instruction? start, Instruction? end) {
 			Start = start;
 			End = end;
 		}

@@ -444,7 +444,7 @@ namespace dnlib.DotNet {
 		sealed class IgnoreWriterErrors : Writer.IWriterError2 {
 			public static readonly IgnoreWriterErrors Instance = new IgnoreWriterErrors();
 			public void Error(string message) { }
-			public void Error(string message, params object[] args) { }
+			public void Error(string message, params object?[] args) { }
 		}
 
 		static bool Equals(byte[] a, byte[] b) {

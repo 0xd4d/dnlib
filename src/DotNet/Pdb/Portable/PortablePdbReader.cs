@@ -1,8 +1,11 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 // https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -15,12 +18,12 @@ using dnlib.IO;
 namespace dnlib.DotNet.Pdb.Portable {
 	sealed class PortablePdbReader : SymbolReader {
 		readonly PdbFileKind pdbFileKind;
-		ModuleDef module;
+		ModuleDef module = null!;
 		readonly Metadata pdbMetadata;
-		SymbolDocument[] documents;
+		SymbolDocument[] documents = null!;
 
 		public override PdbFileKind PdbFileKind => pdbFileKind;
-		public override int UserEntryPoint => pdbMetadata.PdbStream.EntryPoint.ToInt32();
+		public override int UserEntryPoint => pdbMetadata.PdbStream!.EntryPoint.ToInt32();
 		public override IList<SymbolDocument> Documents => documents;
 
 		public PortablePdbReader(DataReaderFactory pdbStream, PdbFileKind pdbFileKind) {
@@ -143,7 +146,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return docs;
 		}
 
-		bool TryGetSymbolDocument(uint rid, out SymbolDocument document) {
+		bool TryGetSymbolDocument(uint rid, [NotNullWhen(true)] out SymbolDocument? document) {
 			int index = (int)rid - 1;
 			if ((uint)index >= (uint)documents.Length) {
 				Debug.Fail($"Couldn't find document with rid 0x{rid:X6}");
@@ -154,7 +157,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return true;
 		}
 
-		public override SymbolMethod GetMethod(MethodDef method, int version) {
+		public override SymbolMethod? GetMethod(MethodDef method, int version) {
 			if (version != 1)
 				return null;
 			var mdTable = pdbMetadata.TablesStream.MethodDebugInformationTable;
@@ -181,7 +184,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return 0x06000000 + (int)row.KickoffMethod;
 		}
 
-		SymbolSequencePoint[] ReadSequencePoints(uint methodRid) {
+		SymbolSequencePoint[]? ReadSequencePoints(uint methodRid) {
 			if (!pdbMetadata.TablesStream.MethodDebugInformationTable.IsValidRID(methodRid))
 				return null;
 			if (!pdbMetadata.TablesStream.TryReadMethodDebugInformationRow(methodRid, out var row))
@@ -201,7 +204,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		SymbolSequencePoint[] ReadSequencePoints(ref DataReader seqPointsReader, uint documentRid) {
+		SymbolSequencePoint[]? ReadSequencePoints(ref DataReader seqPointsReader, uint documentRid) {
 			var seqPointsBuilder = ListCache<SymbolSequencePoint>.AllocList();
 			uint localSig = seqPointsReader.ReadCompressedUInt32();
 			if (documentRid == 0)
@@ -282,7 +285,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		SymbolScopeImpl ReadScope(uint methodRid, GenericParamContext gpContext) {
 			var scopesRidList = pdbMetadata.GetLocalScopeRidList(methodRid);
-			SymbolScopeImpl rootScopeOrNull = null;
+			SymbolScopeImpl? rootScopeOrNull = null;
 			if (scopesRidList.Count != 0) {
 				var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
 				var stack = ListCache<SymbolScopeImpl>.AllocList();
@@ -294,7 +297,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					uint startOffset = row.StartOffset;
 					uint endOffset = startOffset + row.Length;
 
-					SymbolScopeImpl parent = null;
+					SymbolScopeImpl? parent = null;
 					while (stack.Count > 0) {
 						var nextParent = stack[stack.Count - 1];
 						if (startOffset >= nextParent.StartOffset && endOffset <= nextParent.EndOffset) {
@@ -337,13 +340,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 		// threads reading different methods can share them without a lock.
 		const int MaxImportScopeChainLength = 1000;
 		const int InvalidImportScopeChainLength = MaxImportScopeChainLength + 1;
-		PdbImportScope[] importScopes;
-		int[] importScopeChainLengths;
+		PdbImportScope?[]? importScopes;
+		int[]? importScopeChainLengths;
 
-		static T[] GetOrCreateArray<T>(ref T[] array, uint length) =>
+		static T[] GetOrCreateArray<T>(ref T[]? array, uint length) =>
 			array ?? Interlocked.CompareExchange(ref array, new T[length], null) ?? array;
 
-		PdbImportScope GetPdbImportScope(uint importScope) {
+		PdbImportScope? GetPdbImportScope(uint importScope) {
 			if (importScope == 0)
 				return null;
 			uint rows = pdbMetadata.TablesStream.ImportScopeTable.Rows;
@@ -407,14 +410,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		// The caller has checked that the chain is valid, so it has at most MaxImportScopeChainLength rows
-		PdbImportScope CreatePdbImportScope(uint importScope, uint rows) {
+		PdbImportScope? CreatePdbImportScope(uint importScope, uint rows) {
 			var scopes = GetOrCreateArray(ref importScopes, rows + 1);
 			var result = scopes[importScope];
 			if (result is not null)
 				return result;
 
 			var path = new List<uint>();
-			PdbImportScope parent = null;
+			PdbImportScope? parent = null;
 			for (uint rid = importScope; rid != 0;) {
 				parent = scopes[rid];
 				if (parent is not null)
@@ -493,7 +496,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		PdbAsyncMethodCustomDebugInfo TryCreateAsyncMethod(ModuleDef module, int asyncKickoffMethod, IList<PdbAsyncStepInfo> asyncStepInfos, Instruction asyncCatchHandler) {
+		PdbAsyncMethodCustomDebugInfo? TryCreateAsyncMethod(ModuleDef module, int asyncKickoffMethod, IList<PdbAsyncStepInfo> asyncStepInfos, Instruction? asyncCatchHandler) {
 			var kickoffToken = new MDToken(asyncKickoffMethod);
 			if (kickoffToken.Table != Table.Method)
 				return null;
@@ -507,7 +510,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return asyncMethod;
 		}
 
-		PdbIteratorMethodCustomDebugInfo TryCreateIteratorMethod(ModuleDef module, int iteratorKickoffMethod) {
+		PdbIteratorMethodCustomDebugInfo? TryCreateIteratorMethod(ModuleDef module, int iteratorKickoffMethod) {
 			var kickoffToken = new MDToken(iteratorKickoffMethod);
 			if (kickoffToken.Table != Table.Method)
 				return null;
@@ -520,7 +523,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			Debug.Assert(asyncStepInfo is null);
 		}
 
-		void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result, MethodDef methodOpt, CilBody bodyOpt, out PdbAsyncMethodSteppingInformationCustomDebugInfo asyncStepInfo) {
+		void GetCustomDebugInfos(int token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result, MethodDef? methodOpt, CilBody? bodyOpt, out PdbAsyncMethodSteppingInformationCustomDebugInfo? asyncStepInfo) {
 			asyncStepInfo = null;
 			var mdToken = new MDToken(token);
 			var ridList = pdbMetadata.GetCustomDebugInformationRidList(mdToken.Table, mdToken.Rid);

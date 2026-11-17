@@ -160,7 +160,7 @@ namespace dnlib.DotNet.Emit {
 			set => attributes = value;
 		}
 
-		internal void SetName(string name) => this.name = name;
+		internal void SetName(string? name) => this.name = name;
 		internal void SetAttributes(PdbLocalAttributes attributes) => this.attributes = attributes;
 
 		/// <summary>

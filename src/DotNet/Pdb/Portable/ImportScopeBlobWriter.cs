@@ -1,5 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Text;
 using dnlib.DotNet.Writer;
@@ -22,7 +24,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			blobWriter.Write(writer, imports);
 		}
 
-		uint WriteUTF8(string s) {
+		uint WriteUTF8(string? s) {
 			if (s is null) {
 				helper.Error("String is null");
 				s = string.Empty;
@@ -100,7 +102,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 		}
 
-		uint GetTypeDefOrRefEncodedToken(ITypeDefOrRef tdr) {
+		uint GetTypeDefOrRefEncodedToken(ITypeDefOrRef? tdr) {
 			if (tdr is null) {
 				helper.Error("ITypeDefOrRef is null");
 				return 0;
