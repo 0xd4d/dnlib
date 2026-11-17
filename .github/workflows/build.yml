@@ -6,6 +6,7 @@ on:
       - 'Examples/**'
       - 'src/**'
       - 'build.sh'
+      - 'update-banned-symbols.sh'
       - 'dnlib.sln'
       - 'global.json'
       - '!**/*.md'
@@ -17,6 +18,7 @@ on:
       - 'Examples/**'
       - 'src/**'
       - 'build.sh'
+      - 'update-banned-symbols.sh'
       - 'dnlib.sln'
       - 'global.json'
       - '!**/*.md'
@@ -128,3 +130,13 @@ jobs:
       - name: Build
         shell: bash
         run: ./build.sh
+
+      # BannedSymbols.txt must list every OrThrow property so dnlib can't use one by mistake
+      - name: Check src/BannedSymbols.txt
+        shell: bash
+        run: |
+          ./update-banned-symbols.sh
+          if ! git diff --exit-code -- src/BannedSymbols.txt; then
+            echo "::error::src/BannedSymbols.txt is out of date. Run ./update-banned-symbols.sh after ./build.sh and commit the result."
+            exit 1
+          fi
