@@ -562,16 +562,18 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="filename">Filename</param>
 		/// <param name="options">Writer options</param>
+		/// <exception cref="InvalidOperationException">The assembly has no modules</exception>
 		public void Write(string filename, ModuleWriterOptions? options = null) =>
-			ManifestModule!.Write(filename, options);
+			GetManifestModuleForWrite().Write(filename, options);
 
 		/// <summary>
 		/// Writes the assembly to a stream.
 		/// </summary>
 		/// <param name="dest">Destination stream</param>
 		/// <param name="options">Writer options</param>
+		/// <exception cref="InvalidOperationException">The assembly has no modules</exception>
 		public void Write(Stream dest, ModuleWriterOptions? options = null) =>
-			ManifestModule!.Write(dest, options);
+			GetManifestModuleForWrite().Write(dest, options);
 
 		/// <summary>
 		/// Checks whether this assembly is a friend assembly of <paramref name="targetAsm"/>
@@ -669,6 +671,9 @@ namespace dnlib.DotNet {
 				return false;
 			return true;
 		}
+
+		ModuleDef GetManifestModuleForWrite() =>
+			ManifestModule ?? throw new InvalidOperationException("Can't write the assembly: it has no modules");
 
 		CustomAttribute CreateAssemblySignatureKeyAttribute() {
 			var manifestModule = ManifestModule!;

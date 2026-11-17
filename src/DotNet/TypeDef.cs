@@ -1405,6 +1405,8 @@ namespace dnlib.DotNet {
 		/// The created .cctor will have just one RET instruction.
 		/// </summary>
 		/// <returns>The class constructor</returns>
+		/// <exception cref="InvalidOperationException">The .cctor must be created but the type hasn't been
+		/// added to a module (<see cref="Module"/> is <c>null</c>)</exception>
 		public MethodDef FindOrCreateStaticConstructor() {
 			var cctor = FindStaticConstructor();
 			if (cctor is not null)
@@ -1414,8 +1416,8 @@ namespace dnlib.DotNet {
 			var flags = MethodAttributes.Private | MethodAttributes.Static |
 						MethodAttributes.HideBySig | MethodAttributes.ReuseSlot |
 						MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
-			var module = Module;
-			cctor = module!.UpdateRowId(new MethodDefUser(MethodDef.StaticConstructorName,
+			var module = Module ?? throw new InvalidOperationException("Can't create the .cctor: the type must be added to a module first");
+			cctor = module.UpdateRowId(new MethodDefUser(MethodDef.StaticConstructorName,
 						MethodSig.CreateStatic(module.CorLibTypes.Void), implFlags, flags));
 			var body = new CilBody();
 			body.InitLocals = true;
