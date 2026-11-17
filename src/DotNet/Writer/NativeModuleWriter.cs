@@ -168,17 +168,20 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets all <see cref="PESection"/>s
 		/// </summary>
-		public override List<PESection>? Sections => sections;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public override List<PESection> Sections => ModuleWriterBase.ThrowIfNotCreated(sections, nameof(Sections));
 
 		/// <summary>
 		/// Gets the original PE sections and their data
 		/// </summary>
-		public List<OrigSection>? OrigSections => origSections;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public List<OrigSection> OrigSections => ModuleWriterBase.ThrowIfNotCreated(origSections, nameof(OrigSections));
 
 		/// <summary>
 		/// Gets the <c>.text</c> section
 		/// </summary>
-		public override PESection? TextSection => textSection;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public override PESection TextSection => ModuleWriterBase.ThrowIfNotCreated(textSection, nameof(TextSection));
 
 		/// <summary>
 		/// Gets the <c>.rsrc</c> section or <c>null</c> if there's none

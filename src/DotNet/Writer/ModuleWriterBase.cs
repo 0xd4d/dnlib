@@ -604,57 +604,32 @@ namespace dnlib.DotNet.Writer {
 		/// seeked, this is a temporary <see cref="MemoryStream"/> until the file has been written, and the
 		/// user's stream after it has been written (<see cref="ModuleWriterEvent.End"/>).
 		/// </summary>
-		public Stream? DestinationStream => destStream;
-
-		/// <summary>
-		/// Same as <see cref="DestinationStream"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>,
-		/// which it is if <see cref="Write(Stream)"/> hasn't created it yet
-		/// </summary>
-		public Stream DestinationStreamOrThrow => OrThrowHelper.NotNullOptional(DestinationStream, nameof(DestinationStream));
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public Stream DestinationStream => ModuleWriterBase.ThrowIfNotCreated(destStream, nameof(DestinationStream));
 
 		/// <summary>
 		/// Gets the constants
 		/// </summary>
-		public UniqueChunkList<ByteArrayChunk>? Constants => constants;
-
-		/// <summary>
-		/// Same as <see cref="Constants"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>,
-		/// which it is if <see cref="Write(Stream)"/> hasn't created it yet
-		/// </summary>
-		public UniqueChunkList<ByteArrayChunk> ConstantsOrThrow => OrThrowHelper.NotNullOptional(Constants, nameof(Constants));
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public UniqueChunkList<ByteArrayChunk> Constants => ModuleWriterBase.ThrowIfNotCreated(constants, nameof(Constants));
 
 		/// <summary>
 		/// Gets the method bodies
 		/// </summary>
-		public MethodBodyChunks? MethodBodies => methodBodies;
-
-		/// <summary>
-		/// Same as <see cref="MethodBodies"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>,
-		/// which it is if <see cref="Write(Stream)"/> hasn't created it yet
-		/// </summary>
-		public MethodBodyChunks MethodBodiesOrThrow => OrThrowHelper.NotNullOptional(MethodBodies, nameof(MethodBodies));
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public MethodBodyChunks MethodBodies => ModuleWriterBase.ThrowIfNotCreated(methodBodies, nameof(MethodBodies));
 
 		/// <summary>
 		/// Gets the .NET resources
 		/// </summary>
-		public NetResources? NetResources => netResources;
-
-		/// <summary>
-		/// Same as <see cref="NetResources"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>,
-		/// which it is if <see cref="Write(Stream)"/> hasn't created it yet
-		/// </summary>
-		public NetResources NetResourcesOrThrow => OrThrowHelper.NotNullOptional(NetResources, nameof(NetResources));
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public NetResources NetResources => ModuleWriterBase.ThrowIfNotCreated(netResources, nameof(NetResources));
 
 		/// <summary>
 		/// Gets the .NET metadata
 		/// </summary>
-		public Metadata? Metadata => metadata;
-
-		/// <summary>
-		/// Same as <see cref="Metadata"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>,
-		/// which it is if <see cref="Write(Stream)"/> hasn't created it yet
-		/// </summary>
-		public Metadata MetadataOrThrow => OrThrowHelper.NotNullOptional(Metadata, nameof(Metadata));
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public Metadata Metadata => ModuleWriterBase.ThrowIfNotCreated(metadata, nameof(Metadata));
 
 		/// <summary>
 		/// Gets the Win32 resources or <c>null</c> if there's none
@@ -669,31 +644,21 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets all <see cref="PESection"/>s. The reloc section must be the last section, so use <see cref="AddSection(PESection)"/> if you need to append a section
 		/// </summary>
-		public abstract List<PESection>? Sections { get; }
-
-		/// <summary>
-		/// Same as <see cref="Sections"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>,
-		/// which it is if <see cref="Write(Stream)"/> hasn't created it yet
-		/// </summary>
-		public List<PESection> SectionsOrThrow => OrThrowHelper.NotNullOptional(Sections, nameof(Sections));
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public abstract List<PESection> Sections { get; }
 
 		/// <summary>
 		/// Adds <paramref name="section"/> to the sections list, but before the reloc section which must be last
 		/// </summary>
 		/// <param name="section">New section to add to the list</param>
-		/// <exception cref="NullValueException">The sections haven't been created yet (<see cref="Sections"/> is <c>null</c>)</exception>
-		public virtual void AddSection(PESection section) => SectionsOrThrow.Add(section);
+		/// <exception cref="InvalidOperationException">The sections haven't been created yet</exception>
+		public virtual void AddSection(PESection section) => Sections.Add(section);
 
 		/// <summary>
 		/// Gets the <c>.text</c> section
 		/// </summary>
-		public abstract PESection? TextSection { get; }
-
-		/// <summary>
-		/// Same as <see cref="TextSection"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>,
-		/// which it is if <see cref="Write(Stream)"/> hasn't created it yet
-		/// </summary>
-		public PESection TextSectionOrThrow => OrThrowHelper.NotNullOptional(TextSection, nameof(TextSection));
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public abstract PESection TextSection { get; }
 
 		/// <summary>
 		/// Gets the <c>.rsrc</c> section or <c>null</c> if there's none
@@ -999,6 +964,16 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		bool CanWritePdb() => pdbState is not null;
+
+		internal static T ThrowIfNotCreated<T>(T? value, string name) where T : class {
+			if (value is null)
+				ThrowNotCreated(name);
+			return value;
+		}
+
+		[DoesNotReturn]
+		static void ThrowNotCreated(string name) =>
+			throw new InvalidOperationException($"{name} isn't available until Write() has created it");
 
 		/// <summary>
 		/// Creates the debug directory if a PDB file should be written or if the file is deterministic

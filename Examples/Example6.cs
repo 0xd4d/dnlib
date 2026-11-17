@@ -101,12 +101,12 @@ namespace dnlib.Examples {
 				foreach (var type in e.Writer.Module.GetTypes()) {
 					Console.WriteLine("TYPE: {0:X8} -> {1:X8} {2}",
 						type.MDToken.Raw,
-						new MDToken(Table.TypeDef, e.Writer.MetadataOrThrow.GetRid(type)).Raw,
+						new MDToken(Table.TypeDef, e.Writer.Metadata.GetRid(type)).Raw,
 						type.FullName);
 					foreach (var method in type.Methods)
 						Console.WriteLine("  METH: {0:X8} -> {1:X8} {2}",
 							method.MDToken.Raw,
-							new MDToken(Table.Method, e.Writer.MetadataOrThrow.GetRid(method)).Raw,
+							new MDToken(Table.Method, e.Writer.Metadata.GetRid(method)).Raw,
 							method.FullName);
 				}
 				break;
