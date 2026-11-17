@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using SR = System.Reflection;
 using System.Reflection.Emit;
@@ -24,8 +25,23 @@ namespace dnlib.DotNet.Emit {
 		/// Some fields/methods have an unknown declaring type and don't have a context with
 		/// that information. If this is enabled, the reader will try to guess it but it doesn't
 		/// always work. If you get an <see cref="ArgumentException"/>, try enabling this option.
+		/// <para>
+		/// This happens when the dynamic method's IL was created with
+		/// <c>DynamicILInfo.GetTokenFor(RuntimeFieldHandle)</c> or <c>DynamicILInfo.GetTokenFor(RuntimeMethodHandle)</c>
+		/// instead of the overloads that also take a <see cref="RuntimeTypeHandle"/> context (eg. because older
+		/// .NET Framework versions don't have them) and the field/method is declared in a generic type.
+		/// The runtime doesn't need the declaring type to execute the method, but it's needed to get the
+		/// <see cref="System.Reflection.FieldInfo"/>/<see cref="System.Reflection.MethodBase"/>.
+		/// </para>
 		/// </summary>
-		UnknownDeclaringType		= 0x00000001,
+		GuessDeclaringType			= 0x00000001,
+
+		/// <summary>
+		/// Use <see cref="GuessDeclaringType"/> instead
+		/// </summary>
+		[Obsolete("Use " + nameof(GuessDeclaringType) + " instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		UnknownDeclaringType		= GuessDeclaringType,
 	}
 
 	/// <summary>
@@ -467,7 +483,7 @@ namespace dnlib.DotNet.Emit {
 				return null;
 
 			if (obj is RuntimeMethodHandle) {
-				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
+				if ((options & DynamicMethodBodyReaderOptions.GuessDeclaringType) != 0) {
 					// Sometimes it's a generic type but obj != `GenericMethodInfo`, so pass in 'default' and the
 					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
 					return importer.Import(SR.MethodBase.GetMethodFromHandle((RuntimeMethodHandle)obj, default));
@@ -515,7 +531,7 @@ namespace dnlib.DotNet.Emit {
 				return null;
 
 			if (obj is RuntimeFieldHandle) {
-				if ((options & DynamicMethodBodyReaderOptions.UnknownDeclaringType) != 0) {
+				if ((options & DynamicMethodBodyReaderOptions.GuessDeclaringType) != 0) {
 					// Sometimes it's a generic type but obj != `GenericFieldInfo`, so pass in 'default' and the
 					// runtime will try to figure out the declaring type. https://github.com/0xd4d/dnlib/issues/298
 					return importer.Import(SR.FieldInfo.GetFieldFromHandle((RuntimeFieldHandle)obj, default));
