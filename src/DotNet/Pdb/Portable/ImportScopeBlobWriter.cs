@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
-using System.Text;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
@@ -27,7 +26,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				helper.Error("String is null");
 				s = string.Empty;
 			}
-			var bytes = Encoding.UTF8.GetBytes(s);
+			var bytes = WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(s);
 			return blobHeap.Add(bytes);
 		}
 

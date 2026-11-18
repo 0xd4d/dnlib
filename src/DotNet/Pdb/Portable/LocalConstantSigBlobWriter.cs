@@ -70,10 +70,42 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 				case ElementType.Ptr:
 				case ElementType.ByRef:
-					WriteTypeDefOrRef(writer, new TypeSpecUser(type));
+				case ElementType.FnPtr:
+				case ElementType.Array:
+				case ElementType.SZArray:
+					// Only PrimitiveConstant, EnumConstant and GeneralConstant are allowed at the top level of
+					// the blob, so like Roslyn, other types are a (CLASS|VALUETYPE) TypeSpec. These aren't value
+					// types (Roslyn uses CLASS for pointers too) and the value is null.
+					WriteGeneralConstant(writer, false, new TypeSpecUser(type), value);
+					return;
+
+				case ElementType.Var:
+				case ElementType.MVar:
+					WriteGeneralConstant(writer, IsValueType((GenericSig)type), new TypeSpecUser(type), value);
+					return;
+
+				case ElementType.TypedByRef:
+					WriteGeneralConstant(writer, true, ((CorLibTypeSig)type).TypeDefOrRef, value);
+					return;
+
+				case ElementType.I:
+				case ElementType.U:
+					// Like Roslyn, a native int constant is written as its value's primitive type, eg. I4. A
+					// constant without a value is the default value of the type.
+					var valueEt = GetPrimitiveElementType(value);
+					if (valueEt != ElementType.End) {
+						writer.Position--;
+						writer.WriteByte((byte)valueEt);
+						WritePrimitiveValue(writer, valueEt, value);
+					}
+					else
+						WriteGeneralConstant(writer, true, ((CorLibTypeSig)type).TypeDefOrRef, value);
 					return;
 
 				case ElementType.Object:
+					// OBJECT has no value, it's a null reference
+					if (value is not null)
+						helper.Error("Expected a null constant");
 					return;
 
 				case ElementType.ValueType:
@@ -152,17 +184,6 @@ namespace dnlib.DotNet.Pdb.Portable {
 					WriteTypeDefOrRef(writer, ((ModifierSig)type).Modifier);
 					break;
 
-				case ElementType.Var:
-				case ElementType.Array:
-				case ElementType.TypedByRef:
-				case ElementType.I:
-				case ElementType.U:
-				case ElementType.FnPtr:
-				case ElementType.SZArray:
-				case ElementType.MVar:
-					WriteTypeDefOrRef(writer, new TypeSpecUser(type));
-					return;
-
 				case ElementType.End:
 				case ElementType.Void:
 				case ElementType.ValueArray:
@@ -199,6 +220,21 @@ namespace dnlib.DotNet.Pdb.Portable {
 			helper.Error("Invalid enum underlying type");
 			return false;
 		}
+
+		// The element type byte has already been written
+		void WriteGeneralConstant(DataWriter writer, bool isValueType, ITypeDefOrRef? tdr, object? value) {
+			writer.Position--;
+			writer.WriteByte((byte)(isValueType ? ElementType.ValueType : ElementType.Class));
+			WriteTypeDefOrRef(writer, tdr);
+			if (isValueType)
+				WriteValueTypeValue(writer, value);
+			else
+				WriteClassValue(writer, value);
+		}
+
+		// A generic parameter is a value type if it has the struct constraint. Its constraints are only known
+		// if the signature has an owner.
+		static bool IsValueType(GenericSig sig) => sig.GenericParam?.HasNotNullableValueTypeConstraint == true;
 
 		void WriteValueTypeValue(DataWriter writer, object? value) {
 			if (value is byte[])

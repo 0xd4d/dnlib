@@ -312,7 +312,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (!documents.TryGetValue(name, out var doc)) {
 				doc = new DbiDocument(name);
 
-				if (names.TryGetValue($"/src/files/{name}", out uint streamId)) {
+				// The writer lowercases the stream name and replaces '/' with '\\'. names ignores case.
+				if (names.TryGetValue($"/src/files/{name}", out uint streamId) ||
+					(name.IndexOf('/') >= 0 && names.TryGetValue($"/src/files/{name.Replace('/', '\\')}", out streamId))) {
 					// Writers don't make documents share streams so every stream can be read by only one
 					// document. A small file could otherwise use many GBs since every document makes its
 					// own copy of the embedded source code and all of them could use the same big stream.

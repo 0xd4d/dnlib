@@ -167,7 +167,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case ElementType.ValueType:
 				tdr = ReadTypeDefOrRef();
 				// Don't use ToTypeSig() since it creates a ClassSig if it can't resolve the type
-				type = tdr is null ? null : (TypeSig?)module.CorLibTypes.GetCorLibTypeSig(tdr) ?? new ValueTypeSig(tdr);
+				type = tdr is null ? null : (TypeSig?)module.CorLibTypes.GetCorLibTypeSig(tdr) ?? GetTypeSpecSig(tdr) ?? new ValueTypeSig(tdr);
 				value = null;
 				if (GetName(tdr, out ns, out name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
 					if (name == stringDecimal) {
@@ -198,7 +198,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				break;
 
 			case ElementType.Class:
-				type = new ClassSig(ReadTypeDefOrRef());
+				tdr = ReadTypeDefOrRef();
+				type = GetTypeSpecSig(tdr) ?? new ClassSig(tdr);
 				value = reader.Position == reader.Length ? null : reader.ReadRemainingBytes();
 				res = true;
 				break;
@@ -285,6 +286,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return ts.TypeSig;
 			return new ValueTypeSig(tdr);
 		}
+
+		// Roslyn writes constants of types such as arrays, pointers and generic instances as (CLASS|VALUETYPE) TypeSpec.
+		// Use the TypeSpec's type, eg. an SZArraySig, instead of a ClassSig/ValueTypeSig that has a TypeSpec.
+		static TypeSig? GetTypeSpecSig(ITypeDefOrRef? tdr) => (tdr as TypeSpec)?.TypeSig;
 
 		ITypeDefOrRef? ReadTypeDefOrRef() {
 			uint codedToken;

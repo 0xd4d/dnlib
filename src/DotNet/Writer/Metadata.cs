@@ -3692,15 +3692,18 @@ namespace dnlib.DotNet.Writer {
 			}
 			if (debugMetadata!.pdbDocumentInfos.TryGetRid(doc, out uint rid))
 				return rid;
+			// Like Roslyn, a missing GUID is index 0 (the reader returns Guid.Empty) instead of an all-zero GUID
 			var row = new RawDocumentRow(GetDocumentNameBlobOffset(doc.Url),
-							debugMetadata.guidHeap.Add(doc.CheckSumAlgorithmId),
+							AddDebugGuid(doc.CheckSumAlgorithmId),
 							debugMetadata.blobHeap.Add(doc.CheckSum),
-							debugMetadata.guidHeap.Add(doc.Language));
+							AddDebugGuid(doc.Language));
 			rid = debugMetadata.tablesHeap.DocumentTable.Add(row);
 			debugMetadata.pdbDocumentInfos.Add(doc, rid);
 			AddCustomDebugInformationList(Table.Document, rid, doc.CustomDebugInfos);
 			return rid;
 		}
+
+		uint AddDebugGuid(Guid guid) => guid == Guid.Empty ? 0 : debugMetadata!.guidHeap.Add(guid);
 
 		uint GetDocumentNameBlobOffset(string? name) {
 			Debug.Assert(debugMetadata is not null);
@@ -3721,7 +3724,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteByte((byte)separator);
 			for (int i = 0; i < parts.Length; i++) {
 				var part = parts[i];
-				uint partOffset = debugMetadata!.blobHeap.Add(Encoding.UTF8.GetBytes(part));
+				uint partOffset = debugMetadata!.blobHeap.Add(WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(part));
 				writer.WriteCompressedUInt32(partOffset);
 			}
 

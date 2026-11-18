@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 
@@ -114,7 +113,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteUTF8Z(string s) {
 			if (s.IndexOf('\0') >= 0)
 				helper.Error("String must not contain any NUL bytes");
-			var bytes = Encoding.UTF8.GetBytes(s);
+			var bytes = WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(s);
 			writer.WriteBytes(bytes);
 			writer.WriteByte(0);
 		}
@@ -182,12 +181,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var cdiNames = cdi.Names;
 			int count = cdiNames.Count;
 			for (int i = 0; i < count; i++) {
-				var name = cdiNames[i];
-				if (name is null) {
-					helper.Error("Tuple name is null");
-					return;
-				}
-				WriteUTF8Z(name);
+				// Like Roslyn, an unnamed element (null) is an empty string
+				WriteUTF8Z(cdiNames[i] ?? string.Empty);
 			}
 		}
 
@@ -197,7 +192,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				helper.Error("Default namespace is null");
 				return;
 			}
-			var bytes = Encoding.UTF8.GetBytes(ns);
+			var bytes = WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(ns);
 			writer.WriteBytes(bytes);
 		}
 
@@ -207,14 +202,22 @@ namespace dnlib.DotNet.Pdb.Portable {
 				helper.Error("Dynamic flags is null");
 				return;
 			}
-			for (int i = 0; i < flags.Length; i += 8)
-				writer.WriteByte(ToByte(flags, i));
+			// Like Roslyn, don't write trailing zero bytes. The reader's missing flags are false.
+			int length = flags.Length;
+			while (length > 0 && !flags[length - 1])
+				length--;
+			for (int i = 0; i < length; i += 8)
+				writer.WriteByte(ToByte(flags, i, length));
+			// Roslyn never writes all false flags (it doesn't write the custom debug info then). Its reader
+			// can't use an empty blob (the local's type becomes an unsupported type) so write one byte.
+			if (length == 0)
+				writer.WriteByte(0);
 		}
 
-		static byte ToByte(bool[] flags, int index) {
+		static byte ToByte(bool[] flags, int index, int length) {
 			int res = 0;
 			int bit = 1;
-			int end = Math.Min(flags.Length, index + 8);
+			int end = Math.Min(length, index + 8);
 			for (int i = index; i < end; i++, bit <<= 1) {
 				if (flags[i])
 					res |= bit;
@@ -365,7 +368,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			writer.WriteCompressedUInt32((uint)states.Count);
 			writer.WriteCompressedUInt32((uint)-syntaxOffsetBaseline);
-			foreach (var state in states) {
+			// Like Roslyn, sort by syntax offset. Roslyn's reader fails if they're not sorted. The sort is stable
+			// since states with the same syntax offset are in await order.
+			foreach (var state in states.OrderBy(a => a.SyntaxOffset)) {
 				writer.WriteCompressedInt32((int)state.State);
 				writer.WriteCompressedUInt32((uint)(state.SyntaxOffset - syntaxOffsetBaseline));
 			}

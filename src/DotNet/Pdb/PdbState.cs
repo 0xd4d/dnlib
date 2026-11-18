@@ -551,10 +551,19 @@ recursive_call:
 					case ElementType.I:
 					case ElementType.U:
 					case ElementType.FnPtr:
+						break;
 					case ElementType.ValueType:
+						// Microsoft.DiaSymReader.Native returns a DateTime constant as a VT_DATE, whose 8 bytes are
+						// the tick count (written by Roslyn). Our COM reader returns those bytes as a double.
+						if (constant.Value is double && IsSystemDateTime(((ValueTypeSig)type).TypeDefOrRef)) {
+							long ticks = BitConverter.DoubleToInt64Bits((double)constant.Value);
+							if ((ulong)ticks <= (ulong)DateTime.MaxValue.Ticks)
+								constant.Value = new DateTime(ticks);
+						}
 						break;
 					case ElementType.String:
-						if (PdbFileKind == PdbFileKind.WindowsPDB) {
+						// Use the kind of the PDB that was read, PdbFileKind can be changed to write another kind
+						if (originalPdbFileKind == PdbFileKind.WindowsPDB) {
 							// "" is stored as null, and null is stored as (int)0
 							if (constant.Value is int && (int)constant.Value == 0)
 								constant.Value = null;
@@ -562,7 +571,7 @@ recursive_call:
 								constant.Value = string.Empty;
 						}
 						else
-							Debug.Assert(PdbFileKind == PdbFileKind.PortablePDB || PdbFileKind == PdbFileKind.EmbeddedPortablePDB);
+							Debug.Assert(originalPdbFileKind == PdbFileKind.PortablePDB || originalPdbFileKind == PdbFileKind.EmbeddedPortablePDB);
 						break;
 					case ElementType.Object:
 					case ElementType.Class:
@@ -673,6 +682,9 @@ do_return:
 		}
 
 		internal void Dispose() => reader?.Dispose();
+
+		static bool IsSystemDateTime(ITypeDefOrRef? tdr) =>
+			tdr is not null && tdr.Name == "DateTime" && tdr.Namespace == "System" && tdr.DefinitionAssembly.IsCorLib();
 	}
 
 	enum Compiler {

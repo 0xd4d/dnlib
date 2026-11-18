@@ -119,6 +119,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[DllImport("oleaut32.dll")]
 		static extern int VariantClear(IntPtr pvarg);
 
+		const ushort VT_DATE = 7;
 		const ushort VT_ERROR = 10;
 
 		static unsafe object? GetValue(ISymUnmanagedConstant unc) {
@@ -136,6 +137,12 @@ namespace dnlib.DotNet.Pdb.Dss {
 				// It's not the constant's value, and the marshaler would return it as an Int32.
 				if (*(ushort*)variant == VT_ERROR)
 					return null;
+				// Microsoft.DiaSymReader.Native returns doubles and DateTime constants (Roslyn writes their tick
+				// count) as VT_DATE. Don't let the marshaler convert it to a DateTime: it's not an OLE Automation
+				// date, it would lose precision and it throws if it's not a valid date. Return the 8 bytes as a
+				// double, PdbState converts it to a DateTime if the constant's type is DateTime.
+				if (*(ushort*)variant == VT_DATE)
+					return *(double*)(variant + 8);
 				return Marshal.GetObjectForNativeVariant((IntPtr)variant);
 			}
 			finally {
