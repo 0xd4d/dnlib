@@ -522,7 +522,7 @@ namespace dnlib.DotNet {
 			var hash = AssemblyHash.Hash(signaturePubKey.CreatePublicKey(), identityPubKey.HashAlgorithm);
 			using (var rsa = identityKey.CreateRSA()) {
 				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
-				string hashName = identityPubKey.HashAlgorithm.GetName()!;
+				string hashName = identityPubKey.HashAlgorithm.GetName() ?? "SHA1";
 				rsaFmt.SetHashAlgorithm(hashName);
 				var snSig = rsaFmt.CreateSignature(hash);
 				Array.Reverse(snSig);
