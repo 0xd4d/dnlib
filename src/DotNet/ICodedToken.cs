@@ -195,7 +195,7 @@ namespace dnlib.DotNet {
 			if (asm is null)
 				return null;
 			// Always create a new one, even if it happens to be an AssemblyRef
-			return new AssemblyRefUser(asm.Name, asm.Version!, asm.PublicKeyOrToken, asm.Culture) { Attributes = asm.Attributes };
+			return new AssemblyRefUser(asm.Name, asm.Version ?? new Version(0, 0, 0, 0), asm.PublicKeyOrToken, asm.Culture) { Attributes = asm.Attributes };
 		}
 
 		/// <summary>
