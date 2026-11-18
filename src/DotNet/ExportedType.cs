@@ -594,7 +594,9 @@ namespace dnlib.DotNet {
 			IImplementation? impl = this;
 			for (int i = 0; i < MAX_LOOP_ITERS && impl is not null; i++) {
 				if (impl is ExportedType et) {
-					var newTr = mod!.UpdateRowId(new TypeRefUser(mod, et.TypeNamespace, et.TypeName));
+					TypeRef newTr = new TypeRefUser(mod, et.TypeNamespace, et.TypeName);
+					if (mod is not null)
+						newTr = mod.UpdateRowId(newTr);
 					if (result is null)
 						result = newTr;
 					if (prev is not null)
