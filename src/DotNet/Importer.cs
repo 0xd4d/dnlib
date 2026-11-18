@@ -877,24 +877,28 @@ namespace dnlib.DotNet {
 			if (declType is not null)
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declType)));
 			else
-				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module?.Name)));
 
 			recursionCounter.Decrement();
 			return result;
 		}
 
-		IResolutionScope? CreateScopeReference(IAssembly? defAsm, ModuleDef? defMod) {
+		/// <param name="defAsm">The assembly that has the type</param>
+		/// <param name="defModName">Name of the module that has the type or <c>null</c> if it's the manifest module
+		/// (the type is referenced by an <see cref="AssemblyRef"/>)</param>
+		IResolutionScope? CreateScopeReference(IAssembly? defAsm, UTF8String? defModName) {
 			if (defAsm is null)
 				return null;
 			var modAsm = module.Assembly;
-			if (defMod is not null && defAsm is not null && modAsm is not null) {
-				if (UTF8String.CaseInsensitiveEquals(modAsm.Name, defAsm.Name)) {
-					if (UTF8String.CaseInsensitiveEquals(module.Name, defMod.Name))
+			if (modAsm is not null && UTF8String.CaseInsensitiveEquals(modAsm.Name, defAsm.Name)) {
+				defModName ??= modAsm.ManifestModule?.Name;
+				if (defModName is not null) {
+					if (UTF8String.CaseInsensitiveEquals(module.Name, defModName))
 						return module;
-					return module.UpdateRowId(new ModuleRefUser(module, defMod.Name));
+					return module.UpdateRowId(new ModuleRefUser(module, defModName));
 				}
 			}
-			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm!.PublicKeyOrToken);
+			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
 			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(defAsm.Name) is AssemblyRef asmRef)
@@ -928,11 +932,22 @@ namespace dnlib.DotNet {
 			if (declaringType is not null)
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declaringType)));
 			else
-				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type)));
 
 			recursionCounter.Decrement();
 			return result;
 		}
+
+		// type is a non-nested TypeRef. Its Module is the module that has the TypeRef, not the type.
+		IResolutionScope? CreateScopeReference(TypeRef type) =>
+			type.ResolutionScope switch {
+				// The type is in another module of the TypeRef's assembly
+				ModuleRef modRef => CreateScopeReference(type.DefinitionAssembly, modRef.Name),
+				// The type is in the manifest module of the referenced assembly
+				AssemblyRef asmRef => CreateScopeReference(asmRef, null),
+				ModuleDef mod => CreateScopeReference(mod.Assembly, mod.Name),
+				_ => CreateScopeReference(type.DefinitionAssembly, type.Module?.Name),
+			};
 
 		/// <summary>
 		/// Imports a <see cref="TypeSpec"/>
