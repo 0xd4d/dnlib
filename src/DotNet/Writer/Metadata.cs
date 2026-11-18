@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Writer {
 		/// <c>Field</c>, <c>Method</c>, <c>Param</c>, <c>MemberRef</c>, <c>StandAloneSig</c>,
 		/// <c>Event</c>, <c>Property</c>, <c>TypeSpec</c>, <c>MethodSpec</c>
 		/// </summary>
-		PreserveRids =	PreserveTypeRefRids |
+		PreserveRids =  PreserveTypeRefRids |
 						PreserveTypeDefRids |
 						PreserveFieldRids |
 						PreserveMethodRids |
@@ -1902,16 +1902,16 @@ namespace dnlib.DotNet.Writer {
 		/// Sorts all unsorted tables except <c>GenericParamConstraint</c> and <c>CustomAttribute</c>
 		/// </summary>
 		void SortTables() {
-			classLayoutInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
-			hasConstantInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
-			declSecurityInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
-			fieldLayoutInfos.Sort((a, b)	=> a.row.Field.CompareTo(b.row.Field));
-			fieldMarshalInfos.Sort((a, b)	=> a.row.Parent.CompareTo(b.row.Parent));
-			fieldRVAInfos.Sort((a, b)		=> a.row.Field.CompareTo(b.row.Field));
-			implMapInfos.Sort((a, b)		=> a.row.MemberForwarded.CompareTo(b.row.MemberForwarded));
-			methodImplInfos.Sort((a, b)		=> a.row.Class.CompareTo(b.row.Class));
-			methodSemanticsInfos.Sort((a, b)=> a.row.Association.CompareTo(b.row.Association));
-			nestedClassInfos.Sort((a, b)	=> a.row.NestedClass.CompareTo(b.row.NestedClass));
+			classLayoutInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
+			hasConstantInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
+			declSecurityInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
+			fieldLayoutInfos.Sort((a, b) => a.row.Field.CompareTo(b.row.Field));
+			fieldMarshalInfos.Sort((a, b) => a.row.Parent.CompareTo(b.row.Parent));
+			fieldRVAInfos.Sort((a, b) => a.row.Field.CompareTo(b.row.Field));
+			implMapInfos.Sort((a, b) => a.row.MemberForwarded.CompareTo(b.row.MemberForwarded));
+			methodImplInfos.Sort((a, b) => a.row.Class.CompareTo(b.row.Class));
+			methodSemanticsInfos.Sort((a, b) => a.row.Association.CompareTo(b.row.Association));
+			nestedClassInfos.Sort((a, b) => a.row.NestedClass.CompareTo(b.row.NestedClass));
 			genericParamInfos.Sort((a, b) => {
 				if (a.row.Owner != b.row.Owner)
 					return a.row.Owner.CompareTo(b.row.Owner);
@@ -2458,7 +2458,7 @@ namespace dnlib.DotNet.Writer {
 			List<TypeRef>? scopes = null;
 			var scope = tr.ResolutionScope as TypeRef;
 			while (scope is not null && !typeRefInfos.Exists(scope)) {
-				typeRefInfos.Add(scope, 0);	// Prevent inf recursion
+				typeRefInfos.Add(scope, 0); // Prevent inf recursion
 				scopes ??= new List<TypeRef>();
 				scopes.Add(scope);
 				scope = scope.ResolutionScope as TypeRef;
@@ -2833,7 +2833,7 @@ namespace dnlib.DotNet.Writer {
 				uint rid = GetRid(field);
 
 				uint alignment = ModuleWriterBase.DEFAULT_CONSTANTS_ALIGNMENT;
-				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is {} classLayout)
+				if (field.FieldType is TypeDefOrRefSig tdrSig && tdrSig.TypeDef?.ClassLayout is { } classLayout)
 					alignment = Math.Max(alignment, Utils.RoundToNextPowerOfTwo(classLayout.PackingSize));
 
 				var iv = constants.Add(new ByteArrayChunk(ivBytes, alignment), alignment);
@@ -3190,7 +3190,7 @@ namespace dnlib.DotNet.Writer {
 				return rid;
 			var row = new RawFileRow((uint)file.Flags,
 						stringsHeap.Add(file.Name),
-						blobHeap.Add(file.HashValue));	//TODO: Re-calculate the hash value if possible
+						blobHeap.Add(file.HashValue));  //TODO: Re-calculate the hash value if possible
 			rid = tablesHeap.FileTable.Add(row);
 			fileDefInfos.Add(file, rid);
 			AddCustomAttributes(Table.File, rid, file);
@@ -3213,7 +3213,7 @@ namespace dnlib.DotNet.Writer {
 					Error("ExportedType 0x{0:X8} has an infinite Implementation loop.", et.MDToken.Raw);
 				return rid;
 			}
-			exportedTypeInfos.Add(et, 0);	// Prevent inf recursion
+			exportedTypeInfos.Add(et, 0);   // Prevent inf recursion
 
 			// Add the ExportedTypes in the Implementation chain without recursing, outermost first,
 			// or a long chain could overflow the stack. The rows are added in the same order
@@ -3221,7 +3221,7 @@ namespace dnlib.DotNet.Writer {
 			List<ExportedType>? decls = null;
 			var decl = et.Implementation as ExportedType;
 			while (decl is not null && !exportedTypeInfos.Exists(decl)) {
-				exportedTypeInfos.Add(decl, 0);	// Prevent inf recursion
+				exportedTypeInfos.Add(decl, 0); // Prevent inf recursion
 				decls ??= new List<ExportedType>();
 				decls.Add(decl);
 				decl = decl.Implementation as ExportedType;

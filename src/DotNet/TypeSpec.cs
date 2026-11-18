@@ -74,7 +74,7 @@ namespace dnlib.DotNet {
 				if (sig is TypeDefOrRefSig tdr) {
 					if (tdr.IsTypeDef || tdr.IsTypeRef)
 						return tdr.TypeDefOrRef!.DeclaringType;
-					return null;	// If it's another TypeSpec, just stop. Don't want possible inf recursion.
+					return null;    // If it's another TypeSpec, just stop. Don't want possible inf recursion.
 				}
 
 				return null;

@@ -424,7 +424,7 @@ namespace dnlib.DotNet.Pdb {
 					return Compiler.VisualBasic;
 			}
 
-// Disable this for now, we shouldn't be resolving types this early since we could be called by the ModuleDefMD ctor
+			// Disable this for now, we shouldn't be resolving types this early since we could be called by the ModuleDefMD ctor
 #if false
 			// The VB runtime can also be embedded, and if so, it seems that "Microsoft.VisualBasic.Embedded"
 			// attribute is added to the assembly's custom attributes.
@@ -472,7 +472,7 @@ recursive_call:
 			int instrIndex = 0;
 			state.PdbScope = new PdbScope() {
 				Start = GetInstruction(body.Instructions, sorted, state.SymScope.StartOffset, ref instrIndex),
-				End   = GetInstruction(body.Instructions, sorted, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
+				End = GetInstruction(body.Instructions, sorted, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
 			};
 			var cdis = state.SymScope.CustomDebugInfos;
 			int count = cdis.Count;

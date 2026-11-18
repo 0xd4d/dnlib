@@ -192,9 +192,9 @@ namespace dnlib.DotNet {
 				int va = Utils.CompareTo(a.Version, rv);
 				int vb = Utils.CompareTo(b.Version, rv);
 				if (va == 0)
-					return 0;	// vb != 0 so return 0
+					return 0;   // vb != 0 so return 0
 				if (vb == 0)
-					return 1;	// va != 0 so return 1
+					return 1;   // va != 0 so return 1
 				if (va > 0 && vb < 0)
 					return 0;
 				if (va < 0 && vb > 0)

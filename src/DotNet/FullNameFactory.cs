@@ -1356,27 +1356,27 @@ namespace dnlib.DotNet {
 					if (rank > MaxArrayRank)
 						rank = MaxArrayRank;
 					if (rank == 0)
-						sb.Append("<RANK0>");	// Not allowed
+						sb.Append("<RANK0>");   // Not allowed
 					else if (rank == 1)
 						sb.Append('*');
 					else for (int i = 0; i < (int)rank; i++) {
-						if (i != 0)
-							sb.Append(',');
-						if (!isReflection) {
-							const int NO_LOWER = int.MinValue;
-							const uint NO_SIZE = uint.MaxValue;
-							int lower = i < arraySig.LowerBounds.Count ? arraySig.LowerBounds[i] : NO_LOWER;
-							uint size = i < arraySig.Sizes.Count ? arraySig.Sizes[i] : NO_SIZE;
-							if (lower != NO_LOWER) {
-								sb.Append(lower);
-								sb.Append("..");
-								if (size != NO_SIZE)
-									sb.Append(lower + (int)size - 1);
-								else
-									sb.Append('.');
+							if (i != 0)
+								sb.Append(',');
+							if (!isReflection) {
+								const int NO_LOWER = int.MinValue;
+								const uint NO_SIZE = uint.MaxValue;
+								int lower = i < arraySig.LowerBounds.Count ? arraySig.LowerBounds[i] : NO_LOWER;
+								uint size = i < arraySig.Sizes.Count ? arraySig.Sizes[i] : NO_SIZE;
+								if (lower != NO_LOWER) {
+									sb.Append(lower);
+									sb.Append("..");
+									if (size != NO_SIZE)
+										sb.Append(lower + (int)size - 1);
+									else
+										sb.Append('.');
+								}
 							}
 						}
-					}
 					sb.Append(']');
 				}
 				break;
@@ -1735,7 +1735,7 @@ namespace dnlib.DotNet {
 
 			var scope = typeRef.ResolutionScope;
 			if (scope is null)
-				result = null;	//TODO: Check ownerModule's ExportedType table
+				result = null;  //TODO: Check ownerModule's ExportedType table
 			else if (scope is TypeRef)
 				result = GetDefinitionAssembly((TypeRef)scope);
 			else if (scope is AssemblyRef)
@@ -1747,7 +1747,7 @@ namespace dnlib.DotNet {
 			else if (scope is ModuleDef)
 				result = ((ModuleDef)scope).Assembly;
 			else
-				result = null;	// Should never be reached
+				result = null;  // Should never be reached
 
 			recursionCounter.Decrement();
 			return result;
@@ -1766,7 +1766,7 @@ namespace dnlib.DotNet {
 
 			var scope = typeRef.ResolutionScope;
 			if (scope is null)
-				result = null;	//TODO: Check ownerModule's ExportedType table
+				result = null;  //TODO: Check ownerModule's ExportedType table
 			else if ((tr = scope as TypeRef) is not null)
 				result = GetScope(tr);
 			else if ((asmRef = scope as AssemblyRef) is not null)
@@ -1776,7 +1776,7 @@ namespace dnlib.DotNet {
 			else if ((modDef = scope as ModuleDef) is not null)
 				result = modDef;
 			else
-				result = null;	// Should never be reached
+				result = null;  // Should never be reached
 
 			recursionCounter.Decrement();
 			return result;

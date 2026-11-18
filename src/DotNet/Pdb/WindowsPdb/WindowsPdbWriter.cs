@@ -192,12 +192,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 						Array.Resize(ref endColumns, newSize);
 					}
 
-					seqPointDocs[count]	= docIndex;
-					instrOffsets[count]	= instrOffset;
-					startLines[count]	= seqp.StartLine;
-					startColumns[count]	= seqp.StartColumn;
-					endLines[count]		= seqp.EndLine;
-					endColumns[count]	= seqp.EndColumn;
+					seqPointDocs[count] = docIndex;
+					instrOffsets[count] = instrOffset;
+					startLines[count] = seqp.StartLine;
+					startColumns[count] = seqp.StartColumn;
+					endLines[count] = seqp.EndLine;
+					endColumns[count] = seqp.EndColumn;
 					count++;
 				}
 
@@ -231,11 +231,11 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				}
 				for (int i = 0; i < count; i++) {
 					int j = docStarts[seqPointDocs[i]]++;
-					sortedInstrOffsets[j]	= instrOffsets[i];
-					sortedStartLines[j]		= startLines[i];
-					sortedStartColumns[j]	= startColumns[i];
-					sortedEndLines[j]		= endLines[i];
-					sortedEndColumns[j]		= endColumns[i];
+					sortedInstrOffsets[j] = instrOffsets[i];
+					sortedStartLines[j] = startLines[i];
+					sortedStartColumns[j] = startColumns[i];
+					sortedEndLines[j] = endLines[i];
+					sortedEndColumns[j] = endColumns[i];
 				}
 
 				// docStarts[d] is now the end of document d's points. The arrays must start at index 0, so

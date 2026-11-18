@@ -11,11 +11,11 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// No bit is set
 		/// </summary>
-		None					= 0,
+		None                    = 0,
 
 		/// <summary>
 		/// Local should be hidden in debugger variables windows. Not all compiler generated locals have this flag set.
 		/// </summary>
-		DebuggerHidden			= 0x00000001,
+		DebuggerHidden          = 0x00000001,
 	}
 }

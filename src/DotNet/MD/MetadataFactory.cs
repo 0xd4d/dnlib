@@ -12,8 +12,8 @@ namespace dnlib.DotNet.MD {
 	public static class MetadataFactory {
 		enum MetadataType {
 			Unknown,
-			Compressed,	// #~ (normal)
-			ENC,		// #- (edit and continue)
+			Compressed, // #~ (normal)
+			ENC,        // #- (edit and continue)
 		}
 
 		internal static MetadataBase Load(string fileName, CLRRuntimeReaderKind runtime) {

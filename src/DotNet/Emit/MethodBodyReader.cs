@@ -14,20 +14,20 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// No option is enabled
 		/// </summary>
-		None						= 0,
+		None                        = 0,
 
 		/// <summary>
 		/// Allow a fat header whose size is less than 3 dwords. The code then starts inside the method
 		/// header and no extra sections (eg. exception handlers) are read. The CLR only accepts this for
 		/// IL that doesn't come from a PE file, eg. IL set by a profiler.
 		/// </summary>
-		AllowCodeInsideFatHeader	= 0x00000001,
+		AllowCodeInsideFatHeader    = 0x00000001,
 
 		/// <summary>
 		/// Allow a fat header that isn't 4-byte aligned. The 64-bit CLR doesn't decode such a header,
 		/// the method gets an empty body and the JIT fails to compile it. The 32-bit CLR reads it.
 		/// </summary>
-		AllowUnalignedFatHeader		= 0x00000002,
+		AllowUnalignedFatHeader     = 0x00000002,
 	}
 
 	/// <summary>
@@ -537,7 +537,7 @@ namespace dnlib.DotNet.Emit {
 			byte b = ehReader.ReadByte();
 			if ((b & 0x3F) != 1) {
 				totalBodySize = startOfHeader == uint.MaxValue ? 0 : reader.Position - startOfHeader;
-				return;	// Not exception handler clauses
+				return; // Not exception handler clauses
 			}
 			if ((b & 0x40) != 0)
 				ReadFatExceptionHandlers(ref ehReader);

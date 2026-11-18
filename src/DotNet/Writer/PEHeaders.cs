@@ -404,7 +404,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32(sectionSizes.SizeOfImage);
 				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.WriteInt32(0);	// CheckSum
+				writer.WriteInt32(0);   // CheckSum
 				writer.WriteUInt16((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
 				writer.WriteUInt16((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
 				writer.WriteUInt32((uint)(options.SizeOfStackReserve ?? 0x00100000));
@@ -436,7 +436,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32(sectionSizes.SizeOfImage);
 				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.WriteInt32(0);	// CheckSum
+				writer.WriteInt32(0);   // CheckSum
 				writer.WriteUInt16((ushort)(options.Subsystem ?? PEHeadersOptions.DEFAULT_SUBSYSTEM));
 				writer.WriteUInt16((ushort)(options.DllCharacteristics ?? PEHeadersOptions.DefaultDllCharacteristics));
 				writer.WriteUInt64(options.SizeOfStackReserve ?? 0x0000000000400000);
@@ -450,19 +450,19 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteDataDirectory(ExportDirectory);
 			writer.WriteDataDirectory(ImportDirectory);
 			writer.WriteDataDirectory(Win32Resources);
-			writer.WriteDataDirectory(null);	// Exception table
-			writer.WriteDataDirectory(null);	// Certificate table
+			writer.WriteDataDirectory(null);    // Exception table
+			writer.WriteDataDirectory(null);    // Certificate table
 			writer.WriteDataDirectory(RelocDirectory);
 			writer.WriteDebugDirectory(DebugDirectory);
-			writer.WriteDataDirectory(null);	// Architecture-specific data
-			writer.WriteDataDirectory(null);	// Global pointer register RVA
-			writer.WriteDataDirectory(null);	// Thread local storage
-			writer.WriteDataDirectory(null);	// Load configuration table
-			writer.WriteDataDirectory(null);	// Bound import table
+			writer.WriteDataDirectory(null);    // Architecture-specific data
+			writer.WriteDataDirectory(null);    // Global pointer register RVA
+			writer.WriteDataDirectory(null);    // Thread local storage
+			writer.WriteDataDirectory(null);    // Load configuration table
+			writer.WriteDataDirectory(null);    // Bound import table
 			writer.WriteDataDirectory(ImportAddressTable);
-			writer.WriteDataDirectory(null);	// Delay import descriptor
+			writer.WriteDataDirectory(null);    // Delay import descriptor
 			writer.WriteDataDirectory(ImageCor20Header);
-			writer.WriteDataDirectory(null);	// Reserved
+			writer.WriteDataDirectory(null);    // Reserved
 
 			// Sections
 			uint rva = Utils.AlignUp(sectionSizes.SizeOfHeaders, sectionAlignment);

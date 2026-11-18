@@ -547,7 +547,7 @@ namespace dnlib.DotNet {
 			var arg = new CAArgument(arrayType);
 
 			int arrayCount = reader.ReadInt32();
-			if (arrayCount == -1) {	// -1 if it's null
+			if (arrayCount == -1) { // -1 if it's null
 			}
 			else if (arrayCount < 0 || arrayCount > reader.BytesLeft)
 				throw new CABlobParserException("Array is too big");

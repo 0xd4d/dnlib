@@ -369,9 +369,9 @@ namespace dnlib.DotNet {
 				if (currentDeclaringType == value)
 					return;
 				if (currentDeclaringType is not null)
-					currentDeclaringType.NestedTypes.Remove(this);	// Will set DeclaringType2 = null
+					currentDeclaringType.NestedTypes.Remove(this);  // Will set DeclaringType2 = null
 				if (value is not null)
-					value.NestedTypes.Add(this);		// Will set DeclaringType2 = value
+					value.NestedTypes.Add(this);        // Will set DeclaringType2 = value
 
 				// Make sure this is clear. Will be set whenever it's inserted into ModulDef.Types
 				Module2 = null;
@@ -2313,7 +2313,7 @@ namespace dnlib.DotNet {
 			if (td is null)
 				return false;
 			if (!td.IsValueType)
-				return false;	// Not supported by us
+				return false;   // Not supported by us
 			if (!td.IsSequentialLayout && !td.IsExplicitLayout) {
 				// Prevent infinite recursion, eg. a struct whose only instance field is of its own type
 				if (!recursionCounter.Increment())
@@ -2646,7 +2646,7 @@ namespace dnlib.DotNet {
 				var methodBody = readerModule.ResolveMethodDefOrRef(row.MethodBody);
 				var methodDecl = readerModule.ResolveMethodDefOrRef(row.MethodDeclaration);
 				if (methodBody is null || methodDecl is null)
-					continue;	// Should only happen if some obfuscator added invalid metadata
+					continue;   // Should only happen if some obfuscator added invalid metadata
 
 				// Find the real method. This is usually methodBody since it's usually a
 				// MethodDef. The CLR only allows method bodies in the current type, and

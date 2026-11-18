@@ -70,7 +70,7 @@ namespace dnlib.W32Resources {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposing)
 				return;
-			Root = null;	// Property handler will call Dispose()
+			Root = null;    // Property handler will call Dispose()
 		}
 	}
 

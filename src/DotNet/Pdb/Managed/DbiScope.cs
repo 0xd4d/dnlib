@@ -83,55 +83,55 @@ namespace dnlib.DotNet.Pdb.Managed {
 				uint? childEnd = null;
 				string? name;
 				switch (type) {
-					case SymbolType.S_BLOCK32: {
-						reader.Position += 4;
-						childEnd = reader.ReadUInt32();
-						var len = reader.ReadUInt32();
-						var addr = PdbAddress.ReadAddress(ref reader);
-						name = PdbReader.ReadCString(ref reader, end);
-						child = new DbiScope(method, this, name, addr.Offset, len);
+				case SymbolType.S_BLOCK32: {
+					reader.Position += 4;
+					childEnd = reader.ReadUInt32();
+					var len = reader.ReadUInt32();
+					var addr = PdbAddress.ReadAddress(ref reader);
+					name = PdbReader.ReadCString(ref reader, end);
+					child = new DbiScope(method, this, name, addr.Offset, len);
+					break;
+				}
+				case SymbolType.S_UNAMESPACE:
+					namespacesList.Add(new DbiNamespace(PdbReader.ReadCString(ref reader, end)));
+					break;
+				case SymbolType.S_MANSLOT: {
+					var variable = new DbiVariable();
+					if (variable.Read(ref reader, end))
+						localsList.Add(variable);
+					break;
+				}
+				case SymbolType.S_OEM:
+					if ((ulong)reader.Position + 20 > end)
+						break;
+					if (!ReadAndCompareBytes(ref reader, end, dotNetOemGuid)) {
+						Debug.Fail("Unknown OEM record GUID, not .NET GUID");
 						break;
 					}
-					case SymbolType.S_UNAMESPACE:
-						namespacesList.Add(new DbiNamespace(PdbReader.ReadCString(ref reader, end)));
+					reader.Position += 4;// typeIndex or 0
+					name = ReadUnicodeString(ref reader, end);
+					Debug.Assert(name is not null);
+					if (name is null)
 						break;
-					case SymbolType.S_MANSLOT: {
-						var variable = new DbiVariable();
-						if (variable.Read(ref reader, end))
-							localsList.Add(variable);
+					var data = reader.ReadBytes((int)(end - reader.Position));
+					if (oemInfos is null)
+						oemInfos = new List<OemInfo>(1);
+					oemInfos.Add(new OemInfo(name, data));
+					break;
+				case SymbolType.S_MANCONSTANT:
+					uint signatureToken = reader.ReadUInt32();
+					object? value;
+					if (!NumericReader.TryReadNumeric(ref reader, end, out value))
 						break;
-					}
-					case SymbolType.S_OEM:
-						if ((ulong)reader.Position + 20 > end)
-							break;
-						if (!ReadAndCompareBytes(ref reader, end, dotNetOemGuid)) {
-							Debug.Fail("Unknown OEM record GUID, not .NET GUID");
-							break;
-						}
-						reader.Position += 4;// typeIndex or 0
-						name = ReadUnicodeString(ref reader, end);
-						Debug.Assert(name is not null);
-						if (name is null)
-							break;
-						var data = reader.ReadBytes((int)(end - reader.Position));
-						if (oemInfos is null)
-							oemInfos = new List<OemInfo>(1);
-						oemInfos.Add(new OemInfo(name, data));
-						break;
-					case SymbolType.S_MANCONSTANT:
-						uint signatureToken = reader.ReadUInt32();
-						object? value;
-						if (!NumericReader.TryReadNumeric(ref reader, end, out value))
-							break;
-						name = PdbReader.ReadCString(ref reader, end);
-						if (constants is null)
-							constants = new List<ConstantInfo>();
-						constants.Add(new ConstantInfo(name, signatureToken, value));
-						break;
-					case SymbolType.S_END:
-						break;
-					default:
-						break;
+					name = PdbReader.ReadCString(ref reader, end);
+					if (constants is null)
+						constants = new List<ConstantInfo>();
+					constants.Add(new ConstantInfo(name, signatureToken, value));
+					break;
+				case SymbolType.S_END:
+					break;
+				default:
+					break;
 				}
 
 				reader.Position = end;
@@ -148,7 +148,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 		static string? ReadUnicodeString(ref DataReader reader, uint end) {
 			var sb = new StringBuilder();
-			for (;;) {
+			for (; ; ) {
 				if ((ulong)reader.Position + 2 > end)
 					return null;
 				var c = reader.ReadChar();

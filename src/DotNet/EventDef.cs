@@ -229,9 +229,9 @@ namespace dnlib.DotNet {
 				if (currentDeclaringType == value)
 					return;
 				if (currentDeclaringType is not null)
-					currentDeclaringType.Events.Remove(this);	// Will set DeclaringType2 = null
+					currentDeclaringType.Events.Remove(this);   // Will set DeclaringType2 = null
 				if (value is not null)
-					value.Events.Add(this);	// Will set DeclaringType2 = value
+					value.Events.Add(this); // Will set DeclaringType2 = value
 			}
 		}
 

@@ -1520,8 +1520,8 @@ namespace dnlib.DotNet {
 			RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 			Machine = Machine.I386;
 			cor20HeaderFlags = (int)ComImageFlags.ILOnly;
-			Cor20HeaderRuntimeVersion = 0x00020005;	// .NET Framework 2.0 or later should use 2.5
-			TablesHeaderVersion = 0x0200;			// .NET Framework 2.0 or later should use 2.0
+			Cor20HeaderRuntimeVersion = 0x00020005; // .NET Framework 2.0 or later should use 2.5
+			TablesHeaderVersion = 0x0200;           // .NET Framework 2.0 or later should use 2.0
 			types = new LazyList<TypeDef>(this);
 			exportedTypes = new LazyList<ExportedType>();
 			resources = new ResourceCollection();
@@ -1597,8 +1597,8 @@ namespace dnlib.DotNet {
 				RuntimeVersion = MDHeaderRuntimeVersion.MS_CLR_20;
 				Machine = Machine.I386;
 				cor20HeaderFlags = (int)ComImageFlags.ILOnly;
-				Cor20HeaderRuntimeVersion = 0x00020005;	// .NET Framework 2.0 or later should use 2.5
-				TablesHeaderVersion = 0x0200;			// .NET Framework 2.0 or later should use 2.0
+				Cor20HeaderRuntimeVersion = 0x00020005; // .NET Framework 2.0 or later should use 2.5
+				TablesHeaderVersion = 0x0200;           // .NET Framework 2.0 or later should use 2.0
 				corLibTypes = new CorLibTypes(this);
 				location = string.Empty;
 				InitializeFromRawRow();

@@ -115,9 +115,9 @@ namespace dnlib.DotNet.Writer {
 			if (!Enable)
 				return;
 			writer.WriteUInt32((uint)importLookupTableRVA);
-			writer.WriteInt32(0);	// DateTimeStamp
-			writer.WriteInt32(0);	// ForwarderChain
-			writer.WriteUInt32((uint)dllToImportRVA);	// Name
+			writer.WriteInt32(0);   // DateTimeStamp
+			writer.WriteInt32(0);   // ForwarderChain
+			writer.WriteUInt32((uint)dllToImportRVA);   // Name
 			writer.WriteUInt32((uint)ImportAddressTable.RVA);
 			writer.WriteUInt64(0);
 			writer.WriteUInt64(0);

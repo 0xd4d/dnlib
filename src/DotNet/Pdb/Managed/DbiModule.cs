@@ -65,15 +65,15 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 				var type = (SymbolType)reader.ReadUInt16();
 				switch (type) {
-					case SymbolType.S_GMANPROC:
-					case SymbolType.S_LMANPROC:
-						var func = new DbiFunction();
-						func.Read(ref reader, end);
-						Functions.Add(func);
-						break;
-					default:
-						reader.Position = end;
-						break;
+				case SymbolType.S_GMANPROC:
+				case SymbolType.S_LMANPROC:
+					var func = new DbiFunction();
+					func.Read(ref reader, end);
+					Functions.Add(func);
+					break;
+				default:
+					reader.Position = end;
+					break;
 				}
 			}
 		}

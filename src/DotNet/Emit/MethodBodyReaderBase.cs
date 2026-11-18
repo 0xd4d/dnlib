@@ -124,7 +124,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="numInstrs">Number of instructions to read</param>
 		protected void ReadInstructions(int numInstrs) {
 			codeStartOffs = reader.Position;
-			codeEndOffs = reader.Length;	// We don't know the end pos so use the last one
+			codeEndOffs = reader.Length;    // We don't know the end pos so use the last one
 			this.instructions = new List<Instruction>(numInstrs);
 			currentOffset = 0;
 			var instructions = this.instructions;
@@ -143,7 +143,7 @@ namespace dnlib.DotNet.Emit {
 			if (codeEndOffs < codeStartOffs || codeEndOffs > reader.Length)
 				throw new InvalidMethodException("Invalid code size");
 
-			this.instructions = new List<Instruction>();	//TODO: Estimate number of instructions based on codeSize
+			this.instructions = new List<Instruction>();    //TODO: Estimate number of instructions based on codeSize
 			currentOffset = 0;
 			var instructions = this.instructions;
 			while (reader.Position < codeEndOffs)

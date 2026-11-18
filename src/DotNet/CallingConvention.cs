@@ -9,42 +9,42 @@ namespace dnlib.DotNet {
 	[Flags]
 	public enum CallingConvention : byte {
 		/// <summary>The managed calling convention</summary>
-		Default			= 0x0,
+		Default         = 0x0,
 		/// <summary/>
-		C				= 0x1,
+		C               = 0x1,
 		/// <summary/>
-		StdCall			= 0x2,
+		StdCall         = 0x2,
 		/// <summary/>
-		ThisCall		= 0x3,
+		ThisCall        = 0x3,
 		/// <summary/>
-		FastCall		= 0x4,
+		FastCall        = 0x4,
 		/// <summary/>
-		VarArg			= 0x5,
+		VarArg          = 0x5,
 		/// <summary/>
-		Field			= 0x6,
+		Field           = 0x6,
 		/// <summary/>
-		LocalSig		= 0x7,
+		LocalSig        = 0x7,
 		/// <summary/>
-		Property		= 0x8,
+		Property        = 0x8,
 		/// <summary>Unmanaged calling convention encoded as modopts</summary>
-		Unmanaged		= 0x9,
+		Unmanaged       = 0x9,
 		/// <summary>generic method instantiation</summary>
-		GenericInst		= 0xA,
+		GenericInst     = 0xA,
 		/// <summary>used ONLY for 64bit vararg PInvoke calls</summary>
-		NativeVarArg	= 0xB,
+		NativeVarArg    = 0xB,
 		/// <summary>Async calling convention, used by the CLR for calli in IL stubs</summary>
-		Async			= 0xC,
+		Async           = 0xC,
 
 		/// <summary>Calling convention is bottom 4 bits</summary>
-		Mask			= 0x0F,
+		Mask            = 0x0F,
 
 		/// <summary>Generic method</summary>
-		Generic			= 0x10,
+		Generic         = 0x10,
 		/// <summary>Method needs a 'this' parameter</summary>
-		HasThis			= 0x20,
+		HasThis         = 0x20,
 		/// <summary>'this' parameter is the first arg if set (else it's hidden)</summary>
-		ExplicitThis	= 0x40,
+		ExplicitThis    = 0x40,
 		/// <summary>Used internally by the CLR</summary>
-		ReservedByCLR	= 0x80,
+		ReservedByCLR   = 0x80,
 	}
 }

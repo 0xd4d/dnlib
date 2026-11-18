@@ -347,8 +347,8 @@ namespace dnlib.DotNet.Writer {
 				uint bi = typeToIndex[b];
 				bool amd = (ai & IS_TYPEDEFMD) != 0;
 				bool bmd = (bi & IS_TYPEDEFMD) != 0;
-				if (amd == bmd) {	// Both are TypeDefMDs or both are TypeDefUsers
-					// If TypeDefMDs, only compare rids since rids are preserved
+				if (amd == bmd) {   // Both are TypeDefMDs or both are TypeDefUsers
+									// If TypeDefMDs, only compare rids since rids are preserved
 					if (amd)
 						return a.Rid.CompareTo(b.Rid);
 
@@ -378,7 +378,7 @@ namespace dnlib.DotNet.Writer {
 				uint currRid = type.Rid;
 				int extraTypes = (int)(currRid - prevRid - 1);
 				if (extraTypes != 0) { // always >= 0 since currRid > prevRid
-					// At least one type has been removed. Create dummy types.
+									   // At least one type has been removed. Create dummy types.
 					for (int j = 0; j < extraTypes; j++)
 						newTypes.Add(new TypeDefUser("dummy", Guid.NewGuid().ToString("B"), module.CorLibTypes.Object.TypeDefOrRef));
 				}
@@ -1057,7 +1057,7 @@ namespace dnlib.DotNet.Writer {
 					Error("TypeRef 0x{0:X8} has an infinite ResolutionScope loop.", tr.MDToken.Raw);
 				return rid;
 			}
-			typeRefInfos.Add(tr, 0);	// Prevent inf recursion
+			typeRefInfos.Add(tr, 0);    // Prevent inf recursion
 
 			// Add the TypeRefs in the ResolutionScope chain without recursing, outermost first,
 			// or a long chain could overflow the stack. The rows are added in the same order
@@ -1099,7 +1099,7 @@ namespace dnlib.DotNet.Writer {
 					Error("TypeSpec 0x{0:X8} has an infinite TypeSig loop.", ts.MDToken.Raw);
 				return rid;
 			}
-			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
+			typeSpecInfos.Add(ts, 0);   // Prevent inf recursion
 
 			bool isOld = forceIsOld || (PreserveTypeSpecRids && mod.ResolveTypeSpec(ts.Rid) == ts);
 			var row = new RawTypeSpecRow(GetSignature(ts.TypeSig, ts.ExtraData));

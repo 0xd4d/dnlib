@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-#pragma warning disable 1591	// XML doc comments
+#pragma warning disable 1591   // XML doc comments                       
 
 namespace dnlib.DotNet.MD {
 	/// <summary>

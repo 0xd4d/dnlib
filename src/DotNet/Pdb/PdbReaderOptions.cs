@@ -11,7 +11,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// No bit is set
 		/// </summary>
-		None					= 0,
+		None                    = 0,
 
 		/// <summary>
 		/// Use the COM Windows PDB reader instead of the managed Windows PDB reader.
@@ -23,7 +23,7 @@ namespace dnlib.DotNet.Pdb {
 		/// 
 		/// This option is only used if it's a Windows PDB file, not if it's a Portable PDB file.
 		/// </summary>
-		MicrosoftComReader		= 0x00000001,
+		MicrosoftComReader      = 0x00000001,
 
 		/// <summary>
 		/// Don't use Microsoft.DiaSymReader.Native. This is a NuGet package with an updated Windows PDB reader/writer implementation,
@@ -32,14 +32,14 @@ namespace dnlib.DotNet.Pdb {
 		/// 
 		/// Only used if <see cref="MicrosoftComReader"/> is set and if it's a Windows PDB file
 		/// </summary>
-		NoDiaSymReader			= 0x00000002,
+		NoDiaSymReader          = 0x00000002,
 
 		/// <summary>
 		/// Don't use diasymreader.dll's PDB reader that is shipped with .NET Framework.
 		/// 
 		/// Only used if <see cref="MicrosoftComReader"/> is set and if it's a Windows PDB file
 		/// </summary>
-		NoOldDiaSymReader		= 0x00000004,
+		NoOldDiaSymReader       = 0x00000004,
 
 		/// <summary>
 		/// If the module has a PDB checksum debug directory entry, verify that the PDB's checksum matches it
@@ -54,6 +54,6 @@ namespace dnlib.DotNet.Pdb {
 		/// 
 		/// See https://github.com/dotnet/runtime/blob/main/docs/design/specs/PE-COFF.md#pdb-checksum-debug-directory-entry-type-19
 		/// </summary>
-		ValidatePdbChecksum		= 0x00000008,
+		ValidatePdbChecksum     = 0x00000008,
 	}
 }

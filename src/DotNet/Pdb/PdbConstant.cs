@@ -74,7 +74,7 @@ namespace dnlib.DotNet.Pdb {
 			var value = Value;
 			string typeString = type is null ? "" : type.ToString();
 			string valueString = value is null ? "null" : $"{value} ({value.GetType().FullName})";
-			return$"{typeString} {Name} = {valueString}";
+			return $"{typeString} {Name} = {valueString}";
 		}
 	}
 }

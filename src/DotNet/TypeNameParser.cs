@@ -673,7 +673,7 @@ namespace dnlib.DotNet {
 			while (true) {
 				SkipWhite();
 				switch (PeekChar()) {
-				case '[':	// SZArray, Array, or GenericInst
+				case '[':   // SZArray, Array, or GenericInst
 					ReadChar();
 					SkipWhite();
 					var peeked = PeekChar();
@@ -762,12 +762,12 @@ namespace dnlib.DotNet {
 					}
 					break;
 
-				case '&':	// ByRef
+				case '&':   // ByRef
 					ReadChar();
 					tspecs.Add(ByRefSpec.Instance);
 					break;
 
-				case '*':	// Ptr
+				case '*':   // Ptr
 					ReadChar();
 					tspecs.Add(PtrSpec.Instance);
 					break;

@@ -66,7 +66,7 @@ namespace dnlib.DotNet.Writer {
 				if (bytes is null)
 					break;
 
-				reader.ReadByte();	// terminating zero
+				reader.ReadByte();  // terminating zero
 				if (bytes.Length == 0)
 					continue;
 

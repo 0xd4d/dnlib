@@ -92,14 +92,14 @@ namespace dnlib.DotNet.MD {
 			}
 			else {
 				switch (columnSize) {
-				case ColumnSize.Byte:	return 1;
-				case ColumnSize.Int16:	return 2;
-				case ColumnSize.UInt16:	return 2;
-				case ColumnSize.Int32:	return 4;
-				case ColumnSize.UInt32:	return 4;
-				case ColumnSize.Strings:return forceAllBig || bigStrings ? 4 : 2;
-				case ColumnSize.GUID:	return forceAllBig || bigGuid ? 4 : 2;
-				case ColumnSize.Blob:	return forceAllBig || bigBlob ? 4 : 2;
+				case ColumnSize.Byte: return 1;
+				case ColumnSize.Int16: return 2;
+				case ColumnSize.UInt16: return 2;
+				case ColumnSize.Int32: return 4;
+				case ColumnSize.UInt32: return 4;
+				case ColumnSize.Strings: return forceAllBig || bigStrings ? 4 : 2;
+				case ColumnSize.GUID: return forceAllBig || bigGuid ? 4 : 2;
+				case ColumnSize.Blob: return forceAllBig || bigBlob ? 4 : 2;
 				}
 			}
 			throw new InvalidOperationException($"Invalid ColumnSize: {columnSize}");

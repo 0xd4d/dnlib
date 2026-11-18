@@ -109,7 +109,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// No bit is set
 		/// </summary>
-		None						= 0,
+		None                        = 0,
 
 		/// <summary>
 		/// Don't use Microsoft.DiaSymReader.Native. This is a NuGet package with an updated Windows PDB reader/writer implementation,
@@ -118,14 +118,14 @@ namespace dnlib.DotNet.Writer {
 		///
 		/// This is only used if it's a Windows PDB file.
 		/// </summary>
-		NoDiaSymReader			= 0x00000001,
+		NoDiaSymReader          = 0x00000001,
 
 		/// <summary>
 		/// Don't use diasymreader.dll's PDB writer that is shipped with .NET Framework.
 		///
 		/// This is only used if it's a Windows PDB file.
 		/// </summary>
-		NoOldDiaSymReader		= 0x00000002,
+		NoOldDiaSymReader       = 0x00000002,
 
 		/// <summary>
 		/// Create a deterministic PE file and PDB file and add a <see cref="ImageDebugType.Reproducible"/> debug directory
@@ -138,14 +138,14 @@ namespace dnlib.DotNet.Writer {
 		/// It's ignored if the Windows PDB writer doesn't support deterministic PDB files. The PE file isn't
 		/// deterministic in that case.
 		/// </summary>
-		Deterministic			= 0x00000004,
+		Deterministic           = 0x00000004,
 
 		/// <summary>
 		/// Hash the PDB file and add a PDB checksum debug directory entry to the PE file.
 		///
 		/// It's ignored if the PDB writer doesn't support it.
 		/// </summary>
-		PdbChecksum				= 0x00000008,
+		PdbChecksum             = 0x00000008,
 	}
 
 	/// <summary>

@@ -622,34 +622,34 @@ namespace dnlib.DotNet {
 			if (etype == ElementType.Sentinel)
 				etype = (ElementType)reader.ReadByte();
 			switch (etype) {
-			case ElementType.Void:		result = corLibTypes.Void; break;
-			case ElementType.Boolean:	result = corLibTypes.Boolean; break;
-			case ElementType.Char:		result = corLibTypes.Char; break;
-			case ElementType.I1:		result = corLibTypes.SByte; break;
-			case ElementType.U1:		result = corLibTypes.Byte; break;
-			case ElementType.I2:		result = corLibTypes.Int16; break;
-			case ElementType.U2:		result = corLibTypes.UInt16; break;
-			case ElementType.I4:		result = corLibTypes.Int32; break;
-			case ElementType.U4:		result = corLibTypes.UInt32; break;
-			case ElementType.I8:		result = corLibTypes.Int64; break;
-			case ElementType.U8:		result = corLibTypes.UInt64; break;
-			case ElementType.R4:		result = corLibTypes.Single; break;
-			case ElementType.R8:		result = corLibTypes.Double; break;
-			case ElementType.String:	result = corLibTypes.String; break;
-			case ElementType.TypedByRef:result = corLibTypes.TypedReference; break;
-			case ElementType.I:			result = corLibTypes.IntPtr; break;
-			case ElementType.U:			result = corLibTypes.UIntPtr; break;
-			case ElementType.Object:	result = corLibTypes.Object; break;
+			case ElementType.Void: result = corLibTypes.Void; break;
+			case ElementType.Boolean: result = corLibTypes.Boolean; break;
+			case ElementType.Char: result = corLibTypes.Char; break;
+			case ElementType.I1: result = corLibTypes.SByte; break;
+			case ElementType.U1: result = corLibTypes.Byte; break;
+			case ElementType.I2: result = corLibTypes.Int16; break;
+			case ElementType.U2: result = corLibTypes.UInt16; break;
+			case ElementType.I4: result = corLibTypes.Int32; break;
+			case ElementType.U4: result = corLibTypes.UInt32; break;
+			case ElementType.I8: result = corLibTypes.Int64; break;
+			case ElementType.U8: result = corLibTypes.UInt64; break;
+			case ElementType.R4: result = corLibTypes.Single; break;
+			case ElementType.R8: result = corLibTypes.Double; break;
+			case ElementType.String: result = corLibTypes.String; break;
+			case ElementType.TypedByRef: result = corLibTypes.TypedReference; break;
+			case ElementType.I: result = corLibTypes.IntPtr; break;
+			case ElementType.U: result = corLibTypes.UIntPtr; break;
+			case ElementType.Object: result = corLibTypes.Object; break;
 
-			case ElementType.Ptr:		result = new PtrSig(ReadType()); break;
-			case ElementType.ByRef:		result = new ByRefSig(ReadType()); break;
-			case ElementType.ValueType:	result = new ValueTypeSig(ReadTypeDefOrRef(allowTypeSpec)); break;
-			case ElementType.Class:		result = new ClassSig(ReadTypeDefOrRef(allowTypeSpec)); break;
-			case ElementType.FnPtr:		result = new FnPtrSig(ReadSig()); break;
-			case ElementType.SZArray:	result = new SZArraySig(ReadType()); break;
-			case ElementType.CModReqd:	result = new CModReqdSig(ReadTypeDefOrRef(true), ReadType()); break;
-			case ElementType.CModOpt:	result = new CModOptSig(ReadTypeDefOrRef(true), ReadType()); break;
-			case ElementType.Pinned:	result = new PinnedSig(ReadType()); break;
+			case ElementType.Ptr: result = new PtrSig(ReadType()); break;
+			case ElementType.ByRef: result = new ByRefSig(ReadType()); break;
+			case ElementType.ValueType: result = new ValueTypeSig(ReadTypeDefOrRef(allowTypeSpec)); break;
+			case ElementType.Class: result = new ClassSig(ReadTypeDefOrRef(allowTypeSpec)); break;
+			case ElementType.FnPtr: result = new FnPtrSig(ReadSig()); break;
+			case ElementType.SZArray: result = new SZArraySig(ReadType()); break;
+			case ElementType.CModReqd: result = new CModReqdSig(ReadTypeDefOrRef(true), ReadType()); break;
+			case ElementType.CModOpt: result = new CModOptSig(ReadTypeDefOrRef(true), ReadType()); break;
+			case ElementType.Pinned: result = new PinnedSig(ReadType()); break;
 
 			case ElementType.Var:
 				if (!reader.TryReadCompressedUInt32(out num))

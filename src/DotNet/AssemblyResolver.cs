@@ -365,7 +365,7 @@ namespace dnlib.DotNet {
 #endif
 			asms = new List<AssemblyDef?>(cachedAssemblies.Values);
 			cachedAssemblies.Clear();
-		    moduleSearchPaths.Clear();
+			moduleSearchPaths.Clear();
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif

@@ -314,9 +314,9 @@ namespace dnlib.DotNet {
 				if (currentDeclaringType == value)
 					return;
 				if (currentDeclaringType is not null)
-					currentDeclaringType.Properties.Remove(this);	// Will set DeclaringType2 = null
+					currentDeclaringType.Properties.Remove(this);   // Will set DeclaringType2 = null
 				if (value is not null)
-					value.Properties.Add(this);	// Will set DeclaringType2 = value
+					value.Properties.Add(this); // Will set DeclaringType2 = value
 			}
 		}
 

@@ -34,9 +34,9 @@ namespace dnlib.IO {
 
 		public override long Seek(long offset, SeekOrigin origin) {
 			switch (origin) {
-			case SeekOrigin.Begin:		Position = offset; break;
-			case SeekOrigin.Current:	Position += offset; break;
-			case SeekOrigin.End:		Position = Length + offset; break;
+			case SeekOrigin.Begin: Position = offset; break;
+			case SeekOrigin.Current: Position += offset; break;
+			case SeekOrigin.End: Position = Length + offset; break;
 			}
 			return Position;
 		}

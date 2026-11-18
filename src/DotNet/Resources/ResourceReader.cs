@@ -195,25 +195,25 @@ namespace dnlib.DotNet.Resources {
 			uint endPos = reader.Position + (uint)size;
 			uint code = reader.Read7BitEncodedUInt32();
 			switch ((ResourceTypeCode)code) {
-			case ResourceTypeCode.Null:		return resourceDataFactory.CreateNull();
-			case ResourceTypeCode.String:	return resourceDataFactory.Create(reader.ReadSerializedString());
-			case ResourceTypeCode.Boolean:	return resourceDataFactory.Create(reader.ReadBoolean());
-			case ResourceTypeCode.Char:		return resourceDataFactory.Create(reader.ReadChar());
-			case ResourceTypeCode.Byte:		return resourceDataFactory.Create(reader.ReadByte());
-			case ResourceTypeCode.SByte:	return resourceDataFactory.Create(reader.ReadSByte());
-			case ResourceTypeCode.Int16:	return resourceDataFactory.Create(reader.ReadInt16());
-			case ResourceTypeCode.UInt16:	return resourceDataFactory.Create(reader.ReadUInt16());
-			case ResourceTypeCode.Int32:	return resourceDataFactory.Create(reader.ReadInt32());
-			case ResourceTypeCode.UInt32:	return resourceDataFactory.Create(reader.ReadUInt32());
-			case ResourceTypeCode.Int64:	return resourceDataFactory.Create(reader.ReadInt64());
-			case ResourceTypeCode.UInt64:	return resourceDataFactory.Create(reader.ReadUInt64());
-			case ResourceTypeCode.Single:	return resourceDataFactory.Create(reader.ReadSingle());
-			case ResourceTypeCode.Double:	return resourceDataFactory.Create(reader.ReadDouble());
-			case ResourceTypeCode.Decimal:	return resourceDataFactory.Create(reader.ReadDecimal());
+			case ResourceTypeCode.Null: return resourceDataFactory.CreateNull();
+			case ResourceTypeCode.String: return resourceDataFactory.Create(reader.ReadSerializedString());
+			case ResourceTypeCode.Boolean: return resourceDataFactory.Create(reader.ReadBoolean());
+			case ResourceTypeCode.Char: return resourceDataFactory.Create(reader.ReadChar());
+			case ResourceTypeCode.Byte: return resourceDataFactory.Create(reader.ReadByte());
+			case ResourceTypeCode.SByte: return resourceDataFactory.Create(reader.ReadSByte());
+			case ResourceTypeCode.Int16: return resourceDataFactory.Create(reader.ReadInt16());
+			case ResourceTypeCode.UInt16: return resourceDataFactory.Create(reader.ReadUInt16());
+			case ResourceTypeCode.Int32: return resourceDataFactory.Create(reader.ReadInt32());
+			case ResourceTypeCode.UInt32: return resourceDataFactory.Create(reader.ReadUInt32());
+			case ResourceTypeCode.Int64: return resourceDataFactory.Create(reader.ReadInt64());
+			case ResourceTypeCode.UInt64: return resourceDataFactory.Create(reader.ReadUInt64());
+			case ResourceTypeCode.Single: return resourceDataFactory.Create(reader.ReadSingle());
+			case ResourceTypeCode.Double: return resourceDataFactory.Create(reader.ReadDouble());
+			case ResourceTypeCode.Decimal: return resourceDataFactory.Create(reader.ReadDecimal());
 			case ResourceTypeCode.DateTime: return resourceDataFactory.Create(ReadDateTimeV2());
-			case ResourceTypeCode.TimeSpan:	return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
-			case ResourceTypeCode.ByteArray:return resourceDataFactory.Create(reader.ReadBytes(reader.ReadInt32()));
-			case ResourceTypeCode.Stream:	return resourceDataFactory.CreateStream(reader.ReadBytes(reader.ReadInt32()));
+			case ResourceTypeCode.TimeSpan: return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
+			case ResourceTypeCode.ByteArray: return resourceDataFactory.Create(reader.ReadBytes(reader.ReadInt32()));
+			case ResourceTypeCode.Stream: return resourceDataFactory.CreateStream(reader.ReadBytes(reader.ReadInt32()));
 			default:
 				int userTypeIndex = (int)(code - (uint)ResourceTypeCode.UserTypes);
 				if (userTypeIndex < 0 || userTypeIndex >= userTypes.Count)
@@ -233,20 +233,20 @@ namespace dnlib.DotNet.Resources {
 			var commaIndex = type.Name.IndexOf(',');
 			string actualName = commaIndex == -1 ? type.Name : type.Name.Remove(commaIndex);
 			switch (actualName) {
-			case "System.String":   return resourceDataFactory.Create(reader.ReadSerializedString());
-			case "System.Int32":    return resourceDataFactory.Create(reader.ReadInt32());
-			case "System.Byte":     return resourceDataFactory.Create(reader.ReadByte());
-			case "System.SByte":    return resourceDataFactory.Create(reader.ReadSByte());
-			case "System.Int16":    return resourceDataFactory.Create(reader.ReadInt16());
-			case "System.Int64":    return resourceDataFactory.Create(reader.ReadInt64());
-			case "System.UInt16":   return resourceDataFactory.Create(reader.ReadUInt16());
-			case "System.UInt32":   return resourceDataFactory.Create(reader.ReadUInt32());
-			case "System.UInt64":   return resourceDataFactory.Create(reader.ReadUInt64());
-			case "System.Single":   return resourceDataFactory.Create(reader.ReadSingle());
-			case "System.Double":   return resourceDataFactory.Create(reader.ReadDouble());
+			case "System.String": return resourceDataFactory.Create(reader.ReadSerializedString());
+			case "System.Int32": return resourceDataFactory.Create(reader.ReadInt32());
+			case "System.Byte": return resourceDataFactory.Create(reader.ReadByte());
+			case "System.SByte": return resourceDataFactory.Create(reader.ReadSByte());
+			case "System.Int16": return resourceDataFactory.Create(reader.ReadInt16());
+			case "System.Int64": return resourceDataFactory.Create(reader.ReadInt64());
+			case "System.UInt16": return resourceDataFactory.Create(reader.ReadUInt16());
+			case "System.UInt32": return resourceDataFactory.Create(reader.ReadUInt32());
+			case "System.UInt64": return resourceDataFactory.Create(reader.ReadUInt64());
+			case "System.Single": return resourceDataFactory.Create(reader.ReadSingle());
+			case "System.Double": return resourceDataFactory.Create(reader.ReadDouble());
 			case "System.DateTime": return resourceDataFactory.Create(ReadDateTimeV1());
 			case "System.TimeSpan": return resourceDataFactory.Create(new TimeSpan(reader.ReadInt64()));
-			case "System.Decimal":  return resourceDataFactory.Create(reader.ReadDecimal());
+			case "System.Decimal": return resourceDataFactory.Create(reader.ReadDecimal());
 			default:
 				return ReadSerializedObject(endPos, readerType, type);
 			}

@@ -307,7 +307,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		string? ReadUnicodeZ(ulong recPosEnd, bool needZeroChar) {
 			var sb = new StringBuilder();
 
-			for (;;) {
+			for (; ; ) {
 				if (reader.Position >= recPosEnd)
 					return needZeroChar ? null : sb.ToString();
 				var c = reader.ReadChar();

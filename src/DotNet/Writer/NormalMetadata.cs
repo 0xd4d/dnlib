@@ -243,7 +243,7 @@ namespace dnlib.DotNet.Writer {
 					Error("TypeRef 0x{0:X8} has an infinite ResolutionScope loop.", tr.MDToken.Raw);
 				return rid;
 			}
-			typeRefInfos.Add(tr, 0);	// Prevent inf recursion
+			typeRefInfos.Add(tr, 0);    // Prevent inf recursion
 
 			// Add the TypeRefs in the ResolutionScope chain without recursing, outermost first,
 			// or a long chain could overflow the stack. The rows are added in the same order
@@ -278,7 +278,7 @@ namespace dnlib.DotNet.Writer {
 					Error("TypeSpec 0x{0:X8} has an infinite TypeSig loop.", ts.MDToken.Raw);
 				return rid;
 			}
-			typeSpecInfos.Add(ts, 0);	// Prevent inf recursion
+			typeSpecInfos.Add(ts, 0);   // Prevent inf recursion
 			var row = new RawTypeSpecRow(GetSignature(ts.TypeSig, ts.ExtraData));
 			rid = tablesHeap.TypeSpecTable.Add(row);
 			typeSpecInfos.SetRid(ts, rid);

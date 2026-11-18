@@ -425,20 +425,20 @@ namespace dnlib.DotNet.Emit {
 			for (int i = 0; i < count; i++) {
 				var instr = instructions[i];
 				switch (instr.OpCode.Code) {
-				case Code.Beq_S:	instr.OpCode = OpCodes.Beq; break;
-				case Code.Bge_S:	instr.OpCode = OpCodes.Bge; break;
-				case Code.Bgt_S:	instr.OpCode = OpCodes.Bgt; break;
-				case Code.Ble_S:	instr.OpCode = OpCodes.Ble; break;
-				case Code.Blt_S:	instr.OpCode = OpCodes.Blt; break;
-				case Code.Bne_Un_S:	instr.OpCode = OpCodes.Bne_Un; break;
-				case Code.Bge_Un_S:	instr.OpCode = OpCodes.Bge_Un; break;
-				case Code.Bgt_Un_S:	instr.OpCode = OpCodes.Bgt_Un; break;
-				case Code.Ble_Un_S:	instr.OpCode = OpCodes.Ble_Un; break;
-				case Code.Blt_Un_S:	instr.OpCode = OpCodes.Blt_Un; break;
-				case Code.Br_S:		instr.OpCode = OpCodes.Br; break;
-				case Code.Brfalse_S:instr.OpCode = OpCodes.Brfalse; break;
-				case Code.Brtrue_S:	instr.OpCode = OpCodes.Brtrue; break;
-				case Code.Leave_S:	instr.OpCode = OpCodes.Leave; break;
+				case Code.Beq_S: instr.OpCode = OpCodes.Beq; break;
+				case Code.Bge_S: instr.OpCode = OpCodes.Bge; break;
+				case Code.Bgt_S: instr.OpCode = OpCodes.Bgt; break;
+				case Code.Ble_S: instr.OpCode = OpCodes.Ble; break;
+				case Code.Blt_S: instr.OpCode = OpCodes.Blt; break;
+				case Code.Bne_Un_S: instr.OpCode = OpCodes.Bne_Un; break;
+				case Code.Bge_Un_S: instr.OpCode = OpCodes.Bge_Un; break;
+				case Code.Bgt_Un_S: instr.OpCode = OpCodes.Bgt_Un; break;
+				case Code.Ble_Un_S: instr.OpCode = OpCodes.Ble_Un; break;
+				case Code.Blt_Un_S: instr.OpCode = OpCodes.Blt_Un; break;
+				case Code.Br_S: instr.OpCode = OpCodes.Br; break;
+				case Code.Brfalse_S: instr.OpCode = OpCodes.Brfalse; break;
+				case Code.Brtrue_S: instr.OpCode = OpCodes.Brtrue; break;
+				case Code.Leave_S: instr.OpCode = OpCodes.Leave; break;
 				}
 			}
 			return instructions;
@@ -459,20 +459,20 @@ namespace dnlib.DotNet.Emit {
 					var instr = instructions[i];
 					OpCode shortOpCode;
 					switch (instr.OpCode.Code) {
-					case Code.Beq:		shortOpCode = OpCodes.Beq_S; break;
-					case Code.Bge:		shortOpCode = OpCodes.Bge_S; break;
-					case Code.Bge_Un:	shortOpCode = OpCodes.Bge_Un_S; break;
-					case Code.Bgt:		shortOpCode = OpCodes.Bgt_S; break;
-					case Code.Bgt_Un:	shortOpCode = OpCodes.Bgt_Un_S; break;
-					case Code.Ble:		shortOpCode = OpCodes.Ble_S; break;
-					case Code.Ble_Un:	shortOpCode = OpCodes.Ble_Un_S; break;
-					case Code.Blt:		shortOpCode = OpCodes.Blt_S; break;
-					case Code.Blt_Un:	shortOpCode = OpCodes.Blt_Un_S; break;
-					case Code.Bne_Un:	shortOpCode = OpCodes.Bne_Un_S; break;
-					case Code.Br:		shortOpCode = OpCodes.Br_S; break;
-					case Code.Brfalse:	shortOpCode = OpCodes.Brfalse_S; break;
-					case Code.Brtrue:	shortOpCode = OpCodes.Brtrue_S; break;
-					case Code.Leave:	shortOpCode = OpCodes.Leave_S; break;
+					case Code.Beq: shortOpCode = OpCodes.Beq_S; break;
+					case Code.Bge: shortOpCode = OpCodes.Bge_S; break;
+					case Code.Bge_Un: shortOpCode = OpCodes.Bge_Un_S; break;
+					case Code.Bgt: shortOpCode = OpCodes.Bgt_S; break;
+					case Code.Bgt_Un: shortOpCode = OpCodes.Bgt_Un_S; break;
+					case Code.Ble: shortOpCode = OpCodes.Ble_S; break;
+					case Code.Ble_Un: shortOpCode = OpCodes.Ble_Un_S; break;
+					case Code.Blt: shortOpCode = OpCodes.Blt_S; break;
+					case Code.Blt_Un: shortOpCode = OpCodes.Blt_Un_S; break;
+					case Code.Bne_Un: shortOpCode = OpCodes.Bne_Un_S; break;
+					case Code.Br: shortOpCode = OpCodes.Br_S; break;
+					case Code.Brfalse: shortOpCode = OpCodes.Brfalse_S; break;
+					case Code.Brtrue: shortOpCode = OpCodes.Brtrue_S; break;
+					case Code.Leave: shortOpCode = OpCodes.Leave_S; break;
 					default: continue;
 					}
 					var targetInstr = instr.Operand as Instruction;

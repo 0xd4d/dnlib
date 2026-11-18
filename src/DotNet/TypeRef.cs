@@ -324,7 +324,7 @@ namespace dnlib.DotNet {
 					return typeRef;
 				typeRef = next;
 			}
-			return null;	// Here if eg. the TypeRef has an infinite loop
+			return null;    // Here if eg. the TypeRef has an infinite loop
 		}
 
 		/// <inheritdoc/>

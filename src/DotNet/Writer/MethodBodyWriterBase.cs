@@ -182,24 +182,24 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="instr">The instruction</param>
 		protected void WriteOperand(ref ArrayWriter writer, Instruction instr) {
 			switch (instr.OpCode.OperandType) {
-			case OperandType.InlineBrTarget:	WriteInlineBrTarget(ref writer, instr); break;
-			case OperandType.InlineField:		WriteInlineField(ref writer, instr); break;
-			case OperandType.InlineI:			WriteInlineI(ref writer, instr); break;
-			case OperandType.InlineI8:			WriteInlineI8(ref writer, instr); break;
-			case OperandType.InlineMethod:		WriteInlineMethod(ref writer, instr); break;
-			case OperandType.InlineNone:		WriteInlineNone(ref writer, instr); break;
-			case OperandType.InlinePhi:			WriteInlinePhi(ref writer, instr); break;
-			case OperandType.InlineR:			WriteInlineR(ref writer, instr); break;
-			case OperandType.InlineSig:			WriteInlineSig(ref writer, instr); break;
-			case OperandType.InlineString:		WriteInlineString(ref writer, instr); break;
-			case OperandType.InlineSwitch:		WriteInlineSwitch(ref writer, instr); break;
-			case OperandType.InlineTok:			WriteInlineTok(ref writer, instr); break;
-			case OperandType.InlineType:		WriteInlineType(ref writer, instr); break;
-			case OperandType.InlineVar:			WriteInlineVar(ref writer, instr); break;
+			case OperandType.InlineBrTarget: WriteInlineBrTarget(ref writer, instr); break;
+			case OperandType.InlineField: WriteInlineField(ref writer, instr); break;
+			case OperandType.InlineI: WriteInlineI(ref writer, instr); break;
+			case OperandType.InlineI8: WriteInlineI8(ref writer, instr); break;
+			case OperandType.InlineMethod: WriteInlineMethod(ref writer, instr); break;
+			case OperandType.InlineNone: WriteInlineNone(ref writer, instr); break;
+			case OperandType.InlinePhi: WriteInlinePhi(ref writer, instr); break;
+			case OperandType.InlineR: WriteInlineR(ref writer, instr); break;
+			case OperandType.InlineSig: WriteInlineSig(ref writer, instr); break;
+			case OperandType.InlineString: WriteInlineString(ref writer, instr); break;
+			case OperandType.InlineSwitch: WriteInlineSwitch(ref writer, instr); break;
+			case OperandType.InlineTok: WriteInlineTok(ref writer, instr); break;
+			case OperandType.InlineType: WriteInlineType(ref writer, instr); break;
+			case OperandType.InlineVar: WriteInlineVar(ref writer, instr); break;
 			case OperandType.ShortInlineBrTarget: WriteShortInlineBrTarget(ref writer, instr); break;
-			case OperandType.ShortInlineI:		WriteShortInlineI(ref writer, instr); break;
-			case OperandType.ShortInlineR:		WriteShortInlineR(ref writer, instr); break;
-			case OperandType.ShortInlineVar:	WriteShortInlineVar(ref writer, instr); break;
+			case OperandType.ShortInlineI: WriteShortInlineI(ref writer, instr); break;
+			case OperandType.ShortInlineR: WriteShortInlineR(ref writer, instr); break;
+			case OperandType.ShortInlineVar: WriteShortInlineVar(ref writer, instr); break;
 
 			default:
 				Error("Unknown operand type");

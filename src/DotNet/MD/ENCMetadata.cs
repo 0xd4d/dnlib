@@ -222,13 +222,13 @@ namespace dnlib.DotNet.MD {
 			var list = new List<uint>((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
 				if (!tablesStream.TryReadTypeDefRow(rid, out var row))
-					continue;	// Should never happen since rid is valid
+					continue;   // Should never happen since rid is valid
 
 				// RTSpecialName is ignored by the CLR. It's only the name that indicates
 				// whether it's been deleted.
 				// It's not possible to delete the global type (<Module>)
 				if (rid != 1 && stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
-					continue;	// ignore this deleted row
+					continue;   // ignore this deleted row
 				list.Add(rid);
 			}
 			return RidList.Create(list);
@@ -242,12 +242,12 @@ namespace dnlib.DotNet.MD {
 			var list = new List<uint>((int)rows);
 			for (uint rid = 1; rid <= rows; rid++) {
 				if (!tablesStream.TryReadExportedTypeRow(rid, out var row))
-					continue;	// Should never happen since rid is valid
+					continue;   // Should never happen since rid is valid
 
 				// RTSpecialName is ignored by the CLR. It's only the name that indicates
 				// whether it's been deleted.
 				if (stringsStream.ReadNoNull(row.TypeName).StartsWith(DeletedName))
-					continue;	// ignore this deleted row
+					continue;   // ignore this deleted row
 				list.Add(rid);
 			}
 			return RidList.Create(list);
@@ -331,13 +331,13 @@ namespace dnlib.DotNet.MD {
 					if (runtime == CLRRuntimeReaderKind.CLR) {
 						if ((row.Flags & (uint)FieldAttributes.RTSpecialName) != 0) {
 							if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
-								continue;	// ignore this deleted row
+								continue;   // ignore this deleted row
 						}
 					}
 					else {
 						if ((row.Flags & (uint)(FieldAttributes.SpecialName | FieldAttributes.RTSpecialName)) == (uint)(FieldAttributes.SpecialName | FieldAttributes.RTSpecialName)) {
 							if (stringsStream.ReadNoNull(row.Name) == DeletedName)
-								continue;	// ignore this deleted row
+								continue;   // ignore this deleted row
 						}
 					}
 				}
@@ -362,10 +362,10 @@ namespace dnlib.DotNet.MD {
 				if (hasDeletedNonFields) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
 					if (!tablesStream.TryReadMethodRow(rid, out var row))
-						continue;	// Should never happen since rid is valid
+						continue;   // Should never happen since rid is valid
 					if ((row.Flags & (uint)MethodAttributes.RTSpecialName) != 0) {
 						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
-							continue;	// ignore this deleted row
+							continue;   // ignore this deleted row
 					}
 				}
 				// It's a valid non-deleted rid so add it
@@ -406,10 +406,10 @@ namespace dnlib.DotNet.MD {
 				if (hasDeletedNonFields) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
 					if (!tablesStream.TryReadEventRow(rid, out var row))
-						continue;	// Should never happen since rid is valid
+						continue;   // Should never happen since rid is valid
 					if ((row.EventFlags & (uint)EventAttributes.RTSpecialName) != 0) {
 						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
-							continue;	// ignore this deleted row
+							continue;   // ignore this deleted row
 					}
 				}
 				// It's a valid non-deleted rid so add it
@@ -433,10 +433,10 @@ namespace dnlib.DotNet.MD {
 				if (hasDeletedNonFields) {
 					// It's a deleted row if RTSpecialName is set and name is "_Deleted"
 					if (!tablesStream.TryReadPropertyRow(rid, out var row))
-						continue;	// Should never happen since rid is valid
+						continue;   // Should never happen since rid is valid
 					if ((row.PropFlags & (uint)PropertyAttributes.RTSpecialName) != 0) {
 						if (stringsStream.ReadNoNull(row.Name).StartsWith(DeletedName))
-							continue;	// ignore this deleted row
+							continue;   // ignore this deleted row
 					}
 				}
 				// It's a valid non-deleted rid so add it
@@ -489,7 +489,7 @@ namespace dnlib.DotNet.MD {
 			while (ridLo <= ridHi) {
 				uint rid = (ridLo + ridHi) / 2;
 				if (!tablesStream.TryReadColumn24(tableSource, rid, keyColumn, out uint key2))
-					break;	// Never happens since rid is valid
+					break;  // Never happens since rid is valid
 				if (key == key2)
 					return rid;
 				if (key2 > key)
@@ -510,7 +510,7 @@ namespace dnlib.DotNet.MD {
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
 				if (!tablesStream.TryReadColumn24(tableSource, rid, keyColumn, out uint key2))
-					break;	// Never happens since rid is valid
+					break;  // Never happens since rid is valid
 				if (key == key2)
 					return rid;
 			}
@@ -571,7 +571,7 @@ namespace dnlib.DotNet.MD {
 			var tokenToRid = new Dictionary<uint, uint>();
 			for (uint rid = 1; rid <= tableSource.Rows; rid++) {
 				if (!tablesStream.TryReadColumn24(tableSource, rid, column, out uint value))
-					break;	// Never happens since rid is valid
+					break;  // Never happens since rid is valid
 				uint token = GetClrToken(column.ColumnSize, value);
 				if (useLastMatch || !tokenToRid.ContainsKey(token))
 					tokenToRid[token] = rid;
