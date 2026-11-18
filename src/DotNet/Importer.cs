@@ -909,7 +909,9 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>The imported type or <c>null</c></returns>
 		public ITypeDefOrRef? ImportOrNull(TypeRef? type) {
-			var mapped = mapper?.Map(type!);
+			if (type is null)
+				return null;
+			var mapped = mapper?.Map(type);
 			if (mapped is not null)
 				return mapped;
 
