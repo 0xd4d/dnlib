@@ -137,7 +137,7 @@ namespace dnlib.DotNet.Writer {
 
 				case FlowControl.Cond_Branch:
 					if (code == Code.Switch) {
-						if (instr.Operand is IList<Instruction> targets) {
+						if (instr.Operand is IList<Instruction?> targets) {
 							for (int j = 0; j < targets.Count; j++)
 								WriteStack(targets[j], stack);
 						}

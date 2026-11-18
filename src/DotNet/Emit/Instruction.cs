@@ -15,7 +15,12 @@ namespace dnlib.DotNet.Emit {
 		public OpCode OpCode = null!;
 
 		/// <summary>
-		/// The opcode operand
+		/// The opcode operand. A branch target (<see cref="OperandType.InlineBrTarget"/>,
+		/// <see cref="OperandType.ShortInlineBrTarget"/>) is an <see cref="Instruction"/> and a
+		/// <see cref="OperandType.InlineSwitch"/> operand is a list of <see cref="Instruction"/>s, but the
+		/// method body reader sets the target (or the list element) to <see langword="null"/> if the target
+		/// offset isn't the start of an instruction (invalid metadata). Use <c>Operand as Instruction</c> and
+		/// <c>Operand as IList&lt;Instruction?&gt;</c> and check the targets for <see langword="null"/>.
 		/// </summary>
 		public object? Operand;
 
@@ -325,7 +330,7 @@ namespace dnlib.DotNet.Emit {
 				return opCode.Size;
 
 			case OperandType.InlineSwitch:
-				var targets = Operand as IList<Instruction>;
+				var targets = Operand as IList<Instruction?>;
 				return opCode.Size + 4 + (targets is null ? 0 : targets.Count * 4);
 
 			case OperandType.InlineVar:

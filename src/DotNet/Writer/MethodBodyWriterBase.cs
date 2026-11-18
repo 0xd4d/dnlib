@@ -309,7 +309,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="writer">Instruction writer</param>
 		/// <param name="instr">Instruction</param>
 		protected virtual void WriteInlineSwitch(ref ArrayWriter writer, Instruction instr) {
-			var targets = instr.Operand as IList<Instruction>;
+			var targets = instr.Operand as IList<Instruction?>;
 			if (targets is null) {
 				Error("switch operand is not a list of instructions");
 				writer.WriteInt32(0);

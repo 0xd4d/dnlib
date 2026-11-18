@@ -92,7 +92,7 @@ namespace dnlib.DotNet.Emit {
 				break;
 
 			case OperandType.InlineSwitch:
-				var targets = op as IList<Instruction>;
+				var targets = op as IList<Instruction?>;
 				if (targets is null)
 					sb.Append("null");
 				else {
