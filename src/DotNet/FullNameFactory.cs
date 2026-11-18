@@ -1359,7 +1359,8 @@ namespace dnlib.DotNet {
 						sb.Append("<RANK0>");   // Not allowed
 					else if (rank == 1)
 						sb.Append('*');
-					else for (int i = 0; i < (int)rank; i++) {
+					else {
+						for (int i = 0; i < (int)rank; i++) {
 							if (i != 0)
 								sb.Append(',');
 							if (!isReflection) {
@@ -1377,6 +1378,7 @@ namespace dnlib.DotNet {
 								}
 							}
 						}
+					}
 					sb.Append(']');
 				}
 				break;
