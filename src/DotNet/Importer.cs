@@ -42,11 +42,6 @@ namespace dnlib.DotNet {
 		/// Use already existing <see cref="AssemblyRef"/>s whenever possible
 		/// </summary>
 		TryToUseExistingAssemblyRefs = 8,
-
-		/// <summary>
-		/// Don't set this flag. For internal use only.
-		/// </summary>
-		FixSignature = int.MinValue,
 	}
 
 	/// <summary>
@@ -99,7 +94,7 @@ namespace dnlib.DotNet {
 		internal readonly GenericParamContext gpContext;
 		readonly ImportMapper? mapper;
 		RecursionCounter recursionCounter;
-		ImporterOptions options;
+		readonly ImporterOptions options;
 		// true if a generic type definition should be imported as a generic instance type
 		// with its own generic parameters as generic arguments, see ImportAsOperand()
 		bool treatGenericTypeDefsAsGenericInsts;
@@ -108,16 +103,6 @@ namespace dnlib.DotNet {
 		bool TryToUseMethodDefs => (options & ImporterOptions.TryToUseMethodDefs) != 0;
 		bool TryToUseFieldDefs => (options & ImporterOptions.TryToUseFieldDefs) != 0;
 		bool TryToUseExistingAssemblyRefs => (options & ImporterOptions.TryToUseExistingAssemblyRefs) != 0;
-
-		bool FixSignature {
-			get => (options & ImporterOptions.FixSignature) != 0;
-			set {
-				if (value)
-					options |= ImporterOptions.FixSignature;
-				else
-					options &= ~ImporterOptions.FixSignature;
-			}
-		}
 
 		/// <summary>
 		/// Constructor
@@ -311,7 +296,7 @@ namespace dnlib.DotNet {
 			case ElementType.MVar: result = new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method); break;
 
 			case ElementType.I:
-				FixSignature = true;    // Could be a FnPtr, older runtimes (before .NET 8) map them to System.IntPtr
+				// Could be a FnPtr, older runtimes (before .NET 8) map them to System.IntPtr
 				result = module.CorLibTypes.IntPtr;
 				break;
 
@@ -319,7 +304,6 @@ namespace dnlib.DotNet {
 				// We don't know sizes and lower bounds. Assume it's `0..`
 				var lowerBounds = new int[type.GetArrayRank()];
 				var sizes = Array2.Empty<uint>();
-				FixSignature = true;
 				result = new ArraySig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType()), (uint)type.GetArrayRank(), sizes, lowerBounds);
 				break;
 
@@ -365,10 +349,7 @@ namespace dnlib.DotNet {
 			}
 			// Reflection doesn't have the other calling convention bits (HasThis, ExplicitThis, Generic),
 			// can't tell Default from VarArg and needs a modified type to get the unmanaged calling convention.
-			var cc = ReflectionExtensions.GetFunctionPointerCallingConvention(type, modifiedType, out var ccAlt);
-			if (cc is null || ccAlt is not null)
-				FixSignature = true;
-
+			var cc = ReflectionExtensions.GetFunctionPointerCallingConvention(type, modifiedType, out _);
 			var sig = new MethodSig(cc ?? (type.IsUnmanagedFunctionPointer2() ? CallingConvention.Unmanaged : CallingConvention.Default));
 			sig.RetType = ImportFnPtrPart(retType, modRetType, declaringType);
 			for (int i = 0; i < paramTypes.Length; i++)
@@ -382,9 +363,7 @@ namespace dnlib.DotNet {
 			var ts = ImportAsTypeSigOrNull(type, declaringType, null, modifiedType);
 			var requiredModifiers = modifiedType.GetRequiredCustomModifiers2();
 			var optionalModifiers = modifiedType.GetOptionalCustomModifiers2();
-			if (requiredModifiers.Length != 0 || optionalModifiers.Length != 0)
-				FixSignature = true;    // Order of modifiers is unknown
-										// Same order as ImportAsTypeSigOrNull(Type, IList<Type>, IList<Type>, Type, Type)
+			// Order of modifiers is unknown, use the same order as ImportAsTypeSigOrNull(Type, IList<Type>, IList<Type>, Type, Type)
 			foreach (var modifier in requiredModifiers)
 				ts = new CModReqdSig(ImportOrNull(modifier), ts);
 			foreach (var modifier in optionalModifiers)
@@ -550,7 +529,6 @@ namespace dnlib.DotNet {
 			if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers))
 				return ImportAsTypeSigOrNull(type, declaringType, null, modifiedType);
 
-			FixSignature = true;    // Order of modifiers is unknown
 			var ts = ImportAsTypeSigOrNull(type, declaringType, null, modifiedType);
 
 			// We don't know the original order of the modifiers.
@@ -579,25 +557,7 @@ namespace dnlib.DotNet {
 		/// <param name="methodBase">The method</param>
 		/// <returns>The imported method or <c>null</c> if <paramref name="methodBase"/> is invalid
 		/// or if we failed to import the method</returns>
-		public IMethod? ImportOrNull(MethodBase? methodBase) => ImportOrNull(methodBase, false);
-
-		/// <summary>
-		/// Imports a <see cref="MethodBase"/> as a <see cref="IMethod"/>. This will be either
-		/// a <see cref="MemberRef"/> or a <see cref="MethodSpec"/>.
-		/// </summary>
-		/// <param name="methodBase">The method</param>
-		/// <param name="forceFixSignature">Always verify method signature to make sure the
-		/// returned reference matches the metadata in the source assembly</param>
-		/// <returns>The imported method or <c>null</c> if <paramref name="methodBase"/> is invalid
-		/// or if we failed to import the method</returns>
-		public IMethod? ImportOrNull(MethodBase? methodBase, bool forceFixSignature) {
-			FixSignature = false;
-			return ImportInternal(methodBase, forceFixSignature);
-		}
-
-		IMethod? ImportInternal(MethodBase? methodBase) => ImportInternal(methodBase, false);
-
-		IMethod? ImportInternal(MethodBase? methodBase, bool forceFixSignature) {
+		public IMethod? ImportOrNull(MethodBase? methodBase) {
 			if (methodBase is null)
 				return null;
 
@@ -609,10 +569,6 @@ namespace dnlib.DotNet {
 				return md;
 			}
 
-			if (forceFixSignature) {
-				//TODO:
-			}
-
 			bool isMethodSpec = methodBase.IsGenericButNotGenericMethodDefinition();
 			if (isMethodSpec) {
 				IMethodDefOrRef? method;
@@ -621,17 +577,13 @@ namespace dnlib.DotNet {
 				if (methodBase.DeclaringType is not null && methodBase.DeclaringType.GetElementType2() == ElementType.GenericInst)
 					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), ImportOrNull(methodBase.DeclaringType)));
 				else
-					method = ImportInternal(origMethod) as IMethodDefOrRef;
+					method = ImportOrNull(origMethod) as IMethodDefOrRef;
 
 				method = TryResolveMethod(method);
 				if (method is null)
 					return null;
 				var gim = CreateGenericInstMethodSig(methodBase);
-				var methodSpec = module.UpdateRowId(new MethodSpecUser(method, gim));
-				if (FixSignature && !forceFixSignature) {
-					//TODO:
-				}
-				return methodSpec;
+				return module.UpdateRowId(new MethodSpecUser(method, gim));
 			}
 			else {
 				IMemberRefParent? parent;
@@ -662,11 +614,7 @@ namespace dnlib.DotNet {
 
 				var methodSig = CreateMethodSig(origMethod);
 				IMethodDefOrRef? methodRef = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, methodSig, parent));
-				methodRef = TryResolveMethod(methodRef);
-				if (FixSignature && !forceFixSignature) {
-					//TODO:
-				}
-				return methodRef;
+				return TryResolveMethod(methodRef);
 			}
 		}
 
@@ -719,7 +667,6 @@ namespace dnlib.DotNet {
 
 			case CallingConventions.Any:
 			default:
-				FixSignature = true;
 				cc |= CallingConvention.Default;
 				break;
 			}
@@ -753,18 +700,7 @@ namespace dnlib.DotNet {
 		/// <param name="fieldInfo">The field</param>
 		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
 		/// or if we failed to import the field</returns>
-		public IField? ImportOrNull(FieldInfo? fieldInfo) => ImportOrNull(fieldInfo, false);
-
-		/// <summary>
-		/// Imports a <see cref="FieldInfo"/> as a <see cref="MemberRef"/>
-		/// </summary>
-		/// <param name="fieldInfo">The field</param>
-		/// <param name="forceFixSignature">Always verify field signature to make sure the
-		/// returned reference matches the metadata in the source assembly</param>
-		/// <returns>The imported field or <c>null</c> if <paramref name="fieldInfo"/> is invalid
-		/// or if we failed to import the field</returns>
-		public IField? ImportOrNull(FieldInfo? fieldInfo, bool forceFixSignature) {
-			FixSignature = false;
+		public IField? ImportOrNull(FieldInfo? fieldInfo) {
 			if (fieldInfo is null)
 				return null;
 
@@ -774,10 +710,6 @@ namespace dnlib.DotNet {
 				// In same module and declaring type is non-generic, directly resolve field definition.
 				// Obfuscator may rename many fields into same name then TryResolveField will return inconsistent field.
 				return fd;
-			}
-
-			if (forceFixSignature) {
-				//TODO:
 			}
 
 			IMemberRefParent? parent;
@@ -811,11 +743,7 @@ namespace dnlib.DotNet {
 				origField.GetRequiredCustomModifiers(), origField.GetOptionalCustomModifiers(), origField.DeclaringType, modifiedFieldType));
 			var fieldRef = module.UpdateRowId(new MemberRefUser(module, fieldInfo.Name, fieldSig, parent));
 
-			var field = TryResolveField(fieldRef);
-			if (FixSignature && !forceFixSignature) {
-				//TODO:
-			}
-			return field;
+			return TryResolveField(fieldRef);
 		}
 
 		/// <summary>
@@ -1428,19 +1356,6 @@ namespace dnlib.DotNet {
 			methodBase is null ? null : ImportOrNull(methodBase) ?? throw new ImportException($"Could not import: {methodBase}");
 
 		/// <summary>
-		/// Imports a <see cref="MethodBase"/> as a <see cref="IMethod"/>. This will be either
-		/// a <see cref="MemberRef"/> or a <see cref="MethodSpec"/>.
-		/// </summary>
-		/// <param name="methodBase">The method</param>
-		/// <param name="forceFixSignature">Always verify method signature to make sure the
-		/// returned reference matches the metadata in the source assembly</param>
-		/// <returns>The imported method. It's <c>null</c> only if <paramref name="methodBase"/> is <c>null</c>.</returns>
-		/// <exception cref="ImportException">It couldn't be imported. <c>ImportOrNull()</c> returns <c>null</c> instead of throwing.</exception>
-		[return: NotNullIfNotNull(nameof(methodBase))]
-		public IMethod? Import(MethodBase? methodBase, bool forceFixSignature) =>
-			methodBase is null ? null : ImportOrNull(methodBase, forceFixSignature) ?? throw new ImportException($"Could not import: {methodBase}");
-
-		/// <summary>
 		/// Imports a <see cref="FieldInfo"/> as a <see cref="MemberRef"/>
 		/// </summary>
 		/// <param name="fieldInfo">The field</param>
@@ -1449,18 +1364,6 @@ namespace dnlib.DotNet {
 		[return: NotNullIfNotNull(nameof(fieldInfo))]
 		public IField? Import(FieldInfo? fieldInfo) =>
 			fieldInfo is null ? null : ImportOrNull(fieldInfo) ?? throw new ImportException($"Could not import: {fieldInfo}");
-
-		/// <summary>
-		/// Imports a <see cref="FieldInfo"/> as a <see cref="MemberRef"/>
-		/// </summary>
-		/// <param name="fieldInfo">The field</param>
-		/// <param name="forceFixSignature">Always verify field signature to make sure the
-		/// returned reference matches the metadata in the source assembly</param>
-		/// <returns>The imported field. It's <c>null</c> only if <paramref name="fieldInfo"/> is <c>null</c>.</returns>
-		/// <exception cref="ImportException">It couldn't be imported. <c>ImportOrNull()</c> returns <c>null</c> instead of throwing.</exception>
-		[return: NotNullIfNotNull(nameof(fieldInfo))]
-		public IField? Import(FieldInfo? fieldInfo, bool forceFixSignature) =>
-			fieldInfo is null ? null : ImportOrNull(fieldInfo, forceFixSignature) ?? throw new ImportException($"Could not import: {fieldInfo}");
 
 		/// <summary>
 		/// Imports a <see cref="IType"/>
