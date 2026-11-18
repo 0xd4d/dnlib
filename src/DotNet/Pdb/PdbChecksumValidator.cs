@@ -164,10 +164,12 @@ namespace dnlib.DotNet.Pdb {
 					return false;
 				reader.Position = 0x20;
 				uint pageSize = reader.ReadUInt32();
-				/*uint fpm = */reader.ReadUInt32();
+				/*uint fpm = */
+				reader.ReadUInt32();
 				uint pageCount = reader.ReadUInt32();
 				uint rootSize = reader.ReadUInt32();
-				/*uint reserved = */reader.ReadUInt32();
+				/*uint reserved = */
+				reader.ReadUInt32();
 				const uint RootPagePointersOffset = 0x34;
 				if (pageSize < 0x200 || pageSize > 0x8000 || (pageSize & (pageSize - 1)) != 0)
 					return false;

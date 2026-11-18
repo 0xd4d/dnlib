@@ -119,7 +119,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 
 				var nameId = reader.ReadUInt32();
 				var len = reader.ReadByte();
-				/*var type = */reader.ReadByte();
+				/*var type = */
+				reader.ReadByte();
 				var doc = pdbReader.GetDocument(nameId);
 				documents.Add(id, doc);
 

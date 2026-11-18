@@ -181,7 +181,8 @@ namespace dnlib.DotNet {
 				// Read PublicKeyBlob
 				signatureAlgorithm = (SignatureAlgorithm)reader.ReadUInt32();
 				hashAlgorithm = (AssemblyHashAlgorithm)reader.ReadUInt32();
-				/*int pkLen = */reader.ReadInt32();
+				/*int pkLen = */
+				reader.ReadInt32();
 
 				// Read PUBLICKEYSTRUC
 				if (reader.ReadByte() != 6)

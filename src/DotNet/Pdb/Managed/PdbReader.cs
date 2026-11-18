@@ -80,7 +80,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			reader.Position += 2;
 
 			uint pageSize = reader.ReadUInt32();
-			/*uint fpm = */reader.ReadUInt32();
+			/*uint fpm = */
+			reader.ReadUInt32();
 			uint pageCount = reader.ReadUInt32();
 			uint rootSize = reader.ReadUInt32();
 			reader.ReadUInt32();
@@ -190,7 +191,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 			var nameData = stream.Slice(stream.Position, nameSize);
 			stream.Position += nameSize;
 
-			/*uint entryCount = */stream.ReadUInt32();
+			/*uint entryCount = */
+			stream.ReadUInt32();
 			uint entryCapacity = stream.ReadUInt32();
 			int entryOkWords = stream.ReadInt32();
 			if ((uint)entryOkWords > stream.BytesLeft / 4)

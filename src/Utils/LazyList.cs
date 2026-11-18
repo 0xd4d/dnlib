@@ -498,7 +498,8 @@ namespace dnlib.Utils {
 	[DebuggerTypeProxy(typeof(CollectionDebugView<,>))]
 	public class LazyList<TValue, TContext> : LazyList<TValue>, ILazyList<TValue> where TValue : class {
 		// These are only null if there are no lazy elements
-		/*readonly*/ TContext? context;
+		/*readonly*/
+		TContext? context;
 		readonly Func<TContext, int, TValue>? readOriginalValue;
 
 		/// <summary>

@@ -1107,8 +1107,7 @@ namespace dnlib.DotNet.Writer {
 				}
 
 				//TODO: Only do this if symWriter supports PDB checksums
-				if (addPdbChecksumDebugDirectoryEntry)
-					{}//TODO: AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);, and verify that the order of the debug dir entries is the same as Roslyn created binaries
+				if (addPdbChecksumDebugDirectoryEntry) { }//TODO: AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);, and verify that the order of the debug dir entries is the same as Roslyn created binaries
 				if (symWriter.IsDeterministic)
 					AddReproduciblePdbDebugDirectoryEntry();
 			}

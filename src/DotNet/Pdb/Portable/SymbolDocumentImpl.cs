@@ -9,10 +9,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 	[DebuggerDisplay("{GetDebuggerString(),nq}")]
 	sealed class SymbolDocumentImpl : SymbolDocument {
 		readonly string url;
-		/*readonly*/ Guid language;
-		/*readonly*/ Guid languageVendor;
-		/*readonly*/ Guid documentType;
-		/*readonly*/ Guid checkSumAlgorithmId;
+		/*readonly*/
+		Guid language;
+		/*readonly*/
+		Guid languageVendor;
+		/*readonly*/
+		Guid documentType;
+		/*readonly*/
+		Guid checkSumAlgorithmId;
 		readonly byte[] checkSum;
 		readonly PdbCustomDebugInfo[] customDebugInfos;
 		MDToken mdToken;
