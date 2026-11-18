@@ -578,6 +578,7 @@ namespace dnlib.DotNet.Emit {
 		public override void RestoreMethod(MethodDef method) {
 			base.RestoreMethod(method);
 
+			// The base method has thrown if there's no body
 			var body = method.Body!;
 			body.InitLocals = initLocals;
 			body.MaxStack = (ushort)Math.Min(maxStack, ushort.MaxValue);

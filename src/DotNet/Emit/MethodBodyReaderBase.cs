@@ -571,8 +571,11 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="method">The method that gets updated with the instructions, locals, and
 		/// exception handlers.</param>
+		/// <exception cref="NullValueException"><paramref name="method"/> has no CIL body</exception>
 		public virtual void RestoreMethod(MethodDef method) {
-			var body = method.Body!;
+#pragma warning disable RS0030 // Throwing if there's no body is documented
+			var body = method.BodyOrThrow;
+#pragma warning restore RS0030
 
 			body.Variables.Clear();
 			var locals = this.locals;
