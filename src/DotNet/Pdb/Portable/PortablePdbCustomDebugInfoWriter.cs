@@ -208,6 +208,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				length--;
 			for (int i = 0; i < length; i += 8)
 				writer.WriteByte(ToByte(flags, i, length));
+			// Roslyn never writes all false flags (it doesn't write the custom debug info then). Its reader
+			// can't use an empty blob (the local's type becomes an unsupported type) so write one byte.
+			if (length == 0)
+				writer.WriteByte(0);
 		}
 
 		static byte ToByte(bool[] flags, int index, int length) {
