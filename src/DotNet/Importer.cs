@@ -957,7 +957,10 @@ namespace dnlib.DotNet {
 		public TypeSpec? ImportOrNull(TypeSpec? type) {
 			if (type is null)
 				return null;
-			return module.UpdateRowId(new TypeSpecUser(ImportOrNull(type.TypeSig)));
+			var sig = ImportOrNull(type.TypeSig);
+			if (sig is null)
+				return null;
+			return module.UpdateRowId(new TypeSpecUser(sig));
 		}
 
 		/// <summary>
