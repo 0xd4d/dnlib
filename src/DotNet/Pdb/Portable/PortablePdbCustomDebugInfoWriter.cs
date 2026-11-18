@@ -203,14 +203,18 @@ namespace dnlib.DotNet.Pdb.Portable {
 				helper.Error("Dynamic flags is null");
 				return;
 			}
-			for (int i = 0; i < flags.Length; i += 8)
-				writer.WriteByte(ToByte(flags, i));
+			// Like Roslyn, don't write trailing zero bytes. The reader's missing flags are false.
+			int length = flags.Length;
+			while (length > 0 && !flags[length - 1])
+				length--;
+			for (int i = 0; i < length; i += 8)
+				writer.WriteByte(ToByte(flags, i, length));
 		}
 
-		static byte ToByte(bool[] flags, int index) {
+		static byte ToByte(bool[] flags, int index, int length) {
 			int res = 0;
 			int bit = 1;
-			int end = Math.Min(flags.Length, index + 8);
+			int end = Math.Min(length, index + 8);
 			for (int i = index; i < end; i++, bit <<= 1) {
 				if (flags[i])
 					res |= bit;
