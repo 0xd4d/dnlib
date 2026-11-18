@@ -645,7 +645,8 @@ namespace dnlib.DotNet.Pdb {
 		public override Guid Guid => CustomDebugInfoGuids.TupleElementNames;
 
 		/// <summary>
-		/// Gets the tuple element names
+		/// Gets the tuple element names. An unnamed element is an empty string. A <c>null</c> name is written as
+		/// an empty string.
 		/// </summary>
 		public IList<string> Names => names;
 

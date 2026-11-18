@@ -182,12 +182,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var cdiNames = cdi.Names;
 			int count = cdiNames.Count;
 			for (int i = 0; i < count; i++) {
-				var name = cdiNames[i];
-				if (name is null) {
-					helper.Error("Tuple name is null");
-					return;
-				}
-				WriteUTF8Z(name);
+				// Like Roslyn, an unnamed element (null) is an empty string
+				WriteUTF8Z(cdiNames[i] ?? string.Empty);
 			}
 		}
 
