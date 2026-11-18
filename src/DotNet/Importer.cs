@@ -1314,8 +1314,12 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 
-			MethodSpec result = module.UpdateRowId(new MethodSpecUser((IMethodDefOrRef?)ImportOrNull(method.Method)));
-			result.Instantiation = ImportOrNull(method.Instantiation);
+			// An ImportMapper can return any IMethod, eg. a MethodSpec, which can't be the generic method of a MethodSpec
+			MethodSpec? result = null;
+			if (ImportOrNull(method.Method) is IMethodDefOrRef genericMethod) {
+				result = module.UpdateRowId(new MethodSpecUser(genericMethod));
+				result.Instantiation = ImportOrNull(method.Instantiation);
+			}
 
 			recursionCounter.Decrement();
 			return result;
