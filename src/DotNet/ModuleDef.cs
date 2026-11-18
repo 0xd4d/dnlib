@@ -236,12 +236,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				nativeEntryPoint = value;
-				managedEntryPoint = null;
-				Cor20HeaderFlags |= ComImageFlags.NativeEntryPoint;
-				nativeAndManagedEntryPoint_initialized = true;
+					nativeEntryPoint = value;
+					managedEntryPoint = null;
+					Cor20HeaderFlags |= ComImageFlags.NativeEntryPoint;
+					nativeAndManagedEntryPoint_initialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -259,12 +260,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				nativeEntryPoint = 0;
-				managedEntryPoint = value;
-				Cor20HeaderFlags &= ~ComImageFlags.NativeEntryPoint;
-				nativeAndManagedEntryPoint_initialized = true;
+					nativeEntryPoint = 0;
+					managedEntryPoint = value;
+					Cor20HeaderFlags &= ~ComImageFlags.NativeEntryPoint;
+					nativeAndManagedEntryPoint_initialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -279,13 +281,14 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (nativeAndManagedEntryPoint_initialized)
-				return;
-			nativeEntryPoint = GetNativeEntryPoint_NoLock();
-			managedEntryPoint = GetManagedEntryPoint_NoLock();
-			nativeAndManagedEntryPoint_initialized = true;
+				if (nativeAndManagedEntryPoint_initialized)
+					return;
+				nativeEntryPoint = GetNativeEntryPoint_NoLock();
+				managedEntryPoint = GetManagedEntryPoint_NoLock();
+				nativeAndManagedEntryPoint_initialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 		/// <summary>Called to initialize <see cref="nativeEntryPoint"/></summary>
@@ -351,10 +354,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				vtableFixups = value;
-				vtableFixups_isInitialized = true;
+					vtableFixups = value;
+					vtableFixups_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -367,12 +371,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (vtableFixups_isInitialized)
-				return;
-			vtableFixups = GetVTableFixups_NoLock();
-			vtableFixups_isInitialized = true;
+				if (vtableFixups_isInitialized)
+					return;
+				vtableFixups = GetVTableFixups_NoLock();
+				vtableFixups_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -495,10 +500,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				win32Resources = value;
-				win32Resources_isInitialized = true;
+					win32Resources = value;
+					win32Resources_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -511,12 +517,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (win32Resources_isInitialized)
-				return;
-			win32Resources = GetWin32Resources_NoLock();
-			win32Resources_isInitialized = true;
+				if (win32Resources_isInitialized)
+					return;
+				win32Resources = GetWin32Resources_NoLock();
+				win32Resources_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 

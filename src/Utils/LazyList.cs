@@ -157,9 +157,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 				EnterReadLock(); try {
 #endif
-				return Count_NoLock;
+					return Count_NoLock;
 #if THREAD_SAFE
-				} finally { ExitReadLock(); }
+				}
+				finally { ExitReadLock(); }
 #endif
 			}
 		}
@@ -176,9 +177,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 				EnterWriteLock(); try {
 #endif
-				return Get_NoLock(index);
+					return Get_NoLock(index);
 #if THREAD_SAFE
-				} finally { ExitWriteLock(); }
+				}
+				finally { ExitWriteLock(); }
 #endif
 			}
 			set {
@@ -187,9 +189,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 				EnterWriteLock(); try {
 #endif
-				Set_NoLock(index, value);
+					Set_NoLock(index, value);
 #if THREAD_SAFE
-				} finally { ExitWriteLock(); }
+				}
+				finally { ExitWriteLock(); }
 #endif
 			}
 		}
@@ -252,9 +255,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
-			return IndexOf_NoLock(item);
+				return IndexOf_NoLock(item);
 #if THREAD_SAFE
-			} finally { ExitWriteLock(); }
+			}
+			finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -273,9 +277,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
-			Insert_NoLock(index, item);
+				Insert_NoLock(index, item);
 #if THREAD_SAFE
-			} finally { ExitWriteLock(); }
+			}
+			finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -293,9 +298,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
-			RemoveAt_NoLock(index);
+				RemoveAt_NoLock(index);
 #if THREAD_SAFE
-			} finally { ExitWriteLock(); }
+			}
+			finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -315,9 +321,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
-			Add_NoLock(item);
+				Add_NoLock(item);
 #if THREAD_SAFE
-			} finally { ExitWriteLock(); }
+			}
+			finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -336,9 +343,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
-			Clear_NoLock();
+				Clear_NoLock();
 #if THREAD_SAFE
-			} finally { ExitWriteLock(); }
+			}
+			finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -359,9 +367,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
-			CopyTo_NoLock(array, arrayIndex);
+				CopyTo_NoLock(array, arrayIndex);
 #if THREAD_SAFE
-			} finally { ExitWriteLock(); }
+			}
+			finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -375,9 +384,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterWriteLock(); try {
 #endif
-			return Remove_NoLock(item);
+				return Remove_NoLock(item);
 #if THREAD_SAFE
-			} finally { ExitWriteLock(); }
+			}
+			finally { ExitWriteLock(); }
 #endif
 		}
 
@@ -393,9 +403,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 			EnterReadLock(); try {
 #endif
-			return IsInitialized_NoLock(index);
+				return IsInitialized_NoLock(index);
 #if THREAD_SAFE
-			} finally { ExitReadLock(); }
+			}
+			finally { ExitReadLock(); }
 #endif
 		}
 
@@ -421,9 +432,10 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 				list.EnterReadLock(); try {
 #endif
-				id = list.id;
+					id = list.id;
 #if THREAD_SAFE
-				} finally { list.ExitReadLock(); }
+				}
+				finally { list.ExitReadLock(); }
 #endif
 			}
 
@@ -441,15 +453,16 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 				list.EnterWriteLock(); try {
 #endif
-				if (list.id == id && index < list.Count_NoLock) {
-					current = list.list[index].GetValue_NoLock(index);
-					index++;
-					return true;
-				}
-				else
-					return MoveNextDoneOrThrow_NoLock();
+					if (list.id == id && index < list.Count_NoLock) {
+						current = list.list[index].GetValue_NoLock(index);
+						index++;
+						return true;
+					}
+					else
+						return MoveNextDoneOrThrow_NoLock();
 #if THREAD_SAFE
-				} finally { list.ExitWriteLock(); }
+				}
+				finally { list.ExitWriteLock(); }
 #endif
 			}
 

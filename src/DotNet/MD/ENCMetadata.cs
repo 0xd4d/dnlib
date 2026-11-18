@@ -525,10 +525,11 @@ namespace dnlib.DotNet.MD {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (!sortedTables.TryGetValue(tableSource.Table, out sortedTable))
-				sortedTables[tableSource.Table] = sortedTable = new SortedTable(tableSource, keyColIndex);
+				if (!sortedTables.TryGetValue(tableSource.Table, out sortedTable))
+					sortedTables[tableSource.Table] = sortedTable = new SortedTable(tableSource, keyColIndex);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 			return sortedTable.FindAllRows(key);
 		}
@@ -558,10 +559,11 @@ namespace dnlib.DotNet.MD {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (!clrTokenToRidTables.TryGetValue(tableSource.Table, out tokenToRid))
-				clrTokenToRidTables[tableSource.Table] = tokenToRid = CreateClrTokenToRidTable(tableSource, column);
+				if (!clrTokenToRidTables.TryGetValue(tableSource.Table, out tokenToRid))
+					clrTokenToRidTables[tableSource.Table] = tokenToRid = CreateClrTokenToRidTable(tableSource, column);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 			return tokenToRid.TryGetValue(GetClrToken(column.ColumnSize, key), out uint rid) ? rid : 0;
 		}

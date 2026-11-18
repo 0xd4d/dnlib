@@ -175,10 +175,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (otherMethods is null)
-				InitializeEventMethods_NoLock();
+				if (otherMethods is null)
+					InitializeEventMethods_NoLock();
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 

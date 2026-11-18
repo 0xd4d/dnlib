@@ -94,10 +94,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				marshalType = value;
-				marshalType_isInitialized = true;
+					marshalType = value;
+					marshalType_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -110,12 +111,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (marshalType_isInitialized)
-				return;
-			marshalType = GetMarshalType_NoLock();
-			marshalType_isInitialized = true;
+				if (marshalType_isInitialized)
+					return;
+				marshalType = GetMarshalType_NoLock();
+				marshalType_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -136,10 +138,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				constant = value;
-				constant_isInitialized = true;
+					constant = value;
+					constant_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -152,12 +155,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (constant_isInitialized)
-				return;
-			constant = GetConstant_NoLock();
-			constant_isInitialized = true;
+				if (constant_isInitialized)
+					return;
+				constant = GetConstant_NoLock();
+				constant_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 

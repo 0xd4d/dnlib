@@ -110,10 +110,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				resolutionScope = value;
-				resolutionScope_isInitialized = true;
+					resolutionScope = value;
+					resolutionScope_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -131,12 +132,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (resolutionScope_isInitialized)
-				return;
-			resolutionScope = GetResolutionScope_NoLock();
-			resolutionScope_isInitialized = true;
+				if (resolutionScope_isInitialized)
+					return;
+				resolutionScope = GetResolutionScope_NoLock();
+				resolutionScope_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 

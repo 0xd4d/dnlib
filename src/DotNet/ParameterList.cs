@@ -37,7 +37,7 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterReadLock(); try {
 #endif
-				return parameters.Count;
+					return parameters.Count;
 #if THREAD_SAFE
 				}
 				finally { theLock.ExitReadLock(); }
@@ -55,9 +55,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterReadLock(); try {
 #endif
-				return methodSigIndexBase == 1 ? 1 : 0;
+					return methodSigIndexBase == 1 ? 1 : 0;
 #if THREAD_SAFE
-				} finally { theLock.ExitReadLock(); }
+				}
+				finally { theLock.ExitReadLock(); }
 #endif
 			}
 		}
@@ -71,9 +72,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterReadLock(); try {
 #endif
-				return parameters[index];
+					return parameters[index];
 #if THREAD_SAFE
-				} finally { theLock.ExitReadLock(); }
+				}
+				finally { theLock.ExitReadLock(); }
 #endif
 			}
 			set => throw new NotSupportedException();
@@ -87,9 +89,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterReadLock(); try {
 #endif
-				return returnParameter;
+					return returnParameter;
 #if THREAD_SAFE
-				} finally { theLock.ExitReadLock(); }
+				}
+				finally { theLock.ExitReadLock(); }
 #endif
 			}
 		}
@@ -117,29 +120,30 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (methodDeclaringType is null)
-				hiddenThisParameter.Type = null;
-			else {
-				bool isValueType = methodDeclaringType.IsValueType;
-				ClassOrValueTypeSig instSig;
-				if (isValueType)
-					instSig = new ValueTypeSig(methodDeclaringType);
-				else
-					instSig = new ClassSig(methodDeclaringType);
-				TypeSig thisTypeSig;
-				if (methodDeclaringType.HasGenericParameters) {
-					int gpCount = methodDeclaringType.GenericParameters.Count;
-					var genArgs = new List<TypeSig?>(gpCount);
-					for (int i = 0; i < gpCount; i++)
-						genArgs.Add(new GenericVar(i, methodDeclaringType));
-					thisTypeSig = new GenericInstSig(instSig, genArgs);
+				if (methodDeclaringType is null)
+					hiddenThisParameter.Type = null;
+				else {
+					bool isValueType = methodDeclaringType.IsValueType;
+					ClassOrValueTypeSig instSig;
+					if (isValueType)
+						instSig = new ValueTypeSig(methodDeclaringType);
+					else
+						instSig = new ClassSig(methodDeclaringType);
+					TypeSig thisTypeSig;
+					if (methodDeclaringType.HasGenericParameters) {
+						int gpCount = methodDeclaringType.GenericParameters.Count;
+						var genArgs = new List<TypeSig?>(gpCount);
+						for (int i = 0; i < gpCount; i++)
+							genArgs.Add(new GenericVar(i, methodDeclaringType));
+						thisTypeSig = new GenericInstSig(instSig, genArgs);
+					}
+					else
+						thisTypeSig = instSig;
+					hiddenThisParameter.Type = isValueType ? new ByRefSig(thisTypeSig) : thisTypeSig;
 				}
-				else
-					thisTypeSig = instSig;
-				hiddenThisParameter.Type = isValueType ? new ByRefSig(thisTypeSig) : thisTypeSig;
-			}
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -150,22 +154,23 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			var sig = method.MethodSig;
-			if (sig is null) {
-				methodSigIndexBase = -1;
-				parameters.Clear();
-				return;
-			}
-			if (UpdateThisParameter_NoLock(sig))
-				parameters.Clear();
-			returnParameter.Type = sig.RetType;
-			ResizeParameters_NoLock(sig.Params.Count + methodSigIndexBase);
-			if (methodSigIndexBase > 0)
-				parameters[0] = hiddenThisParameter;
-			for (int i = 0; i < sig.Params.Count; i++)
-				parameters[i + methodSigIndexBase].Type = sig.Params[i];
+				var sig = method.MethodSig;
+				if (sig is null) {
+					methodSigIndexBase = -1;
+					parameters.Clear();
+					return;
+				}
+				if (UpdateThisParameter_NoLock(sig))
+					parameters.Clear();
+				returnParameter.Type = sig.RetType;
+				ResizeParameters_NoLock(sig.Params.Count + methodSigIndexBase);
+				if (methodSigIndexBase > 0)
+					parameters[0] = hiddenThisParameter;
+				for (int i = 0; i < sig.Params.Count; i++)
+					parameters[i + methodSigIndexBase].Type = sig.Params[i];
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -198,9 +203,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
-			return FindParamDef_NoLock(param);
+				return FindParamDef_NoLock(param);
 #if THREAD_SAFE
-			} finally { theLock.ExitReadLock(); }
+			}
+			finally { theLock.ExitReadLock(); }
 #endif
 		}
 
@@ -238,18 +244,19 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			var paramDef = FindParamDef_NoLock(param);
-			if (paramDef is not null)
-				return;
-			if (param.IsHiddenThisParameter) {
-				hiddenThisParamDef = UpdateRowId_NoLock(new ParamDefUser(UTF8String.Empty, ushort.MaxValue, 0));
-				return;
-			}
-			int seq = param.IsReturnTypeParameter ? 0 : param.MethodSigIndex + 1;
-			paramDef = UpdateRowId_NoLock(new ParamDefUser(UTF8String.Empty, (ushort)seq, 0));
-			method.ParamDefs.Add(paramDef);
+				var paramDef = FindParamDef_NoLock(param);
+				if (paramDef is not null)
+					return;
+				if (param.IsHiddenThisParameter) {
+					hiddenThisParamDef = UpdateRowId_NoLock(new ParamDefUser(UTF8String.Empty, ushort.MaxValue, 0));
+					return;
+				}
+				int seq = param.IsReturnTypeParameter ? 0 : param.MethodSigIndex + 1;
+				paramDef = UpdateRowId_NoLock(new ParamDefUser(UTF8String.Empty, (ushort)seq, 0));
+				method.ParamDefs.Add(paramDef);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -268,7 +275,7 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
-			return parameters.IndexOf(item);
+				return parameters.IndexOf(item);
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitReadLock(); }
@@ -284,7 +291,7 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
-			return parameters.Contains(item);
+				return parameters.Contains(item);
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitReadLock(); }
@@ -295,7 +302,7 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
-			parameters.CopyTo(array, arrayIndex);
+				parameters.CopyTo(array, arrayIndex);
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitReadLock(); }
@@ -319,9 +326,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				list.theLock.EnterReadLock(); try {
 #endif
-				listEnumerator = list.parameters.GetEnumerator();
+					listEnumerator = list.parameters.GetEnumerator();
 #if THREAD_SAFE
-				} finally { list.theLock.ExitReadLock(); }
+				}
+				finally { list.theLock.ExitReadLock(); }
 #endif
 			}
 
@@ -340,11 +348,12 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				list.theLock.EnterWriteLock(); try {
 #endif
-				var res = listEnumerator.MoveNext();
-				current = listEnumerator.Current;
-				return res;
+					var res = listEnumerator.MoveNext();
+					current = listEnumerator.Current;
+					return res;
 #if THREAD_SAFE
-				} finally { list.theLock.ExitWriteLock(); }
+				}
+				finally { list.theLock.ExitWriteLock(); }
 #endif
 			}
 

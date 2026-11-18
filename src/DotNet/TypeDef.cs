@@ -110,10 +110,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				module2 = value;
-				module2_isInitialized = true;
+					module2 = value;
+					module2_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -126,12 +127,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (module2_isInitialized)
-				return;
-			module2 = GetModule2_NoLock();
-			module2_isInitialized = true;
+				if (module2_isInitialized)
+					return;
+				module2 = GetModule2_NoLock();
+				module2_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -197,10 +199,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				baseType = value;
-				baseType_isInitialized = true;
+					baseType = value;
+					baseType_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -213,12 +216,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (baseType_isInitialized)
-				return;
-			baseType = GetBaseType_NoLock();
-			baseType_isInitialized = true;
+				if (baseType_isInitialized)
+					return;
+				baseType = GetBaseType_NoLock();
+				baseType_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -317,10 +321,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				classLayout = value;
-				classLayout_isInitialized = true;
+					classLayout = value;
+					classLayout_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -333,12 +338,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (classLayout_isInitialized)
-				return;
-			classLayout = GetClassLayout_NoLock();
-			classLayout_isInitialized = true;
+				if (classLayout_isInitialized)
+					return;
+				classLayout = GetClassLayout_NoLock();
+				classLayout_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 		ClassLayout GetOrCreateClassLayout() {
@@ -405,10 +411,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				declaringType2 = value;
-				declaringType2_isInitialized = true;
+					declaringType2 = value;
+					declaringType2_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -421,12 +428,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (declaringType2_isInitialized)
-				return;
-			declaringType2 = GetDeclaringType2_NoLock();
-			declaringType2_isInitialized = true;
+				if (declaringType2_isInitialized)
+					return;
+				declaringType2 = GetDeclaringType2_NoLock();
+				declaringType2_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 

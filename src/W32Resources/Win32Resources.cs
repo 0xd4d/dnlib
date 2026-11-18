@@ -148,9 +148,10 @@ namespace dnlib.W32Resources {
 #if THREAD_SAFE
 			budgetLock.EnterWriteLock(); try {
 #endif
-			return TryUseBudget_NoLock(size);
+				return TryUseBudget_NoLock(size);
 #if THREAD_SAFE
-			} finally { budgetLock.ExitWriteLock(); }
+			}
+			finally { budgetLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -171,13 +172,14 @@ namespace dnlib.W32Resources {
 #if THREAD_SAFE
 			budgetLock.EnterWriteLock(); try {
 #endif
-			if (names.TryGetValue(offset, out var name))
+				if (names.TryGetValue(offset, out var name))
+					return name;
+				name = ReadName_NoLock(ref reader, offset);
+				names[offset] = name;
 				return name;
-			name = ReadName_NoLock(ref reader, offset);
-			names[offset] = name;
-			return name;
 #if THREAD_SAFE
-			} finally { budgetLock.ExitWriteLock(); }
+			}
+			finally { budgetLock.ExitWriteLock(); }
 #endif
 		}
 

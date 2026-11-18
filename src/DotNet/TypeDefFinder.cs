@@ -32,18 +32,20 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterReadLock(); try {
 #endif
-				return IsCacheEnabled_NoLock;
+					return IsCacheEnabled_NoLock;
 #if THREAD_SAFE
-				} finally { theLock.ExitReadLock(); }
+				}
+				finally { theLock.ExitReadLock(); }
 #endif
 			}
 			set {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				IsCacheEnabled_NoLock = value;
+					IsCacheEnabled_NoLock = value;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -107,11 +109,12 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			bool old = IsCacheEnabled_NoLock;
-			IsCacheEnabled_NoLock = false;
-			IsCacheEnabled_NoLock = old;
+				bool old = IsCacheEnabled_NoLock;
+				IsCacheEnabled_NoLock = false;
+				IsCacheEnabled_NoLock = old;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -122,11 +125,12 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (isCacheEnabled)
-				return isReflectionName ? FindCacheReflection(fullName) : FindCacheNormal(fullName);
-			return isReflectionName ? FindSlowReflection(fullName) : FindSlowNormal(fullName);
+				if (isCacheEnabled)
+					return isReflectionName ? FindCacheReflection(fullName) : FindCacheNormal(fullName);
+				return isReflectionName ? FindSlowReflection(fullName) : FindSlowNormal(fullName);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -137,9 +141,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			return isCacheEnabled ? FindCache(typeRef) : FindSlow(typeRef);
+				return isCacheEnabled ? FindCache(typeRef) : FindSlow(typeRef);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -265,14 +270,15 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (typeEnumerator is not null)
-				typeEnumerator.Dispose();
-			typeEnumerator = null;
-			typeRefCache = null!;
-			normalNameCache = null!;
-			reflectionNameCache = null!;
+				if (typeEnumerator is not null)
+					typeEnumerator.Dispose();
+				typeEnumerator = null;
+				typeRefCache = null!;
+				normalNameCache = null!;
+				reflectionNameCache = null!;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 	}
