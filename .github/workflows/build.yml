@@ -1,7 +1,7 @@
 name: GitHub CI
 on:
   push:
-    paths:
+    paths: &build-paths
       - '.github/workflows/**'
       - '.editorconfig'
       - 'Examples/**'
@@ -9,21 +9,13 @@ on:
       - 'build.sh'
       - 'update-banned-symbols.sh'
       - 'dnlib.sln'
+      - 'dnlib.snk'
       - 'global.json'
       - '!**/*.md'
     branches:
       - master
   pull_request:
-    paths:
-      - '.github/workflows/**'
-      - '.editorconfig'
-      - 'Examples/**'
-      - 'src/**'
-      - 'build.sh'
-      - 'update-banned-symbols.sh'
-      - 'dnlib.sln'
-      - 'global.json'
-      - '!**/*.md'
+    paths: *build-paths
     branches:
       - master
   release:
@@ -66,13 +58,14 @@ jobs:
           name: nupkg
           path: src/bin/Release/*.*nupkg
           if-no-files-found: error
+          compression-level: 0 # .nupkg/.snupkg files are already zip files
 
   # Publishing is kept in its own job so that no build code runs with id-token: write
   publish:
     name: Publish to nuget.org
     needs: build-windows
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     environment: nuget
     permissions:
       id-token: write # Required for NuGet trusted publishing (OIDC) and attestations (Sigstore)
