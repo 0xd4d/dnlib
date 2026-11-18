@@ -554,7 +554,8 @@ recursive_call:
 					case ElementType.ValueType:
 						break;
 					case ElementType.String:
-						if (PdbFileKind == PdbFileKind.WindowsPDB) {
+						// Use the kind of the PDB that was read, PdbFileKind can be changed to write another kind
+						if (originalPdbFileKind == PdbFileKind.WindowsPDB) {
 							// "" is stored as null, and null is stored as (int)0
 							if (constant.Value is int && (int)constant.Value == 0)
 								constant.Value = null;
@@ -562,7 +563,7 @@ recursive_call:
 								constant.Value = string.Empty;
 						}
 						else
-							Debug.Assert(PdbFileKind == PdbFileKind.PortablePDB || PdbFileKind == PdbFileKind.EmbeddedPortablePDB);
+							Debug.Assert(originalPdbFileKind == PdbFileKind.PortablePDB || originalPdbFileKind == PdbFileKind.EmbeddedPortablePDB);
 						break;
 					case ElementType.Object:
 					case ElementType.Class:
