@@ -86,7 +86,7 @@ namespace dnlib.DotNet {
 		/// May be used to use reference assemblies for <see cref="Type"/> resolution, for example.
 		/// </summary>
 		/// <param name="source"><see cref="Type"/> to create <see cref="ITypeDefOrRef"/> for. <paramref name="source"/> is non-generic type or generic type without generic arguments.</param>
-		/// <returns><see cref="ITypeDefOrRef"/> or null to use default <see cref="Importer"/>'s type resolution</returns>
+		/// <returns>A <see cref="TypeDef"/> or a <see cref="TypeRef"/> (not a <see cref="TypeSpec"/>), or null to use default <see cref="Importer"/>'s type resolution</returns>
 		public virtual ITypeDefOrRef? Map(Type source) => null;
 	}
 
@@ -489,7 +489,7 @@ namespace dnlib.DotNet {
 		ITypeDefOrRef? CreateTypeDefOrRef(Type type) {
 			var tdr = mapper?.Map(type);
 			if (tdr is TypeSpec)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException($"{nameof(ImportMapper)}.{nameof(ImportMapper.Map)}({nameof(Type)}) must return a {nameof(TypeDef)} or a {nameof(TypeRef)}, not a {nameof(TypeSpec)}: {type}");
 			if (tdr is TypeDef td)
 				return td;
 			if (tdr is TypeRef tr)
