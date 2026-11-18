@@ -12,8 +12,8 @@ namespace dnlib.DotNet.Emit {
 	public abstract class MethodBodyReaderBase {
 		/// <summary>The method reader</summary>
 		protected DataReader reader;
-		/// <summary>All parameters</summary>
-		protected IList<Parameter>? parameters;
+		/// <summary>All parameters. Empty if they're not known yet.</summary>
+		protected IList<Parameter> parameters = Array2.Empty<Parameter>();
 		/// <summary>All locals</summary>
 		protected IList<Local> locals = new List<Local>();
 		/// <summary>All instructions</summary>
@@ -28,9 +28,9 @@ namespace dnlib.DotNet.Emit {
 		readonly ModuleContext? context;
 
 		/// <summary>
-		/// Gets all parameters
+		/// Gets all parameters. It's empty if they're not known yet.
 		/// </summary>
-		public IList<Parameter>? Parameters => parameters;
+		public IList<Parameter> Parameters => parameters;
 
 		/// <summary>
 		/// Gets all locals
@@ -73,7 +73,7 @@ namespace dnlib.DotNet.Emit {
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
+		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet (an empty list is used)</param>
 		protected MethodBodyReaderBase(DataReader reader, IList<Parameter>? parameters)
 			: this(reader, parameters, null) {
 		}
@@ -82,11 +82,11 @@ namespace dnlib.DotNet.Emit {
 		/// Constructor
 		/// </summary>
 		/// <param name="reader">The reader</param>
-		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet</param>
+		/// <param name="parameters">Method parameters or <c>null</c> if they're not known yet (an empty list is used)</param>
 		/// <param name="context">The module context</param>
 		protected MethodBodyReaderBase(DataReader reader, IList<Parameter>? parameters, ModuleContext? context) {
 			this.reader = reader;
-			this.parameters = parameters;
+			this.parameters = parameters ?? Array2.Empty<Parameter>();
 			this.context = context;
 		}
 
@@ -491,7 +491,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="index">A parameter index</param>
 		/// <returns>A <see cref="Parameter"/> or <c>null</c> if <paramref name="index"/> is invalid</returns>
 		protected Parameter? GetParameter(int index) {
-			var parameters = this.parameters!;
+			var parameters = this.parameters;
 			if ((uint)index < (uint)parameters.Count)
 				return parameters[index];
 			return null;
