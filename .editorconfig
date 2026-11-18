@@ -34,8 +34,8 @@ indent_style = space
 [*.{cs,vb}]
 insert_final_newline = true
 
-dotnet_separate_import_directive_groups = false
-dotnet_sort_system_directives_first = true
+#dotnet_separate_import_directive_groups = false
+#dotnet_sort_system_directives_first = true
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
@@ -79,7 +79,7 @@ csharp_space_after_dot = false
 csharp_space_after_keywords_in_control_flow_statements = true
 csharp_space_after_semicolon_in_for_statement = true
 csharp_space_around_binary_operators = before_and_after
-csharp_space_around_declaration_statements = false
+csharp_space_around_declaration_statements = ignore
 csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_before_comma = false
 csharp_space_before_dot = false
