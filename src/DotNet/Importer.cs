@@ -1105,10 +1105,12 @@ namespace dnlib.DotNet {
 			foreach (var p in old.Params)
 				sig.Params.Add(ImportOrNull(p));
 			sig.GenParamCount = old.GenParamCount;
-			var paramsAfterSentinel = sig.ParamsAfterSentinel;
-			if (paramsAfterSentinel is not null) {
-				foreach (var p in old.ParamsAfterSentinel!)
+			var oldParamsAfterSentinel = old.ParamsAfterSentinel;
+			if (oldParamsAfterSentinel is not null) {
+				var paramsAfterSentinel = new List<TypeSig?>(oldParamsAfterSentinel.Count);
+				foreach (var p in oldParamsAfterSentinel)
 					paramsAfterSentinel.Add(ImportOrNull(p));
+				sig.ParamsAfterSentinel = paramsAfterSentinel;
 			}
 			return sig;
 		}
