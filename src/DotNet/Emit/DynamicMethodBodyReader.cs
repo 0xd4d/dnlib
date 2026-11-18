@@ -419,9 +419,9 @@ namespace dnlib.DotNet.Emit {
 		public MethodDef GetMethod() {
 			var cilBody = new CilBody(initLocals, instructions, exceptionHandlers, locals);
 			cilBody.MaxStack = (ushort)Math.Min(maxStack, ushort.MaxValue);
-			instructions = null!;
-			exceptionHandlers = null!;
-			locals = null!;
+			instructions = Array2.Empty<Instruction>();
+			exceptionHandlers = Array2.Empty<ExceptionHandler>();
+			locals = Array2.Empty<Local>();
 			method.Body = cilBody;
 			method.Name = methodName;
 			return method;

@@ -621,9 +621,9 @@ namespace dnlib.DotNet.Emit {
 			cilBody.MaxStack = maxStack;
 			cilBody.LocalVarSigTok = localVarSigTok;
 			cilBody.MetadataBodySize = totalBodySize;
-			instructions = null!;
-			exceptionHandlers = null!;
-			locals = null!;
+			instructions = Array2.Empty<Instruction>();
+			exceptionHandlers = Array2.Empty<ExceptionHandler>();
+			locals = Array2.Empty<Local>();
 			return cilBody;
 		}
 	}

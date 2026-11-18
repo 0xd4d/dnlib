@@ -17,7 +17,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>All locals</summary>
 		protected IList<Local> locals = new List<Local>();
 		/// <summary>All instructions</summary>
-		protected IList<Instruction> instructions = null!;
+		protected IList<Instruction> instructions = Array2.Empty<Instruction>();
 		/// <summary>All exception handlers</summary>
 		protected IList<ExceptionHandler> exceptionHandlers = new List<ExceptionHandler>();
 		uint currentOffset;
