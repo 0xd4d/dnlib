@@ -504,8 +504,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (kickoffToken.Table != Table.Method)
 				return null;
 
-			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(asyncStepInfos.Count);
-			asyncMethod.KickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
+			var kickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
+			if (kickoffMethod is null)
+				return null;
+
+			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(kickoffMethod, asyncStepInfos.Count);
 			asyncMethod.CatchHandlerInstruction = asyncCatchHandler;
 			int count = asyncStepInfos.Count;
 			for (int i = 0; i < count; i++)
@@ -518,6 +521,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (kickoffToken.Table != Table.Method)
 				return null;
 			var kickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
+			if (kickoffMethod is null)
+				return null;
 			return new PdbIteratorMethodCustomDebugInfo(kickoffMethod);
 		}
 

@@ -100,11 +100,8 @@ P:dnlib.DotNet.ModuleDef.GlobalTypeOrThrow;dnlib must not throw when reading inv
 P:dnlib.DotNet.ModuleRef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.Parameter.ParamDefOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.Parameter.TypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
-P:dnlib.DotNet.Pdb.PdbAsyncMethodCustomDebugInfo.KickoffMethodOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
-P:dnlib.DotNet.Pdb.PdbIteratorMethodCustomDebugInfo.KickoffMethodOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.Pdb.PdbMethod.ScopeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.Pdb.PdbScope.StartOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
-P:dnlib.DotNet.Pdb.PdbStateMachineTypeNameCustomDebugInfo.TypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.PropertyDef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.PropertyDef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
 P:dnlib.DotNet.PropertyDef.PropertySigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix

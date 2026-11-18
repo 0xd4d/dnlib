@@ -228,7 +228,7 @@ namespace dnlib.DotNet.Pdb {
 	/// Contains a reference to another method that contains the import strings
 	/// </summary>
 	public sealed class PdbForwardMethodInfoCustomDebugInfo : PdbCustomDebugInfo {
-		IMethodDefOrRef? method;
+		IMethodDefOrRef method;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.ForwardMethodInfo"/>
@@ -243,7 +243,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the referenced method
 		/// </summary>
-		public IMethodDefOrRef? Method {
+		public IMethodDefOrRef Method {
 			get => method;
 			set => method = value;
 		}
@@ -251,21 +251,15 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbForwardMethodInfoCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="method">The referenced method</param>
-		public PdbForwardMethodInfoCustomDebugInfo(IMethodDefOrRef? method) => this.method = method;
+		public PdbForwardMethodInfoCustomDebugInfo(IMethodDefOrRef method) => this.method = method;
 	}
 
 	/// <summary>
 	/// Contains a reference to another method that contains the per-module debug info (assembly reference aliases)
 	/// </summary>
 	public sealed class PdbForwardModuleInfoCustomDebugInfo : PdbCustomDebugInfo {
-		IMethodDefOrRef? method;
+		IMethodDefOrRef method;
 
 		/// <summary>
 		/// Returns <see cref="PdbCustomDebugInfoKind.ForwardModuleInfo"/>
@@ -280,7 +274,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the referenced method
 		/// </summary>
-		public IMethodDefOrRef? Method {
+		public IMethodDefOrRef Method {
 			get => method;
 			set => method = value;
 		}
@@ -288,14 +282,8 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbForwardModuleInfoCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="method">The referenced method</param>
-		public PdbForwardModuleInfoCustomDebugInfo(IMethodDefOrRef? method) => this.method = method;
+		public PdbForwardModuleInfoCustomDebugInfo(IMethodDefOrRef method) => this.method = method;
 	}
 
 	/// <summary>
@@ -379,24 +367,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the state machine type
 		/// </summary>
-		public TypeDef? Type { get; set; }
-
-		/// <summary>
-		/// Same as <see cref="Type"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
-		/// </summary>
-		public TypeDef TypeOrThrow => OrThrowHelper.NotNull(Type, nameof(Type));
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbStateMachineTypeNameCustomDebugInfo() {
-		}
+		public TypeDef Type { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="type">State machine type</param>
-		public PdbStateMachineTypeNameCustomDebugInfo(TypeDef? type) => Type = type;
+		public PdbStateMachineTypeNameCustomDebugInfo(TypeDef type) => Type = type;
 	}
 
 	/// <summary>
@@ -735,19 +712,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the default namespace
 		/// </summary>
-		public string? Namespace { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbDefaultNamespaceCustomDebugInfo() {
-		}
+		public string Namespace { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="defaultNamespace">Default namespace</param>
-		public PdbDefaultNamespaceCustomDebugInfo(string? defaultNamespace) => Namespace = defaultNamespace;
+		public PdbDefaultNamespaceCustomDebugInfo(string defaultNamespace) => Namespace = defaultNamespace;
 	}
 
 	/// <summary>
@@ -767,19 +738,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the dynamic flags
 		/// </summary>
-		public bool[]? Flags { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbDynamicLocalVariablesCustomDebugInfo() {
-		}
+		public bool[] Flags { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="flags">Dynamic flags</param>
-		public PdbDynamicLocalVariablesCustomDebugInfo(bool[]? flags) => Flags = flags;
+		public PdbDynamicLocalVariablesCustomDebugInfo(bool[] flags) => Flags = flags;
 	}
 
 	/// <summary>
@@ -803,19 +768,13 @@ namespace dnlib.DotNet.Pdb {
 		///
 		/// https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#embedded-source-c-and-vb-compilers
 		/// </summary>
-		public byte[]? SourceCodeBlob { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbEmbeddedSourceCustomDebugInfo() {
-		}
+		public byte[] SourceCodeBlob { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="sourceCodeBlob">Source code blob</param>
-		public PdbEmbeddedSourceCustomDebugInfo(byte[]? sourceCodeBlob) => SourceCodeBlob = sourceCodeBlob;
+		public PdbEmbeddedSourceCustomDebugInfo(byte[] sourceCodeBlob) => SourceCodeBlob = sourceCodeBlob;
 	}
 
 	/// <summary>
@@ -835,19 +794,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the source link file contents
 		/// </summary>
-		public byte[]? FileBlob { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbSourceLinkCustomDebugInfo() {
-		}
+		public byte[] FileBlob { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="fileBlob">Source link file contents</param>
-		public PdbSourceLinkCustomDebugInfo(byte[]? fileBlob) => FileBlob = fileBlob;
+		public PdbSourceLinkCustomDebugInfo(byte[] fileBlob) => FileBlob = fileBlob;
 	}
 
 	/// <summary>
@@ -867,19 +820,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the source server file contents
 		/// </summary>
-		public byte[]? FileBlob { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbSourceServerCustomDebugInfo() {
-		}
+		public byte[] FileBlob { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="fileBlob">Source server file contents</param>
-		public PdbSourceServerCustomDebugInfo(byte[]? fileBlob) => FileBlob = fileBlob;
+		public PdbSourceServerCustomDebugInfo(byte[] fileBlob) => FileBlob = fileBlob;
 	}
 
 	/// <summary>
@@ -901,12 +848,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the starting method that initiates the async operation
 		/// </summary>
-		public MethodDef? KickoffMethod { get; set; }
-
-		/// <summary>
-		/// Same as <see cref="KickoffMethod"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
-		/// </summary>
-		public MethodDef KickoffMethodOrThrow => OrThrowHelper.NotNull(KickoffMethod, nameof(KickoffMethod));
+		public MethodDef KickoffMethod { get; set; }
 
 		/// <summary>
 		/// Gets/sets the instruction for the compiler generated catch handler that wraps an async method.
@@ -922,13 +864,21 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbAsyncMethodCustomDebugInfo() => asyncStepInfos = new List<PdbAsyncStepInfo>();
+		/// <param name="kickoffMethod">Kickoff method</param>
+		public PdbAsyncMethodCustomDebugInfo(MethodDef kickoffMethod) {
+			KickoffMethod = kickoffMethod;
+			asyncStepInfos = new List<PdbAsyncStepInfo>();
+		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="kickoffMethod">Kickoff method</param>
 		/// <param name="stepInfosCapacity">Default capacity for <see cref="StepInfos"/></param>
-		public PdbAsyncMethodCustomDebugInfo(int stepInfosCapacity) => asyncStepInfos = new List<PdbAsyncStepInfo>(stepInfosCapacity);
+		public PdbAsyncMethodCustomDebugInfo(MethodDef kickoffMethod, int stepInfosCapacity) {
+			KickoffMethod = kickoffMethod;
+			asyncStepInfos = new List<PdbAsyncStepInfo>(stepInfosCapacity);
+		}
 	}
 
 	/// <summary>
@@ -980,24 +930,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the kickoff method
 		/// </summary>
-		public MethodDef? KickoffMethod { get; set; }
-
-		/// <summary>
-		/// Same as <see cref="KickoffMethod"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
-		/// </summary>
-		public MethodDef KickoffMethodOrThrow => OrThrowHelper.NotNull(KickoffMethod, nameof(KickoffMethod));
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbIteratorMethodCustomDebugInfo() {
-		}
+		public MethodDef KickoffMethod { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="kickoffMethod">Kickoff method</param>
-		public PdbIteratorMethodCustomDebugInfo(MethodDef? kickoffMethod) => KickoffMethod = kickoffMethod;
+		public PdbIteratorMethodCustomDebugInfo(MethodDef kickoffMethod) => KickoffMethod = kickoffMethod;
 	}
 
 	/// <summary>
@@ -1307,18 +1246,12 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the data blob
 		/// </summary>
-		public byte[]? Blob { get; set; }
+		public byte[] Blob { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PrimaryConstructorInformationBlobDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="blob">Source server file contents</param>
+		/// <param name="blob">Data blob</param>
 		public PrimaryConstructorInformationBlobDebugInfo(byte[] blob) => Blob = blob;
 	}
 }

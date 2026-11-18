@@ -49,7 +49,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			docWriter = writer.DefineDocument(pdbDoc.Url, pdbDoc.Language, pdbDoc.LanguageVendor, pdbDoc.DocumentType)!;
 			docWriter.SetCheckSum(pdbDoc.CheckSumAlgorithmId, pdbDoc.CheckSum!);
 			if (TryGetCustomDebugInfo(pdbDoc, out PdbEmbeddedSourceCustomDebugInfo? sourceCdi))
-				docWriter.SetSource(sourceCdi.SourceCodeBlob!);
+				docWriter.SetSource(sourceCdi.SourceCodeBlob);
 			pdbDocs.Add(pdbDoc, docWriter);
 			return docWriter;
 		}
@@ -87,9 +87,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 
 			if (TryGetCustomDebugInfo(module, out PdbSourceLinkCustomDebugInfo? sourceLinkCdi))
-				writer.SetSourceLinkData(sourceLinkCdi.FileBlob!);
+				writer.SetSourceLinkData(sourceLinkCdi.FileBlob);
 			if (TryGetCustomDebugInfo(module, out PdbSourceServerCustomDebugInfo? sourceServerCdi))
-				writer.SetSourceServerData(sourceServerCdi.FileBlob!);
+				writer.SetSourceServerData(sourceServerCdi.FileBlob);
 		}
 
 		bool ShouldAddMethod(MethodDef method) {

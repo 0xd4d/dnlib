@@ -13,9 +13,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			if (kickoffToken.Table != Table.Method)
 				return null;
 			var kickoffMethod = module.ResolveToken(kickoffToken) as MethodDef;
+			if (kickoffMethod is null)
+				return null;
 
-			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(asyncStepInfos.Count);
-			asyncMethod.KickoffMethod = kickoffMethod;
+			var asyncMethod = new PdbAsyncMethodCustomDebugInfo(kickoffMethod, asyncStepInfos.Count);
 
 			if (asyncCatchHandlerILOffset is not null) {
 				asyncMethod.CatchHandlerInstruction = GetInstruction(body, asyncCatchHandlerILOffset.Value);
