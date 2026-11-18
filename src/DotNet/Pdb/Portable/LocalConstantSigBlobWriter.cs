@@ -103,6 +103,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 					return;
 
 				case ElementType.Object:
+					// OBJECT has no value, it's a null reference
+					if (value is not null)
+						helper.Error("Expected a null constant");
 					return;
 
 				case ElementType.ValueType:
