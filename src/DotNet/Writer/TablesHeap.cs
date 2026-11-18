@@ -98,7 +98,7 @@ namespace dnlib.DotNet.Writer {
 		/// <inheritdoc/>
 		public RVA RVA => rva;
 
-#pragma warning disable 1591	// XML doc comment
+#pragma warning disable 1591  // XML doc comment                      
 		public readonly MDTable<RawModuleRow> ModuleTable = new MDTable<RawModuleRow>(Table.Module, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawTypeRefRow> TypeRefTable = new MDTable<RawTypeRefRow>(Table.TypeRef, RawRowEqualityComparer.Instance);
 		public readonly MDTable<RawTypeDefRow> TypeDefTable = new MDTable<RawTypeDefRow>(Table.TypeDef, RawRowEqualityComparer.Instance);

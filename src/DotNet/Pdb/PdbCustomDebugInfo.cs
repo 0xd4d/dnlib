@@ -972,17 +972,17 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// No bit is set
 		/// </summary>
-		None					= 0,
+		None                    = 0,
 
 		/// <summary>
 		/// Set if it's an assembly reference, clear if it's a module reference
 		/// </summary>
-		Assembly				= 0x01,
+		Assembly                = 0x01,
 
 		/// <summary>
 		/// EmbedInteropTypes was enabled
 		/// </summary>
-		EmbedInteropTypes		= 0x02,
+		EmbedInteropTypes       = 0x02,
 	}
 
 	/// <summary>

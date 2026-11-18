@@ -6,12 +6,12 @@ namespace dnlib.DotNet.MD {
 	/// </summary>
 	public enum HeapType : uint {
 		/// <summary>#Strings heap</summary>
-		Strings	= 0,
+		Strings = 0,
 		/// <summary>#GUID heap</summary>
-		Guid	= 1,
+		Guid    = 1,
 		/// <summary>#Blob heap</summary>
-		Blob	= 2,
+		Blob    = 2,
 		/// <summary>#US heap</summary>
-		US		= 3,
+		US      = 3,
 	}
 }

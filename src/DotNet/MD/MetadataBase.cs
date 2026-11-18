@@ -303,13 +303,13 @@ namespace dnlib.DotNet.MD {
 			var column = tableSource.TableInfo.Columns[keyColIndex];
 			for (; startRid > 1; startRid--) {
 				if (!tablesStream.TryReadColumn24(tableSource, startRid - 1, column, out uint key2))
-					break;	// Should never happen since startRid is valid
+					break;  // Should never happen since startRid is valid
 				if (key != key2)
 					break;
 			}
 			for (; endRid <= tableSource.Rows; endRid++) {
 				if (!tablesStream.TryReadColumn24(tableSource, endRid, column, out uint key2))
-					break;	// Should never happen since endRid is valid
+					break;  // Should never happen since endRid is valid
 				if (key != key2)
 					break;
 			}
@@ -361,7 +361,7 @@ namespace dnlib.DotNet.MD {
 			for (uint lim = tableSource.Rows; lim != 0; lim >>= 1) {
 				uint index = baseIndex + (lim >> 1);
 				if (!tablesStream.TryReadColumn24(tableSource, index + 1, keyColumn, out uint key2))
-					break;	// Never happens since rid is valid
+					break;  // Never happens since rid is valid
 				if (key == key2)
 					return index + 1;
 				if (key > key2) {
@@ -692,12 +692,12 @@ namespace dnlib.DotNet.MD {
 			}
 
 			var nestedRidsDict = new Dictionary<uint, bool>((int)table.Rows);
-			var nestedRids = new List<uint>((int)table.Rows);	// Need it so we add the rids in correct order
+			var nestedRids = new List<uint>((int)table.Rows);   // Need it so we add the rids in correct order
 			for (uint rid = 1; rid <= table.Rows; rid++) {
 				if (validTypeDefRids is not null && !validTypeDefRids.ContainsKey(rid))
 					continue;
 				if (!tablesStream.TryReadNestedClassRow(rid, out var row))
-					continue;	// Should never happen since rid is valid
+					continue;   // Should never happen since rid is valid
 				if (!destTable.IsValidRID(row.NestedClass) || !destTable.IsValidRID(row.EnclosingClass))
 					continue;
 				if (nestedRidsDict.ContainsKey(row.NestedClass))

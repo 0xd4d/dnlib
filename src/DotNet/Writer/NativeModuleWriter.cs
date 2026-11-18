@@ -725,11 +725,11 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32(sectionSizes.SizeOfCode);
 				writer.WriteUInt32(sectionSizes.SizeOfInitdData);
 				writer.WriteUInt32(sectionSizes.SizeOfUninitdData);
-				writer.Position += 4;	// EntryPoint
+				writer.Position += 4;   // EntryPoint
 				writer.WriteUInt32(sectionSizes.BaseOfCode);
 				writer.WriteUInt32(sectionSizes.BaseOfData);
 				WriteUInt32(writer, peOptions.ImageBase);
-				writer.Position += 8;	// SectionAlignment, FileAlignment
+				writer.Position += 8;   // SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MinorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MajorImageVersion);
@@ -740,7 +740,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32(sectionSizes.SizeOfImage);
 				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.WriteInt32(0);	// CheckSum
+				writer.WriteInt32(0);   // CheckSum
 				WriteUInt16(writer, peOptions.Subsystem);
 				WriteUInt16(writer, peOptions.DllCharacteristics);
 				WriteUInt32(writer, peOptions.SizeOfStackReserve);
@@ -757,10 +757,10 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32(sectionSizes.SizeOfCode);
 				writer.WriteUInt32(sectionSizes.SizeOfInitdData);
 				writer.WriteUInt32(sectionSizes.SizeOfUninitdData);
-				writer.Position += 4;	// EntryPoint
+				writer.Position += 4;   // EntryPoint
 				writer.WriteUInt32(sectionSizes.BaseOfCode);
 				WriteUInt64(writer, peOptions.ImageBase);
-				writer.Position += 8;	// SectionAlignment, FileAlignment
+				writer.Position += 8;   // SectionAlignment, FileAlignment
 				WriteUInt16(writer, peOptions.MajorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MinorOperatingSystemVersion);
 				WriteUInt16(writer, peOptions.MajorImageVersion);
@@ -771,7 +771,7 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteUInt32(sectionSizes.SizeOfImage);
 				writer.WriteUInt32(sectionSizes.SizeOfHeaders);
 				checkSumOffset = writer.Position;
-				writer.WriteInt32(0);	// CheckSum
+				writer.WriteInt32(0);   // CheckSum
 				WriteUInt16(writer, peOptions.Subsystem ?? GetSubsystem());
 				WriteUInt16(writer, peOptions.DllCharacteristics ?? module.DllCharacteristics);
 				WriteUInt64(writer, peOptions.SizeOfStackReserve);
@@ -810,7 +810,7 @@ namespace dnlib.DotNet.Writer {
 			foreach (var section in origSections) {
 				writer.Position += 0x14;
 				// Keep 0 if the section has no file data, else the loader would read SizeOfRawData bytes from that offset
-				writer.WriteUInt32(section.PESection.PointerToRawData == 0 ? 0 : (uint)section.Chunk.FileOffset);	// PointerToRawData
+				writer.WriteUInt32(section.PESection.PointerToRawData == 0 ? 0 : (uint)section.Chunk.FileOffset);   // PointerToRawData
 				writer.Position += 0x10;
 			}
 			foreach (var section in sections)
@@ -818,7 +818,7 @@ namespace dnlib.DotNet.Writer {
 
 			// Write the .NET header
 			writer.Position = cor20Offset;
-			writer.WriteInt32(0x48);		// cb
+			writer.WriteInt32(0x48);        // cb
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MajorRuntimeVersion);
 			WriteUInt16(writer, Options.Cor20HeaderOptions.MinorRuntimeVersion);
 			writer.WriteDataDirectory(metadata);

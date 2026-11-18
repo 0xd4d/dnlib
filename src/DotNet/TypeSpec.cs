@@ -74,7 +74,7 @@ namespace dnlib.DotNet {
 				if (sig is TypeDefOrRefSig tdr) {
 					if (tdr.IsTypeDef || tdr.IsTypeRef)
 						return tdr.TypeDefOrRef!.DeclaringType;
-					return null;	// If it's another TypeSpec, just stop. Don't want possible inf recursion.
+					return null;    // If it's another TypeSpec, just stop. Don't want possible inf recursion.
 				}
 
 				return null;
@@ -167,12 +167,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				typeSig = value;
-				if (!typeSigAndExtraData_isInitialized)
-					GetTypeSigAndExtraData_NoLock(out extraData);
-				typeSigAndExtraData_isInitialized = true;
+					typeSig = value;
+					if (!typeSigAndExtraData_isInitialized)
+						GetTypeSigAndExtraData_NoLock(out extraData);
+					typeSigAndExtraData_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -207,12 +208,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (typeSigAndExtraData_isInitialized)
-				return;
-			typeSig = GetTypeSigAndExtraData_NoLock(out extraData);
-			typeSigAndExtraData_isInitialized = true;
+				if (typeSigAndExtraData_isInitialized)
+					return;
+				typeSig = GetTypeSigAndExtraData_NoLock(out extraData);
+				typeSigAndExtraData_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 

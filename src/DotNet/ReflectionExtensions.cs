@@ -57,7 +57,7 @@ namespace dnlib.DotNet {
 		/// <returns>The type's element type</returns>
 		public static ElementType GetElementType2(this Type a) {
 			if (a is null)
-				return ElementType.End;	// Any invalid one is good enough
+				return ElementType.End; // Any invalid one is good enough
 			if (a.IsArray)
 				return IsSZArray(a) ? ElementType.SZArray : ElementType.Array;
 			if (a.IsByRef)
@@ -71,24 +71,24 @@ namespace dnlib.DotNet {
 			if (a.IsGenericType && !a.IsGenericTypeDefinition)
 				return ElementType.GenericInst;
 
-			if (a == typeof(void))			return ElementType.Void;
-			if (a == typeof(bool))			return ElementType.Boolean;
-			if (a == typeof(char))			return ElementType.Char;
-			if (a == typeof(sbyte))			return ElementType.I1;
-			if (a == typeof(byte))			return ElementType.U1;
-			if (a == typeof(short))			return ElementType.I2;
-			if (a == typeof(ushort))		return ElementType.U2;
-			if (a == typeof(int))			return ElementType.I4;
-			if (a == typeof(uint))			return ElementType.U4;
-			if (a == typeof(long))			return ElementType.I8;
-			if (a == typeof(ulong))			return ElementType.U8;
-			if (a == typeof(float))			return ElementType.R4;
-			if (a == typeof(double))		return ElementType.R8;
-			if (a == typeof(string))		return ElementType.String;
-			if (a == typeof(TypedReference))return ElementType.TypedByRef;
-			if (a == typeof(IntPtr))		return ElementType.I;
-			if (a == typeof(UIntPtr))		return ElementType.U;
-			if (a == typeof(object))		return ElementType.Object;
+			if (a == typeof(void)) return ElementType.Void;
+			if (a == typeof(bool)) return ElementType.Boolean;
+			if (a == typeof(char)) return ElementType.Char;
+			if (a == typeof(sbyte)) return ElementType.I1;
+			if (a == typeof(byte)) return ElementType.U1;
+			if (a == typeof(short)) return ElementType.I2;
+			if (a == typeof(ushort)) return ElementType.U2;
+			if (a == typeof(int)) return ElementType.I4;
+			if (a == typeof(uint)) return ElementType.U4;
+			if (a == typeof(long)) return ElementType.I8;
+			if (a == typeof(ulong)) return ElementType.U8;
+			if (a == typeof(float)) return ElementType.R4;
+			if (a == typeof(double)) return ElementType.R8;
+			if (a == typeof(string)) return ElementType.String;
+			if (a == typeof(TypedReference)) return ElementType.TypedByRef;
+			if (a == typeof(IntPtr)) return ElementType.I;
+			if (a == typeof(UIntPtr)) return ElementType.U;
+			if (a == typeof(object)) return ElementType.Object;
 
 			return a.IsValueType ? ElementType.ValueType : ElementType.Class;
 		}
@@ -273,11 +273,11 @@ namespace dnlib.DotNet {
 				return CallingConvention.Unmanaged;
 			CallingConvention cc;
 			switch (name) {
-			case "CallConvCdecl":		cc = CallingConvention.C; break;
-			case "CallConvStdcall":		cc = CallingConvention.StdCall; break;
-			case "CallConvThiscall":	cc = CallingConvention.ThisCall; break;
-			case "CallConvFastcall":	cc = CallingConvention.FastCall; break;
-			default:					return CallingConvention.Unmanaged;
+			case "CallConvCdecl": cc = CallingConvention.C; break;
+			case "CallConvStdcall": cc = CallingConvention.StdCall; break;
+			case "CallConvThiscall": cc = CallingConvention.ThisCall; break;
+			case "CallConvFastcall": cc = CallingConvention.FastCall; break;
+			default: return CallingConvention.Unmanaged;
 			}
 			// If the return type's only CallConv* modifier is the same type, it could also be Unmanaged
 			int count = 0;

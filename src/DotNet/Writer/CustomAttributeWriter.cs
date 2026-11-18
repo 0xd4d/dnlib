@@ -563,16 +563,16 @@ namespace dnlib.DotNet.Writer {
 			if (o is null)
 				return false;
 			switch (Type.GetTypeCode(o.GetType())) {
-			case TypeCode.Boolean:	writer.WriteBoolean((bool)o); break;
-			case TypeCode.Char:		writer.WriteUInt16((ushort)(char)o); break;
-			case TypeCode.SByte:	writer.WriteSByte((sbyte)o); break;
-			case TypeCode.Byte:		writer.WriteByte((byte)o); break;
-			case TypeCode.Int16:	writer.WriteInt16((short)o); break;
-			case TypeCode.UInt16:	writer.WriteUInt16((ushort)o); break;
-			case TypeCode.Int32:	writer.WriteInt32((int)o); break;
-			case TypeCode.UInt32:	writer.WriteUInt32((uint)o); break;
-			case TypeCode.Int64:	writer.WriteInt64((long)o); break;
-			case TypeCode.UInt64:	writer.WriteUInt64((ulong)o); break;
+			case TypeCode.Boolean: writer.WriteBoolean((bool)o); break;
+			case TypeCode.Char: writer.WriteUInt16((ushort)(char)o); break;
+			case TypeCode.SByte: writer.WriteSByte((sbyte)o); break;
+			case TypeCode.Byte: writer.WriteByte((byte)o); break;
+			case TypeCode.Int16: writer.WriteInt16((short)o); break;
+			case TypeCode.UInt16: writer.WriteUInt16((ushort)o); break;
+			case TypeCode.Int32: writer.WriteInt32((int)o); break;
+			case TypeCode.UInt32: writer.WriteUInt32((uint)o); break;
+			case TypeCode.Int64: writer.WriteInt64((long)o); break;
+			case TypeCode.UInt64: writer.WriteUInt64((ulong)o); break;
 			default: return false;
 			}
 			return true;
@@ -657,20 +657,20 @@ namespace dnlib.DotNet.Writer {
 
 			ITypeDefOrRef? tdr;
 			switch (type.ElementType) {
-			case ElementType.Boolean:	writer.WriteByte((byte)SerializationType.Boolean); break;
-			case ElementType.Char:		writer.WriteByte((byte)SerializationType.Char); break;
-			case ElementType.I1:		writer.WriteByte((byte)SerializationType.I1); break;
-			case ElementType.U1:		writer.WriteByte((byte)SerializationType.U1); break;
-			case ElementType.I2:		writer.WriteByte((byte)SerializationType.I2); break;
-			case ElementType.U2:		writer.WriteByte((byte)SerializationType.U2); break;
-			case ElementType.I4:		writer.WriteByte((byte)SerializationType.I4); break;
-			case ElementType.U4:		writer.WriteByte((byte)SerializationType.U4); break;
-			case ElementType.I8:		writer.WriteByte((byte)SerializationType.I8); break;
-			case ElementType.U8:		writer.WriteByte((byte)SerializationType.U8); break;
-			case ElementType.R4:		writer.WriteByte((byte)SerializationType.R4); break;
-			case ElementType.R8:		writer.WriteByte((byte)SerializationType.R8); break;
-			case ElementType.String:	writer.WriteByte((byte)SerializationType.String); break;
-			case ElementType.Object:	writer.WriteByte((byte)SerializationType.TaggedObject); break;
+			case ElementType.Boolean: writer.WriteByte((byte)SerializationType.Boolean); break;
+			case ElementType.Char: writer.WriteByte((byte)SerializationType.Char); break;
+			case ElementType.I1: writer.WriteByte((byte)SerializationType.I1); break;
+			case ElementType.U1: writer.WriteByte((byte)SerializationType.U1); break;
+			case ElementType.I2: writer.WriteByte((byte)SerializationType.I2); break;
+			case ElementType.U2: writer.WriteByte((byte)SerializationType.U2); break;
+			case ElementType.I4: writer.WriteByte((byte)SerializationType.I4); break;
+			case ElementType.U4: writer.WriteByte((byte)SerializationType.U4); break;
+			case ElementType.I8: writer.WriteByte((byte)SerializationType.I8); break;
+			case ElementType.U8: writer.WriteByte((byte)SerializationType.U8); break;
+			case ElementType.R4: writer.WriteByte((byte)SerializationType.R4); break;
+			case ElementType.R8: writer.WriteByte((byte)SerializationType.R8); break;
+			case ElementType.String: writer.WriteByte((byte)SerializationType.String); break;
+			case ElementType.Object: writer.WriteByte((byte)SerializationType.TaggedObject); break;
 
 			case ElementType.SZArray:
 				writer.WriteByte((byte)SerializationType.SZArray);

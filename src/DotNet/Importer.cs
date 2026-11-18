@@ -284,34 +284,34 @@ namespace dnlib.DotNet {
 			bool treatAsGenericInst2 = treatAsGenericInst ??
 				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type));
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
-			case ElementType.Void:		result = module.CorLibTypes.Void; break;
-			case ElementType.Boolean:	result = module.CorLibTypes.Boolean; break;
-			case ElementType.Char:		result = module.CorLibTypes.Char; break;
-			case ElementType.I1:		result = module.CorLibTypes.SByte; break;
-			case ElementType.U1:		result = module.CorLibTypes.Byte; break;
-			case ElementType.I2:		result = module.CorLibTypes.Int16; break;
-			case ElementType.U2:		result = module.CorLibTypes.UInt16; break;
-			case ElementType.I4:		result = module.CorLibTypes.Int32; break;
-			case ElementType.U4:		result = module.CorLibTypes.UInt32; break;
-			case ElementType.I8:		result = module.CorLibTypes.Int64; break;
-			case ElementType.U8:		result = module.CorLibTypes.UInt64; break;
-			case ElementType.R4:		result = module.CorLibTypes.Single; break;
-			case ElementType.R8:		result = module.CorLibTypes.Double; break;
-			case ElementType.String:	result = module.CorLibTypes.String; break;
-			case ElementType.TypedByRef:result = module.CorLibTypes.TypedReference; break;
-			case ElementType.U:			result = module.CorLibTypes.UIntPtr; break;
-			case ElementType.Object:	result = module.CorLibTypes.Object; break;
-			case ElementType.Ptr:		result = new PtrSig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
-			case ElementType.ByRef:		result = new ByRefSig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
-			case ElementType.SZArray:	result = new SZArraySig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
-			case ElementType.FnPtr:		result = ImportFnPtr(type, declaringType, modifiedType); break;
+			case ElementType.Void: result = module.CorLibTypes.Void; break;
+			case ElementType.Boolean: result = module.CorLibTypes.Boolean; break;
+			case ElementType.Char: result = module.CorLibTypes.Char; break;
+			case ElementType.I1: result = module.CorLibTypes.SByte; break;
+			case ElementType.U1: result = module.CorLibTypes.Byte; break;
+			case ElementType.I2: result = module.CorLibTypes.Int16; break;
+			case ElementType.U2: result = module.CorLibTypes.UInt16; break;
+			case ElementType.I4: result = module.CorLibTypes.Int32; break;
+			case ElementType.U4: result = module.CorLibTypes.UInt32; break;
+			case ElementType.I8: result = module.CorLibTypes.Int64; break;
+			case ElementType.U8: result = module.CorLibTypes.UInt64; break;
+			case ElementType.R4: result = module.CorLibTypes.Single; break;
+			case ElementType.R8: result = module.CorLibTypes.Double; break;
+			case ElementType.String: result = module.CorLibTypes.String; break;
+			case ElementType.TypedByRef: result = module.CorLibTypes.TypedReference; break;
+			case ElementType.U: result = module.CorLibTypes.UIntPtr; break;
+			case ElementType.Object: result = module.CorLibTypes.Object; break;
+			case ElementType.Ptr: result = new PtrSig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
+			case ElementType.ByRef: result = new ByRefSig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
+			case ElementType.SZArray: result = new SZArraySig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
+			case ElementType.FnPtr: result = ImportFnPtr(type, declaringType, modifiedType); break;
 			case ElementType.ValueType: result = new ValueTypeSig(CreateTypeDefOrRef(type)); break;
-			case ElementType.Class:		result = new ClassSig(CreateTypeDefOrRef(type)); break;
-			case ElementType.Var:		result = new GenericVar((uint)type.GenericParameterPosition, gpContext.Type); break;
-			case ElementType.MVar:		result = new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method); break;
+			case ElementType.Class: result = new ClassSig(CreateTypeDefOrRef(type)); break;
+			case ElementType.Var: result = new GenericVar((uint)type.GenericParameterPosition, gpContext.Type); break;
+			case ElementType.MVar: result = new GenericMVar((uint)type.GenericParameterPosition, gpContext.Method); break;
 
 			case ElementType.I:
-				FixSignature = true;	// Could be a FnPtr, older runtimes (before .NET 8) map them to System.IntPtr
+				FixSignature = true;    // Could be a FnPtr, older runtimes (before .NET 8) map them to System.IntPtr
 				result = module.CorLibTypes.IntPtr;
 				break;
 
@@ -383,8 +383,8 @@ namespace dnlib.DotNet {
 			var requiredModifiers = modifiedType.GetRequiredCustomModifiers2();
 			var optionalModifiers = modifiedType.GetOptionalCustomModifiers2();
 			if (requiredModifiers.Length != 0 || optionalModifiers.Length != 0)
-				FixSignature = true;	// Order of modifiers is unknown
-			// Same order as ImportAsTypeSigOrNull(Type, IList<Type>, IList<Type>, Type, Type)
+				FixSignature = true;    // Order of modifiers is unknown
+										// Same order as ImportAsTypeSigOrNull(Type, IList<Type>, IList<Type>, Type, Type)
 			foreach (var modifier in requiredModifiers)
 				ts = new CModReqdSig(ImportOrNull(modifier), ts);
 			foreach (var modifier in optionalModifiers)
@@ -551,7 +551,7 @@ namespace dnlib.DotNet {
 			if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers))
 				return ImportAsTypeSigOrNull(type, declaringType, null, modifiedType);
 
-			FixSignature = true;	// Order of modifiers is unknown
+			FixSignature = true;    // Order of modifiers is unknown
 			var ts = ImportAsTypeSigOrNull(type, declaringType, null, modifiedType);
 
 			// We don't know the original order of the modifiers.
@@ -957,38 +957,38 @@ namespace dnlib.DotNet {
 
 			TypeSig? result;
 			switch (type.ElementType) {
-			case ElementType.Void:		result = module.CorLibTypes.Void; break;
-			case ElementType.Boolean:	result = module.CorLibTypes.Boolean; break;
-			case ElementType.Char:		result = module.CorLibTypes.Char; break;
-			case ElementType.I1:		result = module.CorLibTypes.SByte; break;
-			case ElementType.U1:		result = module.CorLibTypes.Byte; break;
-			case ElementType.I2:		result = module.CorLibTypes.Int16; break;
-			case ElementType.U2:		result = module.CorLibTypes.UInt16; break;
-			case ElementType.I4:		result = module.CorLibTypes.Int32; break;
-			case ElementType.U4:		result = module.CorLibTypes.UInt32; break;
-			case ElementType.I8:		result = module.CorLibTypes.Int64; break;
-			case ElementType.U8:		result = module.CorLibTypes.UInt64; break;
-			case ElementType.R4:		result = module.CorLibTypes.Single; break;
-			case ElementType.R8:		result = module.CorLibTypes.Double; break;
-			case ElementType.String:	result = module.CorLibTypes.String; break;
-			case ElementType.TypedByRef:result = module.CorLibTypes.TypedReference; break;
-			case ElementType.I:			result = module.CorLibTypes.IntPtr; break;
-			case ElementType.U:			result = module.CorLibTypes.UIntPtr; break;
-			case ElementType.Object:	result = module.CorLibTypes.Object; break;
-			case ElementType.Ptr:		result = new PtrSig(ImportOrNull(type.Next)); break;
-			case ElementType.ByRef:		result = new ByRefSig(ImportOrNull(type.Next)); break;
+			case ElementType.Void: result = module.CorLibTypes.Void; break;
+			case ElementType.Boolean: result = module.CorLibTypes.Boolean; break;
+			case ElementType.Char: result = module.CorLibTypes.Char; break;
+			case ElementType.I1: result = module.CorLibTypes.SByte; break;
+			case ElementType.U1: result = module.CorLibTypes.Byte; break;
+			case ElementType.I2: result = module.CorLibTypes.Int16; break;
+			case ElementType.U2: result = module.CorLibTypes.UInt16; break;
+			case ElementType.I4: result = module.CorLibTypes.Int32; break;
+			case ElementType.U4: result = module.CorLibTypes.UInt32; break;
+			case ElementType.I8: result = module.CorLibTypes.Int64; break;
+			case ElementType.U8: result = module.CorLibTypes.UInt64; break;
+			case ElementType.R4: result = module.CorLibTypes.Single; break;
+			case ElementType.R8: result = module.CorLibTypes.Double; break;
+			case ElementType.String: result = module.CorLibTypes.String; break;
+			case ElementType.TypedByRef: result = module.CorLibTypes.TypedReference; break;
+			case ElementType.I: result = module.CorLibTypes.IntPtr; break;
+			case ElementType.U: result = module.CorLibTypes.UIntPtr; break;
+			case ElementType.Object: result = module.CorLibTypes.Object; break;
+			case ElementType.Ptr: result = new PtrSig(ImportOrNull(type.Next)); break;
+			case ElementType.ByRef: result = new ByRefSig(ImportOrNull(type.Next)); break;
 			case ElementType.ValueType: result = CreateClassOrValueType((type as ClassOrValueTypeSig)!.TypeDefOrRef, true); break;
-			case ElementType.Class:		result = CreateClassOrValueType((type as ClassOrValueTypeSig)!.TypeDefOrRef, false); break;
-			case ElementType.Var:		result = new GenericVar((type as GenericVar)!.Number, gpContext.Type); break;
-			case ElementType.ValueArray:result = new ValueArraySig(ImportOrNull(type.Next), (type as ValueArraySig)!.Size); break;
-			case ElementType.FnPtr:		result = new FnPtrSig(ImportOrNull((type as FnPtrSig)!.Signature)); break;
-			case ElementType.SZArray:	result = new SZArraySig(ImportOrNull(type.Next)); break;
-			case ElementType.MVar:		result = new GenericMVar((type as GenericMVar)!.Number, gpContext.Method); break;
-			case ElementType.CModReqd:	result = new CModReqdSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
-			case ElementType.CModOpt:	result = new CModOptSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
-			case ElementType.Module:	result = new ModuleSig((type as ModuleSig)!.Index, ImportOrNull(type.Next)); break;
-			case ElementType.Sentinel:	result = new SentinelSig(); break;
-			case ElementType.Pinned:	result = new PinnedSig(ImportOrNull(type.Next)); break;
+			case ElementType.Class: result = CreateClassOrValueType((type as ClassOrValueTypeSig)!.TypeDefOrRef, false); break;
+			case ElementType.Var: result = new GenericVar((type as GenericVar)!.Number, gpContext.Type); break;
+			case ElementType.ValueArray: result = new ValueArraySig(ImportOrNull(type.Next), (type as ValueArraySig)!.Size); break;
+			case ElementType.FnPtr: result = new FnPtrSig(ImportOrNull((type as FnPtrSig)!.Signature)); break;
+			case ElementType.SZArray: result = new SZArraySig(ImportOrNull(type.Next)); break;
+			case ElementType.MVar: result = new GenericMVar((type as GenericMVar)!.Number, gpContext.Method); break;
+			case ElementType.CModReqd: result = new CModReqdSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
+			case ElementType.CModOpt: result = new CModOptSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
+			case ElementType.Module: result = new ModuleSig((type as ModuleSig)!.Index, ImportOrNull(type.Next)); break;
+			case ElementType.Sentinel: result = new SentinelSig(); break;
+			case ElementType.Pinned: result = new PinnedSig(ImportOrNull(type.Next)); break;
 
 			case ElementType.Array:
 				var arraySig = (ArraySig)type;
@@ -1059,7 +1059,7 @@ namespace dnlib.DotNet {
 			else if (sigType == typeof(LocalSig))
 				result = ImportOrNull((LocalSig)sig);
 			else
-				result = null;	// Should never be reached
+				result = null;  // Should never be reached
 
 			recursionCounter.Decrement();
 			return result;
@@ -1319,7 +1319,7 @@ namespace dnlib.DotNet {
 			MemberRef? result = module.UpdateRowId(new MemberRefUser(module, memberRef.Name));
 			result.Signature = ImportOrNull(memberRef.Signature);
 			result.Class = ImportOrNull(memberRef.Class);
-			if (result.Class is null)	// Will be null if memberRef.Class is null or a MethodDef
+			if (result.Class is null)   // Will be null if memberRef.Class is null or a MethodDef
 				result = null;
 
 			recursionCounter.Decrement();

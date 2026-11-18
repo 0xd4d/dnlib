@@ -132,7 +132,8 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 					return new List<PdbDocument>(docs.Keys);
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #else
 				return docs.Keys;
 #endif
@@ -147,9 +148,10 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				return docs.Count > 0;
+					return docs.Count > 0;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 
 			}
@@ -203,9 +205,10 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			return Add_NoLock(doc);
+				return Add_NoLock(doc);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -310,20 +313,21 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			// doc may be an equal copy of the stored document
-			var stored = GetExisting_NoLock(doc);
-			if (stored is null)
-				return false;
-			var info = docs[stored];
-			docs.Remove(stored);
-			RemoveFromValueIndex_NoLock(info);
-			if (info.HasReaderKey)
-				readerIndex.Remove(info.ReaderKey);
-			if (stored.MDToken.HasValue && tokenToDocument.TryGetValue(stored.MDToken.Value, out var tokenDoc) && tokenDoc == (object)stored)
-				tokenToDocument.Remove(stored.MDToken.Value);
-			return true;
+				// doc may be an equal copy of the stored document
+				var stored = GetExisting_NoLock(doc);
+				if (stored is null)
+					return false;
+				var info = docs[stored];
+				docs.Remove(stored);
+				RemoveFromValueIndex_NoLock(info);
+				if (info.HasReaderKey)
+					readerIndex.Remove(info.ReaderKey);
+				if (stored.MDToken.HasValue && tokenToDocument.TryGetValue(stored.MDToken.Value, out var tokenDoc) && tokenDoc == (object)stored)
+					tokenToDocument.Remove(stored.MDToken.Value);
+				return true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -340,9 +344,10 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			return GetExisting_NoLock(doc);
+				return GetExisting_NoLock(doc);
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -379,14 +384,15 @@ namespace dnlib.DotNet.Pdb {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			var result = returnDocs ? new List<PdbDocument>(docs.Keys) : null;
-			tokenToDocument.Clear();
-			valueIndex.Clear();
-			readerIndex.Clear();
-			docs.Clear();
-			return result;
+				var result = returnDocs ? new List<PdbDocument>(docs.Keys) : null;
+				tokenToDocument.Clear();
+				valueIndex.Clear();
+				readerIndex.Clear();
+				docs.Clear();
+				return result;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -424,7 +430,7 @@ namespace dnlib.DotNet.Pdb {
 					return Compiler.VisualBasic;
 			}
 
-// Disable this for now, we shouldn't be resolving types this early since we could be called by the ModuleDefMD ctor
+			// Disable this for now, we shouldn't be resolving types this early since we could be called by the ModuleDefMD ctor
 #if false
 			// The VB runtime can also be embedded, and if so, it seems that "Microsoft.VisualBasic.Embedded"
 			// attribute is added to the assembly's custom attributes.
@@ -472,7 +478,7 @@ recursive_call:
 			int instrIndex = 0;
 			state.PdbScope = new PdbScope() {
 				Start = GetInstruction(body.Instructions, sorted, state.SymScope.StartOffset, ref instrIndex),
-				End   = GetInstruction(body.Instructions, sorted, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
+				End = GetInstruction(body.Instructions, sorted, state.SymScope.EndOffset + endIsInclusiveValue, ref instrIndex),
 			};
 			var cdis = state.SymScope.CustomDebugInfos;
 			int count = cdis.Count;

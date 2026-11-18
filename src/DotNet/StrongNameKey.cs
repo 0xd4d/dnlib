@@ -181,19 +181,20 @@ namespace dnlib.DotNet {
 				// Read PublicKeyBlob
 				signatureAlgorithm = (SignatureAlgorithm)reader.ReadUInt32();
 				hashAlgorithm = (AssemblyHashAlgorithm)reader.ReadUInt32();
-				/*int pkLen = */reader.ReadInt32();
+				/*int pkLen = */
+				reader.ReadInt32();
 
 				// Read PUBLICKEYSTRUC
 				if (reader.ReadByte() != 6)
 					throw new InvalidKeyException("Not a public key");
 				if (reader.ReadByte() != 2)
 					throw new InvalidKeyException("Invalid version");
-				reader.ReadUInt16();	// reserved
+				reader.ReadUInt16();    // reserved
 				if ((SignatureAlgorithm)reader.ReadUInt32() != SignatureAlgorithm.CALG_RSA_SIGN)
 					throw new InvalidKeyException("Not RSA sign");
 
 				// Read RSAPUBKEY
-				if (reader.ReadUInt32() != RSA1_SIG)	// magic = RSA1
+				if (reader.ReadUInt32() != RSA1_SIG)    // magic = RSA1
 					throw new InvalidKeyException("Invalid RSA1 magic");
 				uint bitLength = reader.ReadUInt32();
 				publicExponent = reader.ReadBytesReverse(4);
@@ -215,17 +216,17 @@ namespace dnlib.DotNet {
 				throw new ArgumentException("Signature algorithm must be RSA");
 			var outStream = new MemoryStream();
 			var writer = new BinaryWriter(outStream);
-			writer.Write((uint)sigAlg);		// SigAlgID
-			writer.Write((uint)hashAlg);	// HashAlgID
+			writer.Write((uint)sigAlg);     // SigAlgID
+			writer.Write((uint)hashAlg);    // HashAlgID
 			writer.Write(0x14 + modulus.Length);// cbPublicKey
-			writer.Write((byte)6);			// bType (public key)
-			writer.Write((byte)2);			// bVersion
-			writer.Write((ushort)0);		// reserved
-			writer.Write((uint)sigAlg);		// aiKeyAlg
-			writer.Write(RSA1_SIG);			// magic (RSA1)
-			writer.Write(modulus.Length * 8);	// bitlen
+			writer.Write((byte)6);          // bType (public key)
+			writer.Write((byte)2);          // bVersion
+			writer.Write((ushort)0);        // reserved
+			writer.Write((uint)sigAlg);     // aiKeyAlg
+			writer.Write(RSA1_SIG);         // magic (RSA1)
+			writer.Write(modulus.Length * 8);   // bitlen
 			writer.WriteReverse(publicExponent);// pubexp
-			writer.WriteReverse(modulus);	// modulus
+			writer.WriteReverse(modulus);   // modulus
 			return outStream.ToArray();
 		}
 
@@ -388,12 +389,12 @@ namespace dnlib.DotNet {
 					throw new InvalidKeyException("Not a public/private key pair");
 				if (reader.ReadByte() != 2)
 					throw new InvalidKeyException("Invalid version");
-				reader.ReadUInt16();	// reserved
+				reader.ReadUInt16();    // reserved
 				if ((SignatureAlgorithm)reader.ReadUInt32() != SignatureAlgorithm.CALG_RSA_SIGN)
 					throw new InvalidKeyException("Not RSA sign");
 
 				// Read RSAPUBKEY
-				if (reader.ReadUInt32() != RSA2_SIG)	// magic = RSA2
+				if (reader.ReadUInt32() != RSA2_SIG)    // magic = RSA2
 					throw new InvalidKeyException("Invalid RSA2 magic");
 				uint bitLength = reader.ReadUInt32();
 				publicExponent = reader.ReadBytesReverse(4);
@@ -475,12 +476,12 @@ namespace dnlib.DotNet {
 		public byte[] CreateStrongName() {
 			var outStream = new MemoryStream();
 			var writer = new BinaryWriter(outStream);
-			writer.Write((byte)7);			// bType (public/private key)
-			writer.Write((byte)2);			// bVersion
-			writer.Write((ushort)0);		// reserved
-			writer.Write((uint)SignatureAlgorithm.CALG_RSA_SIGN);	// aiKeyAlg
-			writer.Write(RSA2_SIG);			// magic (RSA2)
-			writer.Write(modulus.Length * 8);	// bitlen
+			writer.Write((byte)7);          // bType (public/private key)
+			writer.Write((byte)2);          // bVersion
+			writer.Write((ushort)0);        // reserved
+			writer.Write((uint)SignatureAlgorithm.CALG_RSA_SIGN);   // aiKeyAlg
+			writer.Write(RSA2_SIG);         // magic (RSA2)
+			writer.Write(modulus.Length * 8);   // bitlen
 			writer.WriteReverse(publicExponent);
 			writer.WriteReverse(modulus);
 			writer.WriteReverse(prime1);

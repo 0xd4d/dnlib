@@ -47,7 +47,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void ReplaceSymbolStore([In, MarshalAs(UnmanagedType.LPWStr)] string filename, [In] IStream pIStream);
 		void GetSymbolStoreFileName([In] uint cchName, [Out] out uint pcchName, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[]? szName);
 		void GetMethodsFromDocumentPosition([In] ISymUnmanagedDocument document, [In] uint line, [In] uint column, [In] uint cMethod, [Out] out uint pcMethod, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] ISymUnmanagedMethod[]? pRetVal);
-		void GetDocumentVersion([In] ISymUnmanagedDocument pDoc, [Out] out int version, [Out] [MarshalAs(UnmanagedType.Bool)] out bool pbCurrent);
+		void GetDocumentVersion([In] ISymUnmanagedDocument pDoc, [Out] out int version, [Out][MarshalAs(UnmanagedType.Bool)] out bool pbCurrent);
 		void GetMethodVersion([In] ISymUnmanagedMethod pMethod, [Out] out int version);
 	}
 
@@ -59,7 +59,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void _VtblGap1_17();
 		void GetMethodByVersionPreRemap(uint token, uint version, [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod pRetVal);
 		void GetSymAttributePreRemap(uint parent, [In, MarshalAs(UnmanagedType.LPWStr)] string name, uint cBuffer, out uint pcBuffer, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[]? buffer);
-		void GetMethodsInDocument(ISymUnmanagedDocument document, uint bufferLength, out uint count, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] [In] [Out] ISymUnmanagedMethod[]? methods);
+		void GetMethodsInDocument(ISymUnmanagedDocument document, uint bufferLength, out uint count, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)][In][Out] ISymUnmanagedMethod[]? methods);
 	}
 
 	[ComVisible(true),
@@ -106,7 +106,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void GetCheckSumAlgorithmId([Out] out Guid pRetVal);
 		void GetCheckSum([In] uint cData, [Out] out uint pcData, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[]? data);
 		void FindClosestLine([In] uint line, [Out] out uint pRetVal);
-		void HasEmbeddedSource([Out] [MarshalAs(UnmanagedType.Bool)] out bool pRetVal);
+		void HasEmbeddedSource([Out][MarshalAs(UnmanagedType.Bool)] out bool pRetVal);
 		[PreserveSig]
 		int GetSourceLength([Out] out int pRetVal);
 		[PreserveSig]
@@ -126,7 +126,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void GetRanges([In] ISymUnmanagedDocument document, [In] uint line, [In] uint column, [In] uint cRanges, [Out] out uint pcRanges, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] int[]? ranges);
 		void GetParameters([In] uint cParams, [Out] out uint pcParams, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[]? parameters);
 		void GetNamespace([Out] out ISymUnmanagedNamespace pRetVal);
-		void GetSourceStartEnd([In, MarshalAs(UnmanagedType.LPArray)] ISymUnmanagedDocument[/*2*/] docs, [In, MarshalAs(UnmanagedType.LPArray)] int[/*2*/] lines, [In, MarshalAs(UnmanagedType.LPArray)] int[/*2*/] columns, [Out] [MarshalAs(UnmanagedType.Bool)] out bool pRetVal);
+		void GetSourceStartEnd([In, MarshalAs(UnmanagedType.LPArray)] ISymUnmanagedDocument[/*2*/] docs, [In, MarshalAs(UnmanagedType.LPArray)] int[/*2*/] lines, [In, MarshalAs(UnmanagedType.LPArray)] int[/*2*/] columns, [Out][MarshalAs(UnmanagedType.Bool)] out bool pRetVal);
 		void GetSequencePoints([In] uint cPoints, [Out] out uint pcPoints, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? offsets, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedDocument[]? documents, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? lines, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? columns, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? endLines, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? endColumns);
 	}
 
@@ -247,26 +247,26 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void GetInterfaceImplProps([In] uint iiImpl, [Out] out uint pClass, [Out] out uint ptkIface);
 		void GetTypeRefProps([In] uint tr, [Out] uint* ptkResolutionScope, [Out] ushort* szName, [In] uint cchName, [Out] uint* pchName);
 		void ResolveTypeRef(uint tr, ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppIScope, out uint ptd);
-		void EnumMembers([In, Out] ref IntPtr phEnum, [In] uint cl, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMembers, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumMembersWithName([In, Out] ref IntPtr phEnum, [In] uint cl, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMembers, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumMethods([In, Out] ref IntPtr phEnum, [In] uint cl, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMethods, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumMethodsWithName([In, Out] ref IntPtr phEnum, [In] uint cl, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMethods, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumFields([In, Out] ref IntPtr phEnum, [In] uint cl, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rFields, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumFieldsWithName([In, Out] ref IntPtr phEnum, [In] uint cl, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rFields, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumParams([In, Out] ref IntPtr phEnum, [In] uint mb, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rParams, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumMemberRefs([In, Out] ref IntPtr phEnum, [In] uint tkParent, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMemberRefs, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumMethodImpls([In, Out] ref IntPtr phEnum, [In] uint td, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMethodBody, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMethodDecl, [In] uint cMax, [Out] out uint pcTokens);
-		void EnumPermissionSets([In, Out] ref IntPtr phEnum, [In] uint tk, [In] uint dwActions, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rPermission, [In] uint cMax, [Out] out uint pcTokens);
-		void FindMember([In] uint td, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmb);
-		void FindMethod([In] uint td, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmb);
-		void FindField([In] uint td, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmb);
-		void FindMemberRef([In] uint td, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmr);
+		void EnumMembers([In, Out] ref IntPtr phEnum, [In] uint cl, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMembers, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumMembersWithName([In, Out] ref IntPtr phEnum, [In] uint cl, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMembers, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumMethods([In, Out] ref IntPtr phEnum, [In] uint cl, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMethods, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumMethodsWithName([In, Out] ref IntPtr phEnum, [In] uint cl, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMethods, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumFields([In, Out] ref IntPtr phEnum, [In] uint cl, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rFields, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumFieldsWithName([In, Out] ref IntPtr phEnum, [In] uint cl, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rFields, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumParams([In, Out] ref IntPtr phEnum, [In] uint mb, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rParams, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumMemberRefs([In, Out] ref IntPtr phEnum, [In] uint tkParent, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMemberRefs, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumMethodImpls([In, Out] ref IntPtr phEnum, [In] uint td, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMethodBody, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMethodDecl, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumPermissionSets([In, Out] ref IntPtr phEnum, [In] uint tk, [In] uint dwActions, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rPermission, [In] uint cMax, [Out] out uint pcTokens);
+		void FindMember([In] uint td, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmb);
+		void FindMethod([In] uint td, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmb);
+		void FindField([In] uint td, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmb);
+		void FindMemberRef([In] uint td, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmr);
 		void GetMethodProps(uint mb, uint* pClass, [In] ushort* szMethod, uint cchMethod, uint* pchMethod, uint* pdwAttr, [Out] IntPtr* ppvSigBlob, [Out] uint* pcbSigBlob, [Out] uint* pulCodeRVA, [Out] uint* pdwImplFlags);
 		void GetMemberRefProps([In] uint mr, [Out] out uint ptk, [Out] IntPtr szMember, [In] uint cchMember, [Out] out uint pchMember, [Out] out IntPtr ppvSigBlob, [Out] out uint pbSig);
-		void EnumProperties([In, Out] ref IntPtr phEnum, [In] uint td, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rProperties, [In] uint cMax, [Out] out uint pcProperties);
-		void EnumEvents([In, Out] ref IntPtr phEnum, [In] uint td, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rEvents, [In] uint cMax, [Out] out uint pcEvents);
-		void GetEventProps([In] uint ev, [Out] out uint pClass, IntPtr szEvent, [In] uint cchEvent, [Out] out uint pchEvent, [Out] out uint pdwEventFlags, [Out] out uint ptkEventType, [Out] out uint pmdAddOn, [Out] out uint pmdRemoveOn, [Out] out uint pmdFire, [In, Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethod, [In] uint cMax, [Out] out uint pcOtherMethod);
-		void EnumMethodSemantics([In, Out] ref IntPtr phEnum, [In] uint mb, [In, Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rEventProp, [In] uint cMax, [Out] out uint pcEventProp);
+		void EnumProperties([In, Out] ref IntPtr phEnum, [In] uint td, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rProperties, [In] uint cMax, [Out] out uint pcProperties);
+		void EnumEvents([In, Out] ref IntPtr phEnum, [In] uint td, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rEvents, [In] uint cMax, [Out] out uint pcEvents);
+		void GetEventProps([In] uint ev, [Out] out uint pClass, IntPtr szEvent, [In] uint cchEvent, [Out] out uint pchEvent, [Out] out uint pdwEventFlags, [Out] out uint ptkEventType, [Out] out uint pmdAddOn, [Out] out uint pmdRemoveOn, [Out] out uint pmdFire, [In, Out][MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethod, [In] uint cMax, [Out] out uint pcOtherMethod);
+		void EnumMethodSemantics([In, Out] ref IntPtr phEnum, [In] uint mb, [In, Out][MarshalAs(UnmanagedType.LPArray)] uint[] rEventProp, [In] uint cMax, [Out] out uint pcEventProp);
 		void GetMethodSemantics([In] uint mb, [In] uint tkEventProp, [Out] out uint pdwSemanticsFlags);
 		void GetClassLayout([In] uint td, [Out] out uint pdwPackSize, IntPtr rFieldOffset, [In] uint cMax, [Out] out uint pcFieldOffset, [Out] out uint pulClassSize);
 		void GetFieldMarshal([In] uint tk, [Out] out IntPtr ppvNativeType, [Out] out uint pcbNativeType);
@@ -274,24 +274,24 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void GetPermissionSetProps([In] uint pm, [Out] out uint pdwAction, [Out] out IntPtr ppvPermission, [Out] out uint pcbPermission);
 		void GetSigFromToken([In] uint mdSig, [Out] byte** ppvSig, [Out] uint* pcbSig);
 		void GetModuleRefProps([In] uint mur, [Out] IntPtr szName, [In] uint cchName, [Out] out uint pchName);
-		void EnumModuleRefs([In, Out] ref IntPtr phEnum, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rModuleRefs, [In] uint cmax, [Out] out uint pcModuleRefs);
+		void EnumModuleRefs([In, Out] ref IntPtr phEnum, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rModuleRefs, [In] uint cmax, [Out] out uint pcModuleRefs);
 		void GetTypeSpecFromToken([In] uint typespec, [Out] out IntPtr ppvSig, [Out] out uint pcbSig);
 		void GetNameFromToken([In] uint tk, [Out] out IntPtr pszUtf8NamePtr);
-		void EnumUnresolvedMethods([In, Out] ref IntPtr phEnum, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rMethods, [In] uint cMax, [Out] out uint pcTokens);
+		void EnumUnresolvedMethods([In, Out] ref IntPtr phEnum, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rMethods, [In] uint cMax, [Out] out uint pcTokens);
 		void GetUserString([In] uint stk, [Out] IntPtr szString, [In] uint cchString, [Out] out uint pchString);
 		void GetPinvokeMap([In] uint tk, [Out] out uint pdwMappingFlags, [Out] IntPtr szImportName, [In] uint cchImportName, [Out] out uint pchImportName, [Out] out uint pmrImportDLL);
-		void EnumSignatures([In, Out] ref IntPtr phEnum, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rSignatures, [In] uint cmax, [Out] out uint pcSignatures);
-		void EnumTypeSpecs([In, Out] ref IntPtr phEnum, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rTypeSpecs, [In] uint cmax, [Out] out uint pcTypeSpecs);
-		void EnumUserStrings([In, Out] ref IntPtr phEnum, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rStrings, [In] uint cmax, [Out] out uint pcStrings);
+		void EnumSignatures([In, Out] ref IntPtr phEnum, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rSignatures, [In] uint cmax, [Out] out uint pcSignatures);
+		void EnumTypeSpecs([In, Out] ref IntPtr phEnum, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rTypeSpecs, [In] uint cmax, [Out] out uint pcTypeSpecs);
+		void EnumUserStrings([In, Out] ref IntPtr phEnum, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rStrings, [In] uint cmax, [Out] out uint pcStrings);
 		void GetParamForMethodIndex([In] uint md, [In] uint ulParamSeq, [Out] out uint ppd);
-		void EnumCustomAttributes([In, Out] ref IntPtr phEnum, [In] uint tk, [In] uint tkType, [Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rCustomAttributes, [In] uint cMax, [Out] out uint pcCustomAttributes);
+		void EnumCustomAttributes([In, Out] ref IntPtr phEnum, [In] uint tk, [In] uint tkType, [Out][MarshalAs(UnmanagedType.LPArray)] uint[] rCustomAttributes, [In] uint cMax, [Out] out uint pcCustomAttributes);
 		void GetCustomAttributeProps([In] uint cv, [Out] out uint ptkObj, [Out] out uint ptkType, [Out] out IntPtr ppBlob, [Out] out uint pcbSize);
-		void FindTypeRef([In] uint tkResolutionScope, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out uint ptr);
+		void FindTypeRef([In] uint tkResolutionScope, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out uint ptr);
 		void GetMemberProps(uint mb, out uint pClass, IntPtr szMember, uint cchMember, out uint pchMember, out uint pdwAttr, [Out] out IntPtr ppvSigBlob, [Out] out uint pcbSigBlob, [Out] out uint pulCodeRVA, [Out] out uint pdwImplFlags, [Out] out uint pdwCPlusTypeFlag, [Out] out IntPtr ppValue, [Out] out uint pcchValue);
 		void GetFieldProps(uint mb, out uint pClass, IntPtr szField, uint cchField, out uint pchField, out uint pdwAttr, [Out] out IntPtr ppvSigBlob, [Out] out uint pcbSigBlob, [Out] out uint pdwCPlusTypeFlag, [Out] out IntPtr ppValue, [Out] out uint pcchValue);
-		void GetPropertyProps([In] uint prop, [Out] out uint pClass, [Out] IntPtr szProperty, [In] uint cchProperty, [Out] out uint pchProperty, [Out] out uint pdwPropFlags, [Out] out IntPtr ppvSig, [Out] out uint pbSig, [Out] out uint pdwCPlusTypeFlag, [Out] out IntPtr ppDefaultValue, [Out] out uint pcchDefaultValue, [Out] out uint pmdSetter, [Out] out uint pmdGetter, [In, Out] [MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethod, [In] uint cMax, [Out] out uint pcOtherMethod);
+		void GetPropertyProps([In] uint prop, [Out] out uint pClass, [Out] IntPtr szProperty, [In] uint cchProperty, [Out] out uint pchProperty, [Out] out uint pdwPropFlags, [Out] out IntPtr ppvSig, [Out] out uint pbSig, [Out] out uint pdwCPlusTypeFlag, [Out] out IntPtr ppDefaultValue, [Out] out uint pcchDefaultValue, [Out] out uint pmdSetter, [Out] out uint pmdGetter, [In, Out][MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethod, [In] uint cMax, [Out] out uint pcOtherMethod);
 		void GetParamProps([In] uint tk, [Out] out uint pmd, [Out] out uint pulSequence, [Out] IntPtr szName, uint cchName, [Out] out uint pchName, [Out] out uint pdwAttr, [Out] out uint pdwCPlusTypeFlag, [Out] out IntPtr ppValue, [Out] out uint pcchValue);
-		void GetCustomAttributeByName([In] uint tkObj, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out IntPtr ppData, [Out] out uint pcbData);
+		void GetCustomAttributeByName([In] uint tkObj, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out IntPtr ppData, [Out] out uint pcbData);
 		[PreserveSig]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		bool IsValidToken([In] uint tk);
@@ -305,20 +305,20 @@ namespace dnlib.DotNet.Pdb.Dss {
 	Guid("BA3FEE4C-ECB9-4E41-83B7-183FA41CD859"),
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	interface IMetaDataEmit {
-		void SetModuleProps([In] [MarshalAs(UnmanagedType.LPWStr)] string szName);
-		void Save([In] [MarshalAs(UnmanagedType.LPWStr)] string szFile, [In] uint dwSaveFlags);
+		void SetModuleProps([In][MarshalAs(UnmanagedType.LPWStr)] string szName);
+		void Save([In][MarshalAs(UnmanagedType.LPWStr)] string szFile, [In] uint dwSaveFlags);
 		void SaveToStream([In] IStream pIStream, [In] uint dwSaveFlags);
 		void GetSaveSize([In] int fSave, [Out] out uint pdwSaveSize);
-		void DefineTypeDef([In] [MarshalAs(UnmanagedType.LPWStr)] string szTypeDef, [In] uint dwTypeDefFlags, [In] uint tkExtends, [In] [MarshalAs(UnmanagedType.LPArray)] uint[] rtkImplements, [Out] out uint ptd);
-		void DefineNestedType([In] [MarshalAs(UnmanagedType.LPWStr)] string szTypeDef, [In] uint dwTypeDefFlags, [In] uint tkExtends, [In] [MarshalAs(UnmanagedType.LPArray)] uint[] rtkImplements, [In] uint tdEncloser, [Out] out uint ptd);
+		void DefineTypeDef([In][MarshalAs(UnmanagedType.LPWStr)] string szTypeDef, [In] uint dwTypeDefFlags, [In] uint tkExtends, [In][MarshalAs(UnmanagedType.LPArray)] uint[] rtkImplements, [Out] out uint ptd);
+		void DefineNestedType([In][MarshalAs(UnmanagedType.LPWStr)] string szTypeDef, [In] uint dwTypeDefFlags, [In] uint tkExtends, [In][MarshalAs(UnmanagedType.LPArray)] uint[] rtkImplements, [In] uint tdEncloser, [Out] out uint ptd);
 		void SetHandler([In, MarshalAs(UnmanagedType.IUnknown)] object pUnk);
 		void DefineMethod(uint td, [MarshalAs(UnmanagedType.LPWStr)] string szName, uint dwMethodFlags, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, uint ulCodeRVA, uint dwImplFlags, out uint pmd);
 		void DefineMethodImpl([In] uint td, [In] uint tkBody, [In] uint tkDecl);
-		void DefineTypeRefByName([In] uint tkResolutionScope, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out uint ptr);
+		void DefineTypeRefByName([In] uint tkResolutionScope, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out uint ptr);
 		void DefineImportType([In] IntPtr pAssemImport, [In] IntPtr pbHashValue, [In] uint cbHashValue, [In] IMetaDataImport pImport, [In] uint tdImport, [In] IntPtr pAssemEmit, [Out] out uint ptr);
-		void DefineMemberRef([In] uint tkImport, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmr);
+		void DefineMemberRef([In] uint tkImport, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [Out] out uint pmr);
 		void DefineImportMember([In] IntPtr pAssemImport, [In] IntPtr pbHashValue, [In] uint cbHashValue, [In] IMetaDataImport pImport, [In] uint mbMember, [In] IntPtr pAssemEmit, [In] uint tkParent, [Out] out uint pmr);
-		void DefineEvent([In] uint td, [In] [MarshalAs(UnmanagedType.LPWStr)] string szEvent, [In] uint dwEventFlags, [In] uint tkEventType, [In] uint mdAddOn, [In] uint mdRemoveOn, [In] uint mdFire, [In] [MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods, [Out] out uint pmdEvent);
+		void DefineEvent([In] uint td, [In][MarshalAs(UnmanagedType.LPWStr)] string szEvent, [In] uint dwEventFlags, [In] uint tkEventType, [In] uint mdAddOn, [In] uint mdRemoveOn, [In] uint mdFire, [In][MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods, [Out] out uint pmdEvent);
 		void SetClassLayout([In] uint td, [In] uint dwPackSize, [In] IntPtr rFieldOffsets, [In] uint ulClassSize);
 		void DeleteClassLayout([In] uint td);
 		void SetFieldMarshal([In] uint tk, [In] IntPtr pvNativeType, [In] uint cbNativeType);
@@ -326,27 +326,27 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void DefinePermissionSet([In] uint tk, [In] uint dwAction, [In] IntPtr pvPermission, [In] uint cbPermission, [Out] out uint ppm);
 		void SetRVA([In] uint md, [In] uint ulRVA);
 		void GetTokenFromSig([In] IntPtr pvSig, [In] uint cbSig, [Out] out uint pmsig);
-		void DefineModuleRef([In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out uint pmur);
+		void DefineModuleRef([In][MarshalAs(UnmanagedType.LPWStr)] string szName, [Out] out uint pmur);
 		void SetParent([In] uint mr, [In] uint tk);
 		void GetTokenFromTypeSpec([In] IntPtr pvSig, [In] uint cbSig, [Out] out uint ptypespec);
 		void SaveToMemory(IntPtr pbData, [In] uint cbData);
-		void DefineUserString([In] [MarshalAs(UnmanagedType.LPWStr)] string szString, [In] uint cchString, [Out] out uint pstk);
+		void DefineUserString([In][MarshalAs(UnmanagedType.LPWStr)] string szString, [In] uint cchString, [Out] out uint pstk);
 		void DeleteToken([In] uint tkObj);
 		void SetMethodProps([In] uint md, [In] uint dwMethodFlags, [In] uint ulCodeRVA, [In] uint dwImplFlags);
-		void SetTypeDefProps([In] uint td, [In] uint dwTypeDefFlags, [In] uint tkExtends, [In] [MarshalAs(UnmanagedType.LPArray)] uint[] rtkImplements);
-		void SetEventProps([In] uint ev, [In] uint dwEventFlags, [In] uint tkEventType, [In] uint mdAddOn, [In] uint mdRemoveOn, [In] uint mdFire, [In] [MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods);
+		void SetTypeDefProps([In] uint td, [In] uint dwTypeDefFlags, [In] uint tkExtends, [In][MarshalAs(UnmanagedType.LPArray)] uint[] rtkImplements);
+		void SetEventProps([In] uint ev, [In] uint dwEventFlags, [In] uint tkEventType, [In] uint mdAddOn, [In] uint mdRemoveOn, [In] uint mdFire, [In][MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods);
 		void SetPermissionSetProps([In] uint tk, [In] uint dwAction, [In] IntPtr pvPermission, [In] uint cbPermission, [Out] out uint ppm);
-		void DefinePinvokeMap([In] uint tk, [In] uint dwMappingFlags, [In] [MarshalAs(UnmanagedType.LPWStr)] string szImportName, [In] uint mrImportDLL);
-		void SetPinvokeMap([In] uint tk, [In] uint dwMappingFlags, [In] [MarshalAs(UnmanagedType.LPWStr)] string szImportName, [In] uint mrImportDLL);
+		void DefinePinvokeMap([In] uint tk, [In] uint dwMappingFlags, [In][MarshalAs(UnmanagedType.LPWStr)] string szImportName, [In] uint mrImportDLL);
+		void SetPinvokeMap([In] uint tk, [In] uint dwMappingFlags, [In][MarshalAs(UnmanagedType.LPWStr)] string szImportName, [In] uint mrImportDLL);
 		void DeletePinvokeMap([In] uint tk);
 		void DefineCustomAttribute([In] uint tkOwner, [In] uint tkCtor, [In] IntPtr pCustomAttribute, [In] uint cbCustomAttribute, [Out] out uint pcv);
 		void SetCustomAttributeValue([In] uint pcv, [In] IntPtr pCustomAttribute, [In] uint cbCustomAttribute);
 		void DefineField(uint td, [MarshalAs(UnmanagedType.LPWStr)] string szName, uint dwFieldFlags, [In] IntPtr pvSigBlob, [In] uint cbSigBlob, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue, [Out] out uint pmd);
-		void DefineProperty([In] uint td, [In] [MarshalAs(UnmanagedType.LPWStr)] string szProperty, [In] uint dwPropFlags, [In] IntPtr pvSig, [In] uint cbSig, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue, [In] uint mdSetter, [In] uint mdGetter, [In] [MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods, [Out] out uint pmdProp);
-		void DefineParam([In] uint md, [In] uint ulParamSeq, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [In] uint dwParamFlags, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue, [Out] out uint ppd);
+		void DefineProperty([In] uint td, [In][MarshalAs(UnmanagedType.LPWStr)] string szProperty, [In] uint dwPropFlags, [In] IntPtr pvSig, [In] uint cbSig, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue, [In] uint mdSetter, [In] uint mdGetter, [In][MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods, [Out] out uint pmdProp);
+		void DefineParam([In] uint md, [In] uint ulParamSeq, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [In] uint dwParamFlags, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue, [Out] out uint ppd);
 		void SetFieldProps([In] uint fd, [In] uint dwFieldFlags, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue);
-		void SetPropertyProps([In] uint pr, [In] uint dwPropFlags, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue, [In] uint mdSetter, [In] uint mdGetter, [In] [MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods);
-		void SetParamProps([In] uint pd, [In] [MarshalAs(UnmanagedType.LPWStr)] string szName, [In] uint dwParamFlags, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue);
+		void SetPropertyProps([In] uint pr, [In] uint dwPropFlags, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue, [In] uint mdSetter, [In] uint mdGetter, [In][MarshalAs(UnmanagedType.LPArray)] uint[] rmdOtherMethods);
+		void SetParamProps([In] uint pd, [In][MarshalAs(UnmanagedType.LPWStr)] string szName, [In] uint dwParamFlags, [In] uint dwCPlusTypeFlag, [In] IntPtr pValue, [In] uint cchValue);
 		void DefineSecurityAttributeSet([In] uint tkObj, [In] IntPtr rSecAttrs, [In] uint cSecAttrs, [Out] out uint pulErrorAttr);
 		void ApplyEditAndContinue([In, MarshalAs(UnmanagedType.IUnknown)] object pImport);
 		void TranslateSigWithScope([In] IntPtr pAssemImport, [In] IntPtr pbHashValue, [In] uint cbHashValue, [In] IMetaDataImport import, [In] IntPtr pbSigBlob, [In] uint cbSigBlob, [In] IntPtr pAssemEmit, [In] IMetaDataEmit emit, [Out] IntPtr pvTranslatedSig, uint cbTranslatedSigMax, [Out] out uint pcbTranslatedSig);
@@ -361,29 +361,29 @@ namespace dnlib.DotNet.Pdb.Dss {
 	Guid("ED14AA72-78E2-4884-84E2-334293AE5214"),
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	interface ISymUnmanagedWriter {
-		void DefineDocument([In] [MarshalAs(UnmanagedType.LPWStr)] string? url, [In] ref Guid language, [In] ref Guid languageVendor, [In] ref Guid documentType, [Out] out ISymUnmanagedDocumentWriter pRetVal);
+		void DefineDocument([In][MarshalAs(UnmanagedType.LPWStr)] string? url, [In] ref Guid language, [In] ref Guid languageVendor, [In] ref Guid documentType, [Out] out ISymUnmanagedDocumentWriter pRetVal);
 		void SetUserEntryPoint([In] uint entryMethod);
 		void OpenMethod([In] uint method);
 		void CloseMethod();
 		void OpenScope([In] uint startOffset, [Out] out uint pRetVal);
 		void CloseScope([In] uint endOffset);
 		void SetScopeRange([In] uint scopeID, [In] uint startOffset, [In] uint endOffset);
-		void DefineLocalVariable([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3, [In] uint startOffset, [In] uint endOffset);
-		void DefineParameter([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint sequence, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
-		void DefineField([In] uint parent, [In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
-		void DefineGlobalVariable([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
+		void DefineLocalVariable([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3, [In] uint startOffset, [In] uint endOffset);
+		void DefineParameter([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint sequence, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
+		void DefineField([In] uint parent, [In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
+		void DefineGlobalVariable([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
 		void Close();
-		void SetSymAttribute([In] uint parent, [In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint cData, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] data);
-		void OpenNamespace([In] [MarshalAs(UnmanagedType.LPWStr)] string name);
+		void SetSymAttribute([In] uint parent, [In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint cData, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] data);
+		void OpenNamespace([In][MarshalAs(UnmanagedType.LPWStr)] string name);
 		void CloseNamespace();
-		void UsingNamespace([In] [MarshalAs(UnmanagedType.LPWStr)] string fullName);
+		void UsingNamespace([In][MarshalAs(UnmanagedType.LPWStr)] string fullName);
 		void SetMethodSourceRange([In] ISymUnmanagedDocumentWriter startDoc, [In] uint startLine, [In] uint startColumn, [In] ISymUnmanagedDocumentWriter endDoc, [In] uint endLine, [In] uint endColumn);
-		void Initialize([In] IntPtr emitter, [In] [MarshalAs(UnmanagedType.LPWStr)] string filename, [In] IStream pIStream, [In] [MarshalAs(UnmanagedType.Bool)] bool fFullBuild);
+		void Initialize([In] IntPtr emitter, [In][MarshalAs(UnmanagedType.LPWStr)] string filename, [In] IStream pIStream, [In][MarshalAs(UnmanagedType.Bool)] bool fFullBuild);
 		void GetDebugInfo([Out] out IMAGE_DEBUG_DIRECTORY pIDD, [In] uint cData, [Out] out uint pcData, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[]? data);
 		void DefineSequencePoints([In] ISymUnmanagedDocumentWriter document, [In] uint spCount, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] offsets, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] lines, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] columns, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] endLines, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] endColumns);
 		void RemapToken([In] uint oldToken, [In] uint newToken);
-		void Initialize2([In, MarshalAs(UnmanagedType.IUnknown)] object emitter, [In] [MarshalAs(UnmanagedType.LPWStr)] string tempfilename, [In] IStream pIStream, [In] [MarshalAs(UnmanagedType.Bool)] bool fFullBuild, [In] [MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
-		void DefineConstant([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] object value, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature);
+		void Initialize2([In, MarshalAs(UnmanagedType.IUnknown)] object emitter, [In][MarshalAs(UnmanagedType.LPWStr)] string tempfilename, [In] IStream pIStream, [In][MarshalAs(UnmanagedType.Bool)] bool fFullBuild, [In][MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
+		void DefineConstant([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] object value, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature);
 		void Abort();
 	}
 
@@ -392,29 +392,29 @@ namespace dnlib.DotNet.Pdb.Dss {
 	Guid("0B97726E-9E6D-4F05-9A26-424022093CAA"),
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	interface ISymUnmanagedWriter2 {
-		void DefineDocument([In] [MarshalAs(UnmanagedType.LPWStr)] string? url, [In] ref Guid language, [In] ref Guid languageVendor, [In] ref Guid documentType, [Out] out ISymUnmanagedDocumentWriter pRetVal);
+		void DefineDocument([In][MarshalAs(UnmanagedType.LPWStr)] string? url, [In] ref Guid language, [In] ref Guid languageVendor, [In] ref Guid documentType, [Out] out ISymUnmanagedDocumentWriter pRetVal);
 		void SetUserEntryPoint([In] uint entryMethod);
 		void OpenMethod([In] uint method);
 		void CloseMethod();
 		void OpenScope([In] uint startOffset, [Out] out uint pRetVal);
 		void CloseScope([In] uint endOffset);
 		void SetScopeRange([In] uint scopeID, [In] uint startOffset, [In] uint endOffset);
-		void DefineLocalVariable([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3, [In] uint startOffset, [In] uint endOffset);
-		void DefineParameter([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint sequence, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
-		void DefineField([In] uint parent, [In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
-		void DefineGlobalVariable([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
+		void DefineLocalVariable([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3, [In] uint startOffset, [In] uint endOffset);
+		void DefineParameter([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint sequence, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
+		void DefineField([In] uint parent, [In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
+		void DefineGlobalVariable([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
 		void Close();
-		void SetSymAttribute([In] uint parent, [In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint cData, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] data);
-		void OpenNamespace([In] [MarshalAs(UnmanagedType.LPWStr)] string name);
+		void SetSymAttribute([In] uint parent, [In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint cData, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] data);
+		void OpenNamespace([In][MarshalAs(UnmanagedType.LPWStr)] string name);
 		void CloseNamespace();
-		void UsingNamespace([In] [MarshalAs(UnmanagedType.LPWStr)] string fullName);
+		void UsingNamespace([In][MarshalAs(UnmanagedType.LPWStr)] string fullName);
 		void SetMethodSourceRange([In] ISymUnmanagedDocumentWriter startDoc, [In] uint startLine, [In] uint startColumn, [In] ISymUnmanagedDocumentWriter endDoc, [In] uint endLine, [In] uint endColumn);
-		void Initialize([In, MarshalAs(UnmanagedType.IUnknown)] object emitter, [In] [MarshalAs(UnmanagedType.LPWStr)] string filename, [In] IStream pIStream, [In] [MarshalAs(UnmanagedType.Bool)] bool fFullBuild);
+		void Initialize([In, MarshalAs(UnmanagedType.IUnknown)] object emitter, [In][MarshalAs(UnmanagedType.LPWStr)] string filename, [In] IStream pIStream, [In][MarshalAs(UnmanagedType.Bool)] bool fFullBuild);
 		void GetDebugInfo([Out] out IMAGE_DEBUG_DIRECTORY pIDD, [In] uint cData, [Out] out uint pcData, [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[]? data);
 		void DefineSequencePoints([In] ISymUnmanagedDocumentWriter document, [In] uint spCount, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] offsets, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] lines, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] columns, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] endLines, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] endColumns);
 		void RemapToken([In] uint oldToken, [In] uint newToken);
-		void Initialize2([In, MarshalAs(UnmanagedType.IUnknown)] object emitter, [In] [MarshalAs(UnmanagedType.LPWStr)] string tempfilename, [In] IStream pIStream, [In] [MarshalAs(UnmanagedType.Bool)] bool fFullBuild, [In] [MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
-		void DefineConstant([In] [MarshalAs(UnmanagedType.LPWStr)] string name, [In] object value, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature);
+		void Initialize2([In, MarshalAs(UnmanagedType.IUnknown)] object emitter, [In][MarshalAs(UnmanagedType.LPWStr)] string tempfilename, [In] IStream pIStream, [In][MarshalAs(UnmanagedType.Bool)] bool fFullBuild, [In][MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
+		void DefineConstant([In][MarshalAs(UnmanagedType.LPWStr)] string name, [In] object value, [In] uint cSig, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature);
 		void Abort();
 		void DefineLocalVariable2([In, MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint sigToken, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3, [In] uint startOffset, [In] uint endOffset);
 		void DefineGlobalVariable2([In, MarshalAs(UnmanagedType.LPWStr)] string name, [In] uint attributes, [In] uint sigToken, [In] uint addrKind, [In] uint addr1, [In] uint addr2, [In] uint addr3);
@@ -437,7 +437,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	interface ISymUnmanagedWriter4 : ISymUnmanagedWriter3 {
 		void _VtblGap1_29();
-		void GetDebugInfoWithPadding([In] [Out] ref IMAGE_DEBUG_DIRECTORY pIDD, uint cData, out uint pcData, IntPtr data);
+		void GetDebugInfoWithPadding([In][Out] ref IMAGE_DEBUG_DIRECTORY pIDD, uint cData, out uint pcData, IntPtr data);
 	}
 
 	[ComVisible(true),

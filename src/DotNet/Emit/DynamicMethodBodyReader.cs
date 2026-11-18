@@ -19,7 +19,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// No option is enabled
 		/// </summary>
-		None						= 0,
+		None                        = 0,
 
 		/// <summary>
 		/// Some fields/methods have an unknown declaring type and don't have a context with
@@ -34,14 +34,14 @@ namespace dnlib.DotNet.Emit {
 		/// <see cref="System.Reflection.FieldInfo"/>/<see cref="System.Reflection.MethodBase"/>.
 		/// </para>
 		/// </summary>
-		GuessDeclaringType			= 0x00000001,
+		GuessDeclaringType          = 0x00000001,
 
 		/// <summary>
 		/// Use <see cref="GuessDeclaringType"/> instead
 		/// </summary>
 		[Obsolete("Use " + nameof(GuessDeclaringType) + " instead")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
-		UnknownDeclaringType		= GuessDeclaringType,
+		UnknownDeclaringType        = GuessDeclaringType,
 	}
 
 	/// <summary>
@@ -197,7 +197,7 @@ namespace dnlib.DotNet.Emit {
 
 			if (obj is DynamicMethod dynMethod) {
 				methodName = dynMethod.Name;
-				obj = (dmResolverFieldInfo.Read(obj) ?? dmDynamicILInfoFieldInfo.Read(obj))!;;
+				obj = (dmResolverFieldInfo.Read(obj) ?? dmDynamicILInfoFieldInfo.Read(obj))!; ;
 				if (obj is null)
 					throw new Exception("No resolver found");
 			}
@@ -341,7 +341,7 @@ namespace dnlib.DotNet.Emit {
 				var reader = new BinaryReader(new MemoryStream(ehHeader));
 				byte b = reader.ReadByte();
 				if ((b & 0x40) == 0) { // DynamicResolver only checks bit 6
-					// Calculate num ehs exactly the same way that DynamicResolver does
+									   // Calculate num ehs exactly the same way that DynamicResolver does
 					int numHandlers = (ushort)((reader.ReadByte() - 2) / 12);
 					reader.ReadUInt16();
 					for (int i = 0; i < numHandlers; i++) {
@@ -402,7 +402,7 @@ namespace dnlib.DotNet.Emit {
 						eh.HandlerType = (ExceptionHandlerType)ehInfo.Type[i];
 						eh.TryStart = tryStart;
 						eh.TryEnd = eh.IsFinally ? endFinally : tryEnd;
-						eh.FilterStart = null;	// not supported by DynamicMethod.ILGenerator
+						eh.FilterStart = null;  // not supported by DynamicMethod.ILGenerator
 						eh.HandlerStart = GetInstructionOrThrow((uint)ehInfo.CatchAddr[i]);
 						eh.HandlerEnd = GetInstruction((uint)ehInfo.CatchEndAddr[i]);
 						eh.CatchType = importer.ImportAsOperandOrNull(ehInfo.CatchClass[i]);

@@ -130,7 +130,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {
-			writer.WriteInt32(0x48);	// cb
+			writer.WriteInt32(0x48);    // cb
 			writer.WriteUInt16(options.MajorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MAJOR_RT_VER);
 			writer.WriteUInt16(options.MinorRuntimeVersion ?? Cor20HeaderOptions.DEFAULT_MINOR_RT_VER);
 			writer.WriteDataDirectory(Metadata);
@@ -138,10 +138,10 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteUInt32(EntryPoint ?? options.EntryPoint ?? 0);
 			writer.WriteDataDirectory(NetResources);
 			writer.WriteDataDirectory(StrongNameSignature);
-			writer.WriteDataDirectory(null);	// Code manager table
+			writer.WriteDataDirectory(null);    // Code manager table
 			writer.WriteDataDirectory(VtableFixups);
-			writer.WriteDataDirectory(null);	// Export address table jumps
-			writer.WriteDataDirectory(null);	// Managed native header
+			writer.WriteDataDirectory(null);    // Export address table jumps
+			writer.WriteDataDirectory(null);    // Managed native header
 		}
 	}
 }

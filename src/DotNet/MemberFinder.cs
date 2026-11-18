@@ -124,18 +124,18 @@ namespace dnlib.DotNet {
 				var o = objectStack.Pop();
 				switch (GetObjectType(o)) {
 				case ObjectType.Unknown: break;
-				case ObjectType.EventDef:		Add((EventDef)o); break;
-				case ObjectType.FieldDef:		Add((FieldDef)o); break;
-				case ObjectType.GenericParam:	Add((GenericParam)o); break;
-				case ObjectType.MemberRef:		Add((MemberRef)o); break;
-				case ObjectType.MethodDef:		Add((MethodDef)o); break;
-				case ObjectType.MethodSpec:		Add((MethodSpec)o); break;
-				case ObjectType.PropertyDef:	Add((PropertyDef)o); break;
-				case ObjectType.TypeDef:		Add((TypeDef)o); break;
-				case ObjectType.TypeRef:		Add((TypeRef)o); break;
-				case ObjectType.TypeSig:		Add((TypeSig)o); break;
-				case ObjectType.TypeSpec:		Add((TypeSpec)o); break;
-				case ObjectType.ExportedType:	Add((ExportedType)o); break;
+				case ObjectType.EventDef: Add((EventDef)o); break;
+				case ObjectType.FieldDef: Add((FieldDef)o); break;
+				case ObjectType.GenericParam: Add((GenericParam)o); break;
+				case ObjectType.MemberRef: Add((MemberRef)o); break;
+				case ObjectType.MethodDef: Add((MethodDef)o); break;
+				case ObjectType.MethodSpec: Add((MethodSpec)o); break;
+				case ObjectType.PropertyDef: Add((PropertyDef)o); break;
+				case ObjectType.TypeDef: Add((TypeDef)o); break;
+				case ObjectType.TypeRef: Add((TypeRef)o); break;
+				case ObjectType.TypeSig: Add((TypeSig)o); break;
+				case ObjectType.TypeSpec: Add((TypeSpec)o); break;
+				case ObjectType.ExportedType: Add((ExportedType)o); break;
 				default: throw new InvalidOperationException($"Unknown type: {o.GetType()}");
 				}
 			}
@@ -154,18 +154,18 @@ namespace dnlib.DotNet {
 		}
 
 		static ObjectType GetObjectType2(object? o) {
-			if (o is EventDef)		return ObjectType.EventDef;
-			if (o is FieldDef)		return ObjectType.FieldDef;
-			if (o is GenericParam)	return ObjectType.GenericParam;
-			if (o is MemberRef)		return ObjectType.MemberRef;
-			if (o is MethodDef)		return ObjectType.MethodDef;
-			if (o is MethodSpec)	return ObjectType.MethodSpec;
-			if (o is PropertyDef)	return ObjectType.PropertyDef;
-			if (o is TypeDef)		return ObjectType.TypeDef;
-			if (o is TypeRef)		return ObjectType.TypeRef;
-			if (o is TypeSig)		return ObjectType.TypeSig;
-			if (o is TypeSpec)		return ObjectType.TypeSpec;
-			if (o is ExportedType)	return ObjectType.ExportedType;
+			if (o is EventDef) return ObjectType.EventDef;
+			if (o is FieldDef) return ObjectType.FieldDef;
+			if (o is GenericParam) return ObjectType.GenericParam;
+			if (o is MemberRef) return ObjectType.MemberRef;
+			if (o is MethodDef) return ObjectType.MethodDef;
+			if (o is MethodSpec) return ObjectType.MethodSpec;
+			if (o is PropertyDef) return ObjectType.PropertyDef;
+			if (o is TypeDef) return ObjectType.TypeDef;
+			if (o is TypeRef) return ObjectType.TypeRef;
+			if (o is TypeSig) return ObjectType.TypeSig;
+			if (o is TypeSpec) return ObjectType.TypeSpec;
+			if (o is ExportedType) return ObjectType.ExportedType;
 			return ObjectType.Unknown;
 		}
 
@@ -283,7 +283,7 @@ namespace dnlib.DotNet {
 				Add(typeSig);
 			else if (arg.Value is IList<CAArgument> args)
 				Add(args);
-			else if(arg.Value is CAArgument boxedArgument)
+			else if (arg.Value is CAArgument boxedArgument)
 				Add(boxedArgument);
 		}
 

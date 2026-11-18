@@ -61,7 +61,7 @@ namespace dnlib.PE {
 
 				case 4: // Architecture.Wasm
 				case 5: // Architecture.S390x
-					// No PE machine value exists, the runtime uses IMAGE_FILE_MACHINE_UNKNOWN for both
+						// No PE machine value exists, the runtime uses IMAGE_FILE_MACHINE_UNKNOWN for both
 					machine = Machine.Unknown;
 					return true;
 
@@ -127,12 +127,12 @@ namespace dnlib.PE {
 			}
 
 			enum ProcessorArchitecture : ushort {
-				INTEL		= 0,
-				ARM			= 5,
-				IA64		= 6,
-				AMD64		= 9,
-				ARM64		= 12,
-				UNKNOWN		= 0xFFFF,
+				INTEL       = 0,
+				ARM         = 5,
+				IA64        = 6,
+				AMD64       = 9,
+				ARM64       = 12,
+				UNKNOWN     = 0xFFFF,
 			}
 
 			public static bool TryGetProcessCpuArchitecture(out Machine machine) {

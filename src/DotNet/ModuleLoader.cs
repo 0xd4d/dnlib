@@ -210,30 +210,30 @@ namespace dnlib.DotNet {
 			if (mdt is null)
 				return;
 			switch (mdt.MDToken.Table) {
-			case Table.Module:					Load((ModuleDef)mdt); break;
-			case Table.TypeRef:					Load((TypeRef)mdt); break;
-			case Table.TypeDef:					Load((TypeDef)mdt); break;
-			case Table.Field:					Load((FieldDef)mdt); break;
-			case Table.Method:					Load((MethodDef)mdt); break;
-			case Table.Param:					Load((ParamDef)mdt); break;
-			case Table.InterfaceImpl:			Load((InterfaceImpl)mdt); break;
-			case Table.MemberRef:				Load((MemberRef)mdt); break;
-			case Table.Constant:				Load((Constant)mdt); break;
-			case Table.DeclSecurity:			Load((DeclSecurity)mdt); break;
-			case Table.ClassLayout:				Load((ClassLayout)mdt); break;
-			case Table.StandAloneSig:			Load((StandAloneSig)mdt); break;
-			case Table.Event:					Load((EventDef)mdt); break;
-			case Table.Property:				Load((PropertyDef)mdt); break;
-			case Table.ModuleRef:				Load((ModuleRef)mdt); break;
-			case Table.TypeSpec:				Load((TypeSpec)mdt); break;
-			case Table.ImplMap:					Load((ImplMap)mdt); break;
-			case Table.Assembly:				Load((AssemblyDef)mdt); break;
-			case Table.AssemblyRef:				Load((AssemblyRef)mdt); break;
-			case Table.File:					Load((FileDef)mdt); break;
-			case Table.ExportedType:			Load((ExportedType)mdt); break;
-			case Table.GenericParam:			Load((GenericParam)mdt); break;
-			case Table.MethodSpec:				Load((MethodSpec)mdt); break;
-			case Table.GenericParamConstraint:	Load((GenericParamConstraint)mdt); break;
+			case Table.Module: Load((ModuleDef)mdt); break;
+			case Table.TypeRef: Load((TypeRef)mdt); break;
+			case Table.TypeDef: Load((TypeDef)mdt); break;
+			case Table.Field: Load((FieldDef)mdt); break;
+			case Table.Method: Load((MethodDef)mdt); break;
+			case Table.Param: Load((ParamDef)mdt); break;
+			case Table.InterfaceImpl: Load((InterfaceImpl)mdt); break;
+			case Table.MemberRef: Load((MemberRef)mdt); break;
+			case Table.Constant: Load((Constant)mdt); break;
+			case Table.DeclSecurity: Load((DeclSecurity)mdt); break;
+			case Table.ClassLayout: Load((ClassLayout)mdt); break;
+			case Table.StandAloneSig: Load((StandAloneSig)mdt); break;
+			case Table.Event: Load((EventDef)mdt); break;
+			case Table.Property: Load((PropertyDef)mdt); break;
+			case Table.ModuleRef: Load((ModuleRef)mdt); break;
+			case Table.TypeSpec: Load((TypeSpec)mdt); break;
+			case Table.ImplMap: Load((ImplMap)mdt); break;
+			case Table.Assembly: Load((AssemblyDef)mdt); break;
+			case Table.AssemblyRef: Load((AssemblyRef)mdt); break;
+			case Table.File: Load((FileDef)mdt); break;
+			case Table.ExportedType: Load((ExportedType)mdt); break;
+			case Table.GenericParam: Load((GenericParam)mdt); break;
+			case Table.MethodSpec: Load((MethodSpec)mdt); break;
+			case Table.GenericParamConstraint: Load((GenericParamConstraint)mdt); break;
 
 			case Table.ManifestResource:
 				var rsrc = mdt as Resource;

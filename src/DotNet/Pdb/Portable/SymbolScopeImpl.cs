@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				var p = parent;
 				if (p is null)
 					return method!;
-				for (;;) {
+				for (; ; ) {
 					if (p.parent is null)
 						return method = p.method!;
 					p = p.parent;

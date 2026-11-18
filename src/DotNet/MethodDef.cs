@@ -170,10 +170,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				implMap = value;
-				implMap_isInitialized = true;
+					implMap = value;
+					implMap_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -186,12 +187,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (implMap_isInitialized)
-				return;
-			implMap = GetImplMap_NoLock();
-			implMap_isInitialized = true;
+				if (implMap_isInitialized)
+					return;
+				implMap = GetImplMap_NoLock();
+				implMap_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -214,10 +216,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				methodBody = value;
-				methodBody_isInitialized = true;
+					methodBody = value;
+					methodBody_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -230,12 +233,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (methodBody_isInitialized)
-				return;
-			methodBody = GetMethodBody_NoLock();
-			methodBody_isInitialized = true;
+				if (methodBody_isInitialized)
+					return;
+				methodBody = GetMethodBody_NoLock();
+				methodBody_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -251,10 +255,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			methodBody = null;
-			methodBody_isInitialized = false;
+				methodBody = null;
+				methodBody_isInitialized = false;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -351,9 +356,9 @@ namespace dnlib.DotNet {
 				if (currentDeclaringType == value)
 					return;
 				if (currentDeclaringType is not null)
-					currentDeclaringType.Methods.Remove(this);	// Will set DeclaringType2 = null
+					currentDeclaringType.Methods.Remove(this);  // Will set DeclaringType2 = null
 				if (value is not null)
-					value.Methods.Add(this);	// Will set DeclaringType2 = value
+					value.Methods.Add(this);    // Will set DeclaringType2 = value
 			}
 		}
 

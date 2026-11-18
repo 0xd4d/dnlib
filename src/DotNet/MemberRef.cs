@@ -317,7 +317,7 @@ namespace dnlib.DotNet {
 				var declaringType = ((MethodDef)parent).DeclaringType;
 				return declaringType?.FullName;
 			}
-			return null;	// Should never be reached
+			return null;    // Should never be reached
 		}
 
 		/// <summary>

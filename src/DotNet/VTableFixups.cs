@@ -117,17 +117,17 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// 32-bit vtable slots
 		/// </summary>
-		Bit32				= 0x01,
+		Bit32               = 0x01,
 
 		/// <summary>
 		/// 64-bit vtable slots
 		/// </summary>
-		Bit64				= 0x02,
+		Bit64               = 0x02,
 
 		/// <summary>
 		/// Transition from unmanaged code
 		/// </summary>
-		FromUnmanaged		= 0x04,
+		FromUnmanaged       = 0x04,
 
 		/// <summary>
 		/// Also retain app domain
@@ -137,7 +137,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Call most derived method
 		/// </summary>
-		CallMostDerived		= 0x10,
+		CallMostDerived     = 0x10,
 	}
 
 	/// <summary>

@@ -1687,7 +1687,7 @@ namespace dnlib.DotNet {
 			for (uint fileRid = 1; fileRid <= rows; fileRid++) {
 				var fileDef = ResolveFile(fileRid);
 				if (fileDef is null)
-					continue;	// Should never happen
+					continue;   // Should never happen
 				if (!fileDef.ContainsMetadata)
 					continue;
 				var pathName = GetValidFilename(baseDir, UTF8String.ToSystemString(fileDef.Name));
@@ -1810,9 +1810,9 @@ namespace dnlib.DotNet {
 				if (peImage.MayHaveInvalidAddresses) {
 					var rsrcReader = peImage.CreateReader((FileOffset)fullReader.Position, resourceLength);
 					for (; rsrcReader.Position < rsrcReader.Length; rsrcReader.Position += Math.Min(rsrcReader.BytesLeft, 0x1000))
-						rsrcReader.ReadByte();	// Could throw
-					rsrcReader.Position = rsrcReader.Length - 1;	// length is never 0 if we're here
-					rsrcReader.ReadByte();	// Could throw
+						rsrcReader.ReadByte();  // Could throw
+					rsrcReader.Position = rsrcReader.Length - 1;    // length is never 0 if we're here
+					rsrcReader.ReadByte();  // Could throw
 				}
 
 				dataReaderFactory = peImage.DataReaderFactory;

@@ -210,10 +210,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				implementation = value;
-				implementation_isInitialized = true;
+					implementation = value;
+					implementation_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -231,12 +232,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (implementation_isInitialized)
-				return;
-			implementation = GetImplementation_NoLock();
-			implementation_isInitialized = true;
+				if (implementation_isInitialized)
+					return;
+				implementation = GetImplementation_NoLock();
+				implementation_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 

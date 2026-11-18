@@ -9,18 +9,18 @@ namespace dnlib.DotNet {
 	[Flags]
 	public enum GenericParamAttributes : ushort {
 		/// <summary/>
-		VarianceMask			= 0x0003,
+		VarianceMask            = 0x0003,
 		/// <summary/>
-		NonVariant				= 0x0000,
+		NonVariant              = 0x0000,
 		/// <summary/>
-		Covariant				= 0x0001,
+		Covariant               = 0x0001,
 		/// <summary/>
-		Contravariant			= 0x0002,
+		Contravariant           = 0x0002,
 
 		/// <summary/>
-		SpecialConstraintMask	= 0x003C,
+		SpecialConstraintMask   = 0x003C,
 		/// <summary/>
-		NoSpecialConstraint		= 0x0000,
+		NoSpecialConstraint     = 0x0000,
 		/// <summary>type argument must be a reference type</summary>
 		ReferenceTypeConstraint = 0x0004,
 		/// <summary>type argument must be a value type but not Nullable</summary>

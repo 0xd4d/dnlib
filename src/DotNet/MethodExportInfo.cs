@@ -96,21 +96,21 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// No bit is set
 		/// </summary>
-		None							= 0,
+		None                            = 0,
 
 		/// <summary>
 		/// Transition from unmanaged code
 		/// </summary>
-		FromUnmanaged					= 0x00000001,
+		FromUnmanaged                   = 0x00000001,
 
 		/// <summary>
 		/// Also retain app domain
 		/// </summary>
-		FromUnmanagedRetainAppDomain	= 0x00000002,
+		FromUnmanagedRetainAppDomain    = 0x00000002,
 
 		/// <summary>
 		/// Call most derived method
 		/// </summary>
-		CallMostDerived					= 0x00000004,
+		CallMostDerived                 = 0x00000004,
 	}
 }

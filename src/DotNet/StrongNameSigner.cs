@@ -92,7 +92,7 @@ namespace dnlib.DotNet {
 				stream.Position += 6;
 				int numSections = reader.ReadUInt16();
 				stream.Position -= 8;
-				hasher.Hash(stream, 0x18, buffer);	// magic + FileHeader
+				hasher.Hash(stream, 0x18, buffer);  // magic + FileHeader
 
 				bool is32bit = reader.ReadUInt16() == 0x010B;
 				stream.Position -= 2;

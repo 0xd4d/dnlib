@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - '.github/workflows/**'
+      - '.editorconfig'
       - 'Examples/**'
       - 'src/**'
       - 'build.sh'
@@ -15,6 +16,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/**'
+      - '.editorconfig'
       - 'Examples/**'
       - 'src/**'
       - 'build.sh'
@@ -130,6 +132,16 @@ jobs:
       - name: Build
         shell: bash
         run: ./build.sh
+
+      - name: Check formatting
+        shell: bash
+        run: |
+          dotnet format
+          if ! git diff --quiet; then
+            git diff | head -100 || true
+            echo "::error::Code isn't formatted. Run 'dotnet format' and commit the result."
+            exit 1
+          fi
 
       # BannedSymbols.txt must list every OrThrow property so dnlib can't use one by mistake
       - name: Check src/BannedSymbols.txt

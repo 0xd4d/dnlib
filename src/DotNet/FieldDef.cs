@@ -127,10 +127,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				fieldOffset = value;
-				fieldOffset_isInitialized = true;
+					fieldOffset = value;
+					fieldOffset_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -143,12 +144,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (fieldOffset_isInitialized)
-				return;
-			fieldOffset = GetFieldOffset_NoLock();
-			fieldOffset_isInitialized = true;
+				if (fieldOffset_isInitialized)
+					return;
+				fieldOffset = GetFieldOffset_NoLock();
+				fieldOffset_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -166,10 +168,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				marshalType = value;
-				marshalType_isInitialized = true;
+					marshalType = value;
+					marshalType_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -182,12 +185,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (marshalType_isInitialized)
-				return;
-			marshalType = GetMarshalType_NoLock();
-			marshalType_isInitialized = true;
+				if (marshalType_isInitialized)
+					return;
+				marshalType = GetMarshalType_NoLock();
+				marshalType_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -211,10 +215,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				rva = value;
-				rva_isInitialized = true;
+					rva = value;
+					rva_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -227,12 +232,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (rva_isInitialized)
-				return;
-			rva = GetRVA_NoLock();
-			rva_isInitialized = true;
+				if (rva_isInitialized)
+					return;
+				rva = GetRVA_NoLock();
+				rva_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -256,10 +262,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				initialValue = value;
-				initialValue_isInitialized = true;
+					initialValue = value;
+					initialValue_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -272,12 +279,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (initialValue_isInitialized)
-				return;
-			initialValue = GetInitialValue_NoLock();
-			initialValue_isInitialized = true;
+				if (initialValue_isInitialized)
+					return;
+				initialValue = GetInitialValue_NoLock();
+				initialValue_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -298,10 +306,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				implMap = value;
-				implMap_isInitialized = true;
+					implMap = value;
+					implMap_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -314,12 +323,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (implMap_isInitialized)
-				return;
-			implMap = GetImplMap_NoLock();
-			implMap_isInitialized = true;
+				if (implMap_isInitialized)
+					return;
+				implMap = GetImplMap_NoLock();
+				implMap_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -337,10 +347,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				constant = value;
-				constant_isInitialized = true;
+					constant = value;
+					constant_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -353,12 +364,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (constant_isInitialized)
-				return;
-			constant = GetConstant_NoLock();
-			constant_isInitialized = true;
+				if (constant_isInitialized)
+					return;
+				constant = GetConstant_NoLock();
+				constant_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -385,9 +397,9 @@ namespace dnlib.DotNet {
 				if (currentDeclaringType == value)
 					return;
 				if (currentDeclaringType is not null)
-					currentDeclaringType.Fields.Remove(this);	// Will set DeclaringType2 = null
+					currentDeclaringType.Fields.Remove(this);   // Will set DeclaringType2 = null
 				if (value is not null)
-					value.Fields.Add(this);		// Will set DeclaringType2 = value
+					value.Fields.Add(this);     // Will set DeclaringType2 = value
 			}
 		}
 

@@ -51,7 +51,7 @@ namespace dnlib.DotNet.Writer {
 			Debug.Assert(toOffset.Count == 0);
 			uint offset = 0;
 			var instrs = body!.Instructions;
-			for(int i = 0; i < instrs.Count; i++) {
+			for (int i = 0; i < instrs.Count; i++) {
 				var instr = instrs[i];
 				toOffset[instr] = offset;
 				offset += (uint)instr.GetSize();

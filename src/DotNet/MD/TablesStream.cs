@@ -31,7 +31,7 @@ namespace dnlib.DotNet.MD {
 		IRowReader<RawMethodRow>? methodRowReader;
 		readonly CLRRuntimeReaderKind runtime;
 
-#pragma warning disable 1591	// XML doc comment
+#pragma warning disable 1591  // XML doc comment                      
 		public MDTable ModuleTable { get; private set; } = null!;
 		public MDTable TypeRefTable { get; private set; } = null!;
 		public MDTable TypeDefTable { get; private set; } = null!;

@@ -82,7 +82,7 @@ namespace dnlib.DotNet.Emit {
 		/// Checks if it's a `fault` handler
 		/// </summary>
 		public bool IsFault => (HandlerType & ExceptionHandlerType.Fault) != 0;
-		
+
 		/// <summary>
 		/// Default constructor
 		/// </summary>

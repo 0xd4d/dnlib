@@ -9,14 +9,14 @@ namespace dnlib.DotNet.Emit {
 	[Flags]
 	public enum ExceptionHandlerType {
 		/// <summary/>
-		Catch		= 0x0000,
+		Catch       = 0x0000,
 		/// <summary/>
-		Filter		= 0x0001,
+		Filter      = 0x0001,
 		/// <summary/>
-		Finally		= 0x0002,
+		Finally     = 0x0002,
 		/// <summary/>
-		Fault		= 0x0004,
+		Fault       = 0x0004,
 		/// <summary/>
-		Duplicated	= 0x0008,
+		Duplicated  = 0x0008,
 	}
 }

@@ -285,7 +285,7 @@ namespace dnlib.DotNet.Emit {
 		/// <returns>A new <see cref="Instruction"/> instance</returns>
 		public static Instruction CreateLdcI4(int value) {
 			switch (value) {
-			case -1:return OpCodes.Ldc_I4_M1.ToInstruction();
+			case -1: return OpCodes.Ldc_I4_M1.ToInstruction();
 			case 0: return OpCodes.Ldc_I4_0.ToInstruction();
 			case 1: return OpCodes.Ldc_I4_1.ToInstruction();
 			case 2: return OpCodes.Ldc_I4_2.ToInstruction();
@@ -400,7 +400,7 @@ namespace dnlib.DotNet.Emit {
 			if (op is IMethod method)
 				sig = method.MethodSig;
 			else
-				sig = op as MethodSig;	// calli instruction
+				sig = op as MethodSig;  // calli instruction
 			if (sig is null)
 				return;
 			bool implicitThis = sig.ImplicitThis;
@@ -436,7 +436,7 @@ namespace dnlib.DotNet.Emit {
 				pushes = 2;
 				break;
 
-			case StackBehaviour.Varpush:	// only call, calli, callvirt which are handled elsewhere
+			case StackBehaviour.Varpush:    // only call, calli, callvirt which are handled elsewhere
 			default:
 				pushes = 0;
 				break;
@@ -478,7 +478,7 @@ namespace dnlib.DotNet.Emit {
 				pops = -1;
 				break;
 
-			case StackBehaviour.Varpop:	// call, calli, callvirt, newobj (all handled elsewhere), and ret
+			case StackBehaviour.Varpop: // call, calli, callvirt, newobj (all handled elsewhere), and ret
 				if (hasReturnValue)
 					pops = 1;
 				else

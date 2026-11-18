@@ -44,26 +44,28 @@ namespace dnlib.Utils {
 #if THREAD_SAFE
 				theLock?.EnterWriteLock(); try {
 #endif
-				if (!isValueInitialized) {
-					value = readOriginalValue!();
-					readOriginalValue = null;
-					isValueInitialized = true;
-				}
-				return value;
+					if (!isValueInitialized) {
+						value = readOriginalValue!();
+						readOriginalValue = null;
+						isValueInitialized = true;
+					}
+					return value;
 #if THREAD_SAFE
-				} finally { theLock?.ExitWriteLock(); }
+				}
+				finally { theLock?.ExitWriteLock(); }
 #endif
 			}
 			set {
 #if THREAD_SAFE
 				theLock?.EnterWriteLock(); try {
 #endif
-				this.value = value;
-				readOriginalValue = null;
-				isUserValue = true;
-				isValueInitialized = true;
+					this.value = value;
+					readOriginalValue = null;
+					isUserValue = true;
+					isValueInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock?.ExitWriteLock(); }
+				}
+				finally { theLock?.ExitWriteLock(); }
 #endif
 			}
 		}

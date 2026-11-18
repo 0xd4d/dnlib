@@ -83,10 +83,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 				theLock.EnterWriteLock(); try {
 #endif
-				constant = value;
-				constant_isInitialized = true;
+					constant = value;
+					constant_isInitialized = true;
 #if THREAD_SAFE
-				} finally { theLock.ExitWriteLock(); }
+				}
+				finally { theLock.ExitWriteLock(); }
 #endif
 			}
 		}
@@ -99,12 +100,13 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (constant_isInitialized)
-				return;
-			constant = GetConstant_NoLock();
-			constant_isInitialized = true;
+				if (constant_isInitialized)
+					return;
+				constant = GetConstant_NoLock();
+				constant_isInitialized = true;
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -231,10 +233,11 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (otherMethods is null)
-				InitializePropertyMethods_NoLock();
+				if (otherMethods is null)
+					InitializePropertyMethods_NoLock();
 #if THREAD_SAFE
-			} finally { theLock.ExitWriteLock(); }
+			}
+			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
@@ -314,9 +317,9 @@ namespace dnlib.DotNet {
 				if (currentDeclaringType == value)
 					return;
 				if (currentDeclaringType is not null)
-					currentDeclaringType.Properties.Remove(this);	// Will set DeclaringType2 = null
+					currentDeclaringType.Properties.Remove(this);   // Will set DeclaringType2 = null
 				if (value is not null)
-					value.Properties.Add(this);	// Will set DeclaringType2 = value
+					value.Properties.Add(this); // Will set DeclaringType2 = value
 			}
 		}
 
