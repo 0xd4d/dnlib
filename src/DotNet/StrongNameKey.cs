@@ -78,9 +78,8 @@ namespace dnlib.DotNet {
 		const uint RSA1_SIG = 0x31415352;
 		readonly SignatureAlgorithm signatureAlgorithm;
 		readonly AssemblyHashAlgorithm hashAlgorithm;
-		// null only in an instance created by the default constructor
-		readonly byte[] modulus = null!;
-		readonly byte[] publicExponent = null!;
+		readonly byte[] modulus;
+		readonly byte[] publicExponent;
 
 		/// <summary>
 		/// Gets/sets the signature algorithm
@@ -103,9 +102,11 @@ namespace dnlib.DotNet {
 		public byte[] PublicExponent => publicExponent;
 
 		/// <summary>
-		/// Default constructor
+		/// Default constructor. <see cref="Modulus"/> and <see cref="PublicExponent"/> are empty arrays.
 		/// </summary>
 		public StrongNamePublicKey() {
+			modulus = Array2.Empty<byte>();
+			publicExponent = Array2.Empty<byte>();
 		}
 
 		/// <summary>
