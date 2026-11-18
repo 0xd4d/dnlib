@@ -637,7 +637,8 @@ namespace dnlib.DotNet {
 		/// Gets the normal visible parameters, doesn't include the hidden 'this' parameter
 		/// </summary>
 		/// <param name="method">this</param>
-		/// <returns>The normal visible parameters</returns>
+		/// <returns>The normal visible parameters, or <c>null</c> if <paramref name="method"/> is <c>null</c></returns>
+		[return: NotNullIfNotNull(nameof(method))]
 		public static IList<TypeSig?>? GetParams(this IMethod? method) => method?.MethodSig.GetParams();
 
 		/// <summary>
