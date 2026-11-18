@@ -35,10 +35,9 @@ namespace dnlib.DotNet.Emit {
 		public SequencePoint? SequencePoint;
 
 		/// <summary>
-		/// Default constructor
+		/// Default constructor. <see cref="OpCode"/> is initialized to <see cref="OpCodes.Nop"/>.
 		/// </summary>
-		public Instruction() {
-		}
+		public Instruction() => OpCode = OpCodes.Nop;
 
 		/// <summary>
 		/// Constructor
