@@ -37,7 +37,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="Resource"/> or <c>-1</c> if none was found</returns>
-		public int IndexOf(UTF8String name) {
+		public int IndexOf(UTF8String? name) {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;
@@ -52,7 +52,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="EmbeddedResource"/> or <c>-1</c> if none was found</returns>
-		public int IndexOfEmbeddedResource(UTF8String name) {
+		public int IndexOfEmbeddedResource(UTF8String? name) {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;
@@ -69,7 +69,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="AssemblyLinkedResource"/> or <c>-1</c> if none was found</returns>
-		public int IndexOfAssemblyLinkedResource(UTF8String name) {
+		public int IndexOfAssemblyLinkedResource(UTF8String? name) {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;
@@ -86,7 +86,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of resource</param>
 		/// <returns>The index of the <see cref="LinkedResource"/> or <c>-1</c> if none was found</returns>
-		public int IndexOfLinkedResource(UTF8String name) {
+		public int IndexOfLinkedResource(UTF8String? name) {
 			int i = -1;
 			foreach (var resource in this) {
 				i++;

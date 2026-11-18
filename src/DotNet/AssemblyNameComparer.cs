@@ -236,7 +236,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="a">Assembly name</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(IAssembly a) {
+		public int GetHashCode(IAssembly? a) {
 			if (a is null)
 				return 0;
 

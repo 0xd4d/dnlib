@@ -21,7 +21,7 @@ namespace dnlib.DotNet {
 		public bool Equals(UTF8String? x, UTF8String? y) => UTF8String.Equals(x, y);
 
 		/// <inheritdoc/>
-		public int GetHashCode(UTF8String obj) => UTF8String.GetHashCode(obj);
+		public int GetHashCode(UTF8String? obj) => UTF8String.GetHashCode(obj);
 	}
 
 	/// <summary>
