@@ -618,12 +618,15 @@ namespace dnlib.DotNet {
 			if (isMethodSpec) {
 				IMethodDefOrRef? method;
 				var origMethod = methodBase.ResolveMethodDefinition();
-				if (methodBase.DeclaringType!.GetElementType2() == ElementType.GenericInst)
+				// DeclaringType is null if it's a generic method in the global type (<Module>)
+				if (methodBase.DeclaringType is not null && methodBase.DeclaringType.GetElementType2() == ElementType.GenericInst)
 					method = module.UpdateRowId(new MemberRefUser(module, methodBase.Name, CreateMethodSig(origMethod), ImportOrNull(methodBase.DeclaringType)));
 				else
 					method = ImportInternal(origMethod) as IMethodDefOrRef;
 
 				method = TryResolveMethod(method);
+				if (method is null)
+					return null;
 				var gim = CreateGenericInstMethodSig(methodBase);
 				var methodSpec = module.UpdateRowId(new MethodSpecUser(method, gim));
 				if (FixSignature && !forceFixSignature) {
