@@ -1,7 +1,5 @@
 M:dnlib.DotNet.Importer.Import(System.Reflection.FieldInfo);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
-M:dnlib.DotNet.Importer.Import(System.Reflection.FieldInfo,System.Boolean);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
 M:dnlib.DotNet.Importer.Import(System.Reflection.MethodBase);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
-M:dnlib.DotNet.Importer.Import(System.Reflection.MethodBase,System.Boolean);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
 M:dnlib.DotNet.Importer.Import(System.Type);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
 M:dnlib.DotNet.Importer.Import(System.Type,System.Collections.Generic.IList{System.Type},System.Collections.Generic.IList{System.Type});It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
 M:dnlib.DotNet.Importer.Import(dnlib.DotNet.CallingConventionSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
