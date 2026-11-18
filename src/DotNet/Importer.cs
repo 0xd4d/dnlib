@@ -86,7 +86,7 @@ namespace dnlib.DotNet {
 		/// May be used to use reference assemblies for <see cref="Type"/> resolution, for example.
 		/// </summary>
 		/// <param name="source"><see cref="Type"/> to create <see cref="ITypeDefOrRef"/> for. <paramref name="source"/> is non-generic type or generic type without generic arguments.</param>
-		/// <returns><see cref="ITypeDefOrRef"/> or null to use default <see cref="Importer"/>'s type resolution</returns>
+		/// <returns>A <see cref="TypeDef"/> or a <see cref="TypeRef"/> (not a <see cref="TypeSpec"/>), or null to use default <see cref="Importer"/>'s type resolution</returns>
 		public virtual ITypeDefOrRef? Map(Type source) => null;
 	}
 
@@ -489,7 +489,7 @@ namespace dnlib.DotNet {
 		ITypeDefOrRef? CreateTypeDefOrRef(Type type) {
 			var tdr = mapper?.Map(type);
 			if (tdr is TypeSpec)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException($"{nameof(ImportMapper)}.{nameof(ImportMapper.Map)}({nameof(Type)}) must return a {nameof(TypeDef)} or a {nameof(TypeRef)}, not a {nameof(TypeSpec)}: {type}");
 			if (tdr is TypeDef td)
 				return td;
 			if (tdr is TypeRef tr)
@@ -738,7 +738,7 @@ namespace dnlib.DotNet {
 		IMemberRefParent? GetModuleParent(Module module2) {
 			if (!IsThisAssembly(module2))
 				return null;
-			return module.UpdateRowId(new ModuleRefUser(module, module.Name));
+			return module.UpdateRowId(new ModuleRefUser(module, module2.ScopeName));
 		}
 
 		bool IsThisAssembly(Module module2) {
@@ -877,24 +877,28 @@ namespace dnlib.DotNet {
 			if (declType is not null)
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declType)));
 			else
-				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module?.Name)));
 
 			recursionCounter.Decrement();
 			return result;
 		}
 
-		IResolutionScope? CreateScopeReference(IAssembly? defAsm, ModuleDef? defMod) {
+		/// <param name="defAsm">The assembly that has the type</param>
+		/// <param name="defModName">Name of the module that has the type or <c>null</c> if it's the manifest module
+		/// (the type is referenced by an <see cref="AssemblyRef"/>)</param>
+		IResolutionScope? CreateScopeReference(IAssembly? defAsm, UTF8String? defModName) {
 			if (defAsm is null)
 				return null;
 			var modAsm = module.Assembly;
-			if (defMod is not null && defAsm is not null && modAsm is not null) {
-				if (UTF8String.CaseInsensitiveEquals(modAsm.Name, defAsm.Name)) {
-					if (UTF8String.CaseInsensitiveEquals(module.Name, defMod.Name))
+			if (modAsm is not null && UTF8String.CaseInsensitiveEquals(modAsm.Name, defAsm.Name)) {
+				defModName ??= modAsm.ManifestModule?.Name;
+				if (defModName is not null) {
+					if (UTF8String.CaseInsensitiveEquals(module.Name, defModName))
 						return module;
-					return module.UpdateRowId(new ModuleRefUser(module, defMod.Name));
+					return module.UpdateRowId(new ModuleRefUser(module, defModName));
 				}
 			}
-			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm!.PublicKeyOrToken);
+			var pkt = PublicKeyBase.ToPublicKeyToken(defAsm.PublicKeyOrToken);
 			if (PublicKeyBase.IsNullOrEmpty2(pkt))
 				pkt = null;
 			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(defAsm.Name) is AssemblyRef asmRef)
@@ -928,11 +932,22 @@ namespace dnlib.DotNet {
 			if (declaringType is not null)
 				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, Import2(declaringType)));
 			else
-				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type.DefinitionAssembly, type.Module)));
+				result = module.UpdateRowId(new TypeRefUser(module, type.Namespace, type.Name, CreateScopeReference(type)));
 
 			recursionCounter.Decrement();
 			return result;
 		}
+
+		// type is a non-nested TypeRef. Its Module is the module that has the TypeRef, not the type.
+		IResolutionScope? CreateScopeReference(TypeRef type) =>
+			type.ResolutionScope switch {
+				// The type is in another module of the TypeRef's assembly
+				ModuleRef modRef => CreateScopeReference(type.DefinitionAssembly, modRef.Name),
+				// The type is in the manifest module of the referenced assembly
+				AssemblyRef asmRef => CreateScopeReference(asmRef, null),
+				ModuleDef mod => CreateScopeReference(mod.Assembly, mod.Name),
+				_ => CreateScopeReference(type.DefinitionAssembly, type.Module?.Name),
+			};
 
 		/// <summary>
 		/// Imports a <see cref="TypeSpec"/>
@@ -942,7 +957,10 @@ namespace dnlib.DotNet {
 		public TypeSpec? ImportOrNull(TypeSpec? type) {
 			if (type is null)
 				return null;
-			return module.UpdateRowId(new TypeSpecUser(ImportOrNull(type.TypeSig)));
+			var sig = ImportOrNull(type.TypeSig);
+			if (sig is null)
+				return null;
+			return module.UpdateRowId(new TypeSpecUser(sig));
 		}
 
 		/// <summary>
@@ -1105,10 +1123,12 @@ namespace dnlib.DotNet {
 			foreach (var p in old.Params)
 				sig.Params.Add(ImportOrNull(p));
 			sig.GenParamCount = old.GenParamCount;
-			var paramsAfterSentinel = sig.ParamsAfterSentinel;
-			if (paramsAfterSentinel is not null) {
-				foreach (var p in old.ParamsAfterSentinel!)
+			var oldParamsAfterSentinel = old.ParamsAfterSentinel;
+			if (oldParamsAfterSentinel is not null) {
+				var paramsAfterSentinel = new List<TypeSig?>(oldParamsAfterSentinel.Count);
+				foreach (var p in oldParamsAfterSentinel)
 					paramsAfterSentinel.Add(ImportOrNull(p));
+				sig.ParamsAfterSentinel = paramsAfterSentinel;
 			}
 			return sig;
 		}
@@ -1294,8 +1314,12 @@ namespace dnlib.DotNet {
 			if (!recursionCounter.Increment())
 				return null;
 
-			MethodSpec result = module.UpdateRowId(new MethodSpecUser((IMethodDefOrRef?)ImportOrNull(method.Method)));
-			result.Instantiation = ImportOrNull(method.Instantiation);
+			// An ImportMapper can return any IMethod, eg. a MethodSpec, which can't be the generic method of a MethodSpec
+			MethodSpec? result = null;
+			if (ImportOrNull(method.Method) is IMethodDefOrRef genericMethod) {
+				result = module.UpdateRowId(new MethodSpecUser(genericMethod));
+				result.Instantiation = ImportOrNull(method.Instantiation);
+			}
 
 			recursionCounter.Decrement();
 			return result;

@@ -331,7 +331,15 @@ namespace dnlib.DotNet {
 		/// if its declaring type is a generic type instance
 		/// </summary>
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
-		public static MethodBase ResolveMethodDefinition(this MethodBase method) => method.Module.ResolveMethod(method.MetadataToken)!;
+		public static MethodBase ResolveMethodDefinition(this MethodBase method) {
+			var def = method.Module.ResolveMethod(method.MetadataToken)!;
+			// The runtime can return the generic method instantiated with its own generic parameters instead of the
+			// generic method definition, eg. Base64Helper.Base64DecoderByte.DecodeWithWhiteSpaceBlockwiseWrapper<T>()
+			// in .NET 10's System.Private.CoreLib.
+			if (def is MethodInfo mi && mi.IsGenericMethod && !mi.IsGenericMethodDefinition)
+				def = mi.GetGenericMethodDefinition();
+			return def;
+		}
 
 		/// <summary>
 		/// Gets the field definition of <paramref name="field"/>, eg. the field in the generic type definition
