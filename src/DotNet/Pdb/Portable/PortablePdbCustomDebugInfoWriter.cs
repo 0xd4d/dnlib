@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 
@@ -114,7 +113,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteUTF8Z(string s) {
 			if (s.IndexOf('\0') >= 0)
 				helper.Error("String must not contain any NUL bytes");
-			var bytes = Encoding.UTF8.GetBytes(s);
+			var bytes = WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(s);
 			writer.WriteBytes(bytes);
 			writer.WriteByte(0);
 		}
@@ -193,7 +192,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				helper.Error("Default namespace is null");
 				return;
 			}
-			var bytes = Encoding.UTF8.GetBytes(ns);
+			var bytes = WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(ns);
 			writer.WriteBytes(bytes);
 		}
 
