@@ -443,9 +443,8 @@ namespace dnlib.DotNet {
 			if (mr.Class is TypeDef td)
 				return td;
 
-			td = (TryResolve(mr.Class as TypeRef) as TypeDef)!;
-			if (td is not null)
-				return td;
+			if (TryResolve(mr.Class as TypeRef) is TypeDef resolvedTypeDef)
+				return resolvedTypeDef;
 
 			var modRef = mr.Class as ModuleRef;
 			if (IsThisModule(modRef))

@@ -193,9 +193,7 @@ namespace dnlib.DotNet.Writer {
 
 		public PreserveTokensMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions? options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
 			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
-			mod = (module as ModuleDefMD)!;
-			if (mod is null)
-				throw new ModuleWriterException("Not a ModuleDefMD");
+			mod = module as ModuleDefMD ?? throw new ModuleWriterException("Not a ModuleDefMD");
 		}
 
 		/// <inheritdoc/>
