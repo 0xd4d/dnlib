@@ -63,7 +63,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			var instructions = body.Instructions;
 			int lo = 0, hi = instructions.Count - 1;
 			while (lo <= hi && hi != -1) {
-				int i = (lo + hi) / 2;
+				int i = lo + (hi - lo) / 2;
 				var instr = instructions[i];
 				if (instr.Offset == offset)
 					return instr;

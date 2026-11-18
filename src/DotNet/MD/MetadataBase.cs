@@ -146,7 +146,7 @@ namespace dnlib.DotNet.MD {
 			int BinarySearch(uint key) {
 				int lo = 1, hi = rows.Length - 1;
 				while (lo <= hi && hi != -1) {
-					int curr = (lo + hi) / 2;
+					int curr = lo + (hi - lo) / 2;
 					uint key2 = rows[curr].key;
 					if (key == key2)
 						return curr;

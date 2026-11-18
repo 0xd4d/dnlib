@@ -487,7 +487,7 @@ namespace dnlib.DotNet.MD {
 			var keyColumn = tableSource.TableInfo.Columns[keyColIndex];
 			uint ridLo = 1, ridHi = tableSource.Rows;
 			while (ridLo <= ridHi) {
-				uint rid = (ridLo + ridHi) / 2;
+				uint rid = ridLo + (ridHi - ridLo) / 2;
 				if (!tablesStream.TryReadColumn24(tableSource, rid, keyColumn, out uint key2))
 					break;  // Never happens since rid is valid
 				if (key == key2)
