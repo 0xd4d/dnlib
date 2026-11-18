@@ -7,6 +7,11 @@ namespace dnlib.DotNet.MD {
 	/// <summary>
 	/// .NET metadata tables stream
 	/// </summary>
+	/// <remarks>
+	/// The tables (<see cref="MDTables"/>, <see cref="ModuleTable"/> etc) are <see langword="null"/> until
+	/// <see cref="Initialize(uint[])"/> has been called. A <see cref="TablesStream"/> returned by
+	/// <see cref="Metadata.TablesStream"/> has already been initialized.
+	/// </remarks>
 	public sealed partial class TablesStream : DotNetStream {
 		bool initialized;
 		uint reserved1;
@@ -197,7 +202,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		/// <summary>
-		/// Initializes MD tables
+		/// Initializes MD tables. Must be called once before the tables are used.
 		/// </summary>
 		/// <param name="typeSystemTableRows">Type system table rows (from #Pdb stream)</param>
 		public void Initialize(uint[]? typeSystemTableRows) =>
