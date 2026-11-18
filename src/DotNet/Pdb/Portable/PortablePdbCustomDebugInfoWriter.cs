@@ -361,7 +361,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			writer.WriteCompressedUInt32((uint)states.Count);
 			writer.WriteCompressedUInt32((uint)-syntaxOffsetBaseline);
-			foreach (var state in states) {
+			// Like Roslyn, sort by syntax offset. Roslyn's reader fails if they're not sorted. The sort is stable
+			// since states with the same syntax offset are in await order.
+			foreach (var state in states.OrderBy(a => a.SyntaxOffset)) {
 				writer.WriteCompressedInt32((int)state.State);
 				writer.WriteCompressedUInt32((uint)(state.SyntaxOffset - syntaxOffsetBaseline));
 			}
