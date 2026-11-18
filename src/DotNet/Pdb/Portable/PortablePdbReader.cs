@@ -292,6 +292,15 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (scopesRidList.Count != 0) {
 				var custInfos = ListCache<PdbCustomDebugInfo>.AllocList();
 				var stack = ListCache<SymbolScopeImpl>.AllocList();
+				// The scopes are sorted by start offset and then by length, longest first, so the first scope is
+				// the root if it contains all other scopes. If it doesn't, there are several top-level scopes. Do
+				// what Roslyn does when it writes them: add a root scope without locals that contains them all and
+				// that uses the same import scope.
+				if (NeedsRootScope(scopesRidList, out uint rootEnd, out uint rootImportScope)) {
+					rootScopeOrNull = new SymbolScopeImpl(this, null, 0, (int)rootEnd, Array2.Empty<PdbCustomDebugInfo>());
+					rootScopeOrNull.importScope = GetPdbImportScope(rootImportScope);
+					stack.Add(rootScopeOrNull);
+				}
 				for (int i = 0; i < scopesRidList.Count; i++) {
 					var rid = scopesRidList[i];
 					int token = new MDToken(Table.LocalScope, rid).ToInt32();
@@ -330,6 +339,31 @@ namespace dnlib.DotNet.Pdb.Portable {
 				ListCache<PdbCustomDebugInfo>.Free(ref custInfos);
 			}
 			return rootScopeOrNull ?? new SymbolScopeImpl(this, null, 0, int.MaxValue, Array2.Empty<PdbCustomDebugInfo>());
+		}
+
+		bool NeedsRootScope(RidList scopesRidList, out uint rootEnd, out uint rootImportScope) {
+			rootEnd = 0;
+			rootImportScope = 0;
+			if (!pdbMetadata.TablesStream.TryReadLocalScopeRow(scopesRidList[0], out var firstRow))
+				return false;
+			uint firstStart = firstRow.StartOffset;
+			uint firstEnd = firstStart + firstRow.Length;
+			bool needsRoot = false;
+			uint maxEnd = firstEnd;
+			for (int i = 1; i < scopesRidList.Count; i++) {
+				if (!pdbMetadata.TablesStream.TryReadLocalScopeRow(scopesRidList[i], out var row))
+					continue;
+				uint end = row.StartOffset + row.Length;
+				if (row.StartOffset < firstStart || end > firstEnd)
+					needsRoot = true;
+				if (end > maxEnd)
+					maxEnd = end;
+			}
+			if (!needsRoot)
+				return false;
+			rootEnd = maxEnd;
+			rootImportScope = firstRow.ImportScope;
+			return true;
 		}
 
 		// Many LocalScopes, in one method or in many, can use the same ImportScope rows, and each row
