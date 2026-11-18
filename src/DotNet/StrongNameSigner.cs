@@ -159,7 +159,7 @@ namespace dnlib.DotNet {
 		byte[] GetStrongNameSignature(StrongNameKey snk, AssemblyHashAlgorithm hashAlg, byte[] hash) {
 			using (var rsa = snk.CreateRSA()) {
 				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
-				string hashName = (hashAlg.GetName() ?? AssemblyHashAlgorithm.SHA1.GetName())!;
+				string hashName = hashAlg.GetName() ?? "SHA1";
 				rsaFmt.SetHashAlgorithm(hashName);
 				var snSig = rsaFmt.CreateSignature(hash);
 				Array.Reverse(snSig);

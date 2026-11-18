@@ -190,16 +190,12 @@ namespace dnlib.DotNet.Emit {
 			}
 
 			if (obj.GetType().ToString() == "System.Reflection.Emit.DynamicMethod+RTDynamicMethod") {
-				obj = (rtdmOwnerFieldInfo.Read(obj) as DynamicMethod)!;
-				if (obj is null)
-					throw new Exception("RTDynamicMethod.m_owner is null or invalid");
+				obj = rtdmOwnerFieldInfo.Read(obj) as DynamicMethod ?? throw new Exception("RTDynamicMethod.m_owner is null or invalid");
 			}
 
 			if (obj is DynamicMethod dynMethod) {
 				methodName = dynMethod.Name;
-				obj = (dmResolverFieldInfo.Read(obj) ?? dmDynamicILInfoFieldInfo.Read(obj))!; ;
-				if (obj is null)
-					throw new Exception("No resolver found");
+				obj = dmResolverFieldInfo.Read(obj) ?? dmDynamicILInfoFieldInfo.Read(obj) ?? throw new Exception("No resolver found");
 			}
 
 			string objTypeName = obj.GetType().ToString();

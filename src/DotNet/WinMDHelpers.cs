@@ -396,11 +396,10 @@ namespace dnlib.DotNet {
 				var gis = ts.TypeSig as GenericInstSig;
 				if (gis is null || !(gis.GenericType is ClassSig))
 					return null;
-				tr = gis.GenericType.TypeRef!;
-				if (tr is null)
+				if (gis.GenericType.TypeRef is not TypeRef genericTypeRef)
 					return null;
 
-				var newTr = ToCLR(module, tr, out bool isClrValueType);
+				var newTr = ToCLR(module, genericTypeRef, out bool isClrValueType);
 				if (newTr is null || !IsIDisposable(newTr))
 					return null;
 

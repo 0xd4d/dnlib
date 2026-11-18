@@ -195,7 +195,7 @@ namespace dnlib.DotNet {
 			if (asm is null)
 				return null;
 			// Always create a new one, even if it happens to be an AssemblyRef
-			return new AssemblyRefUser(asm.Name, asm.Version!, asm.PublicKeyOrToken, asm.Culture) { Attributes = asm.Attributes };
+			return new AssemblyRefUser(asm.Name, asm.Version ?? new Version(0, 0, 0, 0), asm.PublicKeyOrToken, asm.Culture) { Attributes = asm.Attributes };
 		}
 
 		/// <summary>
@@ -403,10 +403,8 @@ namespace dnlib.DotNet {
 			if (tdr is TypeDef td)
 				return td.BaseType;
 
-			if (tdr is TypeRef tr) {
-				td = (throwOnResolveFailure ? tr.ResolveOrThrow() : tr.Resolve())!;
-				return td?.BaseType;
-			}
+			if (tdr is TypeRef tr)
+				return (throwOnResolveFailure ? tr.ResolveOrThrow() : tr.Resolve())?.BaseType;
 
 			var ts = tdr as TypeSpec;
 			if (ts is null)
@@ -418,15 +416,11 @@ namespace dnlib.DotNet {
 			else
 				tdr = ts.TypeSig.ToTypeDefOrRefSig()?.TypeDefOrRef;
 
-			td = (tdr as TypeDef)!;
-			if (td is not null)
-				return td.BaseType;
+			if (tdr is TypeDef specTypeDef)
+				return specTypeDef.BaseType;
 
-			tr = (tdr as TypeRef)!;
-			if (tr is not null) {
-				td = (throwOnResolveFailure ? tr.ResolveOrThrow() : tr.Resolve())!;
-				return td?.BaseType;
-			}
+			if (tdr is TypeRef specTypeRef)
+				return (throwOnResolveFailure ? specTypeRef.ResolveOrThrow() : specTypeRef.Resolve())?.BaseType;
 
 			return null;
 		}
@@ -448,13 +442,11 @@ namespace dnlib.DotNet {
 				return null;
 			tdr = tdr.ScopeType;
 
-			td = (tdr as TypeDef)!;
-			if (td is not null)
-				return td;
+			if (tdr is TypeDef scopeTypeDef)
+				return scopeTypeDef;
 
-			tr = (tdr as TypeRef)!;
-			if (tr is not null)
-				return tr.Resolve();
+			if (tdr is TypeRef scopeTypeRef)
+				return scopeTypeRef.Resolve();
 
 			return null;
 		}
@@ -476,13 +468,11 @@ namespace dnlib.DotNet {
 				throw new TypeResolveException("Can't resolve a null pointer");
 			tdr = tdr.ScopeType;
 
-			td = (tdr as TypeDef)!;
-			if (td is not null)
-				return td;
+			if (tdr is TypeDef scopeTypeDef)
+				return scopeTypeDef;
 
-			tr = (tdr as TypeRef)!;
-			if (tr is not null)
-				return tr.ResolveOrThrow();
+			if (tdr is TypeRef scopeTypeRef)
+				return scopeTypeRef.ResolveOrThrow();
 
 			throw new TypeResolveException($"Could not resolve type: {tdr} ({tdr?.DefinitionAssembly})");
 		}
@@ -559,13 +549,11 @@ namespace dnlib.DotNet {
 				return mr.ResolveMethod();
 
 			if (method is MethodSpec ms) {
-				md = (ms.Method as MethodDef)!;
-				if (md is not null)
-					return md;
+				if (ms.Method is MethodDef specMethodDef)
+					return specMethodDef;
 
-				mr = (ms.Method as MemberRef)!;
-				if (mr is not null)
-					return mr.ResolveMethod();
+				if (ms.Method is MemberRef specMemberRef)
+					return specMemberRef.ResolveMethod();
 			}
 
 			return null;
@@ -587,13 +575,11 @@ namespace dnlib.DotNet {
 				return mr.ResolveMethodOrThrow();
 
 			if (method is MethodSpec ms) {
-				md = (ms.Method as MethodDef)!;
-				if (md is not null)
-					return md;
+				if (ms.Method is MethodDef specMethodDef)
+					return specMethodDef;
 
-				mr = (ms.Method as MemberRef)!;
-				if (mr is not null)
-					return mr.ResolveMethodOrThrow();
+				if (ms.Method is MemberRef specMemberRef)
+					return specMemberRef.ResolveMethodOrThrow();
 			}
 
 			throw new MemberRefResolveException($"Could not resolve method: {method}");
