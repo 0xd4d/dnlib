@@ -177,7 +177,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #Strings heap</returns>
-		public uint Create(UTF8String s) {
+		public uint Create(UTF8String? s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (UTF8String.IsNullOrEmpty(s))

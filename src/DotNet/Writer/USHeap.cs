@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #US heap</returns>
-		public uint Create(string s) {
+		public uint Create(string? s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #US when it's read-only");
 			return AddToCache(s ?? string.Empty);

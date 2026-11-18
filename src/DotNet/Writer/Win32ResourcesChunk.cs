@@ -205,7 +205,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns><c>true</c> if <paramref name="name"/> is valid and
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="name"/> is not part of the Win32 resources.</returns>
-		public bool GetFileOffsetAndRvaOf(string name, out FileOffset fileOffset, out RVA rva) {
+		public bool GetFileOffsetAndRvaOf(string? name, out FileOffset fileOffset, out RVA rva) {
 			if (name is null || !stringsDict.TryGetValue(name, out uint offs)) {
 				fileOffset = 0;
 				rva = 0;
@@ -223,7 +223,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="name">The name of a <see cref="ResourceDirectoryEntry"/></param>
 		/// <returns>The file offset or 0 if <paramref name="name"/> is invalid</returns>
-		public FileOffset GetFileOffset(string name) {
+		public FileOffset GetFileOffset(string? name) {
 			GetFileOffsetAndRvaOf(name, out var fileOffset, out var rva);
 			return fileOffset;
 		}
@@ -234,7 +234,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="name">The name of a <see cref="ResourceDirectoryEntry"/></param>
 		/// <returns>The RVA or 0 if <paramref name="name"/> is invalid</returns>
-		public RVA GetRVA(string name) {
+		public RVA GetRVA(string? name) {
 			GetFileOffsetAndRvaOf(name, out var fileOffset, out var rva);
 			return rva;
 		}
