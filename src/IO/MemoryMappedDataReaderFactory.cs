@@ -23,7 +23,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
-		public override string Filename => filename;
+		public override string? Filename => filename;
 
 		/// <summary>
 		/// Gets the total length of the data
@@ -33,19 +33,19 @@ namespace dnlib.IO {
 		/// <summary>
 		/// Raised when all cached <see cref="DataReader"/>s created by this instance must be recreated
 		/// </summary>
-		public override event EventHandler DataReaderInvalidated;
+		public override event EventHandler? DataReaderInvalidated;
 
-		DataStream stream;
+		DataStream stream = null!;
 		uint length;
-		string filename;
+		string? filename;
 		GCHandle gcHandle;
-		byte[] dataAry;
+		byte[]? dataAry;
 		IntPtr data;
 #if NET35
 		OSType osType;
 		long origDataLength;
 #else
-		MemoryMappedViewAccessor viewAccessor;
+		MemoryMappedViewAccessor? viewAccessor;
 #endif
 
 		MemoryMappedDataReaderFactory(string filename) {
@@ -101,7 +101,7 @@ namespace dnlib.IO {
 			static extern SafeFileHandle CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
 
 			[DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
-			static extern SafeFileHandle CreateFileMapping(SafeFileHandle hFile, IntPtr lpAttributes, uint flProtect, uint dwMaximumSizeHigh, uint dwMaximumSizeLow, string lpName);
+			static extern SafeFileHandle CreateFileMapping(SafeFileHandle hFile, IntPtr lpAttributes, uint flProtect, uint dwMaximumSizeHigh, uint dwMaximumSizeLow, string? lpName);
 
 			[DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
 			static extern IntPtr MapViewOfFile(SafeFileHandle hFileMappingObject, uint dwDesiredAccess, uint dwFileOffsetHigh, uint dwFileOffsetLow, UIntPtr dwNumberOfBytesToMap);
@@ -116,7 +116,7 @@ namespace dnlib.IO {
 			const int NO_ERROR = 0;
 
 			public static void Mmap(MemoryMappedDataReaderFactory creator) {
-				using (var fileHandle = CreateFile(creator.filename, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
+				using (var fileHandle = CreateFile(creator.filename!, GENERIC_READ, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero)) {
 					if (fileHandle.IsInvalid) {
 						// The caller reads the file with File.ReadAllBytes() which throws the correct exception (eg. FileNotFoundException)
 						throw new MemoryMappedIONotSupportedException($"Could not open file {creator.filename} for reading. Error: {Marshal.GetLastWin32Error():X8}");
@@ -174,7 +174,7 @@ namespace dnlib.IO {
 			static extern int munmap(IntPtr addr, IntPtr length);
 
 			public static void Mmap(MemoryMappedDataReaderFactory creator) {
-				int fd = open(creator.filename, O_RDONLY);
+				int fd = open(creator.filename!, O_RDONLY);
 				try {
 					if (fd < 0) {
 						// The caller reads the file with File.ReadAllBytes() which throws the correct exception (eg. FileNotFoundException)
@@ -224,7 +224,7 @@ namespace dnlib.IO {
 		static volatile bool canTryWindows = true;
 		static volatile bool canTryUnix = true;
 
-		internal static MemoryMappedDataReaderFactory CreateWindows(string filename) {
+		internal static MemoryMappedDataReaderFactory? CreateWindows(string filename) {
 			if (!canTryWindows)
 				return null;
 
@@ -246,7 +246,7 @@ namespace dnlib.IO {
 			return null;
 		}
 
-		internal static MemoryMappedDataReaderFactory CreateUnix(string filename) {
+		internal static MemoryMappedDataReaderFactory? CreateUnix(string filename) {
 			if (!canTryUnix)
 				return null;
 
@@ -273,13 +273,13 @@ namespace dnlib.IO {
 		/// mapped (eg. it's empty), in which case the caller should read it into memory instead.
 		/// Exceptions from opening the file are not caught.
 		/// </summary>
-		internal static MemoryMappedDataReaderFactory Create(string filename) {
+		internal static MemoryMappedDataReaderFactory? Create(string filename) {
 			var fullPath = GetFullPath(filename);
 			var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.None);
-			MemoryMappedFile mmf = null;
-			MemoryMappedViewAccessor viewAccessor = null;
+			MemoryMappedFile? mmf = null;
+			MemoryMappedViewAccessor? viewAccessor = null;
 			bool pointerAcquired = false;
-			MemoryMappedDataReaderFactory creator = null;
+			MemoryMappedDataReaderFactory? creator = null;
 			try {
 				long size = fileStream.Length;
 				// MemoryMappedFile can't map empty files
@@ -320,7 +320,7 @@ namespace dnlib.IO {
 			finally {
 				if (creator is null) {
 					if (pointerAcquired)
-						viewAccessor.SafeMemoryMappedViewHandle.ReleasePointer();
+						viewAccessor!.SafeMemoryMappedViewHandle.ReleasePointer();
 					viewAccessor?.Dispose();
 					mmf?.Dispose();
 					fileStream.Dispose();

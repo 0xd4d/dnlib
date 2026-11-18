@@ -11,16 +11,10 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbLocal() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="local"></param>
 		/// <param name="name"></param>
 		/// <param name="attributes"></param>
-		public PdbLocal(Local local, string name, PdbLocalAttributes attributes) {
+		public PdbLocal(Local local, string? name, PdbLocalAttributes attributes) {
 			Local = local;
 			Name = name;
 			Attributes = attributes;
@@ -34,7 +28,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
-		public string Name { get; set; }
+		public string? Name { get; set; }
 
 		/// <summary>
 		/// Gets/sets the attributes

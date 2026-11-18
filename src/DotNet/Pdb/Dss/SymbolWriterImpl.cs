@@ -15,15 +15,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 #endif
 	sealed class SymbolWriterImpl : SymbolWriter {
 		readonly ISymUnmanagedWriter2 writer;
-		readonly ISymUnmanagedAsyncMethodPropertiesWriter asyncMethodWriter;
+		readonly ISymUnmanagedAsyncMethodPropertiesWriter? asyncMethodWriter;
 		readonly string pdbFileName;
 		// The stream the COM writer writes to. It's a MemoryStream if userPdbStream is not null.
 		readonly Stream pdbStream;
 		// The user's stream if it can't be used directly
-		readonly Stream userPdbStream;
+		readonly Stream? userPdbStream;
 		readonly bool ownsStream;
 		readonly bool isDeterministic;
-		StreamIStream pdbIStream;
+		StreamIStream? pdbIStream;
 		bool closeCalled;
 
 		public override bool IsDeterministic => isDeterministic;
@@ -80,9 +80,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 			asyncMethodWriter.DefineCatchHandlerILOffset(catchHandlerOffset);
 		}
 
-		public override void DefineConstant(string name, object value, uint sigToken) => writer.DefineConstant2(name, value, sigToken);
+		public override void DefineConstant(string? name, object value, uint sigToken) => writer.DefineConstant2(name, value, sigToken);
 
-		public override ISymbolDocumentWriter DefineDocument(string url, Guid language, Guid languageVendor, Guid documentType) {
+		public override ISymbolDocumentWriter? DefineDocument(string? url, Guid language, Guid languageVendor, Guid documentType) {
 			writer.DefineDocument(url, ref language, ref languageVendor, ref documentType, out var unDocWriter);
 			return unDocWriter is null ? null : new SymbolDocumentWriter(unDocWriter);
 		}
@@ -111,14 +111,14 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override void SetUserEntryPoint(MDToken entryMethod) => writer.SetUserEntryPoint(entryMethod.Raw);
 		public override void UsingNamespace(string fullName) => writer.UsingNamespace(fullName);
 
-		public override unsafe bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[] codeViewData) {
+		public override unsafe bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[]? codeViewData) {
 			pIDD = default;
 			codeViewData = null;
 
 			if (isDeterministic) {
 				((ISymUnmanagedWriter3)writer).Commit();
 				var oldPos = pdbStream.Position;
-				pdbStream.Position = pdbIStream.BaseOffset;
+				pdbStream.Position = pdbIStream!.BaseOffset;
 				var checksumBytes = Hasher.Hash(pdbChecksumAlgorithm, pdbStream, pdbIStream.Length);
 				pdbStream.Position = oldPos;
 				if (writer is ISymUnmanagedWriter8 writer8) {

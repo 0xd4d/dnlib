@@ -7,13 +7,13 @@ namespace dnlib.DotNet {
 	/// A <c>DeclSecurity</c> security attribute
 	/// </summary>
 	public sealed class SecurityAttribute : ICustomAttribute {
-		ITypeDefOrRef attrType;
+		ITypeDefOrRef? attrType;
 		readonly IList<CANamedArgument> namedArguments;
 
 		/// <summary>
 		/// Gets/sets the attribute type
 		/// </summary>
-		public ITypeDefOrRef AttributeType {
+		public ITypeDefOrRef? AttributeType {
 			get => attrType;
 			set => attrType = value;
 		}
@@ -93,7 +93,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="attrType">Attribute type</param>
-		public SecurityAttribute(ITypeDefOrRef attrType)
+		public SecurityAttribute(ITypeDefOrRef? attrType)
 			: this(attrType, null) {
 		}
 
@@ -102,7 +102,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="attrType">Attribute type</param>
 		/// <param name="namedArguments">Named arguments that will be owned by this instance</param>
-		public SecurityAttribute(ITypeDefOrRef attrType, IList<CANamedArgument> namedArguments) {
+		public SecurityAttribute(ITypeDefOrRef? attrType, IList<CANamedArgument>? namedArguments) {
 			this.attrType = attrType;
 			this.namedArguments = namedArguments ?? new List<CANamedArgument>();
 		}

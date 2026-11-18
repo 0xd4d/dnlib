@@ -116,18 +116,23 @@ namespace dnlib.DotNet.Emit {
 	/// A method local
 	/// </summary>
 	public sealed class Local : IVariable {
-		TypeSig typeSig;
+		TypeSig? typeSig;
 		int index;
-		string name;
+		string? name;
 		PdbLocalAttributes attributes;
 
 		/// <summary>
 		/// Gets/sets the type of the local
 		/// </summary>
-		public TypeSig Type {
+		public TypeSig? Type {
 			get => typeSig;
 			set => typeSig = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="Type"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeSig TypeOrThrow => OrThrowHelper.NotNull(typeSig, nameof(Type));
 
 		/// <summary>
 		/// Local index
@@ -140,7 +145,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the name. This property is obsolete, use <see cref="PdbLocal"/> to get/set the name stored in the PDB file.
 		/// </summary>
-		public string Name {
+		public string? Name {
 			get => name;
 			set => name = value;
 		}
@@ -153,21 +158,21 @@ namespace dnlib.DotNet.Emit {
 			set => attributes = value;
 		}
 
-		internal void SetName(string name) => this.name = name;
+		internal void SetName(string? name) => this.name = name;
 		internal void SetAttributes(PdbLocalAttributes attributes) => this.attributes = attributes;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="typeSig">The type</param>
-		public Local(TypeSig typeSig) => this.typeSig = typeSig;
+		public Local(TypeSig? typeSig) => this.typeSig = typeSig;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="typeSig">The type</param>
 		/// <param name="name">Name of local</param>
-		public Local(TypeSig typeSig, string name) {
+		public Local(TypeSig? typeSig, string? name) {
 			this.typeSig = typeSig;
 			this.name = name;
 		}
@@ -178,7 +183,7 @@ namespace dnlib.DotNet.Emit {
 		/// <param name="typeSig">The type</param>
 		/// <param name="name">Name of local</param>
 		/// <param name="index">Index, should only be used if you don't add it to the locals list</param>
-		public Local(TypeSig typeSig, string name, int index) {
+		public Local(TypeSig? typeSig, string? name, int index) {
 			this.typeSig = typeSig;
 			this.name = name;
 			this.index = index;
@@ -189,7 +194,7 @@ namespace dnlib.DotNet.Emit {
 			var n = name;
 			if (string.IsNullOrEmpty(n))
 				return $"V_{Index}";
-			return n;
+			return n!;
 		}
 	}
 }

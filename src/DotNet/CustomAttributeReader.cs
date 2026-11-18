@@ -49,7 +49,7 @@ namespace dnlib.DotNet {
 			return module.CorLibTypes.AssemblyRef;
 		}
 
-		AssemblyRef GetCurrentAssemblyRef(AssemblyDef modAsm) {
+		AssemblyRef GetCurrentAssemblyRef(AssemblyDef? modAsm) {
 			if (modAsm is not null)
 				return module.UpdateRowId(new AssemblyRefUser(modAsm));
 			return AssemblyRef.CurrentAssembly;
@@ -57,7 +57,7 @@ namespace dnlib.DotNet {
 
 		// Returns true if one of this module's original types is still in the module's assembly
 		// (or in the module if it has no assembly) and still has the name of nonNestedTypeRef
-		bool IsOriginalTypeInModule(TypeRef nonNestedTypeRef, AssemblyDef modAsm) {
+		bool IsOriginalTypeInModule(TypeRef nonNestedTypeRef, AssemblyDef? modAsm) {
 			// If the type cache is enabled, the normal search is fast
 			if (module is not ModuleDefMD readerModule || readerModule.EnableTypeDefFindCache)
 				return false;
@@ -89,7 +89,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="innerException">Other exception</param>
-		public CABlobParserException(string message, Exception innerException)
+		public CABlobParserException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 
@@ -111,7 +111,7 @@ namespace dnlib.DotNet {
 		DataReader reader;
 		readonly uint caBlobOffset;
 		readonly GenericParamContext gpContext;
-		GenericArguments genericArguments;
+		GenericArguments? genericArguments;
 		RecursionCounter recursionCounter;
 		bool verifyReadAllBytes;
 
@@ -122,7 +122,7 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="offset">Offset of custom attribute in the #Blob stream</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
-		public static CustomAttribute Read(ModuleDefMD readerModule, ICustomAttributeType ctor, uint offset) => Read(readerModule, ctor, offset, new GenericParamContext());
+		public static CustomAttribute Read(ModuleDefMD readerModule, ICustomAttributeType? ctor, uint offset) => Read(readerModule, ctor, offset, new GenericParamContext());
 
 		/// <summary>
 		/// Reads a custom attribute
@@ -132,7 +132,7 @@ namespace dnlib.DotNet {
 		/// <param name="offset">Offset of custom attribute in the #Blob stream</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
-		public static CustomAttribute Read(ModuleDefMD readerModule, ICustomAttributeType ctor, uint offset, GenericParamContext gpContext) {
+		public static CustomAttribute Read(ModuleDefMD readerModule, ICustomAttributeType? ctor, uint offset, GenericParamContext gpContext) {
 			var caReader = new CustomAttributeReader(readerModule, offset, gpContext);
 			try {
 				if (ctor is null)
@@ -147,7 +147,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		CustomAttribute CreateRaw(ICustomAttributeType ctor) => new CustomAttribute(ctor, GetRawBlob());
+		CustomAttribute CreateRaw(ICustomAttributeType? ctor) => new CustomAttribute(ctor, GetRawBlob());
 
 		/// <summary>
 		/// Reads a custom attribute
@@ -156,7 +156,7 @@ namespace dnlib.DotNet {
 		/// <param name="caBlob">CA blob</param>
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
-		public static CustomAttribute Read(ModuleDef module, byte[] caBlob, ICustomAttributeType ctor) =>
+		public static CustomAttribute Read(ModuleDef module, byte[] caBlob, ICustomAttributeType? ctor) =>
 			Read(module, ByteArrayDataReaderFactory.CreateReader(caBlob), ctor, new GenericParamContext());
 
 		/// <summary>
@@ -166,7 +166,7 @@ namespace dnlib.DotNet {
 		/// <param name="reader">A reader positioned at the the first byte of the CA blob</param>
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
-		public static CustomAttribute Read(ModuleDef module, DataReader reader, ICustomAttributeType ctor) =>
+		public static CustomAttribute Read(ModuleDef module, DataReader reader, ICustomAttributeType? ctor) =>
 			Read(module, ref reader, ctor, new GenericParamContext());
 
 		/// <summary>
@@ -177,7 +177,7 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
-		public static CustomAttribute Read(ModuleDef module, byte[] caBlob, ICustomAttributeType ctor, GenericParamContext gpContext) =>
+		public static CustomAttribute Read(ModuleDef module, byte[] caBlob, ICustomAttributeType? ctor, GenericParamContext gpContext) =>
 			Read(module, ByteArrayDataReaderFactory.CreateReader(caBlob), ctor, gpContext);
 
 		/// <summary>
@@ -188,7 +188,7 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
-		public static CustomAttribute Read(ModuleDef module, DataReader reader, ICustomAttributeType ctor, GenericParamContext gpContext) =>
+		public static CustomAttribute Read(ModuleDef module, DataReader reader, ICustomAttributeType? ctor, GenericParamContext gpContext) =>
 			Read(module, ref reader, ctor, gpContext);
 
 		/// <summary>
@@ -199,7 +199,7 @@ namespace dnlib.DotNet {
 		/// <param name="ctor">Custom attribute constructor</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A new <see cref="CustomAttribute"/> instance</returns>
-		static CustomAttribute Read(ModuleDef module, ref DataReader reader, ICustomAttributeType ctor, GenericParamContext gpContext) {
+		static CustomAttribute Read(ModuleDef module, ref DataReader reader, ICustomAttributeType? ctor, GenericParamContext gpContext) {
 			var caReader = new CustomAttributeReader(module, ref reader, gpContext);
 			CustomAttribute ca;
 			try {
@@ -226,7 +226,7 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A list of <see cref="CANamedArgument"/>s or <c>null</c> if some error
 		/// occurred.</returns>
-		internal static List<CANamedArgument> ReadNamedArguments(ModuleDef module, ref DataReader reader, int numNamedArgs, GenericParamContext gpContext) {
+		internal static List<CANamedArgument>? ReadNamedArguments(ModuleDef module, ref DataReader reader, int numNamedArgs, GenericParamContext gpContext) {
 			try {
 				var caReader = new CustomAttributeReader(module, ref reader, gpContext);
 				var namedArgs = caReader.ReadNamedArguments(numNamedArgs);
@@ -263,7 +263,7 @@ namespace dnlib.DotNet {
 
 		byte[] GetRawBlob() => reader.ToArray();
 
-		CustomAttribute Read(ICustomAttributeType ctor) {
+		CustomAttribute Read(ICustomAttributeType? ctor) {
 			var methodSig = ctor?.MethodSig;
 			if (methodSig is null)
 				throw new CABlobParserException("ctor is null or not a method");
@@ -295,7 +295,7 @@ namespace dnlib.DotNet {
 			return new CustomAttribute(ctor, ctorArgs, namedArgs, caBlobOffset);
 		}
 
-		List<CANamedArgument> ReadNamedArguments(int numNamedArgs) {
+		List<CANamedArgument>? ReadNamedArguments(int numNamedArgs) {
 			if ((uint)numNamedArgs >= 0x4000_0000 || numNamedArgs * 4 > reader.BytesLeft)
 				return null;
 			var namedArgs = new List<CANamedArgument>(numNamedArgs);
@@ -307,15 +307,15 @@ namespace dnlib.DotNet {
 			return namedArgs;
 		}
 
-		TypeSig FixTypeSig(TypeSig type) => SubstituteGenericParameter(type.RemoveModifiers()).RemoveModifiers();
+		TypeSig? FixTypeSig(TypeSig? type) => SubstituteGenericParameter(type.RemoveModifiers()).RemoveModifiers();
 
-		TypeSig SubstituteGenericParameter(TypeSig type) {
+		TypeSig? SubstituteGenericParameter(TypeSig? type) {
 			if (genericArguments is null)
 				return type;
 			return genericArguments.Resolve(type);
 		}
 
-		CAArgument ReadFixedArg(TypeSig argType) {
+		CAArgument ReadFixedArg(TypeSig? argType) {
 			if (!recursionCounter.Increment())
 				throw new CABlobParserException("Too much recursion");
 			if (argType is null)
@@ -331,7 +331,7 @@ namespace dnlib.DotNet {
 			return result;
 		}
 
-		CAArgument ReadElem(TypeSig argType) {
+		CAArgument ReadElem(TypeSig? argType) {
 			if (argType is null)
 				throw new CABlobParserException("null argType");
 			var value = ReadValue((SerializationType)argType.ElementType, argType, out var realArgType);
@@ -346,11 +346,11 @@ namespace dnlib.DotNet {
 			return new CAArgument(realArgType, value);
 		}
 
-		object ReadValue(SerializationType etype, TypeSig argType, out TypeSig realArgType) {
+		object? ReadValue(SerializationType etype, TypeSig? argType, out TypeSig? realArgType) {
 			if (!recursionCounter.Increment())
 				throw new CABlobParserException("Too much recursion");
 
-			object result;
+			object? result;
 			switch (etype) {
 			case SerializationType.Boolean:
 				realArgType = module.CorLibTypes.Boolean;
@@ -477,7 +477,7 @@ namespace dnlib.DotNet {
 			return result;
 		}
 
-		object ReadEnumValue(TypeSig underlyingType) {
+		object? ReadEnumValue(TypeSig? underlyingType) {
 			if (underlyingType is not null) {
 				if (underlyingType.ElementType < ElementType.Boolean || underlyingType.ElementType > ElementType.U8)
 					throw new CABlobParserException("Invalid enum underlying type");
@@ -492,7 +492,7 @@ namespace dnlib.DotNet {
 			return reader.ReadInt32();
 		}
 
-		TypeSig ReadType(bool canReturnNull) {
+		TypeSig? ReadType(bool canReturnNull) {
 			var name = ReadUTF8String();
 			if (canReturnNull && name is null)
 				return null;
@@ -509,7 +509,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">An enum type</param>
 		/// <returns>The underlying type or <c>null</c> if we couldn't resolve the type ref</returns>
 		/// <exception cref="CABlobParserException">If <paramref name="type"/> is not an enum or <c>null</c></exception>
-		static TypeSig GetEnumUnderlyingType(TypeSig type) {
+		static TypeSig? GetEnumUnderlyingType(TypeSig? type) {
 			if (type is null)
 				throw new CABlobParserException("null enum type");
 			var td = GetTypeDef(type);
@@ -527,7 +527,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if we couldn't resolve the
 		/// <see cref="TypeRef"/> or if <paramref name="type"/> is a type spec</returns>
-		static TypeDef GetTypeDef(TypeSig type) {
+		static TypeDef? GetTypeDef(TypeSig? type) {
 			if (type is TypeDefOrRefSig tdr) {
 				var td = tdr.TypeDef;
 				if (td is not null)
@@ -595,14 +595,14 @@ namespace dnlib.DotNet {
 				SerializationType.SZArray => new SZArraySig(ReadFieldOrPropType()),
 				SerializationType.Type => new ClassSig(module.CorLibTypes.GetTypeRef("System", "Type")),
 				SerializationType.TaggedObject => module.CorLibTypes.Object,
-				SerializationType.Enum => ReadType(false),
+				SerializationType.Enum => ReadType(false)!,	// only returns null if the arg is true
 				_ => throw new CABlobParserException("Invalid type"),
 			};
 			recursionCounter.Decrement();
 			return result;
 		}
 
-		UTF8String ReadUTF8String() {
+		UTF8String? ReadUTF8String() {
 			if (reader.ReadByte() == 0xFF)
 				return null;
 			reader.Position--;

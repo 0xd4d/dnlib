@@ -1,0 +1,117 @@
+M:dnlib.DotNet.Importer.Import(System.Reflection.FieldInfo);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(System.Reflection.FieldInfo,System.Boolean);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(System.Reflection.MethodBase);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(System.Reflection.MethodBase,System.Boolean);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(System.Type);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(System.Type,System.Collections.Generic.IList{System.Type},System.Collections.Generic.IList{System.Type});It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.CallingConventionSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.FieldDef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.FieldSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.GenericInstMethodSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.IField);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.IMethod);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.IType);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.ITypeDefOrRef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.LocalSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.MemberRef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.MethodDef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.MethodSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.MethodSpec);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.PropertySig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.TypeDef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.TypeRef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.TypeSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.Import(dnlib.DotNet.TypeSpec);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.ImportAsOperand(System.Reflection.FieldInfo);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.ImportAsOperand(System.Reflection.MethodBase);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.ImportAsOperand(System.Type);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.ImportAsTypeSig(System.Type);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.Importer.ImportAsTypeSig(System.Type,System.Collections.Generic.IList{System.Type},System.Collections.Generic.IList{System.Type});It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(System.Reflection.FieldInfo);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(System.Reflection.MethodBase);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(System.Type);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.FieldDef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.IField);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.IMethod);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.IType);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.MemberRef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.MethodDef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.MethodSpec);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeDef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeRef);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeSig);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+M:dnlib.DotNet.ModuleDef.Import(dnlib.DotNet.TypeSpec);It throws if the import fails, use Importer.ImportOrNull()/ImportAsTypeSigOrNull()/ImportAsOperandOrNull()
+P:dnlib.DotNet.AssemblyDef.ManifestModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.CustomAttribute.ConstructorOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Emit.ExceptionHandler.CatchTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Emit.ExceptionHandler.FilterStartOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Emit.ExceptionHandler.HandlerStartOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Emit.ExceptionHandler.TryStartOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Emit.Local.TypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.EventDef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.EventDef.EventTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.EventDef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ExportedType.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ExportedType.ImplementationOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ExportedType.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.FieldDef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.FieldDef.FieldSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.FieldDef.FieldTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.FieldDef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.FieldSig.TypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.FnPtrSig.MethodSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.GenericInstMethodSig.GenericArgumentsOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.GenericInstSig.GenericArgumentsOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.GenericInstSig.GenericTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.GenericParam.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.GenericParam.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.GenericParamConstraint.ConstraintOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.IField.FieldSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.IMemberDef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.IMemberRef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.IMethod.MethodSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.IOwnerModule.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ImplMap.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.InterfaceImpl.InterfaceOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.LocalSig.LocalsOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MemberRef.ClassOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MemberRef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MemberRef.FieldSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MemberRef.MethodSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MemberRef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MemberRef.ReturnTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodBaseSig.ParamsAfterSentinelOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodBaseSig.ParamsOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodBaseSig.RetTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodDef.BodyOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodDef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodDef.MethodSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodDef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodDef.ReturnTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodOverride.MethodBodyOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodOverride.MethodDeclarationOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodSpec.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodSpec.GenericInstMethodSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodSpec.MethodOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.MethodSpec.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ModifierSig.ModifierOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ModuleDef.AssemblyOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ModuleDef.GlobalTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.ModuleRef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Parameter.ParamDefOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Parameter.TypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Pdb.PdbMethod.ScopeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.Pdb.PdbScope.StartOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.PropertyDef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.PropertyDef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.PropertyDef.PropertySigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeDef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeDef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeDefOrRefSig.TypeDefOrRefOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeRef.DeclaringTypeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeRef.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeRef.ResolutionScopeOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeSig.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeSig.NextOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeSpec.ModuleOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix
+P:dnlib.DotNet.TypeSpec.TypeSigOrThrow;dnlib must not throw when reading invalid metadata, use the member without the OrThrow suffix

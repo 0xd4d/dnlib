@@ -235,7 +235,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="metadata">Metadata owner</param>
 		/// <param name="options">Options</param>
-		public TablesHeap(Metadata metadata, TablesHeapOptions options) {
+		public TablesHeap(Metadata metadata, TablesHeapOptions? options) {
 			this.metadata = metadata;
 			this.options = options ?? new TablesHeapOptions();
 			hasDeletedRows = this.options.HasDeletedRows ?? false;
@@ -408,7 +408,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		internal void SetSystemTableRows(uint[] systemTables) => this.systemTables = (uint[])systemTables.Clone();
-		uint[] systemTables;
+		uint[]? systemTables;
 
 		/// <inheritdoc/>
 		public void WriteTo(DataWriter writer) {

@@ -19,7 +19,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the parent import scope
 		/// </summary>
-		public PdbImportScope Parent { get; set; }
+		public PdbImportScope? Parent { get; set; }
 
 		/// <summary>
 		/// Gets all imports
@@ -92,6 +92,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbImportNamespace() {
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -118,7 +119,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target assembly
 		/// </summary>
-		public AssemblyRef TargetAssembly { get; set; }
+		public AssemblyRef? TargetAssembly { get; set; }
 
 		/// <summary>
 		/// Gets the target namespace
@@ -129,6 +130,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbImportAssemblyNamespace() {
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -136,7 +138,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="targetAssembly"></param>
 		/// <param name="targetNamespace"></param>
-		public PdbImportAssemblyNamespace(AssemblyRef targetAssembly, string targetNamespace) {
+		public PdbImportAssemblyNamespace(AssemblyRef? targetAssembly, string targetNamespace) {
 			TargetAssembly = targetAssembly;
 			TargetNamespace = targetNamespace;
 		}
@@ -159,7 +161,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target type
 		/// </summary>
-		public ITypeDefOrRef TargetType { get; set; }
+		public ITypeDefOrRef? TargetType { get; set; }
 
 		/// <summary>
 		/// Constructor
@@ -171,7 +173,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		/// <param name="targetType"></param>
-		public PdbImportType(ITypeDefOrRef targetType) => TargetType = targetType;
+		public PdbImportType(ITypeDefOrRef? targetType) => TargetType = targetType;
 
 		internal sealed override void PreventNewClasses() { }
 
@@ -202,6 +204,8 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbImportXmlNamespace() {
+			Alias = string.Empty;
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -238,6 +242,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbImportAssemblyReferenceAlias() {
+			Alias = string.Empty;
 		}
 
 		/// <summary>
@@ -269,12 +274,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target assembly
 		/// </summary>
-		public AssemblyRef TargetAssembly { get; set; }
+		public AssemblyRef? TargetAssembly { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbAliasAssemblyReference() {
+			Alias = string.Empty;
 		}
 
 		/// <summary>
@@ -282,7 +288,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="alias"></param>
 		/// <param name="targetAssembly"></param>
-		public PdbAliasAssemblyReference(string alias, AssemblyRef targetAssembly) {
+		public PdbAliasAssemblyReference(string alias, AssemblyRef? targetAssembly) {
 			Alias = alias;
 			TargetAssembly = targetAssembly;
 		}
@@ -316,6 +322,8 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbAliasNamespace() {
+			Alias = string.Empty;
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -351,7 +359,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target assembly
 		/// </summary>
-		public AssemblyRef TargetAssembly { get; set; }
+		public AssemblyRef? TargetAssembly { get; set; }
 
 		/// <summary>
 		/// Gets the target namespace
@@ -362,6 +370,8 @@ namespace dnlib.DotNet.Pdb {
 		/// Constructor
 		/// </summary>
 		public PdbAliasAssemblyNamespace() {
+			Alias = string.Empty;
+			TargetNamespace = string.Empty;
 		}
 
 		/// <summary>
@@ -370,7 +380,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="alias"></param>
 		/// <param name="targetAssembly"></param>
 		/// <param name="targetNamespace"></param>
-		public PdbAliasAssemblyNamespace(string alias, AssemblyRef targetAssembly, string targetNamespace) {
+		public PdbAliasAssemblyNamespace(string alias, AssemblyRef? targetAssembly, string targetNamespace) {
 			Alias = alias;
 			TargetAssembly = targetAssembly;
 			TargetNamespace = targetNamespace;
@@ -399,12 +409,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the target type
 		/// </summary>
-		public ITypeDefOrRef TargetType { get; set; }
+		public ITypeDefOrRef? TargetType { get; set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		public PdbAliasType() {
+			Alias = string.Empty;
 		}
 
 		/// <summary>
@@ -412,7 +423,7 @@ namespace dnlib.DotNet.Pdb {
 		/// </summary>
 		/// <param name="alias"></param>
 		/// <param name="targetType"></param>
-		public PdbAliasType(string alias, ITypeDefOrRef targetType) {
+		public PdbAliasType(string alias, ITypeDefOrRef? targetType) {
 			Alias = alias;
 			TargetType = targetType;
 		}

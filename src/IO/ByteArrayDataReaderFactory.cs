@@ -10,7 +10,7 @@ namespace dnlib.IO {
 		/// <summary>
 		/// The filename or null if the data is not from a file
 		/// </summary>
-		public override string Filename => filename;
+		public override string? Filename => filename;
 
 		/// <summary>
 		/// Gets the total length of the data
@@ -21,11 +21,11 @@ namespace dnlib.IO {
 		internal uint DataOffset => 0;
 
 		DataStream stream;
-		string filename;
+		string? filename;
 		uint length;
 		byte[] data;
 
-		ByteArrayDataReaderFactory(byte[] data, string filename) {
+		ByteArrayDataReaderFactory(byte[] data, string? filename) {
 			this.filename = filename;
 			length = (uint)data.Length;
 			stream = DataStreamFactory.Create(data);
@@ -38,7 +38,7 @@ namespace dnlib.IO {
 		/// <param name="data">Data</param>
 		/// <param name="filename">The filename or null if the data is not from a file</param>
 		/// <returns></returns>
-		public static ByteArrayDataReaderFactory Create(byte[] data, string filename) {
+		public static ByteArrayDataReaderFactory Create(byte[] data, string? filename) {
 			if (data is null)
 				throw new ArgumentNullException(nameof(data));
 			return new ByteArrayDataReaderFactory(data, filename);
@@ -66,7 +66,7 @@ namespace dnlib.IO {
 			stream = EmptyDataStream.Instance;
 			length = 0;
 			filename = null;
-			data = null;
+			data = null!;
 		}
 	}
 }

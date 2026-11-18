@@ -92,16 +92,16 @@ namespace dnlib.DotNet.MD {
 			if (length > 8) Column8 = columns[8];
 		}
 
-		// So we don't have to call IList<T> indexer
-		internal readonly ColumnInfo Column0;
-		internal readonly ColumnInfo Column1;
-		internal readonly ColumnInfo Column2;
-		internal readonly ColumnInfo Column3;
-		internal readonly ColumnInfo Column4;
-		internal readonly ColumnInfo Column5;
-		internal readonly ColumnInfo Column6;
-		internal readonly ColumnInfo Column7;
-		internal readonly ColumnInfo Column8;
+		// So we don't have to call IList<T> indexer. A column is null if the table doesn't have that many columns.
+		internal readonly ColumnInfo Column0 = null!;
+		internal readonly ColumnInfo Column1 = null!;
+		internal readonly ColumnInfo Column2 = null!;
+		internal readonly ColumnInfo Column3 = null!;
+		internal readonly ColumnInfo Column4 = null!;
+		internal readonly ColumnInfo Column5 = null!;
+		internal readonly ColumnInfo Column6 = null!;
+		internal readonly ColumnInfo Column7 = null!;
+		internal readonly ColumnInfo Column8 = null!;
 
 		/// <summary>
 		/// Checks whether the row <paramref name="rid"/> exists
@@ -118,7 +118,7 @@ namespace dnlib.DotNet.MD {
 		/// <inheritdoc/>
 		public void Dispose() {
 			numRows = 0;
-			tableInfo = null;
+			tableInfo = null!;
 			dataReader = default;
 		}
 	}

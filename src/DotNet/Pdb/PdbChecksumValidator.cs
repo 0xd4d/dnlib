@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using dnlib.DotNet.Writer;
@@ -74,7 +75,7 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		// Returns false if it's not enabled or if there are no PDB checksum entries with a supported algorithm
-		static bool TryGetChecksums(PdbReaderContext pdbContext, out List<PdbChecksum> checksums) {
+		static bool TryGetChecksums(PdbReaderContext pdbContext, [NotNullWhen(true)] out List<PdbChecksum>? checksums) {
 			checksums = null;
 			if ((pdbContext.Options & PdbReaderOptions.ValidatePdbChecksum) == 0)
 				return false;
@@ -146,7 +147,7 @@ namespace dnlib.DotNet.Pdb {
 					hasher.TransformBlock(buffer, 0, len, buffer, 0);
 				}
 				hasher.TransformFinalBlock(Array2.Empty<byte>(), 0, 0);
-				return hasher.Hash;
+				return hasher.Hash!;
 			}
 		}
 

@@ -1,4 +1,5 @@
 namespace dnlib.DotNet.Resources {
+
 	/// <summary>
 	/// Resource reader type
 	/// </summary>

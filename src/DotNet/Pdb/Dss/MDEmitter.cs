@@ -38,7 +38,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			var row = metadata.TablesHeap.MethodTable[mb & 0x00FFFFFF];
 
 			if (pClass is not null)
-				*pClass = new MDToken(MD.Table.TypeDef, metadata.GetRid(method.DeclaringType)).Raw;
+				*pClass = new MDToken(MD.Table.TypeDef, metadata.GetRid(method.DeclaringType!)).Raw;
 			if (pdwAttr is not null)
 				*pdwAttr = row.Flags;
 			if (ppvSigBlob is not null)

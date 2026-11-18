@@ -23,7 +23,7 @@ namespace dnlib.Examples {
 			ctx.RegisterExperimentalOpCode(test3);
 
 			var mod = ModuleDefMD.Load(typeof(Example7).Module, ctx);
-			var body = mod.Types.Single(x => x.Name == nameof(Example7)).Methods.Single(x => x.Name == nameof(CustomCil)).Body;
+			var body = mod.Types.Single(x => x.Name == nameof(Example7)).Methods.Single(x => x.Name == nameof(CustomCil)).BodyOrThrow;
 
 			Console.WriteLine("Original:");
 			foreach (var insn in body.Instructions)
@@ -54,7 +54,7 @@ namespace dnlib.Examples {
 				stream.Position = 0;
 
 				mod = ModuleDefMD.Load(stream, ctx);
-				body = mod.Types.Single(x => x.Name == nameof(Example7)).Methods.Single(x => x.Name == nameof(CustomCil)).Body;
+				body = mod.Types.Single(x => x.Name == nameof(Example7)).Methods.Single(x => x.Name == nameof(CustomCil)).BodyOrThrow;
 
 				Console.WriteLine("Roundtripped:");
 				foreach (var insn in body.Instructions)

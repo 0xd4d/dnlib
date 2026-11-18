@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using dnlib.Utils;
@@ -74,10 +75,10 @@ namespace dnlib.DotNet {
 		public string AssemblyQualifiedName => FullNameFactory.AssemblyQualifiedName(this, null, null);
 
 		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
+		public IAssembly? DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
 
 		/// <inheritdoc/>
-		public IScope Scope => Module;
+		public IScope? Scope => Module;
 
 		/// <inheritdoc/>
 		public ITypeDefOrRef ScopeType => this;
@@ -89,12 +90,17 @@ namespace dnlib.DotNet {
 		public bool ContainsGenericParameter => false;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => FullNameFactory.OwnerModule(this);
+		public ModuleDef? Module => FullNameFactory.OwnerModule(this);
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// Gets/sets the owner module
 		/// </summary>
-		internal ModuleDef Module2 {
+		internal ModuleDef? Module2 {
 			get {
 				if (!module2_isInitialized)
 					InitializeModule2();
@@ -112,7 +118,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ModuleDef module2;
+		protected ModuleDef? module2;
 		/// <summary/>
 		protected bool module2_isInitialized;
 
@@ -130,7 +136,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="module2"/></summary>
-		protected virtual ModuleDef GetModule2_NoLock() => null;
+		protected virtual ModuleDef? GetModule2_NoLock() => null;
 
 		bool IIsTypeOrMethod.IsType => true;
 		bool IIsTypeOrMethod.IsMethod => false;
@@ -159,27 +165,29 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column TypeDef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
-		protected UTF8String name;
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column TypeDef.Namespace
 		/// </summary>
+		[AllowNull]
 		public UTF8String Namespace {
 			get => @namespace;
-			set => @namespace = value;
+			set => @namespace = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String @namespace;
+		protected UTF8String @namespace = UTF8String.Empty;
 
 		/// <summary>
 		/// From column TypeDef.Extends
 		/// </summary>
-		public ITypeDefOrRef BaseType {
+		public ITypeDefOrRef? BaseType {
 			get {
 				if (!baseType_isInitialized)
 					InitializeBaseType();
@@ -197,7 +205,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ITypeDefOrRef baseType;
+		protected ITypeDefOrRef? baseType;
 		/// <summary/>
 		protected bool baseType_isInitialized;
 
@@ -215,7 +223,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="baseType"/></summary>
-		protected virtual ITypeDefOrRef GetBaseType_NoLock() => null;
+		protected virtual ITypeDefOrRef? GetBaseType_NoLock() => null;
 
 		/// <summary>Reset <see cref="BaseType"/></summary>
 		protected void ResetBaseType() => baseType_isInitialized = false;
@@ -227,11 +235,11 @@ namespace dnlib.DotNet {
 			get {
 				if (fields is null)
 					InitializeFields();
-				return fields;
+				return fields!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<FieldDef> fields;
+		protected LazyList<FieldDef>? fields;
 		/// <summary>Initializes <see cref="fields"/></summary>
 		protected virtual void InitializeFields() =>
 			Interlocked.CompareExchange(ref fields, new LazyList<FieldDef>(this), null);
@@ -243,11 +251,11 @@ namespace dnlib.DotNet {
 			get {
 				if (methods is null)
 					InitializeMethods();
-				return methods;
+				return methods!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<MethodDef> methods;
+		protected LazyList<MethodDef>? methods;
 		/// <summary>Initializes <see cref="methods"/></summary>
 		protected virtual void InitializeMethods() =>
 			Interlocked.CompareExchange(ref methods, new LazyList<MethodDef>(this), null);
@@ -257,11 +265,11 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParameters is null)
 					InitializeGenericParameters();
-				return genericParameters;
+				return genericParameters!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<GenericParam> genericParameters;
+		protected LazyList<GenericParam>? genericParameters;
 		/// <summary>Initializes <see cref="genericParameters"/></summary>
 		protected virtual void InitializeGenericParameters() =>
 			Interlocked.CompareExchange(ref genericParameters, new LazyList<GenericParam>(this), null);
@@ -273,11 +281,11 @@ namespace dnlib.DotNet {
 			get {
 				if (interfaces is null)
 					InitializeInterfaces();
-				return interfaces;
+				return interfaces!;
 			}
 		}
 		/// <summary/>
-		protected IList<InterfaceImpl> interfaces;
+		protected IList<InterfaceImpl>? interfaces;
 		/// <summary>Initializes <see cref="interfaces"/></summary>
 		protected virtual void InitializeInterfaces() =>
 			Interlocked.CompareExchange(ref interfaces, new List<InterfaceImpl>(), null);
@@ -287,11 +295,11 @@ namespace dnlib.DotNet {
 			get {
 				if (declSecurities is null)
 					InitializeDeclSecurities();
-				return declSecurities;
+				return declSecurities!;
 			}
 		}
 		/// <summary/>
-		protected IList<DeclSecurity> declSecurities;
+		protected IList<DeclSecurity>? declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
 		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
@@ -299,7 +307,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the class layout
 		/// </summary>
-		public ClassLayout ClassLayout {
+		public ClassLayout? ClassLayout {
 			get {
 				if (!classLayout_isInitialized)
 					InitializeClassLayout();
@@ -317,7 +325,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ClassLayout classLayout;
+		protected ClassLayout? classLayout;
 		/// <summary/>
 		protected bool classLayout_isInitialized;
 
@@ -342,7 +350,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="classLayout"/></summary>
-		protected virtual ClassLayout GetClassLayout_NoLock() => null;
+		protected virtual ClassLayout? GetClassLayout_NoLock() => null;
 
 		/// <inheritdoc/>
 		public bool HasDeclSecurities => DeclSecurities.Count > 0;
@@ -350,7 +358,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the enclosing type. It's <c>null</c> if this isn't a nested class.
 		/// </summary>
-		public TypeDef DeclaringType {
+		public TypeDef? DeclaringType {
 			get {
 				if (!declaringType2_isInitialized)
 					InitializeDeclaringType2();
@@ -370,15 +378,24 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
+
+#pragma warning disable RS0030 // Implements the OrThrow interface member
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+#pragma warning restore RS0030
+
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => DeclaringType;
+		ITypeDefOrRef? IMemberRef.DeclaringType => DeclaringType;
 
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public TypeDef DeclaringType2 {
+		public TypeDef? DeclaringType2 {
 			get {
 				if (!declaringType2_isInitialized)
 					InitializeDeclaringType2();
@@ -396,7 +413,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected TypeDef declaringType2;
+		protected TypeDef? declaringType2;
 		/// <summary/>
 		protected bool declaringType2_isInitialized;
 
@@ -414,7 +431,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="declaringType2"/></summary>
-		protected virtual TypeDef GetDeclaringType2_NoLock() => null;
+		protected virtual TypeDef? GetDeclaringType2_NoLock() => null;
 
 		/// <summary>
 		/// Gets all the nested types
@@ -423,11 +440,11 @@ namespace dnlib.DotNet {
 			get {
 				if (nestedTypes is null)
 					InitializeNestedTypes();
-				return nestedTypes;
+				return nestedTypes!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<TypeDef> nestedTypes;
+		protected LazyList<TypeDef>? nestedTypes;
 		/// <summary>Initializes <see cref="nestedTypes"/></summary>
 		protected virtual void InitializeNestedTypes() =>
 			Interlocked.CompareExchange(ref nestedTypes, new LazyList<TypeDef>(this), null);
@@ -439,11 +456,11 @@ namespace dnlib.DotNet {
 			get {
 				if (events is null)
 					InitializeEvents();
-				return events;
+				return events!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<EventDef> events;
+		protected LazyList<EventDef>? events;
 		/// <summary>Initializes <see cref="events"/></summary>
 		protected virtual void InitializeEvents() =>
 			Interlocked.CompareExchange(ref events, new LazyList<EventDef>(this), null);
@@ -455,11 +472,11 @@ namespace dnlib.DotNet {
 			get {
 				if (properties is null)
 					InitializeProperties();
-				return properties;
+				return properties!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<PropertyDef> properties;
+		protected LazyList<PropertyDef>? properties;
 		/// <summary>Initializes <see cref="properties"/></summary>
 		protected virtual void InitializeProperties() =>
 			Interlocked.CompareExchange(ref properties, new LazyList<PropertyDef>(this), null);
@@ -471,11 +488,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -496,11 +513,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -543,6 +560,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="ClassLayout"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(ClassLayout))]
 		public bool HasClassLayout => ClassLayout is not null;
 
 		/// <summary>
@@ -668,6 +686,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if this is a nested type (it has a declaring type)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(DeclaringType))]
 		public bool IsNested => DeclaringType is not null;
 
 		/// <inheritdoc/>
@@ -919,7 +938,7 @@ namespace dnlib.DotNet {
 		/// Gets an enum's underlying type or <c>null</c> if none. Should only be called
 		/// if this is an enum.
 		/// </summary>
-		public TypeSig GetEnumUnderlyingType() {
+		public TypeSig? GetEnumUnderlyingType() {
 			var fields = Fields;
 			int count = fields.Count;
 			for (int i = 0; i < count; i++) {
@@ -942,7 +961,7 @@ namespace dnlib.DotNet {
 		/// <param name="memberRef">A method/field reference</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
 		/// if it couldn't be resolved.</returns>
-		public IMemberForwarded Resolve(MemberRef memberRef) => Resolve(memberRef, 0);
+		public IMemberForwarded? Resolve(MemberRef? memberRef) => Resolve(memberRef, 0);
 
 		/// <summary>
 		/// Resolves a method or a field. <see cref="MemberRef.Class"/> (owner type) is ignored when
@@ -955,7 +974,7 @@ namespace dnlib.DotNet {
 		/// <param name="options">Method/field signature comparison options</param>
 		/// <returns>A <see cref="MethodDef"/> or a <see cref="FieldDef"/> instance or <c>null</c>
 		/// if it couldn't be resolved.</returns>
-		public IMemberForwarded Resolve(MemberRef memberRef, SigComparerOptions options) {
+		public IMemberForwarded? Resolve(MemberRef? memberRef, SigComparerOptions options) {
 			if (memberRef is null)
 				return null;
 
@@ -979,16 +998,16 @@ namespace dnlib.DotNet {
 		// one are private scope), the CLR's FieldDesc order is used: instance fields, then
 		// statics, then thread statics, each in declaration order.
 		[MethodImpl(AggressiveOptimization)]
-		FieldDef ResolveField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+		FieldDef? ResolveField(UTF8String? name, FieldSig? sig, SigComparerOptions options, ModuleDef? sourceModule) {
 			if (UTF8String.IsNull(name) || sig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
 			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0;
-			FieldDef firstStatic = null;
+			FieldDef? firstStatic = null;
 			bool severalStatics = false;
 			if (this.fields is null)
 				InitializeFields();
-			var fields = this.fields;
+			var fields = this.fields!;
 			for (int i = FindFieldIndex(fields, 0, name, caseInsensitive, out var field); i >= 0; i = FindFieldIndex(fields, i + 1, name, caseInsensitive, out field)) {
 				if (field.IsLiteral)
 					continue;
@@ -1008,7 +1027,7 @@ namespace dnlib.DotNet {
 				return firstStatic;
 
 			// Rare: several matching static fields, thread statics are after the other statics
-			FieldDef firstThreadStatic = null;
+			FieldDef? firstThreadStatic = null;
 			for (int i = FindFieldIndex(fields, 0, name, caseInsensitive, out var field); i >= 0; i = FindFieldIndex(fields, i + 1, name, caseInsensitive, out field)) {
 				if (field.IsLiteral || !field.IsStatic)
 					continue;
@@ -1034,7 +1053,7 @@ namespace dnlib.DotNet {
 
 		// Finds the first field at index >= startIndex with the same name
 		[MethodImpl(AggressiveOptimization)]
-		static int FindFieldIndex(LazyList<FieldDef> fields, int startIndex, UTF8String name, bool caseInsensitive, out FieldDef field) {
+		static int FindFieldIndex(LazyList<FieldDef> fields, int startIndex, UTF8String? name, bool caseInsensitive, out FieldDef field) {
 			fields.EnterLock();
 			try {
 				int count = fields.Count_NoLock;
@@ -1045,7 +1064,7 @@ namespace dnlib.DotNet {
 						return i;
 					}
 				}
-				field = null;
+				field = null!;
 				return -1;
 			}
 			finally {
@@ -1055,7 +1074,7 @@ namespace dnlib.DotNet {
 
 		// Finds the last method at index <= startIndex with the same name
 		[MethodImpl(AggressiveOptimization)]
-		static int FindLastMethodIndex(LazyList<MethodDef> methods, int startIndex, UTF8String name, bool caseInsensitive, out MethodDef method) {
+		static int FindLastMethodIndex(LazyList<MethodDef> methods, int startIndex, UTF8String? name, bool caseInsensitive, out MethodDef method) {
 			methods.EnterLock();
 			try {
 				int count = methods.Count_NoLock;
@@ -1066,7 +1085,7 @@ namespace dnlib.DotNet {
 						return i;
 					}
 				}
-				method = null;
+				method = null!;
 				return -1;
 			}
 			finally {
@@ -1076,7 +1095,7 @@ namespace dnlib.DotNet {
 
 		// Same as SigComparer.Equals_Names(false, a, b) (a null name is the same as an empty name) but faster
 		[MethodImpl(AggressiveOptimization)]
-		static bool NameEquals(UTF8String a, UTF8String b) {
+		static bool NameEquals(UTF8String? a, UTF8String? b) {
 			var ad = a?.Data;
 			var bd = b?.Data;
 			if (ad == bd)
@@ -1085,7 +1104,7 @@ namespace dnlib.DotNet {
 			if (length != (bd is null ? 0 : bd.Length))
 				return false;
 			for (int i = 0; i < length; i++) {
-				if (ad[i] != bd[i])
+				if (ad![i] != bd![i])
 					return false;
 			}
 			return true;
@@ -1102,7 +1121,7 @@ namespace dnlib.DotNet {
 		// signature (only legal if all but one are private scope) or a virtual method in a base
 		// type and a non-virtual method with the same name and sig in a type in between.
 		[MethodImpl(AggressiveOptimization)]
-		MethodDef ResolveMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+		MethodDef? ResolveMethod(UTF8String? name, MethodSig? sig, SigComparerOptions options, ModuleDef? sourceModule) {
 			if (UTF8String.IsNull(name) || sig is null)
 				return null;
 			bool caseInsensitive = (options & SigComparerOptions.CaseInsensitiveMethodFieldNames) != 0;
@@ -1112,9 +1131,9 @@ namespace dnlib.DotNet {
 			// type's non-virtual methods. A base type's vtable is the same as ours except that we can have
 			// overrides (with the same name and sig), so if there was no match in our vtable, there's no
 			// match in theirs either.
-			IList<TypeSig> typeArgs = null;
+			IList<TypeSig?>? typeArgs = null;
 			var td = this;
-			MethodDef baseNonVirtual = null;
+			MethodDef? baseNonVirtual = null;
 			bool searchBaseNonVirtual = true;
 			for (int level = 0; td is not null && level < MAX_BASE_TYPE_DEPTH; level++) {
 				var virtualMd = FindMethodInSlotOrder(td, typeArgs, level, name, sig, comparer, caseInsensitive, out var nonVirtualMd);
@@ -1150,15 +1169,15 @@ namespace dnlib.DotNet {
 		// type has several matching virtual methods, the last one that creates a new slot wins, or else
 		// the first override (the CLR's FindMethod() sees the first method that's put in a slot).
 		[MethodImpl(AggressiveOptimization)]
-		static MethodDef FindMethodInSlotOrder(TypeDef td, IList<TypeSig> typeArgs, int level, UTF8String name, MethodSig sig, SigComparer comparer, bool caseInsensitive, out MethodDef nonVirtualMethod) {
+		static MethodDef? FindMethodInSlotOrder(TypeDef td, IList<TypeSig?>? typeArgs, int level, UTF8String? name, MethodSig sig, SigComparer comparer, bool caseInsensitive, out MethodDef? nonVirtualMethod) {
 			if (td.methods is null)
 				td.InitializeMethods();
-			var methods = td.methods;
+			var methods = td.methods!;
 			int paramCount = sig.Params is null ? -1 : sig.Params.Count;
 			// Only read if needed
 			bool isValueType = false, isValueTypeInitd = false;
-			MethodDef cctor = null, defaultCtor = null, genericMatch = null, unboxedMatch = null;
-			MethodDef nonVirtualMatch = null, lastVirtual = null;
+			MethodDef? cctor = null, defaultCtor = null, genericMatch = null, unboxedMatch = null;
+			MethodDef? nonVirtualMatch = null, lastVirtual = null;
 			int virtualCount = 0;
 			for (int i = FindLastMethodIndex(methods, int.MaxValue, name, caseInsensitive, out var method); i >= 0; i = FindLastMethodIndex(methods, i - 1, name, caseInsensitive, out method)) {
 				if (method.IsVirtual && !method.IsStatic) {
@@ -1221,7 +1240,7 @@ namespace dnlib.DotNet {
 			if (virtualCount <= 1)
 				return lastVirtual;
 			// Rare: several matching virtual methods, check which ones are overrides
-			MethodDef firstOverride = null;
+			MethodDef? firstOverride = null;
 			for (int i = FindLastMethodIndex(methods, int.MaxValue, name, caseInsensitive, out var method); i >= 0; i = FindLastMethodIndex(methods, i - 1, name, caseInsensitive, out method)) {
 				if (!method.IsVirtual || method.IsStatic)
 					continue;
@@ -1236,7 +1255,7 @@ namespace dnlib.DotNet {
 
 		// Checks if a base type has a virtual method with the same name and sig (which means that
 		// the CLR puts this non-newslot virtual method in that method's vtable slot)
-		static bool OverridesBaseTypeMethod(TypeDef td, IList<TypeSig> typeArgs, int level, MethodDef method) {
+		static bool OverridesBaseTypeMethod(TypeDef td, IList<TypeSig?>? typeArgs, int level, MethodDef method) {
 			var methodSig = GenericTypeArgsSubstitutor.Substitute(method.MethodSig, typeArgs);
 			var comparer = new SigComparer();
 			var baseType = GetBaseTypeDef(td, ref typeArgs);
@@ -1261,7 +1280,7 @@ namespace dnlib.DotNet {
 
 		// Compares a method's sig with a MemberRef sig. The number of params is checked first since the
 		// SigComparer compares the return types before it finds out that the param counts are different.
-		static bool SigEquals(MethodSig methodSig, IList<TypeSig> typeArgs, MethodSig sig, int paramCount, ref SigComparer comparer) {
+		static bool SigEquals(MethodSig? methodSig, IList<TypeSig?>? typeArgs, MethodSig? sig, int paramCount, ref SigComparer comparer) {
 			if (methodSig is null)
 				return false;
 			var methodParams = methodSig.Params;
@@ -1283,7 +1302,7 @@ namespace dnlib.DotNet {
 		}
 
 		// The CLR compares the raw sig with 'instance void()'
-		static bool IsDefaultCtorSig(MethodSig sig) =>
+		static bool IsDefaultCtorSig(MethodSig? sig) =>
 			sig is not null &&
 			sig.CallingConvention == CallingConvention.HasThis &&
 			sig.GenParamCount == 0 &&
@@ -1297,7 +1316,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef FindMethod(UTF8String name, MethodSig sig) => FindMethod(name, sig, 0, null);
+		public MethodDef? FindMethod(UTF8String? name, MethodSig? sig) => FindMethod(name, sig, 0, null);
 
 		/// <summary>
 		/// Finds a method
@@ -1306,7 +1325,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Method signature</param>
 		/// <param name="options">Method signature comparison options</param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options) => FindMethod(name, sig, options, null);
+		public MethodDef? FindMethod(UTF8String? name, MethodSig? sig, SigComparerOptions options) => FindMethod(name, sig, options, null);
 
 		/// <summary>
 		/// Finds a method
@@ -1316,10 +1335,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Method signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the method or <c>null</c></param>
 		/// <returns>The first method that matches or <c>null</c> if none found</returns>
-		public MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) =>
+		public MethodDef? FindMethod(UTF8String? name, MethodSig? sig, SigComparerOptions options, ModuleDef? sourceModule) =>
 			FindMethod(name, sig, options, sourceModule, null);
 
-		MethodDef FindMethod(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
+		MethodDef? FindMethod(UTF8String? name, MethodSig? sig, SigComparerOptions options, ModuleDef? sourceModule, IList<TypeSig?>? typeArgs) {
 			if (UTF8String.IsNull(name) || sig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1344,7 +1363,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of method</param>
 		/// <returns>The <see cref="MethodDef"/> or <c>null</c> if not found</returns>
-		public MethodDef FindMethod(UTF8String name) {
+		public MethodDef? FindMethod(UTF8String? name) {
 			var methods = Methods;
 			int count = methods.Count;
 			for (int i = 0; i < count; i++) {
@@ -1360,7 +1379,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of method</param>
 		/// <returns>All methods with that name</returns>
-		public IEnumerable<MethodDef> FindMethods(UTF8String name) {
+		public IEnumerable<MethodDef> FindMethods(UTF8String? name) {
 			var methods = Methods;
 			int count = methods.Count;
 			for (int i = 0; i < count; i++) {
@@ -1374,7 +1393,7 @@ namespace dnlib.DotNet {
 		/// Finds the class constructor (aka type initializer). It's the method named .cctor
 		/// </summary>
 		/// <returns>The class constructor or <c>null</c> if none found</returns>
-		public MethodDef FindStaticConstructor() {
+		public MethodDef? FindStaticConstructor() {
 			var methods = Methods;
 			int count = methods.Count;
 			for (int i = 0; i < count; i++) {
@@ -1391,6 +1410,8 @@ namespace dnlib.DotNet {
 		/// The created .cctor will have just one RET instruction.
 		/// </summary>
 		/// <returns>The class constructor</returns>
+		/// <exception cref="InvalidOperationException">The .cctor must be created but the type hasn't been
+		/// added to a module (<see cref="Module"/> is <c>null</c>)</exception>
 		public MethodDef FindOrCreateStaticConstructor() {
 			var cctor = FindStaticConstructor();
 			if (cctor is not null)
@@ -1400,7 +1421,7 @@ namespace dnlib.DotNet {
 			var flags = MethodAttributes.Private | MethodAttributes.Static |
 						MethodAttributes.HideBySig | MethodAttributes.ReuseSlot |
 						MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
-			var module = Module;
+			var module = Module ?? throw new InvalidOperationException("Can't create the .cctor: the type must be added to a module first");
 			cctor = module.UpdateRowId(new MethodDefUser(MethodDef.StaticConstructorName,
 						MethodSig.CreateStatic(module.CorLibTypes.Void), implFlags, flags));
 			var body = new CilBody();
@@ -1444,7 +1465,7 @@ namespace dnlib.DotNet {
 		/// Finds the default instance constructor (the one with no arguments)
 		/// </summary>
 		/// <returns>The default instance constructor or <c>null</c> if none</returns>
-		public MethodDef FindDefaultConstructor() {
+		public MethodDef? FindDefaultConstructor() {
 			var methods = Methods;
 			int count = methods.Count;
 			for (int i = 0; i < count; i++) {
@@ -1464,7 +1485,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef FindField(UTF8String name, FieldSig sig) => FindField(name, sig, 0, null);
+		public FieldDef? FindField(UTF8String? name, FieldSig? sig) => FindField(name, sig, 0, null);
 
 		/// <summary>
 		/// Finds a field
@@ -1473,7 +1494,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Field signature</param>
 		/// <param name="options">Field signature comparison options</param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options) => FindField(name, sig, options, null);
+		public FieldDef? FindField(UTF8String? name, FieldSig? sig, SigComparerOptions options) => FindField(name, sig, options, null);
 
 		/// <summary>
 		/// Finds a field
@@ -1483,10 +1504,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Field signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the field or <c>null</c></param>
 		/// <returns>The first field that matches or <c>null</c> if none found</returns>
-		public FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) =>
+		public FieldDef? FindField(UTF8String? name, FieldSig? sig, SigComparerOptions options, ModuleDef? sourceModule) =>
 			FindField(name, sig, options, sourceModule, null);
 
-		FieldDef FindField(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
+		FieldDef? FindField(UTF8String? name, FieldSig? sig, SigComparerOptions options, ModuleDef? sourceModule, IList<TypeSig?>? typeArgs) {
 			if (UTF8String.IsNull(name) || sig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1511,7 +1532,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of field</param>
 		/// <returns>The <see cref="FieldDef"/> or <c>null</c> if not found</returns>
-		public FieldDef FindField(UTF8String name) {
+		public FieldDef? FindField(UTF8String? name) {
 			var fields = Fields;
 			int count = fields.Count;
 			for (int i = 0; i < count; i++) {
@@ -1527,7 +1548,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of field</param>
 		/// <returns>All fields with that name</returns>
-		public IEnumerable<FieldDef> FindFields(UTF8String name) {
+		public IEnumerable<FieldDef> FindFields(UTF8String? name) {
 			var fields = Fields;
 			int count = fields.Count;
 			for (int i = 0; i < count; i++) {
@@ -1543,7 +1564,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of event</param>
 		/// <param name="type">Type of event</param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(UTF8String name, IType type) => FindEvent(name, type, 0, null);
+		public EventDef? FindEvent(UTF8String? name, IType? type) => FindEvent(name, type, 0, null);
 
 		/// <summary>
 		/// Finds an event
@@ -1552,7 +1573,7 @@ namespace dnlib.DotNet {
 		/// <param name="type">Type of event</param>
 		/// <param name="options">Event type comparison options</param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options) => FindEvent(name, type, options, null);
+		public EventDef? FindEvent(UTF8String? name, IType? type, SigComparerOptions options) => FindEvent(name, type, options, null);
 
 		/// <summary>
 		/// Finds an event
@@ -1562,10 +1583,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Event type comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the event or <c>null</c></param>
 		/// <returns>A <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule) =>
+		public EventDef? FindEvent(UTF8String? name, IType? type, SigComparerOptions options, ModuleDef? sourceModule) =>
 			FindEvent(name, type, options, sourceModule, null);
 
-		EventDef FindEvent(UTF8String name, IType type, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
+		EventDef? FindEvent(UTF8String? name, IType? type, SigComparerOptions options, ModuleDef? sourceModule, IList<TypeSig?>? typeArgs) {
 			if (UTF8String.IsNull(name) || type is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1582,7 +1603,7 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		static IType SubstituteEventType(ITypeDefOrRef eventType, IList<TypeSig> typeArgs) {
+		static IType? SubstituteEventType(ITypeDefOrRef? eventType, IList<TypeSig?>? typeArgs) {
 			if (typeArgs is null || eventType is not TypeSpec ts)
 				return eventType;
 			var sig = ts.TypeSig;
@@ -1595,7 +1616,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of event</param>
 		/// <returns>The <see cref="EventDef"/> or <c>null</c> if not found</returns>
-		public EventDef FindEvent(UTF8String name) {
+		public EventDef? FindEvent(UTF8String? name) {
 			var events = Events;
 			int count = events.Count;
 			for (int i = 0; i < count; i++) {
@@ -1611,7 +1632,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of event</param>
 		/// <returns>All events with that name</returns>
-		public IEnumerable<EventDef> FindEvents(UTF8String name) {
+		public IEnumerable<EventDef> FindEvents(UTF8String? name) {
 			var events = Events;
 			int count = events.Count;
 			for (int i = 0; i < count; i++) {
@@ -1627,7 +1648,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name of property</param>
 		/// <param name="propSig">Property signature</param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig) => FindProperty(name, propSig, 0, null);
+		public PropertyDef? FindProperty(UTF8String? name, CallingConventionSig? propSig) => FindProperty(name, propSig, 0, null);
 
 		/// <summary>
 		/// Finds a property
@@ -1636,7 +1657,7 @@ namespace dnlib.DotNet {
 		/// <param name="propSig">Property signature</param>
 		/// <param name="options">Property signature comparison options</param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options) => FindProperty(name, propSig, options, null);
+		public PropertyDef? FindProperty(UTF8String? name, CallingConventionSig? propSig, SigComparerOptions options) => FindProperty(name, propSig, options, null);
 
 		/// <summary>
 		/// Finds a property
@@ -1646,10 +1667,10 @@ namespace dnlib.DotNet {
 		/// <param name="options">Property signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the property or <c>null</c></param>
 		/// <returns>A <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule) =>
+		public PropertyDef? FindProperty(UTF8String? name, CallingConventionSig? propSig, SigComparerOptions options, ModuleDef? sourceModule) =>
 			FindProperty(name, propSig, options, sourceModule, null);
 
-		PropertyDef FindProperty(UTF8String name, CallingConventionSig propSig, SigComparerOptions options, ModuleDef sourceModule, IList<TypeSig> typeArgs) {
+		PropertyDef? FindProperty(UTF8String? name, CallingConventionSig? propSig, SigComparerOptions options, ModuleDef? sourceModule, IList<TypeSig?>? typeArgs) {
 			if (UTF8String.IsNull(name) || propSig is null)
 				return null;
 			var comparer = new SigComparer(options, sourceModule);
@@ -1671,7 +1692,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of prop</param>
 		/// <returns>The <see cref="PropertyDef"/> or <c>null</c> if not found</returns>
-		public PropertyDef FindProperty(UTF8String name) {
+		public PropertyDef? FindProperty(UTF8String? name) {
 			var properties = Properties;
 			int count = properties.Count;
 			for (int i = 0; i < count; i++) {
@@ -1687,7 +1708,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name of prop</param>
 		/// <returns>All props with that name</returns>
-		public IEnumerable<PropertyDef> FindProperties(UTF8String name) {
+		public IEnumerable<PropertyDef> FindProperties(UTF8String? name) {
 			var properties = Properties;
 			int count = properties.Count;
 			for (int i = 0; i < count; i++) {
@@ -1708,7 +1729,7 @@ namespace dnlib.DotNet {
 		/// <param name="td">Type</param>
 		/// <param name="typeArgs">In: generic args of <paramref name="td"/> or <c>null</c> if no
 		/// substitution is needed. Out: generic args of the base type or <c>null</c>.</param>
-		static TypeDef GetBaseTypeDef(TypeDef td, ref IList<TypeSig> typeArgs) {
+		static TypeDef? GetBaseTypeDef(TypeDef td, ref IList<TypeSig?>? typeArgs) {
 			var baseType = td.BaseType;
 			if ((baseType as TypeSpec)?.TypeSig.RemovePinnedAndModifiers() is GenericInstSig gis)
 				typeArgs = GenericTypeArgsSubstitutor.Substitute(gis.GenericArguments, typeArgs);
@@ -1729,7 +1750,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="sig">Method signature</param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
-		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig) => FindMethodCheckBaseType(name, sig, 0, null);
+		public MethodDef? FindMethodCheckBaseType(UTF8String? name, MethodSig? sig) => FindMethodCheckBaseType(name, sig, 0, null);
 
 		/// <summary>
 		/// Finds a method by checking this type or any of its base types
@@ -1744,7 +1765,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Method signature</param>
 		/// <param name="options">Method signature comparison options</param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
-		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options) => FindMethodCheckBaseType(name, sig, options, null);
+		public MethodDef? FindMethodCheckBaseType(UTF8String? name, MethodSig? sig, SigComparerOptions options) => FindMethodCheckBaseType(name, sig, options, null);
 
 		/// <summary>
 		/// Finds a method by checking this type or any of its base types
@@ -1760,9 +1781,9 @@ namespace dnlib.DotNet {
 		/// <param name="options">Method signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the method or <c>null</c></param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
-		public MethodDef FindMethodCheckBaseType(UTF8String name, MethodSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+		public MethodDef? FindMethodCheckBaseType(UTF8String? name, MethodSig? sig, SigComparerOptions options, ModuleDef? sourceModule) {
 			var td = this;
-			IList<TypeSig> typeArgs = null;
+			IList<TypeSig?>? typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var md = td.FindMethod(name, sig, options, sourceModule, typeArgs);
 				if (md is not null)
@@ -1777,7 +1798,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Method name</param>
 		/// <returns>The method or <c>null</c> if it wasn't found</returns>
-		public MethodDef FindMethodCheckBaseType(UTF8String name) {
+		public MethodDef? FindMethodCheckBaseType(UTF8String? name) {
 			var td = this;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var md = td.FindMethod(name);
@@ -1800,7 +1821,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Field name</param>
 		/// <param name="sig">Field signature</param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
-		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig) => FindFieldCheckBaseType(name, sig, 0, null);
+		public FieldDef? FindFieldCheckBaseType(UTF8String? name, FieldSig? sig) => FindFieldCheckBaseType(name, sig, 0, null);
 
 		/// <summary>
 		/// Finds a field by checking this type or any of its base types
@@ -1815,7 +1836,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Field signature</param>
 		/// <param name="options">Field signature comparison options</param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
-		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options) => FindFieldCheckBaseType(name, sig, options, null);
+		public FieldDef? FindFieldCheckBaseType(UTF8String? name, FieldSig? sig, SigComparerOptions options) => FindFieldCheckBaseType(name, sig, options, null);
 
 		/// <summary>
 		/// Finds a field by checking this type or any of its base types
@@ -1831,9 +1852,9 @@ namespace dnlib.DotNet {
 		/// <param name="options">Field signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the field or <c>null</c></param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
-		public FieldDef FindFieldCheckBaseType(UTF8String name, FieldSig sig, SigComparerOptions options, ModuleDef sourceModule) {
+		public FieldDef? FindFieldCheckBaseType(UTF8String? name, FieldSig? sig, SigComparerOptions options, ModuleDef? sourceModule) {
 			var td = this;
-			IList<TypeSig> typeArgs = null;
+			IList<TypeSig?>? typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var fd = td.FindField(name, sig, options, sourceModule, typeArgs);
 				if (fd is not null)
@@ -1848,7 +1869,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <returns>The field or <c>null</c> if it wasn't found</returns>
-		public FieldDef FindFieldCheckBaseType(UTF8String name) {
+		public FieldDef? FindFieldCheckBaseType(UTF8String? name) {
 			var td = this;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var fd = td.FindField(name);
@@ -1871,7 +1892,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Event name</param>
 		/// <param name="eventType">Event type</param>
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
-		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType) => FindEventCheckBaseType(name, eventType, 0, null);
+		public EventDef? FindEventCheckBaseType(UTF8String? name, ITypeDefOrRef? eventType) => FindEventCheckBaseType(name, eventType, 0, null);
 
 		/// <summary>
 		/// Finds an event by checking this type or any of its base types
@@ -1886,7 +1907,7 @@ namespace dnlib.DotNet {
 		/// <param name="eventType">Event type</param>
 		/// <param name="options">Event type comparison options</param>
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
-		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType, SigComparerOptions options) => FindEventCheckBaseType(name, eventType, options, null);
+		public EventDef? FindEventCheckBaseType(UTF8String? name, ITypeDefOrRef? eventType, SigComparerOptions options) => FindEventCheckBaseType(name, eventType, options, null);
 
 		/// <summary>
 		/// Finds an event by checking this type or any of its base types
@@ -1902,9 +1923,9 @@ namespace dnlib.DotNet {
 		/// <param name="options">Event type comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the event or <c>null</c></param>
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
-		public EventDef FindEventCheckBaseType(UTF8String name, ITypeDefOrRef eventType, SigComparerOptions options, ModuleDef sourceModule) {
+		public EventDef? FindEventCheckBaseType(UTF8String? name, ITypeDefOrRef? eventType, SigComparerOptions options, ModuleDef? sourceModule) {
 			var td = this;
-			IList<TypeSig> typeArgs = null;
+			IList<TypeSig?>? typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var ed = td.FindEvent(name, eventType, options, sourceModule, typeArgs);
 				if (ed is not null)
@@ -1919,7 +1940,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Event name</param>
 		/// <returns>The event or <c>null</c> if it wasn't found</returns>
-		public EventDef FindEventCheckBaseType(UTF8String name) {
+		public EventDef? FindEventCheckBaseType(UTF8String? name) {
 			var td = this;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var ed = td.FindEvent(name);
@@ -1942,7 +1963,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Property name</param>
 		/// <param name="sig">Property signature</param>
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
-		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig) => FindPropertyCheckBaseType(name, sig, 0, null);
+		public PropertyDef? FindPropertyCheckBaseType(UTF8String? name, PropertySig? sig) => FindPropertyCheckBaseType(name, sig, 0, null);
 
 		/// <summary>
 		/// Finds a property by checking this type or any of its base types
@@ -1957,7 +1978,7 @@ namespace dnlib.DotNet {
 		/// <param name="sig">Property signature</param>
 		/// <param name="options">Property signature comparison options</param>
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
-		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig, SigComparerOptions options) => FindPropertyCheckBaseType(name, sig, options, null);
+		public PropertyDef? FindPropertyCheckBaseType(UTF8String? name, PropertySig? sig, SigComparerOptions options) => FindPropertyCheckBaseType(name, sig, options, null);
 
 		/// <summary>
 		/// Finds a property by checking this type or any of its base types
@@ -1973,9 +1994,9 @@ namespace dnlib.DotNet {
 		/// <param name="options">Property signature comparison options</param>
 		/// <param name="sourceModule">The module that needs to find the property or <c>null</c></param>
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
-		public PropertyDef FindPropertyCheckBaseType(UTF8String name, PropertySig sig, SigComparerOptions options, ModuleDef sourceModule) {
+		public PropertyDef? FindPropertyCheckBaseType(UTF8String? name, PropertySig? sig, SigComparerOptions options, ModuleDef? sourceModule) {
 			var td = this;
-			IList<TypeSig> typeArgs = null;
+			IList<TypeSig?>? typeArgs = null;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var pd = td.FindProperty(name, sig, options, sourceModule, typeArgs);
 				if (pd is not null)
@@ -1990,7 +2011,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Property name</param>
 		/// <returns>The property or <c>null</c> if it wasn't found</returns>
-		public PropertyDef FindPropertyCheckBaseType(UTF8String name) {
+		public PropertyDef? FindPropertyCheckBaseType(UTF8String? name) {
 			var td = this;
 			for (int i = 0; td is not null && i < MAX_BASE_TYPE_DEPTH; i++) {
 				var pd = td.FindProperty(name);
@@ -2005,7 +2026,7 @@ namespace dnlib.DotNet {
 		/// Removes a method from this type. It also removes it from any properties and events.
 		/// </summary>
 		/// <param name="method">The method to remove</param>
-		public void Remove(MethodDef method) => Remove(method, false);
+		public void Remove(MethodDef? method) => Remove(method, false);
 
 		/// <summary>
 		/// Removes a method from this type. It also removes it from any properties and events.
@@ -2013,7 +2034,7 @@ namespace dnlib.DotNet {
 		/// <param name="method">The method to remove</param>
 		/// <param name="removeEmptyPropertiesEvents"><c>true</c> if we should remove all
 		/// empty properties and events.</param>
-		public void Remove(MethodDef method, bool removeEmptyPropertiesEvents) {
+		public void Remove(MethodDef? method, bool removeEmptyPropertiesEvents) {
 			if (method is null)
 				return;
 
@@ -2089,7 +2110,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<FieldDef>.OnClear() {
-			foreach (var field in fields.GetEnumerable_NoLock())
+			foreach (var field in fields!.GetEnumerable_NoLock())
 				field.DeclaringType2 = null;
 		}
 
@@ -2123,7 +2144,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<MethodDef>.OnClear() {
-			foreach (var method in methods.GetEnumerable_NoLock()) {
+			foreach (var method in methods!.GetEnumerable_NoLock()) {
 				method.DeclaringType2 = null;
 				method.Parameters.UpdateThisParameterType(null);
 			}
@@ -2160,7 +2181,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnClear() {
-			foreach (var type in nestedTypes.GetEnumerable_NoLock())
+			foreach (var type in nestedTypes!.GetEnumerable_NoLock())
 				type.DeclaringType2 = null;
 		}
 
@@ -2190,7 +2211,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<EventDef>.OnClear() {
-			foreach (var @event in events.GetEnumerable_NoLock())
+			foreach (var @event in events!.GetEnumerable_NoLock())
 				@event.DeclaringType2 = null;
 		}
 
@@ -2220,7 +2241,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<PropertyDef>.OnClear() {
-			foreach (var prop in properties.GetEnumerable_NoLock())
+			foreach (var prop in properties!.GetEnumerable_NoLock())
 				prop.DeclaringType2 = null;
 		}
 
@@ -2250,7 +2271,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnClear() {
-			foreach (var gp in genericParameters.GetEnumerable_NoLock())
+			foreach (var gp in genericParameters!.GetEnumerable_NoLock())
 				gp.Owner = null;
 		}
 
@@ -2259,7 +2280,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <returns>A list of 0 or more fields with name <paramref name="name"/></returns>
-		public IList<FieldDef> GetFields(UTF8String name) {
+		public IList<FieldDef> GetFields(UTF8String? name) {
 			var result = new List<FieldDef>();
 			var fields = Fields;
 			int count = fields.Count;
@@ -2276,7 +2297,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <returns>The field or <c>null</c> if none found</returns>
-		public FieldDef GetField(UTF8String name) {
+		public FieldDef? GetField(UTF8String? name) {
 			var fields = Fields;
 			int count = fields.Count;
 			for (int i = 0; i < count; i++) {
@@ -2287,7 +2308,7 @@ namespace dnlib.DotNet {
 			return null;
 		}
 
-		internal static bool GetClassSize(TypeDef td, ref RecursionCounter recursionCounter, out uint size) {
+		internal static bool GetClassSize(TypeDef? td, ref RecursionCounter recursionCounter, out uint size) {
 			size = 0;
 			if (td is null)
 				return false;
@@ -2320,7 +2341,7 @@ namespace dnlib.DotNet {
 			// Only one instance field is supported, eg. enums ('value__') or simple wrapper
 			// structs. Static and literal fields (eg. enum values) don't contribute to the size,
 			// the CLR ignores literal fields even if they're not static.
-			FieldDef instanceField = null;
+			FieldDef? instanceField = null;
 			var fields = td.Fields;
 			int count = fields.Count;
 			for (int i = 0; i < count; i++) {
@@ -2343,7 +2364,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="mdr">Method</param>
 		/// <returns></returns>
-		protected MethodDef FindMethodImplMethod(IMethodDefOrRef mdr) {
+		protected MethodDef? FindMethodImplMethod(IMethodDefOrRef? mdr) {
 			// Check common case first
 			if (mdr is MethodDef md)
 				return md;
@@ -2355,7 +2376,7 @@ namespace dnlib.DotNet {
 
 			// If Class is MethodDef, then it should be a vararg method
 			var parent = mr.Class;
-			md = parent as MethodDef;
+			md = (parent as MethodDef)!;
 			if (md is not null)
 				return md;
 
@@ -2396,7 +2417,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		public TypeDefUser(UTF8String name)
+		public TypeDefUser(UTF8String? name)
 			: this(null, name, null) {
 		}
 
@@ -2405,7 +2426,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
-		public TypeDefUser(UTF8String @namespace, UTF8String name)
+		public TypeDefUser(UTF8String? @namespace, UTF8String? name)
 			: this(@namespace, name, null) {
 		}
 
@@ -2414,7 +2435,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(UTF8String name, ITypeDefOrRef baseType)
+		public TypeDefUser(UTF8String? name, ITypeDefOrRef? baseType)
 			: this(null, name, baseType) {
 		}
 
@@ -2424,15 +2445,15 @@ namespace dnlib.DotNet {
 		/// <param name="namespace">Namespace</param>
 		/// <param name="name">Name</param>
 		/// <param name="baseType">Base class or <c>null</c> if it's an interface</param>
-		public TypeDefUser(UTF8String @namespace, UTF8String name, ITypeDefOrRef baseType) {
+		public TypeDefUser(UTF8String? @namespace, UTF8String? name, ITypeDefOrRef? baseType) {
 			fields = new LazyList<FieldDef>(this);
 			methods = new LazyList<MethodDef>(this);
 			genericParameters = new LazyList<GenericParam>(this);
 			nestedTypes = new LazyList<TypeDef>(this);
 			events = new LazyList<EventDef>(this);
 			properties = new LazyList<PropertyDef>(this);
-			this.@namespace = @namespace;
-			this.name = name;
+			this.@namespace = UTF8String.EmptyIfNull(@namespace);
+			this.name = UTF8String.EmptyIfNull(name);
 			this.baseType = baseType;
 			baseType_isInitialized = true;
 		}
@@ -2449,13 +2470,13 @@ namespace dnlib.DotNet {
 
 		readonly uint origRid;
 		readonly uint extendsCodedToken;
-		Dictionary<uint, IList<MethodOverrideTokens>> methodRidToOverrides;
+		Dictionary<uint, IList<MethodOverrideTokens>>? methodRidToOverrides;
 
 		/// <inheritdoc/>
 		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
-		protected override ITypeDefOrRef GetBaseType_NoLock() => readerModule.ResolveTypeDefOrRef(extendsCodedToken, new GenericParamContext(this));
+		protected override ITypeDefOrRef? GetBaseType_NoLock() => readerModule.ResolveTypeDefOrRef(extendsCodedToken, new GenericParamContext(this));
 
 		/// <inheritdoc/>
 		protected override void InitializeFields() {
@@ -2482,7 +2503,7 @@ namespace dnlib.DotNet {
 		protected override void InitializeInterfaces() {
 			var list = readerModule.Metadata.GetInterfaceImplRidList(origRid);
 			var tmp = list.Count == 0 ? new LazyList<InterfaceImpl>() :
-				new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this)));
+				new LazyList<InterfaceImpl, RidList>(list.Count, list, (list2, index) => readerModule.ResolveInterfaceImpl(list2[index], new GenericParamContext(this))!);
 			Interlocked.CompareExchange(ref interfaces, tmp, null);
 		}
 
@@ -2494,16 +2515,16 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override ClassLayout GetClassLayout_NoLock() => readerModule.ResolveClassLayout(readerModule.Metadata.GetClassLayoutRid(origRid));
+		protected override ClassLayout? GetClassLayout_NoLock() => readerModule.ResolveClassLayout(readerModule.Metadata.GetClassLayoutRid(origRid));
 
 		/// <inheritdoc/>
-		protected override TypeDef GetDeclaringType2_NoLock() {
+		protected override TypeDef? GetDeclaringType2_NoLock() {
 			if (!readerModule.TablesStream.TryReadNestedClassRow(readerModule.Metadata.GetNestedClassRid(origRid), out var row))
 				return null;
 			return readerModule.ResolveTypeDef(row.EnclosingClass);
 		}
 
-		TypeDef DeclaringType2_NoLock {
+		TypeDef? DeclaringType2_NoLock {
 			get {
 				if (!declaringType2_isInitialized) {
 					declaringType2 = GetDeclaringType2_NoLock();
@@ -2550,7 +2571,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override ModuleDef GetModule2_NoLock() => DeclaringType2_NoLock is not null ? null : readerModule;
+		protected override ModuleDef? GetModule2_NoLock() => DeclaringType2_NoLock is not null ? null : readerModule;
 
 		/// <summary>
 		/// Constructor
@@ -2590,13 +2611,13 @@ namespace dnlib.DotNet {
 			if (methodRidToOverrides is null)
 				InitializeMethodOverrides();
 
-			if (methodRidToOverrides.TryGetValue(method.OrigRid, out var overrides)) {
+			if (methodRidToOverrides!.TryGetValue(method.OrigRid, out var overrides)) {
 				var newList = new List<MethodOverride>(overrides.Count);
 
 				for (int i = 0; i < overrides.Count; i++) {
 					var ovr = overrides[i];
-					var newMethodBody = (IMethodDefOrRef)readerModule.ResolveToken(ovr.MethodBodyToken, gpContext);
-					var newMethodDeclaration = (IMethodDefOrRef)readerModule.ResolveToken(ovr.MethodDeclarationToken, gpContext);
+					var newMethodBody = (IMethodDefOrRef?)readerModule.ResolveToken(ovr.MethodBodyToken, gpContext);
+					var newMethodDeclaration = (IMethodDefOrRef?)readerModule.ResolveToken(ovr.MethodDeclarationToken, gpContext);
 					newList.Add(new MethodOverride(newMethodBody, newMethodDeclaration));
 				}
 				return newList;
@@ -2732,7 +2753,7 @@ namespace dnlib.DotNet {
 		/// <param name="invokeMethod">Updated with the fire method or <c>null</c> if none</param>
 		/// <param name="removeMethod">Updated with the removeOn method or <c>null</c> if none</param>
 		/// <param name="otherMethods">Updated with a list of all other methods</param>
-		internal void InitializeEvent(EventDefMD evt, out MethodDef addMethod, out MethodDef invokeMethod, out MethodDef removeMethod, out IList<MethodDef> otherMethods) {
+		internal void InitializeEvent(EventDefMD evt, out MethodDef? addMethod, out MethodDef? invokeMethod, out MethodDef? removeMethod, out IList<MethodDef> otherMethods) {
 			addMethod = null;
 			invokeMethod = null;
 			removeMethod = null;

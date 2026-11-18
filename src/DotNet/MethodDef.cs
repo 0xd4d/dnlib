@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.PE;
@@ -31,7 +32,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// All parameters
 		/// </summary>
-		protected ParameterList parameterList;
+		protected ParameterList parameterList = null!;
 
 		/// <inheritdoc/>
 		public MDToken MDToken => new MDToken(Table.Method, rid);
@@ -96,22 +97,23 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Method.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
-		protected UTF8String name;
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column Method.Signature
 		/// </summary>
-		public CallingConventionSig Signature {
+		public CallingConventionSig? Signature {
 			get => signature;
 			set => signature = value;
 		}
 		/// <summary/>
-		protected CallingConventionSig signature;
+		protected CallingConventionSig? signature;
 
 		/// <summary>
 		/// From column Method.ParamList
@@ -120,11 +122,11 @@ namespace dnlib.DotNet {
 			get {
 				if (paramDefs is null)
 					InitializeParamDefs();
-				return paramDefs;
+				return paramDefs!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<ParamDef> paramDefs;
+		protected LazyList<ParamDef>? paramDefs;
 		/// <summary>Initializes <see cref="paramDefs"/></summary>
 		protected virtual void InitializeParamDefs() =>
 			Interlocked.CompareExchange(ref paramDefs, new LazyList<ParamDef>(this), null);
@@ -134,11 +136,11 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParameters is null)
 					InitializeGenericParameters();
-				return genericParameters;
+				return genericParameters!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<GenericParam> genericParameters;
+		protected LazyList<GenericParam>? genericParameters;
 		/// <summary>Initializes <see cref="genericParameters"/></summary>
 		protected virtual void InitializeGenericParameters() =>
 			Interlocked.CompareExchange(ref genericParameters, new LazyList<GenericParam>(this), null);
@@ -148,17 +150,17 @@ namespace dnlib.DotNet {
 			get {
 				if (declSecurities is null)
 					InitializeDeclSecurities();
-				return declSecurities;
+				return declSecurities!;
 			}
 		}
 		/// <summary/>
-		protected IList<DeclSecurity> declSecurities;
+		protected IList<DeclSecurity>? declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
 		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
 
 		/// <inheritdoc/>
-		public ImplMap ImplMap {
+		public ImplMap? ImplMap {
 			get {
 				if (!implMap_isInitialized)
 					InitializeImplMap();
@@ -176,7 +178,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected ImplMap implMap;
+		protected ImplMap? implMap;
 		/// <summary/>
 		protected bool implMap_isInitialized;
 
@@ -194,7 +196,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="implMap"/></summary>
-		protected virtual ImplMap GetImplMap_NoLock() => null;
+		protected virtual ImplMap? GetImplMap_NoLock() => null;
 
 		/// <summary>Reset <see cref="ImplMap"/></summary>
 		protected void ResetImplMap() => implMap_isInitialized = false;
@@ -202,7 +204,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the method body. See also <see cref="Body"/>
 		/// </summary>
-		public MethodBody MethodBody {
+		public MethodBody? MethodBody {
 			get {
 				if (!methodBody_isInitialized)
 					InitializeMethodBody();
@@ -220,7 +222,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected MethodBody methodBody;
+		protected MethodBody? methodBody;
 		/// <summary/>
 		protected bool methodBody_isInitialized;
 
@@ -257,7 +259,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="methodBody"/></summary>
-		protected virtual MethodBody GetMethodBody_NoLock() => null;
+		protected virtual MethodBody? GetMethodBody_NoLock() => null;
 
 		/// <summary>
 		/// true if <see cref="FreeMethodBody()"/> can free the method body
@@ -271,11 +273,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -293,11 +295,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -309,11 +311,11 @@ namespace dnlib.DotNet {
 			get {
 				if (overrides is null)
 					InitializeOverrides();
-				return overrides;
+				return overrides!;
 			}
 		}
 		/// <summary/>
-		protected IList<MethodOverride> overrides;
+		protected IList<MethodOverride>? overrides;
 		/// <summary>Initializes <see cref="overrides"/></summary>
 		protected virtual void InitializeOverrides() =>
 			Interlocked.CompareExchange(ref overrides, new List<MethodOverride>(), null);
@@ -321,12 +323,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the export info or null if the method isn't exported to unmanaged code.
 		/// </summary>
-		public MethodExportInfo ExportInfo {
+		public MethodExportInfo? ExportInfo {
 			get => exportInfo;
 			set => exportInfo = value;
 		}
 		/// <summary/>
-		protected MethodExportInfo exportInfo;
+		protected MethodExportInfo? exportInfo;
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes => CustomAttributes.Count > 0;
@@ -342,7 +344,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
-		public TypeDef DeclaringType {
+		public TypeDef? DeclaringType {
 			get => declaringType2;
 			set {
 				var currentDeclaringType = DeclaringType2;
@@ -355,23 +357,37 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
+
+#pragma warning disable RS0030 // Implements the OrThrow interface member
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+#pragma warning restore RS0030
+
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => declaringType2;
+		ITypeDefOrRef? IMemberRef.DeclaringType => declaringType2;
 
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public TypeDef DeclaringType2 {
+		public TypeDef? DeclaringType2 {
 			get => declaringType2;
 			set => declaringType2 = value;
 		}
 		/// <summary/>
-		protected TypeDef declaringType2;
+		protected TypeDef? declaringType2;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => declaringType2?.Module;
+		public ModuleDef? Module => declaringType2?.Module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		bool IIsTypeOrMethod.IsType => false;
 		bool IIsTypeOrMethod.IsMethod => true;
@@ -390,7 +406,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the CIL method body. See also <see cref="FreeMethodBody()"/>
 		/// </summary>
-		public CilBody Body {
+		public CilBody? Body {
 			get {
 				if (!methodBody_isInitialized)
 					InitializeMethodBody();
@@ -400,9 +416,14 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Same as <see cref="Body"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public CilBody BodyOrThrow => OrThrowHelper.NotNullOptional(Body, nameof(Body));
+
+		/// <summary>
 		/// Gets/sets the native method body
 		/// </summary>
-		public NativeMethodBody NativeBody {
+		public NativeMethodBody? NativeBody {
 			get {
 				if (!methodBody_isInitialized)
 					InitializeMethodBody();
@@ -419,6 +440,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it has a <see cref="Body"/>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Body))]
 		public bool HasBody => Body is not null;
 
 		/// <summary>
@@ -429,6 +451,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="ImplMap"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(ImplMap))]
 		public bool HasImplMap => ImplMap is not null;
 
 		/// <summary>
@@ -439,10 +462,15 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the <see cref="MethodSig"/>
 		/// </summary>
-		public MethodSig MethodSig {
+		public MethodSig? MethodSig {
 			get => signature as MethodSig;
 			set => signature = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="MethodSig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public MethodSig MethodSigOrThrow => OrThrowHelper.NotNull(signature as MethodSig, nameof(MethodSig));
 
 		/// <summary>
 		/// Gets the parameters
@@ -490,10 +518,15 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the method return type
 		/// </summary>
-		public TypeSig ReturnType {
+		public TypeSig? ReturnType {
 			get => MethodSig?.RetType;
 			set => parameterList.ReturnParameter.Type = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="ReturnType"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeSig ReturnTypeOrThrow => OrThrowHelper.NotNull(MethodSig?.RetType, nameof(ReturnType));
 
 		/// <summary>
 		/// <c>true</c> if the method returns a value (i.e., return type is not <see cref="System.Void"/>)
@@ -958,7 +991,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParam>.OnClear() {
-			foreach (var gp in genericParameters.GetEnumerable_NoLock())
+			foreach (var gp in genericParameters!.GetEnumerable_NoLock())
 				gp.Owner = null;
 		}
 
@@ -988,7 +1021,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<ParamDef>.OnClear() {
-			foreach (var pd in paramDefs.GetEnumerable_NoLock())
+			foreach (var pd in paramDefs!.GetEnumerable_NoLock())
 				pd.DeclaringMethod = null;
 		}
 
@@ -1014,7 +1047,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Method name</param>
-		public MethodDefUser(UTF8String name)
+		public MethodDefUser(UTF8String? name)
 			: this(name, null, 0, 0) {
 		}
 
@@ -1023,7 +1056,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Method name</param>
 		/// <param name="methodSig">Method sig</param>
-		public MethodDefUser(UTF8String name, MethodSig methodSig)
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig)
 			: this(name, methodSig, 0, 0) {
 		}
 
@@ -1033,7 +1066,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="methodSig">Method sig</param>
 		/// <param name="flags">Flags</param>
-		public MethodDefUser(UTF8String name, MethodSig methodSig, MethodAttributes flags)
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig, MethodAttributes flags)
 			: this(name, methodSig, 0, flags) {
 		}
 
@@ -1043,7 +1076,7 @@ namespace dnlib.DotNet {
 		/// <param name="name">Method name</param>
 		/// <param name="methodSig">Method sig</param>
 		/// <param name="implFlags">Impl flags</param>
-		public MethodDefUser(UTF8String name, MethodSig methodSig, MethodImplAttributes implFlags)
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig, MethodImplAttributes implFlags)
 			: this(name, methodSig, implFlags, 0) {
 		}
 
@@ -1054,8 +1087,8 @@ namespace dnlib.DotNet {
 		/// <param name="methodSig">Method sig</param>
 		/// <param name="implFlags">Impl flags</param>
 		/// <param name="flags">Flags</param>
-		public MethodDefUser(UTF8String name, MethodSig methodSig, MethodImplAttributes implFlags, MethodAttributes flags) {
-			this.name = name;
+		public MethodDefUser(UTF8String? name, MethodSig? methodSig, MethodImplAttributes implFlags, MethodAttributes flags) {
+			this.name = UTF8String.EmptyIfNull(name);
 			signature = methodSig;
 			paramDefs = new LazyList<ParamDef>(this);
 			genericParameters = new LazyList<GenericParam>(this);
@@ -1104,10 +1137,10 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		protected override ImplMap GetImplMap_NoLock() => readerModule.ResolveImplMap(readerModule.Metadata.GetImplMapRid(Table.Method, origRid));
+		protected override ImplMap? GetImplMap_NoLock() => readerModule.ResolveImplMap(readerModule.Metadata.GetImplMapRid(Table.Method, origRid));
 
 		/// <inheritdoc/>
-		protected override MethodBody GetMethodBody_NoLock() => readerModule.ReadMethodBody(this, origRva, origImplAttributes, new GenericParamContext(declaringType2, this));
+		protected override MethodBody? GetMethodBody_NoLock() => readerModule.ReadMethodBody(this, origRva, origImplAttributes, new GenericParamContext(declaringType2, this));
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {

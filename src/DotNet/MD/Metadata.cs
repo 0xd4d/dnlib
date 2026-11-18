@@ -75,7 +75,7 @@ namespace dnlib.DotNet.MD {
 		/// <summary>
 		/// Returns the #Pdb stream or null if it's not a standalone portable PDB file
 		/// </summary>
-		public abstract PdbStream PdbStream { get; }
+		public abstract PdbStream? PdbStream { get; }
 
 		/// <summary>
 		/// Gets all streams

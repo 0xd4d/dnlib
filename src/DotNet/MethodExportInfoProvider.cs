@@ -208,7 +208,7 @@ namespace dnlib.DotNet {
 			return name ?? string.Empty;
 		}
 
-		public MethodExportInfo GetMethodExportInfo(uint token) {
+		public MethodExportInfo? GetMethodExportInfo(uint token) {
 			if (toInfo.Count == 0)
 				return null;
 			if (toInfo.TryGetValue(token, out var info))

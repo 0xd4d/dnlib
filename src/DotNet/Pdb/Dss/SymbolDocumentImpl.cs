@@ -57,7 +57,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 		}
 
-		byte[] SourceCode {
+		byte[]? SourceCode {
 			get {
 				int hr = document.GetSourceLength(out int size);
 				if (hr < 0)
@@ -88,7 +88,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return customDebugInfos;
 			}
 		}
-		PdbCustomDebugInfo[] customDebugInfos;
+		PdbCustomDebugInfo[]? customDebugInfos;
 
 		public override MDToken? MDToken => null;
 	}

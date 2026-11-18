@@ -11,7 +11,7 @@ namespace dnlib.DotNet {
 		/// <param name="token">The metadata token</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		IMDTokenProvider ResolveToken(uint token, GenericParamContext gpContext);
+		IMDTokenProvider? ResolveToken(uint token, GenericParamContext gpContext);
 	}
 
 	public static partial class Extensions {
@@ -21,6 +21,6 @@ namespace dnlib.DotNet {
 		/// <param name="self">This</param>
 		/// <param name="token">The metadata token</param>
 		/// <returns>A <see cref="IMDTokenProvider"/> or <c>null</c> if <paramref name="token"/> is invalid</returns>
-		public static IMDTokenProvider ResolveToken(this ITokenResolver self, uint token) => self.ResolveToken(token, new GenericParamContext());
+		public static IMDTokenProvider? ResolveToken(this ITokenResolver self, uint token) => self.ResolveToken(token, new GenericParamContext());
 	}
 }

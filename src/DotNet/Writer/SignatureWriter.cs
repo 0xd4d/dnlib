@@ -31,14 +31,14 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">Helper</param>
 		/// <param name="typeSig">The type</param>
 		/// <returns>The signature as a byte array</returns>
-		public static byte[] Write(ISignatureWriterHelper helper, TypeSig typeSig) {
+		public static byte[] Write(ISignatureWriterHelper helper, TypeSig? typeSig) {
 			using (var writer = new SignatureWriter(helper)) {
 				writer.Write(typeSig);
 				return writer.GetResult();
 			}
 		}
 
-		internal static byte[] Write(ISignatureWriterHelper helper, TypeSig typeSig, DataWriterContext context) {
+		internal static byte[] Write(ISignatureWriterHelper helper, TypeSig? typeSig, DataWriterContext context) {
 			using (var writer = new SignatureWriter(helper, context)) {
 				writer.Write(typeSig);
 				return writer.GetResult();
@@ -51,14 +51,14 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="helper">Helper</param>
 		/// <param name="sig">The signature</param>
 		/// <returns>The signature as a byte array</returns>
-		public static byte[] Write(ISignatureWriterHelper helper, CallingConventionSig sig) {
+		public static byte[] Write(ISignatureWriterHelper helper, CallingConventionSig? sig) {
 			using (var writer = new SignatureWriter(helper)) {
 				writer.Write(sig);
 				return writer.GetResult();
 			}
 		}
 
-		internal static byte[] Write(ISignatureWriterHelper helper, CallingConventionSig sig, DataWriterContext context) {
+		internal static byte[] Write(ISignatureWriterHelper helper, CallingConventionSig? sig, DataWriterContext context) {
 			using (var writer = new SignatureWriter(helper, context)) {
 				writer.Write(sig);
 				return writer.GetResult();
@@ -87,7 +87,7 @@ namespace dnlib.DotNet.Writer {
 		uint WriteCompressedUInt32(uint value) => writer.WriteCompressedUInt32(helper, value);
 		int WriteCompressedInt32(int value) => writer.WriteCompressedInt32(helper, value);
 
-		void Write(TypeSig typeSig) {
+		void Write(TypeSig? typeSig) {
 			const ElementType DEFAULT_ELEMENT_TYPE = ElementType.Boolean;
 			if (typeSig is null) {
 				helper.Error("TypeSig is null");
@@ -171,24 +171,24 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.ValueArray:
 				writer.WriteByte((byte)typeSig.ElementType);
 				Write(typeSig.Next);
-				WriteCompressedUInt32((typeSig as ValueArraySig).Size);
+				WriteCompressedUInt32((typeSig as ValueArraySig)!.Size);
 				break;
 
 			case ElementType.FnPtr:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write((typeSig as FnPtrSig).Signature);
+				Write((typeSig as FnPtrSig)!.Signature);
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write((typeSig as ModifierSig).Modifier);
+				Write((typeSig as ModifierSig)!.Modifier);
 				Write(typeSig.Next);
 				break;
 
 			case ElementType.Module:
 				writer.WriteByte((byte)typeSig.ElementType);
-				WriteCompressedUInt32((typeSig as ModuleSig).Index);
+				WriteCompressedUInt32((typeSig as ModuleSig)!.Index);
 				Write(typeSig.Next);
 				break;
 
@@ -205,7 +205,7 @@ namespace dnlib.DotNet.Writer {
 			recursionCounter.Decrement();
 		}
 
-		void Write(ITypeDefOrRef tdr) {
+		void Write(ITypeDefOrRef? tdr) {
 			if (tdr is null) {
 				helper.Error("TypeDefOrRef is null");
 				WriteCompressedUInt32(0);
@@ -220,7 +220,7 @@ namespace dnlib.DotNet.Writer {
 			WriteCompressedUInt32(encodedToken);
 		}
 
-		void Write(CallingConventionSig sig) {
+		void Write(CallingConventionSig? sig) {
 			if (sig is null) {
 				helper.Error("sig is null");
 				return;
@@ -229,10 +229,10 @@ namespace dnlib.DotNet.Writer {
 			// typed Write() overloads which increment it. Counting here too would count each
 			// sig twice and the writer would fail on sigs the reader (one count per sig) can read.
 
-			MethodBaseSig mbs;
-			FieldSig fs;
-			LocalSig ls;
-			GenericInstMethodSig gim;
+			MethodBaseSig? mbs;
+			FieldSig? fs;
+			LocalSig? ls;
+			GenericInstMethodSig? gim;
 
 			if ((mbs = sig as MethodBaseSig) is not null)
 				Write(mbs);
@@ -248,7 +248,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		void Write(MethodBaseSig sig) {
+		void Write(MethodBaseSig? sig) {
 			if (sig is null) {
 				helper.Error("sig is null");
 				return;
@@ -280,7 +280,7 @@ namespace dnlib.DotNet.Writer {
 			recursionCounter.Decrement();
 		}
 
-		void Write(FieldSig sig) {
+		void Write(FieldSig? sig) {
 			if (sig is null) {
 				helper.Error("sig is null");
 				return;
@@ -296,7 +296,7 @@ namespace dnlib.DotNet.Writer {
 			recursionCounter.Decrement();
 		}
 
-		void Write(LocalSig sig) {
+		void Write(LocalSig? sig) {
 			if (sig is null) {
 				helper.Error("sig is null");
 				return;
@@ -318,7 +318,7 @@ namespace dnlib.DotNet.Writer {
 			recursionCounter.Decrement();
 		}
 
-		void Write(GenericInstMethodSig sig) {
+		void Write(GenericInstMethodSig? sig) {
 			if (sig is null) {
 				helper.Error("sig is null");
 				return;

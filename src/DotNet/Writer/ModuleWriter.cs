@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet.MD;
 using dnlib.PE;
 using dnlib.W32Resources;
@@ -26,22 +27,22 @@ namespace dnlib.DotNet.Writer {
 		const uint MVID_ALIGNMENT = 1;
 
 		readonly ModuleDef module;
-		ModuleWriterOptions options;
+		ModuleWriterOptions? options;
 
-		List<PESection> sections;
-		PESection mvidSection;
-		PESection textSection;
-		PESection sdataSection;
-		PESection rsrcSection;
-		PESection relocSection;
+		List<PESection> sections = null!;
+		PESection? mvidSection;
+		PESection textSection = null!;
+		PESection sdataSection = null!;
+		PESection? rsrcSection;
+		PESection relocSection = null!;
 
-		PEHeaders peHeaders;
-		ImportAddressTable importAddressTable;
-		ImageCor20Header imageCor20Header;
-		ImportDirectory importDirectory;
-		StartupStub startupStub;
-		RelocDirectory relocDirectory;
-		ManagedExportsWriter managedExportsWriter;
+		PEHeaders peHeaders = null!;
+		ImportAddressTable importAddressTable = null!;
+		ImageCor20Header imageCor20Header = null!;
+		ImportDirectory importDirectory = null!;
+		StartupStub startupStub = null!;
+		RelocDirectory relocDirectory = null!;
+		ManagedExportsWriter managedExportsWriter = null!;
 		bool needStartupStub;
 
 		/// <inheritdoc/>
@@ -53,6 +54,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the writer options. This is never <c>null</c>
 		/// </summary>
+		[AllowNull]
 		public ModuleWriterOptions Options {
 			get => options ??= new ModuleWriterOptions(module);
 			set => options = value;
@@ -61,13 +63,15 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets all <see cref="PESection"/>s. The reloc section must be the last section, so use <see cref="AddSection(PESection)"/> if you need to append a section
 		/// </summary>
-		public override List<PESection> Sections => sections;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public override List<PESection> Sections => ModuleWriterBase.ThrowIfNotCreated(sections, nameof(Sections));
 
 		/// <summary>
 		/// Adds <paramref name="section"/> to the sections list, but before the reloc section which must be last
 		/// </summary>
 		/// <param name="section">New section to add to the list</param>
 		public override void AddSection(PESection section) {
+			var sections = Sections;
 			if (sections.Count > 0 && sections[sections.Count - 1] == relocSection)
 				sections.Insert(sections.Count - 1, section);
 			else
@@ -77,7 +81,8 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the <c>.text</c> section
 		/// </summary>
-		public override PESection TextSection => textSection;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public override PESection TextSection => ModuleWriterBase.ThrowIfNotCreated(textSection, nameof(TextSection));
 
 		/// <summary>
 		/// Gets the <c>.sdata</c> section
@@ -87,42 +92,49 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets the <c>.rsrc</c> section or null if none
 		/// </summary>
-		public override PESection RsrcSection => rsrcSection;
+		public override PESection? RsrcSection => rsrcSection;
 
 		/// <summary>
 		/// Gets the <c>.reloc</c> section
 		/// </summary>
-		public PESection RelocSection => relocSection;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public PESection RelocSection => ModuleWriterBase.ThrowIfNotCreated(relocSection, nameof(RelocSection));
 
 		/// <summary>
 		/// Gets the PE headers
 		/// </summary>
-		public PEHeaders PEHeaders => peHeaders;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public PEHeaders PEHeaders => ModuleWriterBase.ThrowIfNotCreated(peHeaders, nameof(PEHeaders));
 
 		/// <summary>
-		/// Gets the IAT or <c>null</c> if there's none
+		/// Gets the IAT
 		/// </summary>
-		public ImportAddressTable ImportAddressTable => importAddressTable;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public ImportAddressTable ImportAddressTable => ModuleWriterBase.ThrowIfNotCreated(importAddressTable, nameof(ImportAddressTable));
 
 		/// <summary>
 		/// Gets the .NET header
 		/// </summary>
-		public ImageCor20Header ImageCor20Header => imageCor20Header;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public ImageCor20Header ImageCor20Header => ModuleWriterBase.ThrowIfNotCreated(imageCor20Header, nameof(ImageCor20Header));
 
 		/// <summary>
-		/// Gets the import directory or <c>null</c> if there's none
+		/// Gets the import directory
 		/// </summary>
-		public ImportDirectory ImportDirectory => importDirectory;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public ImportDirectory ImportDirectory => ModuleWriterBase.ThrowIfNotCreated(importDirectory, nameof(ImportDirectory));
 
 		/// <summary>
-		/// Gets the startup stub or <c>null</c> if there's none
+		/// Gets the startup stub
 		/// </summary>
-		public StartupStub StartupStub => startupStub;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public StartupStub StartupStub => ModuleWriterBase.ThrowIfNotCreated(startupStub, nameof(StartupStub));
 
 		/// <summary>
-		/// Gets the reloc directory or <c>null</c> if there's none
+		/// Gets the reloc directory
 		/// </summary>
-		public RelocDirectory RelocDirectory => relocDirectory;
+		/// <exception cref="InvalidOperationException"><see cref="ModuleWriterBase.Write(System.IO.Stream)"/> hasn't been called successfully yet. In a <see cref="ModuleWriterOptionsBase.WriterEvent"/> handler, it throws until the writer has created it.</exception>
+		public RelocDirectory RelocDirectory => ModuleWriterBase.ThrowIfNotCreated(relocDirectory, nameof(RelocDirectory));
 
 		/// <summary>
 		/// Constructor
@@ -137,7 +149,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="module">The module</param>
 		/// <param name="options">Options or <c>null</c></param>
-		public ModuleWriter(ModuleDef module, ModuleWriterOptions options) {
+		public ModuleWriter(ModuleDef module, ModuleWriterOptions? options) {
 			this.module = module;
 			this.options = options;
 		}
@@ -161,7 +173,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override Win32Resources GetWin32Resources() {
+		protected override Win32Resources? GetWin32Resources() {
 			if (Options.NoWin32Resources)
 				return null;
 			return Options.Win32Resources ?? module.Win32Resources;
@@ -224,7 +236,7 @@ namespace dnlib.DotNet.Writer {
 			textSection.Add(startupStub, startupStub.Alignment);
 			managedExportsWriter.AddSdataChunks(sdataSection);
 			if (GetWin32Resources() is not null)
-				rsrcSection.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
+				rsrcSection!.Add(win32Resources, DEFAULT_WIN32_RESOURCES_ALIGNMENT);
 			relocSection.Add(relocDirectory, DEFAULT_RELOC_ALIGNMENT);
 		}
 
@@ -278,7 +290,7 @@ namespace dnlib.DotNet.Writer {
 				WriteDeterministicTimeDateStamp(writer, imageLength, timeDateStampOffsets);
 			}
 			if (Options.StrongNameKey is not null)
-				StrongNameSign((long)strongNameSignature.FileOffset);
+				StrongNameSign((long)strongNameSignature!.FileOffset);
 			OnWriterEvent(ModuleWriterEvent.EndStrongNameSign);
 
 			OnWriterEvent(ModuleWriterEvent.BeginWritePEChecksum);

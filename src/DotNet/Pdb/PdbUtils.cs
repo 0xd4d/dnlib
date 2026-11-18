@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet.Emit;
 
 namespace dnlib.DotNet.Pdb {
@@ -16,7 +17,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <param name="body">Body of the method that owns the PDB local</param>
 		/// <param name="errorMessage">Error message if it's not valid. <c>{0}</c> is the name of the PDB local</param>
 		/// <returns><c>true</c> if it can be written</returns>
-		public static bool IsValidLocal(PdbLocal pdbLocal, CilBody body, out string errorMessage) {
+		public static bool IsValidLocal(PdbLocal pdbLocal, CilBody? body, [NotNullWhen(false)] out string? errorMessage) {
 			var local = pdbLocal.Local;
 			if (local is null) {
 				errorMessage = "PDB local '{0}' has no local (PdbLocal.Local is null)";
@@ -40,7 +41,7 @@ namespace dnlib.DotNet.Pdb {
 	/// </summary>
 	sealed class InstructionOffsetCache {
 		// The value is null if the method has only been scanned once
-		readonly Dictionary<MethodDef, Dictionary<Instruction, uint>> cache = new Dictionary<MethodDef, Dictionary<Instruction, uint>>();
+		readonly Dictionary<MethodDef, Dictionary<Instruction, uint>?> cache = new Dictionary<MethodDef, Dictionary<Instruction, uint>?>();
 
 		/// <summary>
 		/// Gets the offset of <paramref name="instr"/> in <paramref name="body"/>. If the instruction is in the

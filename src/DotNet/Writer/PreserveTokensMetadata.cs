@@ -14,13 +14,13 @@ namespace dnlib.DotNet.Writer {
 		readonly ModuleDefMD mod;
 		readonly Rows<TypeRef> typeRefInfos = new Rows<TypeRef>();
 		readonly Dictionary<TypeDef, uint> typeToRid = new Dictionary<TypeDef, uint>();
-		MemberDefDict<FieldDef> fieldDefInfos;
-		MemberDefDict<MethodDef> methodDefInfos;
-		MemberDefDict<ParamDef> paramDefInfos;
+		MemberDefDict<FieldDef> fieldDefInfos = null!;
+		MemberDefDict<MethodDef> methodDefInfos = null!;
+		MemberDefDict<ParamDef> paramDefInfos = null!;
 		readonly Rows<MemberRef> memberRefInfos = new Rows<MemberRef>();
 		readonly Rows<StandAloneSig> standAloneSigInfos = new Rows<StandAloneSig>();
-		MemberDefDict<EventDef> eventDefInfos;
-		MemberDefDict<PropertyDef> propertyDefInfos;
+		MemberDefDict<EventDef> eventDefInfos = null!;
+		MemberDefDict<PropertyDef> propertyDefInfos = null!;
 		readonly Rows<TypeSpec> typeSpecInfos = new Rows<TypeSpec>();
 		readonly Rows<MethodSpec> methodSpecInfos = new Rows<MethodSpec>();
 		readonly Dictionary<uint, uint> callConvTokenToSignature = new Dictionary<uint, uint>();
@@ -59,9 +59,9 @@ namespace dnlib.DotNet.Writer {
 			readonly bool preserveRids;
 			readonly bool enableRidToInfo;
 			readonly Dictionary<T, MemberDefInfo<T>> defToInfo = new Dictionary<T, MemberDefInfo<T>>();
-			Dictionary<uint, MemberDefInfo<T>> ridToInfo;
+			Dictionary<uint, MemberDefInfo<T>>? ridToInfo;
 			readonly List<MemberDefInfo<T>> defs = new List<MemberDefInfo<T>>();
-			List<MemberDefInfo<T>> sortedDefs;
+			List<MemberDefInfo<T>> sortedDefs = null!;
 			readonly Dictionary<T, int> collectionPositions = new Dictionary<T, int>();
 
 			/// <summary>
@@ -129,8 +129,8 @@ namespace dnlib.DotNet.Writer {
 			public MemberDefInfo<T> Get(int i) => defs[i];
 			public MemberDefInfo<T> GetSorted(int i) => sortedDefs[i];
 
-			public MemberDefInfo<T> GetByRid(uint rid) {
-				ridToInfo.TryGetValue(rid, out var info);
+			public MemberDefInfo<T>? GetByRid(uint rid) {
+				ridToInfo!.TryGetValue(rid, out var info);
 				return info;
 			}
 
@@ -191,9 +191,9 @@ namespace dnlib.DotNet.Writer {
 
 		protected override int NumberOfMethods => methodDefInfos.Count;
 
-		public PreserveTokensMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
+		public PreserveTokensMetadata(ModuleDef module, UniqueChunkList<ByteArrayChunk> constants, MethodBodyChunks methodBodies, NetResources netResources, MetadataOptions? options, DebugMetadataKind debugKind, bool isStandaloneDebugMetadata)
 			: base(module, constants, methodBodies, netResources, options, debugKind, isStandaloneDebugMetadata) {
-			mod = module as ModuleDefMD;
+			mod = (module as ModuleDefMD)!;
 			if (mod is null)
 				throw new ModuleWriterException("Not a ModuleDefMD");
 		}
@@ -205,7 +205,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override uint GetRid(TypeDef td) {
+		public override uint GetRid(TypeDef? td) {
 			if (td is null) {
 				Error("TypeDef is null");
 				return 0;
@@ -1019,12 +1019,12 @@ namespace dnlib.DotNet.Writer {
 		void InitializeEventMap() {
 			if (!tablesHeap.EventMapTable.IsEmpty)
 				throw new ModuleWriterException("EventMap table isn't empty");
-			TypeDef type = null;
+			TypeDef? type = null;
 			for (int i = 0; i < eventDefInfos.Count; i++) {
 				var info = eventDefInfos.GetSorted(i);
 				if (type == info.Def.DeclaringType)
 					continue;
-				type = info.Def.DeclaringType;
+				type = info.Def.DeclaringType!;
 				var row = new RawEventMapRow(typeToRid[type], info.NewRid);
 				uint eventMapRid = tablesHeap.EventMapTable.Create(row);
 				eventMapInfos.Add(type, eventMapRid);
@@ -1034,12 +1034,12 @@ namespace dnlib.DotNet.Writer {
 		void InitializePropertyMap() {
 			if (!tablesHeap.PropertyMapTable.IsEmpty)
 				throw new ModuleWriterException("PropertyMap table isn't empty");
-			TypeDef type = null;
+			TypeDef? type = null;
 			for (int i = 0; i < propertyDefInfos.Count; i++) {
 				var info = propertyDefInfos.GetSorted(i);
 				if (type == info.Def.DeclaringType)
 					continue;
-				type = info.Def.DeclaringType;
+				type = info.Def.DeclaringType!;
 				var row = new RawPropertyMapRow(typeToRid[type], info.NewRid);
 				uint propertyMapRid = tablesHeap.PropertyMapTable.Create(row);
 				propertyMapInfos.Add(type, propertyMapRid);
@@ -1047,7 +1047,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddTypeRef(TypeRef tr) {
+		protected override uint AddTypeRef(TypeRef? tr) {
 			if (tr is null) {
 				Error("TypeRef is null");
 				return 0;
@@ -1087,9 +1087,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddTypeSpec(TypeSpec ts) => AddTypeSpec(ts, false);
+		protected override uint AddTypeSpec(TypeSpec? ts) => AddTypeSpec(ts, false);
 
-		uint AddTypeSpec(TypeSpec ts, bool forceIsOld) {
+		uint AddTypeSpec(TypeSpec? ts, bool forceIsOld) {
 			if (ts is null) {
 				Error("TypeSpec is null");
 				return 0;
@@ -1116,9 +1116,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddMemberRef(MemberRef mr) => AddMemberRef(mr, false);
+		protected override uint AddMemberRef(MemberRef? mr) => AddMemberRef(mr, false);
 
-		uint AddMemberRef(MemberRef mr, bool forceIsOld) {
+		uint AddMemberRef(MemberRef? mr, bool forceIsOld) {
 			if (mr is null) {
 				Error("MemberRef is null");
 				return 0;
@@ -1144,9 +1144,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddStandAloneSig(StandAloneSig sas) => AddStandAloneSig(sas, false);
+		protected override uint AddStandAloneSig(StandAloneSig? sas) => AddStandAloneSig(sas, false);
 
-		uint AddStandAloneSig(StandAloneSig sas, bool forceIsOld) {
+		uint AddStandAloneSig(StandAloneSig? sas, bool forceIsOld) {
 			if (sas is null) {
 				Error("StandAloneSig is null");
 				return 0;
@@ -1188,18 +1188,18 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		public override MDToken GetToken(IList<TypeSig> locals, uint origToken) {
+		public override MDToken GetToken(IList<TypeSig?>? locals, uint origToken) {
 			if (!PreserveStandAloneSigRids || !IsValidStandAloneSigToken(origToken))
 				return base.GetToken(locals, origToken);
 
-			uint rid = AddStandAloneSig(new LocalSig(locals, false), origToken);
+			uint rid = AddStandAloneSig(new LocalSig(locals!, false), origToken);
 			if (rid == 0)
 				return base.GetToken(locals, origToken);
 			return new MDToken(Table.StandAloneSig, rid);
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddStandAloneSig(MethodSig methodSig, uint origToken) {
+		protected override uint AddStandAloneSig(MethodSig? methodSig, uint origToken) {
 			if (!PreserveStandAloneSigRids || !IsValidStandAloneSigToken(origToken))
 				return base.AddStandAloneSig(methodSig, origToken);
 
@@ -1210,7 +1210,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddStandAloneSig(FieldSig fieldSig, uint origToken) {
+		protected override uint AddStandAloneSig(FieldSig? fieldSig, uint origToken) {
 			if (!PreserveStandAloneSigRids || !IsValidStandAloneSigToken(origToken))
 				return base.AddStandAloneSig(fieldSig, origToken);
 
@@ -1220,7 +1220,7 @@ namespace dnlib.DotNet.Writer {
 			return rid;
 		}
 
-		uint AddStandAloneSig(CallingConventionSig callConvSig, uint origToken) {
+		uint AddStandAloneSig(CallingConventionSig? callConvSig, uint origToken) {
 			uint sig = GetSignature(callConvSig);
 			if (callConvTokenToSignature.TryGetValue(origToken, out uint otherSig)) {
 				if (sig == otherSig)
@@ -1230,7 +1230,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			uint rid = MDToken.ToRID(origToken);
-			var sas = mod.ResolveStandAloneSig(rid);
+			var sas = mod.ResolveStandAloneSig(rid)!;
 			if (standAloneSigInfos.Exists(sas)) {
 				Warning("StandAloneSig 0x{0:X8} already exists", origToken);
 				return 0;
@@ -1268,9 +1268,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <inheritdoc/>
-		protected override uint AddMethodSpec(MethodSpec ms) => AddMethodSpec(ms, false);
+		protected override uint AddMethodSpec(MethodSpec? ms) => AddMethodSpec(ms, false);
 
-		uint AddMethodSpec(MethodSpec ms, bool forceIsOld) {
+		uint AddMethodSpec(MethodSpec? ms, bool forceIsOld) {
 			if (ms is null) {
 				Error("MethodSpec is null");
 				return 0;

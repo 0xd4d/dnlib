@@ -17,8 +17,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 		uint cbOldLines;
 		uint cbLines;
 
-		public string ModuleName { get; private set; }
-		public string ObjectName { get; private set; }
+		public string ModuleName { get; private set; } = null!;
+		public string ObjectName { get; private set; } = null!;
 
 		public List<DbiFunction> Functions { get; private set; }
 		public List<DbiDocument> Documents { get; private set; }

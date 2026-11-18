@@ -34,17 +34,31 @@ namespace dnlib.DotNet.Pdb {
 		public int EndColumn { get; set; }
 
 		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="document">PDB document</param>
+		public SequencePoint(PdbDocument document) => Document = document;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="document">PDB document</param>
+		/// <param name="startLine">Start line</param>
+		/// <param name="startColumn">Start column</param>
+		/// <param name="endLine">End line</param>
+		/// <param name="endColumn">End column</param>
+		public SequencePoint(PdbDocument document, int startLine, int startColumn, int endLine, int endColumn) {
+			Document = document;
+			StartLine = startLine;
+			StartColumn = startColumn;
+			EndLine = endLine;
+			EndColumn = endColumn;
+		}
+
+		/// <summary>
 		/// Clones this instance
 		/// </summary>
 		/// <returns>A new cloned instance</returns>
-		public SequencePoint Clone() {
-			return new SequencePoint() {
-				Document = Document,
-				StartLine = StartLine,
-				StartColumn = StartColumn,
-				EndLine = EndLine,
-				EndColumn = EndColumn,
-			};
-		}
+		public SequencePoint Clone() => new SequencePoint(Document, StartLine, StartColumn, EndLine, EndColumn);
 	}
 }

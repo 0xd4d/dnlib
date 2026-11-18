@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -53,25 +54,26 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column Property.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
-		protected UTF8String name;
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column Property.Type
 		/// </summary>
-		public CallingConventionSig Type {
+		public CallingConventionSig? Type {
 			get => type;
 			set => type = value;
 		}
 		/// <summary/>
-		protected CallingConventionSig type;
+		protected CallingConventionSig? type;
 
 		/// <inheritdoc/>
-		public Constant Constant {
+		public Constant? Constant {
 			get {
 				if (!constant_isInitialized)
 					InitializeConstant();
@@ -89,7 +91,7 @@ namespace dnlib.DotNet {
 			}
 		}
 		/// <summary/>
-		protected Constant constant;
+		protected Constant? constant;
 		/// <summary/>
 		protected bool constant_isInitialized;
 
@@ -107,7 +109,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="constant"/></summary>
-		protected virtual Constant GetConstant_NoLock() => null;
+		protected virtual Constant? GetConstant_NoLock() => null;
 
 		/// <summary>Reset <see cref="Constant"/></summary>
 		protected void ResetConstant() => constant_isInitialized = false;
@@ -119,11 +121,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -141,11 +143,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -153,19 +155,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the first getter method. Writing <c>null</c> will clear all get methods.
 		/// </summary>
-		public MethodDef GetMethod {
+		public MethodDef? GetMethod {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return getMethods.Count == 0 ? null : getMethods[0];
+				return getMethods!.Count == 0 ? null : getMethods[0];
 			}
 			set {
 				if (otherMethods is null)
 					InitializePropertyMethods();
 				if (value is null)
-					getMethods.Clear();
-				else if (getMethods.Count == 0)
-					getMethods.Add(value);
+					getMethods!.Clear();
+				else if (getMethods!.Count == 0)
+					getMethods!.Add(value);
 				else
 					getMethods[0] = value;
 			}
@@ -174,19 +176,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the first setter method. Writing <c>null</c> will clear all set methods.
 		/// </summary>
-		public MethodDef SetMethod {
+		public MethodDef? SetMethod {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return setMethods.Count == 0 ? null : setMethods[0];
+				return setMethods!.Count == 0 ? null : setMethods[0];
 			}
 			set {
 				if (otherMethods is null)
 					InitializePropertyMethods();
 				if (value is null)
-					setMethods.Clear();
-				else if (setMethods.Count == 0)
-					setMethods.Add(value);
+					setMethods!.Clear();
+				else if (setMethods!.Count == 0)
+					setMethods!.Add(value);
 				else
 					setMethods[0] = value;
 			}
@@ -199,7 +201,7 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return getMethods;
+				return getMethods!;
 			}
 		}
 
@@ -210,7 +212,7 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return setMethods;
+				return setMethods!;
 			}
 		}
 
@@ -221,7 +223,7 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return otherMethods;
+				return otherMethods!;
 			}
 		}
 
@@ -247,11 +249,11 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary/>
-		protected IList<MethodDef> getMethods;
+		protected IList<MethodDef>? getMethods;
 		/// <summary/>
-		protected IList<MethodDef> setMethods;
+		protected IList<MethodDef>? setMethods;
 		/// <summary/>
-		protected IList<MethodDef> otherMethods;
+		protected IList<MethodDef>? otherMethods;
 
 		/// <summary>Reset <see cref="GetMethods"/>, <see cref="SetMethods"/>, <see cref="OtherMethods"/></summary>
 		protected void ResetMethods() => otherMethods = null;
@@ -262,8 +264,8 @@ namespace dnlib.DotNet {
 		public bool IsEmpty =>
 			// The first property access initializes the other fields we access here
 			GetMethods.Count == 0 &&
-			setMethods.Count == 0 &&
-			otherMethods.Count == 0;
+			setMethods!.Count == 0 &&
+			otherMethods!.Count == 0;
 
 		/// <inheritdoc/>
 		public bool HasCustomAttributes => CustomAttributes.Count > 0;
@@ -276,6 +278,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="Constant"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Constant))]
 		public bool HasConstant => Constant is not null;
 
 		/// <summary>
@@ -291,15 +294,20 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the property sig
 		/// </summary>
-		public PropertySig PropertySig {
+		public PropertySig? PropertySig {
 			get => type as PropertySig;
 			set => type = value;
 		}
 
 		/// <summary>
+		/// Same as <see cref="PropertySig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public PropertySig PropertySigOrThrow => OrThrowHelper.NotNull(type as PropertySig, nameof(PropertySig));
+
+		/// <summary>
 		/// Gets/sets the declaring type (owner type)
 		/// </summary>
-		public TypeDef DeclaringType {
+		public TypeDef? DeclaringType {
 			get => declaringType2;
 			set {
 				var currentDeclaringType = DeclaringType2;
@@ -312,23 +320,37 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
+
+#pragma warning disable RS0030 // Implements the OrThrow interface member
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+#pragma warning restore RS0030
+
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => declaringType2;
+		ITypeDefOrRef? IMemberRef.DeclaringType => declaringType2;
 
 		/// <summary>
 		/// Called by <see cref="DeclaringType"/> and should normally not be called by any user
 		/// code. Use <see cref="DeclaringType"/> instead. Only call this if you must set the
 		/// declaring type without inserting it in the declaring type's method list.
 		/// </summary>
-		public TypeDef DeclaringType2 {
+		public TypeDef? DeclaringType2 {
 			get => declaringType2;
 			set => declaringType2 = value;
 		}
 		/// <summary/>
-		protected TypeDef declaringType2;
+		protected TypeDef? declaringType2;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => declaringType2?.Module;
+		public ModuleDef? Module => declaringType2?.Module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// Gets the full name of the property
@@ -404,7 +426,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="name">Name</param>
-		public PropertyDefUser(UTF8String name)
+		public PropertyDefUser(UTF8String? name)
 			: this(name, null) {
 		}
 
@@ -413,7 +435,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="name">Name</param>
 		/// <param name="sig">Property signature</param>
-		public PropertyDefUser(UTF8String name, PropertySig sig)
+		public PropertyDefUser(UTF8String? name, PropertySig? sig)
 			: this(name, sig, 0) {
 		}
 
@@ -423,8 +445,8 @@ namespace dnlib.DotNet {
 		/// <param name="name">Name</param>
 		/// <param name="sig">Property signature</param>
 		/// <param name="flags">Flags</param>
-		public PropertyDefUser(UTF8String name, PropertySig sig, PropertyAttributes flags) {
-			this.name = name;
+		public PropertyDefUser(UTF8String? name, PropertySig? sig, PropertyAttributes flags) {
+			this.name = UTF8String.EmptyIfNull(name);
 			type = sig;
 			attributes = (int)flags;
 		}
@@ -445,7 +467,7 @@ namespace dnlib.DotNet {
 		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
-		protected override Constant GetConstant_NoLock() => readerModule.ResolveConstant(readerModule.Metadata.GetConstantRid(Table.Property, origRid));
+		protected override Constant? GetConstant_NoLock() => readerModule.ResolveConstant(readerModule.Metadata.GetConstantRid(Table.Property, origRid));
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {

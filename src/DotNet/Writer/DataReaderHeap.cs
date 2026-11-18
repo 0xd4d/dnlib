@@ -14,7 +14,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		public override string Name { get; }
 
-		internal DotNetStream OptionalOriginalStream { get; }
+		internal DotNetStream? OptionalOriginalStream { get; }
 
 		readonly DataReader heapReader;
 

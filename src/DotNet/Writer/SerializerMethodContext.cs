@@ -8,8 +8,8 @@ namespace dnlib.DotNet.Writer {
 	sealed class SerializerMethodContext {
 		readonly Dictionary<Instruction, uint> toOffset;
 		readonly IWriterError helper;
-		MethodDef method;
-		CilBody body;
+		MethodDef? method;
+		CilBody? body;
 		uint bodySize;
 		bool dictInitd;
 
@@ -20,7 +20,7 @@ namespace dnlib.DotNet.Writer {
 			this.helper = helper;
 		}
 
-		internal void SetBody(MethodDef method) {
+		internal void SetBody(MethodDef? method) {
 			if (this.method != method) {
 				toOffset.Clear();
 				this.method = method;
@@ -29,7 +29,7 @@ namespace dnlib.DotNet.Writer {
 			}
 		}
 
-		public uint GetOffset(Instruction instr) {
+		public uint GetOffset(Instruction? instr) {
 			if (!dictInitd) {
 				Debug.Assert(body is not null);
 				if (body is null)
@@ -44,13 +44,13 @@ namespace dnlib.DotNet.Writer {
 			return bodySize;
 		}
 
-		public bool IsSameMethod(MethodDef method) => this.method == method;
+		public bool IsSameMethod(MethodDef? method) => this.method == method;
 
 		void InitializeDict() {
 			Debug.Assert(body is not null);
 			Debug.Assert(toOffset.Count == 0);
 			uint offset = 0;
-			var instrs = body.Instructions;
+			var instrs = body!.Instructions;
 			for(int i = 0; i < instrs.Count; i++) {
 				var instr = instrs[i];
 				toOffset[instr] = offset;

@@ -1,8 +1,10 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -21,7 +23,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// The owner module
 		/// </summary>
-		protected ModuleDef module;
+		protected ModuleDef? module;
 
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -73,10 +75,10 @@ namespace dnlib.DotNet {
 		public string AssemblyQualifiedName => FullNameFactory.AssemblyQualifiedName(this, null, null);
 
 		/// <inheritdoc/>
-		public IAssembly DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
+		public IAssembly? DefinitionAssembly => FullNameFactory.DefinitionAssembly(this);
 
 		/// <inheritdoc/>
-		public IScope Scope => FullNameFactory.Scope(this);
+		public IScope? Scope => FullNameFactory.Scope(this);
 
 		/// <inheritdoc/>
 		public ITypeDefOrRef ScopeType => this;
@@ -88,12 +90,17 @@ namespace dnlib.DotNet {
 		public bool ContainsGenericParameter => false;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => module;
+		public ModuleDef? Module => module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// From column TypeRef.ResolutionScope
 		/// </summary>
-		public IResolutionScope ResolutionScope {
+		public IResolutionScope? ResolutionScope {
 			get {
 				if (!resolutionScope_isInitialized)
 					InitializeResolutionScope();
@@ -110,8 +117,13 @@ namespace dnlib.DotNet {
 #endif
 			}
 		}
+
+		/// <summary>
+		/// Same as <see cref="ResolutionScope"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public IResolutionScope ResolutionScopeOrThrow => OrThrowHelper.NotNull(ResolutionScope, nameof(ResolutionScope));
 		/// <summary/>
-		protected IResolutionScope resolutionScope;
+		protected IResolutionScope? resolutionScope;
 		/// <summary/>
 		protected bool resolutionScope_isInitialized;
 
@@ -129,27 +141,29 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>Called to initialize <see cref="resolutionScope"/></summary>
-		protected virtual IResolutionScope GetResolutionScope_NoLock() => null;
+		protected virtual IResolutionScope? GetResolutionScope_NoLock() => null;
 
 		/// <summary>
 		/// From column TypeRef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
-		protected UTF8String name;
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column TypeRef.Namespace
 		/// </summary>
+		[AllowNull]
 		public UTF8String Namespace {
 			get => @namespace;
-			set => @namespace = value;
+			set => @namespace = UTF8String.EmptyIfNull(value);
 		}
 		/// <summary>Name</summary>
-		protected UTF8String @namespace;
+		protected UTF8String @namespace = UTF8String.Empty;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -158,11 +172,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -183,11 +197,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -195,6 +209,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if it's nested within another <see cref="TypeRef"/>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(DeclaringType))]
 		public bool IsNested => DeclaringType is not null;
 
 		/// <inheritdoc/>
@@ -211,10 +226,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the declaring type, if any
 		/// </summary>
-		public TypeRef DeclaringType => ResolutionScope as TypeRef;
+		public TypeRef? DeclaringType => ResolutionScope as TypeRef;
+
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeRef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
+
+#pragma warning disable RS0030 // Implements the OrThrow interface member
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+#pragma warning restore RS0030
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => DeclaringType;
+		ITypeDefOrRef? IMemberRef.DeclaringType => DeclaringType;
 
 		bool IIsTypeOrMethod.IsType => true;
 		bool IIsTypeOrMethod.IsMethod => false;
@@ -234,14 +258,14 @@ namespace dnlib.DotNet {
 		/// Resolves the type
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		public TypeDef Resolve() => Resolve(null);
+		public TypeDef? Resolve() => Resolve(null);
 
 		/// <summary>
 		/// Resolves the type
 		/// </summary>
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance or <c>null</c> if it couldn't be resolved</returns>
-		public TypeDef Resolve(ModuleDef sourceModule) {
+		public TypeDef? Resolve(ModuleDef? sourceModule) {
 			if (module is null)
 				return null;
 			return module.Context.Resolver.Resolve(this, sourceModule ?? module);
@@ -252,7 +276,16 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public TypeDef ResolveThrow() => ResolveThrow(null);
+		public TypeDef ResolveOrThrow() => ResolveOrThrow(null);
+
+		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		[Obsolete("Use " + nameof(ResolveOrThrow) + "() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		public TypeDef ResolveThrow() => ResolveOrThrow();
 
 		/// <summary>
 		/// Resolves the type
@@ -260,7 +293,7 @@ namespace dnlib.DotNet {
 		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
 		/// <returns>A <see cref="TypeDef"/> instance</returns>
 		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
-		public TypeDef ResolveThrow(ModuleDef sourceModule) {
+		public TypeDef ResolveOrThrow(ModuleDef? sourceModule) {
 			var type = Resolve(sourceModule);
 			if (type is not null)
 				return type;
@@ -268,11 +301,21 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Resolves the type
+		/// </summary>
+		/// <param name="sourceModule">The module that needs to resolve the type or <c>null</c></param>
+		/// <returns>A <see cref="TypeDef"/> instance</returns>
+		/// <exception cref="TypeResolveException">If the type couldn't be resolved</exception>
+		[Obsolete("Use " + nameof(ResolveOrThrow) + "() instead")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		public TypeDef ResolveThrow(ModuleDef? sourceModule) => ResolveOrThrow(sourceModule);
+
+		/// <summary>
 		/// Gets the top-most (non-nested) <see cref="TypeRef"/>
 		/// </summary>
 		/// <param name="typeRef">Input</param>
 		/// <returns>The non-nested <see cref="TypeRef"/> or <c>null</c></returns>
-		internal static TypeRef GetNonNestedTypeRef(TypeRef typeRef) {
+		internal static TypeRef? GetNonNestedTypeRef(TypeRef? typeRef) {
 			if (typeRef is null)
 				return null;
 			for (int i = 0; i < 1000; i++) {
@@ -297,7 +340,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="module">Owner module</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(ModuleDef module, UTF8String name)
+		public TypeRefUser(ModuleDef? module, UTF8String? name)
 			: this(module, UTF8String.Empty, name) {
 		}
 
@@ -307,7 +350,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Owner module</param>
 		/// <param name="namespace">Type namespace</param>
 		/// <param name="name">Type name</param>
-		public TypeRefUser(ModuleDef module, UTF8String @namespace, UTF8String name)
+		public TypeRefUser(ModuleDef? module, UTF8String? @namespace, UTF8String? name)
 			: this(module, @namespace, name, null) {
 		}
 
@@ -319,12 +362,12 @@ namespace dnlib.DotNet {
 		/// <param name="name">Type name</param>
 		/// <param name="resolutionScope">Resolution scope (a <see cref="ModuleDef"/>,
 		/// <see cref="ModuleRef"/>, <see cref="AssemblyRef"/> or <see cref="TypeRef"/>)</param>
-		public TypeRefUser(ModuleDef module, UTF8String @namespace, UTF8String name, IResolutionScope resolutionScope) {
+		public TypeRefUser(ModuleDef? module, UTF8String? @namespace, UTF8String? name, IResolutionScope? resolutionScope) {
 			this.module = module;
 			this.resolutionScope = resolutionScope;
 			resolutionScope_isInitialized = true;
-			this.name = name;
-			this.@namespace = @namespace;
+			this.name = UTF8String.EmptyIfNull(name);
+			this.@namespace = UTF8String.EmptyIfNull(@namespace);
 		}
 	}
 
@@ -342,7 +385,7 @@ namespace dnlib.DotNet {
 		public uint OrigRid => origRid;
 
 		/// <inheritdoc/>
-		protected override IResolutionScope GetResolutionScope_NoLock() => readerModule.ResolveResolutionScope(resolutionScopeCodedToken);
+		protected override IResolutionScope? GetResolutionScope_NoLock() => readerModule.ResolveResolutionScope(resolutionScopeCodedToken);
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomAttributes() {

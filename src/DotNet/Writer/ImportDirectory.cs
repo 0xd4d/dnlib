@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using dnlib.IO;
 using dnlib.PE;
@@ -18,13 +19,13 @@ namespace dnlib.DotNet.Writer {
 		RVA corXxxMainRVA;
 		RVA dllToImportRVA;
 		int stringsPadding;
-		string dllToImport;
-		string entryPointName;
+		string? dllToImport;
+		string? entryPointName;
 
 		/// <summary>
 		/// Gets/sets the <see cref="ImportAddressTable"/>
 		/// </summary>
-		public ImportAddressTable ImportAddressTable { get; set; }
+		public ImportAddressTable ImportAddressTable { get; set; } = null!;
 
 		/// <summary>
 		/// Gets the RVA of _CorDllMain/_CorExeMain in the import lookup table
@@ -55,6 +56,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the name of the dll which should be imported.
 		/// </summary>
+		[AllowNull]
 		public string DllToImport {
 			get => dllToImport ?? "mscoree.dll";
 			set => dllToImport = value;
@@ -63,6 +65,7 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the name of the entry point of the imported dll.
 		/// </summary>
+		[AllowNull]
 		public string EntryPointName {
 			get => entryPointName ?? (IsExeFile ? "_CorExeMain" : "_CorDllMain");
 			set => entryPointName = value;

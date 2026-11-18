@@ -39,8 +39,8 @@ namespace dnlib.DotNet.Writer {
 		internal static MaxStackCalculator Create() => new MaxStackCalculator(true);
 
 		MaxStackCalculator(bool dummy) {
-			instructions = null;
-			exceptionHandlers = null;
+			instructions = null!;
+			exceptionHandlers = null!;
 			stackHeights = new Dictionary<Instruction, int>();
 			hasError = false;
 			currentMaxStack = 0;
@@ -69,7 +69,7 @@ namespace dnlib.DotNet.Writer {
 				var eh = exceptionHandlers[i];
 				if (eh is null)
 					continue;
-				Instruction instr;
+				Instruction? instr;
 				if ((instr = eh.TryStart) is not null)
 					stackHeights[instr] = 0;
 				if ((instr = eh.FilterStart) is not null) {
@@ -137,7 +137,7 @@ namespace dnlib.DotNet.Writer {
 
 				case FlowControl.Cond_Branch:
 					if (code == Code.Switch) {
-						if (instr.Operand is IList<Instruction> targets) {
+						if (instr.Operand is IList<Instruction?> targets) {
 							for (int j = 0; j < targets.Count; j++)
 								WriteStack(targets[j], stack);
 						}
@@ -157,7 +157,7 @@ namespace dnlib.DotNet.Writer {
 			return !hasError;
 		}
 
-		int WriteStack(Instruction instr, int stack) {
+		int WriteStack(Instruction? instr, int stack) {
 			if (instr is null) {
 				hasError = true;
 				return stack;

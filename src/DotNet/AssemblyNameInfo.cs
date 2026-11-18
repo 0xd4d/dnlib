@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace dnlib.DotNet {
@@ -9,11 +10,11 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class AssemblyNameInfo : IAssembly {
 		AssemblyHashAlgorithm hashAlgId;
-		Version version;
+		Version? version;
 		AssemblyAttributes flags;
-		PublicKeyBase publicKeyOrToken;
-		UTF8String name;
-		UTF8String culture;
+		PublicKeyBase? publicKeyOrToken;
+		UTF8String name = UTF8String.Empty;
+		UTF8String culture = UTF8String.Empty;
 
 		/// <summary>
 		/// Gets/sets the <see cref="AssemblyHashAlgorithm"/>
@@ -26,7 +27,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the <see cref="Version"/> or <c>null</c> if none specified
 		/// </summary>
-		public Version Version {
+		public Version? Version {
 			get => version;
 			set => version = value;
 		}
@@ -42,7 +43,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the public key or token
 		/// </summary>
-		public PublicKeyBase PublicKeyOrToken {
+		public PublicKeyBase? PublicKeyOrToken {
 			get => publicKeyOrToken;
 			set => publicKeyOrToken = value;
 		}
@@ -50,17 +51,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets/sets the name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
 
 		/// <summary>
-		/// Gets/sets the culture or <c>null</c> if none specified
+		/// Gets/sets the culture or <see cref="UTF8String.Empty"/> if none specified. It's never <c>null</c>: <c>null</c> is converted to <see cref="UTF8String.Empty"/>
 		/// </summary>
+		[AllowNull]
 		public UTF8String Culture {
 			get => culture;
-			set => culture = value;
+			set => culture = UTF8String.EmptyIfNull(value);
 		}
 
 		/// <summary>
@@ -221,7 +224,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asm">The assembly</param>
-		public AssemblyNameInfo(IAssembly asm) {
+		public AssemblyNameInfo(IAssembly? asm) {
 			if (asm is null)
 				return;
 			var asmDef = asm as AssemblyDef;
@@ -237,13 +240,13 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="asmName">Assembly name info</param>
-		public AssemblyNameInfo(AssemblyName asmName) {
+		public AssemblyNameInfo(AssemblyName? asmName) {
 			if (asmName is null)
 				return;
 			hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
 			version = asmName.Version ?? new Version(0, 0, 0, 0);
 			flags = GetAttributes(asmName);
-			publicKeyOrToken = (PublicKeyBase)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
+			publicKeyOrToken = (PublicKeyBase?)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());
 			name = asmName.Name ?? string.Empty;
 			culture = asmName.CultureInfo is not null && asmName.CultureInfo.Name is not null ? asmName.CultureInfo.Name : string.Empty;

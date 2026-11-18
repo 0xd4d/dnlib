@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using dnlib.DotNet.MD;
@@ -39,22 +40,28 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column ImplMap.ImportName
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
-		protected UTF8String name;
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column ImplMap.ImportScope
 		/// </summary>
-		public ModuleRef Module {
+		public ModuleRef? Module {
 			get => module;
 			set => module = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleRef ModuleOrThrow => OrThrowHelper.NotNull(module, nameof(Module));
 		/// <summary/>
-		protected ModuleRef module;
+		protected ModuleRef? module;
 
 		/// <summary>
 		/// Modify <see cref="attributes"/> property: <see cref="attributes"/> =
@@ -259,9 +266,9 @@ namespace dnlib.DotNet {
 		/// <param name="scope">Scope</param>
 		/// <param name="name">Name</param>
 		/// <param name="flags">Flags</param>
-		public ImplMapUser(ModuleRef scope, UTF8String name, PInvokeAttributes flags) {
+		public ImplMapUser(ModuleRef? scope, UTF8String? name, PInvokeAttributes flags) {
 			module = scope;
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			attributes = (int)flags;
 		}
 	}

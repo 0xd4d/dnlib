@@ -24,7 +24,7 @@ namespace dnlib.IO {
 			return ByteArrayDataReaderFactory.Create(File.ReadAllBytes(fileName), fileName);
 		}
 
-		static DataReaderFactory CreateDataReaderFactory(string fileName) {
+		static DataReaderFactory? CreateDataReaderFactory(string fileName) {
 #if NET35
 			if (!isUnix)
 				return MemoryMappedDataReaderFactory.CreateWindows(fileName);

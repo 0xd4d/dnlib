@@ -11,12 +11,12 @@ namespace dnlib.DotNet.Resources {
 	/// </summary>
 	public sealed class BuiltInResourceData : IResourceData {
 		readonly ResourceTypeCode code;
-		readonly object data;
+		readonly object? data;
 
 		/// <summary>
 		/// Gets the data
 		/// </summary>
-		public object Data => data;
+		public object? Data => data;
 
 		/// <inheritdoc/>
 		public ResourceTypeCode Code => code;
@@ -32,7 +32,7 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <param name="code">Type of data</param>
 		/// <param name="data">Data</param>
-		public BuiltInResourceData(ResourceTypeCode code, object data) {
+		public BuiltInResourceData(ResourceTypeCode code, object? data) {
 			this.code = code;
 			this.data = data;
 		}
@@ -44,63 +44,63 @@ namespace dnlib.DotNet.Resources {
 				break;
 
 			case ResourceTypeCode.String:
-				writer.Write((string)data);
+				writer.Write((string)data!);
 				break;
 
 			case ResourceTypeCode.Boolean:
-				writer.Write((bool)data);
+				writer.Write((bool)data!);
 				break;
 
 			case ResourceTypeCode.Char:
-				writer.Write((ushort)(char)data);
+				writer.Write((ushort)(char)data!);
 				break;
 
 			case ResourceTypeCode.Byte:
-				writer.Write((byte)data);
+				writer.Write((byte)data!);
 				break;
 
 			case ResourceTypeCode.SByte:
-				writer.Write((sbyte)data);
+				writer.Write((sbyte)data!);
 				break;
 
 			case ResourceTypeCode.Int16:
-				writer.Write((short)data);
+				writer.Write((short)data!);
 				break;
 
 			case ResourceTypeCode.UInt16:
-				writer.Write((ushort)data);
+				writer.Write((ushort)data!);
 				break;
 
 			case ResourceTypeCode.Int32:
-				writer.Write((int)data);
+				writer.Write((int)data!);
 				break;
 
 			case ResourceTypeCode.UInt32:
-				writer.Write((uint)data);
+				writer.Write((uint)data!);
 				break;
 
 			case ResourceTypeCode.Int64:
-				writer.Write((long)data);
+				writer.Write((long)data!);
 				break;
 
 			case ResourceTypeCode.UInt64:
-				writer.Write((ulong)data);
+				writer.Write((ulong)data!);
 				break;
 
 			case ResourceTypeCode.Single:
-				writer.Write((float)data);
+				writer.Write((float)data!);
 				break;
 
 			case ResourceTypeCode.Double:
-				writer.Write((double)data);
+				writer.Write((double)data!);
 				break;
 
 			case ResourceTypeCode.Decimal:
-				writer.Write((decimal)data);
+				writer.Write((decimal)data!);
 				break;
 
 			case ResourceTypeCode.DateTime:
-				var dateTime = (DateTime)data;
+				var dateTime = (DateTime)data!;
 				if (writer.FormatVersion == 1)
 					writer.Write(dateTime.Ticks);
 				else
@@ -108,14 +108,14 @@ namespace dnlib.DotNet.Resources {
 				break;
 
 			case ResourceTypeCode.TimeSpan:
-				writer.Write(((TimeSpan)data).Ticks);
+				writer.Write(((TimeSpan)data!).Ticks);
 				break;
 
 			case ResourceTypeCode.ByteArray:
 			case ResourceTypeCode.Stream:
 				if (writer.FormatVersion == 1)
 					throw new NotSupportedException($"{code} is not supported in format version 1 resources");
-				var ary = (byte[])data;
+				var ary = (byte[])data!;
 				writer.Write(ary.Length);
 				writer.Write(ary);
 				break;

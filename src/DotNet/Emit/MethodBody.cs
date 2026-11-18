@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.DotNet.Pdb;
 using dnlib.PE;
 
@@ -141,15 +142,16 @@ namespace dnlib.DotNet.Emit {
 		/// Gets/sets the PDB method. This is <c>null</c> if no PDB has been loaded or if there's
 		/// no PDB info for this method.
 		/// </summary>
-		public PdbMethod PdbMethod {
+		public PdbMethod? PdbMethod {
 			get => pdbMethod;
 			set => pdbMethod = value;
 		}
-		PdbMethod pdbMethod;
+		PdbMethod? pdbMethod;
 
 		/// <summary>
 		/// <c>true</c> if <see cref="PdbMethod"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(PdbMethod))]
 		public bool HasPdbMethod => PdbMethod is not null;
 
 		/// <summary>

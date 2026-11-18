@@ -12,7 +12,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <typeparam name="T">Collection element type</typeparam>
 		/// <param name="coll">Collection</param>
-		public static void Initialize<T>(IEnumerable<T> coll) {
+		public static void Initialize<T>(IEnumerable<T>? coll) {
 			if (coll is null)
 				return;
 			foreach (var c in coll) {
@@ -23,7 +23,7 @@ namespace dnlib.DotNet {
 		/// Load the object instance
 		/// </summary>
 		/// <param name="o">The value (ignored)</param>
-		public static void Initialize(object o) {
+		public static void Initialize(object? o) {
 		}
 	}
 }

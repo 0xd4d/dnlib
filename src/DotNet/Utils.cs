@@ -15,7 +15,7 @@ namespace dnlib.DotNet {
 		public static readonly ByteArrayEqualityComparer Instance = new ByteArrayEqualityComparer();
 
 		/// <inheritdoc/>
-		public bool Equals(byte[] x, byte[] y) => Utils.Equals(x, y);
+		public bool Equals(byte[]? x, byte[]? y) => Utils.Equals(x, y);
 
 		/// <inheritdoc/>
 		public int GetHashCode(byte[] obj) => Utils.GetHashCode(obj);
@@ -28,7 +28,7 @@ namespace dnlib.DotNet {
 		/// <param name="bytes">All bytes</param>
 		/// <param name="upper"><c>true</c> if output should be in upper case hex</param>
 		/// <returns><paramref name="bytes"/> as a hex string</returns>
-		internal static string ToHex(byte[] bytes, bool upper) {
+		internal static string ToHex(byte[]? bytes, bool upper) {
 			if (bytes is null)
 				return "";
 			var chars = new char[bytes.Length * 2];
@@ -52,7 +52,7 @@ namespace dnlib.DotNet {
 		/// <param name="hexString">A string with an even number of hex characters</param>
 		/// <returns><paramref name="hexString"/> converted to a byte[] or <c>null</c>
 		/// if <paramref name="hexString"/> is invalid</returns>
-		internal static byte[] ParseBytes(string hexString) {
+		internal static byte[]? ParseBytes(string hexString) {
 			try {
 				if (hexString.Length % 2 != 0)
 					return null;
@@ -93,7 +93,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Byte array #1</param>
 		/// <param name="b">Byte array #2</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		internal static int CompareTo(byte[] a, byte[] b) {
+		internal static int CompareTo(byte[]? a, byte[]? b) {
 			if (a == b)
 				return 0;
 			if (a is null)
@@ -118,7 +118,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool Equals(byte[] a, byte[] b) {
+		internal static bool Equals(byte[]? a, byte[]? b) {
 			if (a == b)
 				return true;
 			if (a is null || b is null)
@@ -137,7 +137,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="a">Byte array</param>
 		/// <returns>The hash code</returns>
-		internal static unsafe int GetHashCode(byte[] a) {
+		internal static unsafe int GetHashCode(byte[]? a) {
 			if (a is null || a.Length == 0)
 				return 0;
 			// All bytes are hashed (xxHash32 algorithm, seed 0). Hashing only some of the bytes makes
@@ -184,7 +184,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
 		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		internal static int CompareTo(Version a, Version b) {
+		internal static int CompareTo(Version? a, Version? b) {
 			if (a is null)
 				a = new Version();
 			if (b is null)
@@ -207,7 +207,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
 		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool Equals(Version a, Version b) => CompareTo(a, b) == 0;
+		internal static bool Equals(Version? a, Version? b) => CompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Creates a new <see cref="Version"/> instance with no undefined version values (eg.
@@ -215,7 +215,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="a">A <see cref="Version"/> instance</param>
 		/// <returns>A new <see cref="Version"/> instance</returns>
-		internal static Version CreateVersionWithNoUndefinedValues(Version a) {
+		internal static Version CreateVersionWithNoUndefinedValues(Version? a) {
 			if (a is null)
 				return new Version(0, 0, 0, 0);
 			return new Version(a.Major, a.Minor, GetDefaultVersionValue(a.Build), GetDefaultVersionValue(a.Revision));
@@ -229,7 +229,7 @@ namespace dnlib.DotNet {
 		/// <param name="versionString">Version string</param>
 		/// <returns>A new <see cref="Version"/> or <c>null</c> if <paramref name="versionString"/>
 		/// is an invalid version</returns>
-		internal static Version ParseVersion(string versionString) {
+		internal static Version? ParseVersion(string versionString) {
 			try {
 				return Utils.CreateVersionWithNoUndefinedValues(new Version(versionString));
 			}
@@ -244,7 +244,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		internal static int LocaleCompareTo(UTF8String a, UTF8String b) => GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
+		internal static int LocaleCompareTo(UTF8String? a, UTF8String? b) => GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
 
 		/// <summary>
 		/// Compares two locales (cultures)
@@ -252,7 +252,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool LocaleEquals(UTF8String a, UTF8String b) => LocaleCompareTo(a, b) == 0;
+		internal static bool LocaleEquals(UTF8String? a, UTF8String? b) => LocaleCompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Compares two locales (cultures)
@@ -260,7 +260,7 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
-		internal static int LocaleCompareTo(UTF8String a, string b) => GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
+		internal static int LocaleCompareTo(UTF8String? a, string b) => GetCanonicalLocale(a).CompareTo(GetCanonicalLocale(b));
 
 		/// <summary>
 		/// Compares two locales (cultures)
@@ -268,16 +268,16 @@ namespace dnlib.DotNet {
 		/// <param name="a">First</param>
 		/// <param name="b">Second</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		internal static bool LocaleEquals(UTF8String a, string b) => LocaleCompareTo(a, b) == 0;
+		internal static bool LocaleEquals(UTF8String? a, string b) => LocaleCompareTo(a, b) == 0;
 
 		/// <summary>
 		/// Gets the hash code of a locale
 		/// </summary>
 		/// <param name="a">Value</param>
 		/// <returns>The hash code</returns>
-		internal static int GetHashCodeLocale(UTF8String a) => GetCanonicalLocale(a).GetHashCode();
+		internal static int GetHashCodeLocale(UTF8String? a) => GetCanonicalLocale(a).GetHashCode();
 
-		static string GetCanonicalLocale(UTF8String locale) => GetCanonicalLocale(UTF8String.ToSystemStringOrEmpty(locale));
+		static string GetCanonicalLocale(UTF8String? locale) => GetCanonicalLocale(UTF8String.ToSystemStringOrEmpty(locale));
 
 		static string GetCanonicalLocale(string locale) {
 			var s = locale.ToUpperInvariant();

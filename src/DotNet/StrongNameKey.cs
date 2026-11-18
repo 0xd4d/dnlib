@@ -31,7 +31,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="innerException">Other exception</param>
-		public InvalidKeyException(string message, Exception innerException)
+		public InvalidKeyException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 
@@ -102,9 +102,11 @@ namespace dnlib.DotNet {
 		public byte[] PublicExponent => publicExponent;
 
 		/// <summary>
-		/// Default constructor
+		/// Default constructor. <see cref="Modulus"/> and <see cref="PublicExponent"/> are empty arrays.
 		/// </summary>
 		public StrongNamePublicKey() {
+			modulus = Array2.Empty<byte>();
+			publicExponent = Array2.Empty<byte>();
 		}
 
 		/// <summary>
@@ -145,7 +147,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="pk">Public key</param>
 		public StrongNamePublicKey(PublicKey pk)
-			: this(pk.Data) {
+			: this(pk.Data!) {
 		}
 
 		/// <summary>
@@ -236,7 +238,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class StrongNameKey {
 		const uint RSA2_SIG = 0x32415352;
-		byte[] publicKey;
+		byte[]? publicKey;
 		readonly AssemblyHashAlgorithm hashAlg;
 		readonly byte[] publicExponent;
 		readonly byte[] modulus;
@@ -254,7 +256,7 @@ namespace dnlib.DotNet {
 			get {
 				if (publicKey is null)
 					Interlocked.CompareExchange(ref publicKey, CreatePublicKey(), null);
-				return publicKey;
+				return publicKey!;
 			}
 		}
 
@@ -517,7 +519,7 @@ namespace dnlib.DotNet {
 			var hash = AssemblyHash.Hash(signaturePubKey.CreatePublicKey(), identityPubKey.HashAlgorithm);
 			using (var rsa = identityKey.CreateRSA()) {
 				var rsaFmt = new RSAPKCS1SignatureFormatter(rsa);
-				string hashName = identityPubKey.HashAlgorithm.GetName();
+				string hashName = identityPubKey.HashAlgorithm.GetName()!;
 				rsaFmt.SetHashAlgorithm(hashName);
 				var snSig = rsaFmt.CreateSignature(hash);
 				Array.Reverse(snSig);

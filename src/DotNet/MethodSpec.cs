@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -32,22 +33,27 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column MethodSpec.Method
 		/// </summary>
-		public IMethodDefOrRef Method {
+		public IMethodDefOrRef? Method {
 			get => method;
 			set => method = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="Method"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public IMethodDefOrRef MethodOrThrow => OrThrowHelper.NotNull(method, nameof(Method));
 		/// <summary/>
-		protected IMethodDefOrRef method;
+		protected IMethodDefOrRef? method;
 
 		/// <summary>
 		/// From column MethodSpec.Instantiation
 		/// </summary>
-		public CallingConventionSig Instantiation {
+		public CallingConventionSig? Instantiation {
 			get => instantiation;
 			set => instantiation = value;
 		}
 		/// <summary/>
-		protected CallingConventionSig instantiation;
+		protected CallingConventionSig? instantiation;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -56,11 +62,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -81,17 +87,17 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <inheritdoc/>
-		MethodSig IMethod.MethodSig {
+		MethodSig? IMethod.MethodSig {
 			get => method?.MethodSig;
 			set {
 				var m = method;
@@ -100,7 +106,10 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		MethodSig IMethod.MethodSigOrThrow => OrThrowHelper.NotNull(method?.MethodSig, nameof(IMethod.MethodSig));
+
 		/// <inheritdoc/>
+		[AllowNull]
 		public UTF8String Name {
 			get {
 				var m = method;
@@ -114,21 +123,36 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public ITypeDefOrRef DeclaringType => method?.DeclaringType;
+		public ITypeDefOrRef? DeclaringType => method?.DeclaringType;
+
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public ITypeDefOrRef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
 
 		/// <summary>
 		/// Gets/sets the generic instance method sig
 		/// </summary>
-		public GenericInstMethodSig GenericInstMethodSig {
+		public GenericInstMethodSig? GenericInstMethodSig {
 			get => instantiation as GenericInstMethodSig;
 			set => instantiation = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="GenericInstMethodSig"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public GenericInstMethodSig GenericInstMethodSigOrThrow => OrThrowHelper.NotNull(instantiation as GenericInstMethodSig, nameof(GenericInstMethodSig));
 
 		/// <inheritdoc/>
 		int IGenericParameterProvider.NumberOfGenericParameters => GenericInstMethodSig?.GenericArguments.Count ?? 0;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => method?.Module;
+		public ModuleDef? Module => method?.Module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <summary>
 		/// Gets the full name
@@ -186,7 +210,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="method">The generic method</param>
-		public MethodSpecUser(IMethodDefOrRef method)
+		public MethodSpecUser(IMethodDefOrRef? method)
 			: this(method, null) {
 		}
 
@@ -195,7 +219,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="method">The generic method</param>
 		/// <param name="sig">The instantiated method sig</param>
-		public MethodSpecUser(IMethodDefOrRef method, GenericInstMethodSig sig) {
+		public MethodSpecUser(IMethodDefOrRef? method, GenericInstMethodSig? sig) {
 			this.method = method;
 			instantiation = sig;
 		}

@@ -32,7 +32,7 @@ namespace dnlib.DotNet.Writer {
 				_ => throw new ArgumentOutOfRangeException(nameof(checksumAlgorithm)),
 			};
 
-		public static bool TryGetChecksumAlgorithm(string checksumName, out ChecksumAlgorithm pdbChecksumAlgorithm, out int checksumSize) {
+		public static bool TryGetChecksumAlgorithm(string? checksumName, out ChecksumAlgorithm pdbChecksumAlgorithm, out int checksumSize) {
 			switch (checksumName) {
 			case "SHA1":
 				pdbChecksumAlgorithm = ChecksumAlgorithm.SHA1;
@@ -73,7 +73,7 @@ namespace dnlib.DotNet.Writer {
 					length -= read;
 				}
 				hasher.TransformFinalBlock(Array2.Empty<byte>(), 0, 0);
-				return hasher.Hash;
+				return hasher.Hash!;
 			}
 		}
 	}

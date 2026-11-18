@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography;
 using dnlib.IO;
@@ -41,7 +42,8 @@ namespace dnlib.DotNet {
 		/// <param name="data">The data</param>
 		/// <param name="hashAlgo">The algorithm to use</param>
 		/// <returns>Hashed data or null if <paramref name="data"/> was <c>null</c></returns>
-		public static byte[] Hash(byte[] data, AssemblyHashAlgorithm hashAlgo) {
+		[return: NotNullIfNotNull(nameof(data))]
+		public static byte[]? Hash(byte[]? data, AssemblyHashAlgorithm hashAlgo) {
 			if (data is null)
 				return null;
 
@@ -88,7 +90,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public byte[] ComputeHash() {
 			hasher.TransformFinalBlock(Array2.Empty<byte>(), 0, 0);
-			return hasher.Hash;
+			return hasher.Hash!;
 		}
 
 		/// <summary>
@@ -98,7 +100,7 @@ namespace dnlib.DotNet {
 		/// order, is used as the public key token</remarks>
 		/// <param name="publicKeyData">The data</param>
 		/// <returns>A new <see cref="PublicKeyToken"/> instance</returns>
-		public static PublicKeyToken CreatePublicKeyToken(byte[] publicKeyData) {
+		public static PublicKeyToken CreatePublicKeyToken(byte[]? publicKeyData) {
 			if (publicKeyData is null)
 				return new PublicKeyToken();
 			var hash = Hash(publicKeyData, AssemblyHashAlgorithm.SHA1);

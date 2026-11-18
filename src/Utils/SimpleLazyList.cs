@@ -13,7 +13,7 @@ namespace dnlib.Utils {
 	[DebuggerDisplay("Count = {Length}")]
 	sealed class SimpleLazyList<T> where T : class {
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-		readonly T[] elements;
+		readonly T?[] elements;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		readonly Func<uint, T> readElementByRID;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -29,7 +29,7 @@ namespace dnlib.Utils {
 		/// </summary>
 		/// <param name="index">Index</param>
 		/// <returns>The element or <c>null</c> if <paramref name="index"/> is invalid</returns>
-		public T this[uint index] {
+		public T? this[uint index] {
 			get {
 				if (index >= length)
 					return null;
@@ -49,7 +49,7 @@ namespace dnlib.Utils {
 		public SimpleLazyList(uint length, Func<uint, T> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;
-			elements = new T[length];
+			elements = new T?[length];
 		}
 	}
 
@@ -60,9 +60,9 @@ namespace dnlib.Utils {
 	[DebuggerDisplay("Count = {Length}")]
 	sealed class SimpleLazyList2<T> where T : class, IContainsGenericParameter2 {
 		[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-		readonly T[] elements;
+		readonly T?[] elements;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		readonly Func<uint, GenericParamContext, T> readElementByRID;
+		readonly Func<uint, GenericParamContext, T?> readElementByRID;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		readonly uint length;
 
@@ -77,7 +77,7 @@ namespace dnlib.Utils {
 		/// <param name="index">Index</param>
 		/// <param name="gpContext">Generic parameter context</param>
 		/// <returns>The element or <c>null</c> if <paramref name="index"/> is invalid or if the element can't be read</returns>
-		public T this[uint index, GenericParamContext gpContext] {
+		public T? this[uint index, GenericParamContext gpContext] {
 			get {
 				if (index >= length)
 					return null;
@@ -85,7 +85,7 @@ namespace dnlib.Utils {
 			}
 		}
 
-		T ReadElement(uint index, GenericParamContext gpContext) {
+		T? ReadElement(uint index, GenericParamContext gpContext) {
 			var elem = readElementByRID(index + 1, gpContext);
 			if (elem is null)
 				return null;
@@ -104,10 +104,10 @@ namespace dnlib.Utils {
 		/// <param name="readElementByRID">Delegate instance that lazily reads an element. It might
 		/// be called more than once for each <c>rid</c>. It returns <c>null</c> if the element can't be
 		/// read, and <c>null</c> is never cached.</param>
-		public SimpleLazyList2(uint length, Func<uint, GenericParamContext, T> readElementByRID) {
+		public SimpleLazyList2(uint length, Func<uint, GenericParamContext, T?> readElementByRID) {
 			this.length = length;
 			this.readElementByRID = readElementByRID;
-			elements = new T[length];
+			elements = new T?[length];
 		}
 	}
 }

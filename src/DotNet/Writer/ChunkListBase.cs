@@ -12,7 +12,7 @@ namespace dnlib.DotNet.Writer {
 	/// <typeparam name="T">Chunk type</typeparam>
 	public abstract class ChunkListBase<T> : IChunk where T : IChunk {
 		/// <summary>All chunks</summary>
-		protected List<Elem> chunks;
+		protected List<Elem> chunks = null!;
 		uint length;
 		uint virtualSize;
 		/// <summary><c>true</c> if <see cref="SetOffset"/> has been called</summary>

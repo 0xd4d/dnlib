@@ -40,13 +40,13 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		readonly ModuleDef module;
-		readonly TypeDef typeOpt;
-		readonly CilBody bodyOpt;
+		readonly TypeDef? typeOpt;
+		readonly CilBody? bodyOpt;
 		readonly GenericParamContext gpContext;
 		DataReader reader;
 
 		PdbCustomDebugInfoReader(MethodDef method, CilBody body, ref DataReader reader) {
-			module = method.Module;
+			module = method.Module!;
 			typeOpt = method.DeclaringType;
 			bodyOpt = body;
 			gpContext = GenericParamContext.Create(method);
@@ -95,10 +95,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 		}
 
-		PdbCustomDebugInfo ReadRecord(PdbCustomDebugInfoKind recKind, ulong recPosEnd) {
-			IMethodDefOrRef method;
+		PdbCustomDebugInfo? ReadRecord(PdbCustomDebugInfoKind recKind, ulong recPosEnd) {
+			IMethodDefOrRef? method;
 			byte[] data;
-			Local local;
+			Local? local;
 			int count;
 			int localIndex;
 			switch (recKind) {
@@ -271,7 +271,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 		}
 
-		TypeDef GetNestedType(string name) {
+		TypeDef? GetNestedType(string name) {
 			if (typeOpt is null)
 				return null;
 			var nestedTypes = typeOpt.NestedTypes;
@@ -304,7 +304,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			return null;
 		}
 
-		string ReadUnicodeZ(ulong recPosEnd, bool needZeroChar) {
+		string? ReadUnicodeZ(ulong recPosEnd, bool needZeroChar) {
 			var sb = new StringBuilder();
 
 			for (;;) {
@@ -317,14 +317,14 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 		}
 
-		string ReadUTF8Z(ulong recPosEnd) {
+		string? ReadUTF8Z(ulong recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
 			return reader.TryReadZeroTerminatedUtf8String();
 		}
 
-		Instruction GetInstruction(uint offset) {
-			var instructions = bodyOpt.Instructions;
+		Instruction? GetInstruction(uint offset) {
+			var instructions = bodyOpt!.Instructions;
 			int lo = 0, hi = instructions.Count - 1;
 			while (lo <= hi && hi != -1) {
 				int i = (lo + hi) / 2;

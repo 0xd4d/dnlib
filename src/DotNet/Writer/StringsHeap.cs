@@ -14,8 +14,8 @@ namespace dnlib.DotNet.Writer {
 		readonly Dictionary<UTF8String, uint> cachedDict = new Dictionary<UTF8String, uint>(UTF8StringEqualityComparer.Instance);
 		readonly List<UTF8String> cached = new List<UTF8String>();
 		uint nextOffset = 1;
-		byte[] originalData;
-		Dictionary<uint, byte[]> userRawData;
+		byte[]? originalData;
+		Dictionary<uint, byte[]>? userRawData;
 		readonly Dictionary<UTF8String, StringsOffsetInfo> toStringsOffsetInfo = new Dictionary<UTF8String, StringsOffsetInfo>(UTF8StringEqualityComparer.Instance);
 		readonly Dictionary<uint, StringsOffsetInfo> offsetIdToInfo = new Dictionary<uint, StringsOffsetInfo>();
 		readonly List<StringsOffsetInfo> stringsOffsetInfos = new List<StringsOffsetInfo>();
@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Writer {
 		/// string offsets)
 		/// </summary>
 		/// <param name="stringsStream">The #Strings stream with the original content</param>
-		public void Populate(StringsStream stringsStream) {
+		public void Populate(StringsStream? stringsStream) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (originalData is not null)
@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Writer {
 
 			stringsOffsetInfos.Sort(Comparison_StringsOffsetInfoSorter);
 
-			StringsOffsetInfo prevInfo = null;
+			StringsOffsetInfo? prevInfo = null;
 			foreach (var info in stringsOffsetInfos) {
 				if (prevInfo is not null && EndsWith(prevInfo.Value, info.Value))
 					info.StringsOffset = prevInfo.StringsOffset + (uint)(prevInfo.Value.Data.Length - info.Value.Data.Length);
@@ -131,7 +131,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset id. This is not a #Strings offset. Call <see cref="GetOffset(uint)"/> to get the #Strings offset</returns>
-		public uint Add(UTF8String s) {
+		public uint Add(UTF8String? s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (UTF8String.IsNullOrEmpty(s))
@@ -177,7 +177,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #Strings heap</returns>
-		public uint Create(UTF8String s) {
+		public uint Create(UTF8String? s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (UTF8String.IsNullOrEmpty(s))
@@ -193,7 +193,7 @@ namespace dnlib.DotNet.Writer {
 		/// is thrown, else the string is truncated at the first NUL byte (that's what a reader sees)
 		/// after this has been called.
 		/// </summary>
-		internal Action<UTF8String> InvalidStringError { get; set; }
+		internal Action<UTF8String>? InvalidStringError { get; set; }
 
 		UTF8String RemoveNul(UTF8String s, int nulIndex) {
 			var error = InvalidStringError;

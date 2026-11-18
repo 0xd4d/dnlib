@@ -52,7 +52,7 @@ namespace dnlib.DotNet.Writer {
 		readonly Table table;
 		readonly Dictionary<TRow, uint> cachedDict;
 		readonly List<TRow> cached;
-		TableInfo tableInfo;
+		TableInfo tableInfo = null!;
 		bool isSorted;
 		bool isReadOnly;
 

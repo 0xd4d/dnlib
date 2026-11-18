@@ -28,7 +28,7 @@ namespace dnlib.DotNet.Emit {
 		/// </summary>
 		/// <param name="msg">Error message</param>
 		/// <param name="innerException">The inner exception or <c>null</c> if none</param>
-		public InvalidMethodException(string msg, Exception innerException)
+		public InvalidMethodException(string msg, Exception? innerException)
 			: base(msg, innerException) {
 		}
 

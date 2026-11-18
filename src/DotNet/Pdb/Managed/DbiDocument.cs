@@ -13,8 +13,8 @@ namespace dnlib.DotNet.Pdb.Managed {
 		Guid languageVendor;
 		Guid documentType;
 		Guid checkSumAlgorithmId;
-		byte[] checkSum;
-		byte[] sourceCode;
+		byte[] checkSum = null!;
+		byte[]? sourceCode;
 
 		public override string URL => url;
 		public override Guid Language => language;
@@ -22,7 +22,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		public override Guid DocumentType => documentType;
 		public override Guid CheckSumAlgorithmId => checkSumAlgorithmId;
 		public override byte[] CheckSum => checkSum;
-		byte[] SourceCode => sourceCode;
+		byte[]? SourceCode => sourceCode;
 
 		public override PdbCustomDebugInfo[] CustomDebugInfos {
 			get {
@@ -36,7 +36,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				return customDebugInfos;
 			}
 		}
-		PdbCustomDebugInfo[] customDebugInfos;
+		PdbCustomDebugInfo[]? customDebugInfos;
 
 		public override MDToken? MDToken => null;
 

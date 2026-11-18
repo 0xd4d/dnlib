@@ -30,7 +30,7 @@ namespace dnlib.Examples {
 				if (type.Interfaces.Count > 0) {
 					Console.WriteLine("  Interfaces:");
 					foreach (var iface in type.Interfaces)
-						Console.WriteLine("    {0}", iface.Interface.FullName);
+						Console.WriteLine("    {0}", iface.InterfaceOrThrow.FullName);
 				}
 			}
 			Console.WriteLine();

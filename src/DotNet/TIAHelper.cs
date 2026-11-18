@@ -13,10 +13,10 @@ namespace dnlib.DotNet {
 	/// </summary>
 	static class TIAHelper {
 		readonly struct Info : IEquatable<Info> {
-			public readonly UTF8String Scope;
-			public readonly UTF8String Identifier;
+			public readonly UTF8String? Scope;
+			public readonly UTF8String? Identifier;
 
-			public Info(UTF8String scope, UTF8String identifier) {
+			public Info(UTF8String? scope, UTF8String? identifier) {
 				Scope = scope;
 				Identifier = identifier;
 			}
@@ -24,7 +24,7 @@ namespace dnlib.DotNet {
 			public bool Equals(Info other) => stricmp(Scope, other.Scope) && UTF8String.Equals(Identifier, other.Identifier);
 
 			// The CLR compares lengths so null and empty strings are equal
-			static bool stricmp(UTF8String a, UTF8String b) {
+			static bool stricmp(UTF8String? a, UTF8String? b) {
 				var da = a?.Data ?? Array2.Empty<byte>();
 				var db = b?.Data ?? Array2.Empty<byte>();
 				if (da == db)
@@ -44,13 +44,13 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		static Info? GetInfo(TypeDef td) {
+		static Info? GetInfo(TypeDef? td) {
 			if (td is null)
 				return null;
 			if (td.IsWindowsRuntime)
 				return null;
 
-			UTF8String scope = null, identifier = null;
+			UTF8String? scope = null, identifier = null;
 			var tia = td.CustomAttributes.Find("System.Runtime.InteropServices.TypeIdentifierAttribute");
 			if (tia is not null) {
 				if (tia.ConstructorArguments.Count >= 2) {
@@ -68,7 +68,7 @@ namespace dnlib.DotNet {
 			}
 
 			if (UTF8String.IsNull(identifier)) {
-				CustomAttribute gca;
+				CustomAttribute? gca;
 				if (td.IsInterface && td.IsImport)
 					gca = td.CustomAttributes.Find("System.Runtime.InteropServices.GuidAttribute");
 				else {
@@ -109,7 +109,7 @@ namespace dnlib.DotNet {
 		internal static bool IsTypeDefEquivalent(TypeDef td) => GetInfo(td) is not null && CheckEquivalent(td);
 
 		// See coreclr's IsTypeDefEquivalent()
-		static bool CheckEquivalent(TypeDef td) {
+		static bool CheckEquivalent(TypeDef? td) {
 			Debug.Assert(td is not null);
 
 			for (int i = 0; td is not null && i < 1000; i++) {
@@ -150,13 +150,13 @@ namespace dnlib.DotNet {
 			return false;
 		}
 
-		static bool IsTypeLibAssembly(AssemblyDef asm) =>
+		static bool IsTypeLibAssembly(AssemblyDef? asm) =>
 			asm is not null &&
 			(asm.CustomAttributes.IsDefined("System.Runtime.InteropServices.ImportedFromTypeLibAttribute") ||
 			asm.CustomAttributes.IsDefined("System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute"));
 
 		// See coreclr's IsTypeDefExternallyVisible()
-		static bool IsExternallyVisible(TypeDef td) {
+		static bool IsExternallyVisible(TypeDef? td) {
 			for (int i = 0; td is not null && i < 1000; i++) {
 				if (td.IsPublic)
 					return true;
@@ -186,15 +186,15 @@ namespace dnlib.DotNet {
 		internal sealed class TypeDefPairList {
 			readonly TypeDef td1;
 			readonly TypeDef td2;
-			readonly TypeDefPairList next;
+			readonly TypeDefPairList? next;
 
-			public TypeDefPairList(TypeDef td1, TypeDef td2, TypeDefPairList next) {
+			public TypeDefPairList(TypeDef td1, TypeDef td2, TypeDefPairList? next) {
 				this.td1 = td1;
 				this.td2 = td2;
 				this.next = next;
 			}
 
-			public static bool Exists(TypeDefPairList list, TypeDef td1, TypeDef td2) {
+			public static bool Exists(TypeDefPairList? list, TypeDef td1, TypeDef td2) {
 				for (; list is not null; list = list.next) {
 					if (list.td1 == td1 && list.td2 == td2)
 						return true;
@@ -229,14 +229,14 @@ namespace dnlib.DotNet {
 					this.td2 = td2;
 				}
 				public bool Equals(TypeDefPair other) => td1 == other.td1 && td2 == other.td2;
-				public override bool Equals(object obj) => obj is TypeDefPair other && Equals(other);
+				public override bool Equals(object? obj) => obj is TypeDefPair other && Equals(other);
 				public override int GetHashCode() => RuntimeHelpers.GetHashCode(td1) * 31 + RuntimeHelpers.GetHashCode(td2);
 			}
 		}
 
 		// See coreclr's CompareTypeDefsForEquivalence(). The caller must check whether we're in a scope
 		// where type equivalence isn't allowed (eg. inside a function pointer or a generic instance type).
-		internal static bool Equivalent(ref SigComparer comparer, TypeDef td1, TypeDef td2) {
+		internal static bool Equivalent(ref SigComparer comparer, TypeDef? td1, TypeDef? td2) {
 			if (td1 is null || td2 is null)
 				return false;
 			if (TypeDefPairList.Exists(comparer.typeEquivalenceVisited, td1, td2)) {
@@ -348,7 +348,7 @@ namespace dnlib.DotNet {
 		}
 
 		// Returns false if the type can't be equivalent, else true and field is the next public instance field or null if there are no more fields
-		static bool GetNextInstanceField(IList<FieldDef> fields, ref int index, bool enumMode, out FieldDef field) {
+		static bool GetNextInstanceField(IList<FieldDef> fields, ref int index, bool enumMode, out FieldDef? field) {
 			field = null;
 			while (index < fields.Count) {
 				var fd = fields[index++];
@@ -423,7 +423,7 @@ namespace dnlib.DotNet {
 					return false;
 				if (marshalType1 is not null) {
 					var blob1 = GetMarshalBlob(fd1.Module, marshalType1);
-					var blob2 = GetMarshalBlob(fd2.Module, marshalType2);
+					var blob2 = GetMarshalBlob(fd2.Module, marshalType2!);
 					if (blob1 is null || blob2 is null || !Equals(blob1, blob2))
 						return false;
 				}
@@ -432,16 +432,17 @@ namespace dnlib.DotNet {
 			return true;
 		}
 
-		static byte[] GetMarshalBlob(ModuleDef module, MarshalType marshalType) {
+		static byte[] GetMarshalBlob(ModuleDef? module, MarshalType marshalType) {
 			// The CLR compares the raw blobs. dnlib compares the blobs created from the (possibly modified)
 			// MarshalTypes. Errors are ignored: invalid marshal types are still written deterministically.
-			return Writer.MarshalBlobWriter.Write(module, marshalType, IgnoreWriterErrors.Instance);
+			// module is only used if optimizeCustomAttributeSerializedTypeNames is true, so null is OK here
+			return Writer.MarshalBlobWriter.Write(module!, marshalType, IgnoreWriterErrors.Instance);
 		}
 
 		sealed class IgnoreWriterErrors : Writer.IWriterError2 {
 			public static readonly IgnoreWriterErrors Instance = new IgnoreWriterErrors();
 			public void Error(string message) { }
-			public void Error(string message, params object[] args) { }
+			public void Error(string message, params object?[] args) { }
 		}
 
 		static bool Equals(byte[] a, byte[] b) {

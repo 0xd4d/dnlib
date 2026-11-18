@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
@@ -18,13 +19,13 @@ namespace dnlib.DotNet.Pdb.Portable {
 			recursionCounter = default;
 		}
 
-		public bool Read(out TypeSig type, out object value) {
+		public bool Read(out TypeSig? type, out object? value) {
 			bool b = ReadCatch(out type, out value);
 			Debug.Assert(!b || reader.Position == reader.Length);
 			return b;
 		}
 
-		bool ReadCatch(out TypeSig type, out object value) {
+		bool ReadCatch(out TypeSig? type, out object? value) {
 			try {
 				return ReadCore(out type, out value);
 			}
@@ -35,7 +36,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return false;
 		}
 
-		bool ReadCore(out TypeSig type, out object value) {
+		bool ReadCore(out TypeSig? type, out object? value) {
 			if (!recursionCounter.Increment()) {
 				type = null;
 				value = null;
@@ -43,8 +44,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 			}
 
 			bool res;
-			ITypeDefOrRef tdr;
-			UTF8String ns, name;
+			ITypeDefOrRef? tdr;
+			UTF8String? ns, name;
 			var et = (ElementType)reader.ReadByte();
 			switch (et) {
 			case ElementType.Boolean:
@@ -166,7 +167,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case ElementType.ValueType:
 				tdr = ReadTypeDefOrRef();
 				// Don't use ToTypeSig() since it creates a ClassSig if it can't resolve the type
-				type = tdr is null ? null : (TypeSig)module.CorLibTypes.GetCorLibTypeSig(tdr) ?? new ValueTypeSig(tdr);
+				type = tdr is null ? null : (TypeSig?)module.CorLibTypes.GetCorLibTypeSig(tdr) ?? new ValueTypeSig(tdr);
 				value = null;
 				if (GetName(tdr, out ns, out name) && ns == stringSystem && tdr.DefinitionAssembly.IsCorLib()) {
 					if (name == stringDecimal) {
@@ -249,7 +250,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		static readonly UTF8String stringDecimal = new UTF8String("Decimal");
 		static readonly UTF8String stringDateTime = new UTF8String("DateTime");
 
-		static bool GetName(ITypeDefOrRef tdr, out UTF8String @namespace, out UTF8String name) {
+		static bool GetName([NotNullWhen(true)] ITypeDefOrRef? tdr, [NotNullWhen(true)] out UTF8String? @namespace, [NotNullWhen(true)] out UTF8String? name) {
 			if (tdr is TypeRef tr) {
 				@namespace = tr.Namespace;
 				name = tr.Name;
@@ -270,7 +271,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		// A primitive value followed by a TypeDefOrRefOrSpec is an enum constant. Don't
 		// resolve the type to check if it's a value type since resolving can fail, and
 		// that would create a ClassSig.
-		TypeSig ReadEnumTypeSig() {
+		TypeSig? ReadEnumTypeSig() {
 			uint codedToken;
 			if (!reader.TryReadCompressedUInt32(out codedToken))
 				return null;
@@ -285,7 +286,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new ValueTypeSig(tdr);
 		}
 
-		ITypeDefOrRef ReadTypeDefOrRef() {
+		ITypeDefOrRef? ReadTypeDefOrRef() {
 			uint codedToken;
 			if (!reader.TryReadCompressedUInt32(out codedToken))
 				return null;
@@ -297,7 +298,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return tdr;
 		}
 
-		string ReadString() {
+		string? ReadString() {
 			if (reader.Position == reader.Length)
 				return string.Empty;
 			byte b = reader.ReadByte();

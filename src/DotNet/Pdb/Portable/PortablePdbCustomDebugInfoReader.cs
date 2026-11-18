@@ -12,7 +12,7 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Portable {
 	struct PortablePdbCustomDebugInfoReader {
-		public static PdbCustomDebugInfo Read(ModuleDef module, TypeDef typeOpt, CilBody bodyOpt, GenericParamContext gpContext, Guid kind, ref DataReader reader) {
+		public static PdbCustomDebugInfo? Read(ModuleDef module, TypeDef? typeOpt, CilBody? bodyOpt, GenericParamContext gpContext, Guid kind, ref DataReader reader) {
 			try {
 				var cdiReader = new PortablePdbCustomDebugInfoReader(module, typeOpt, bodyOpt, gpContext, ref reader);
 				var cdi = cdiReader.Read(kind);
@@ -29,12 +29,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		readonly ModuleDef module;
-		readonly TypeDef typeOpt;
-		readonly CilBody bodyOpt;
+		readonly TypeDef? typeOpt;
+		readonly CilBody? bodyOpt;
 		readonly GenericParamContext gpContext;
 		DataReader reader;
 
-		PortablePdbCustomDebugInfoReader(ModuleDef module, TypeDef typeOpt, CilBody bodyOpt, GenericParamContext gpContext, ref DataReader reader) {
+		PortablePdbCustomDebugInfoReader(ModuleDef module, TypeDef? typeOpt, CilBody? bodyOpt, GenericParamContext gpContext, ref DataReader reader) {
 			this.module = module;
 			this.typeOpt = typeOpt;
 			this.bodyOpt = bodyOpt;
@@ -42,7 +42,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			this.reader = reader;
 		}
 
-		PdbCustomDebugInfo Read(Guid kind) {
+		PdbCustomDebugInfo? Read(Guid kind) {
 			if (kind == CustomDebugInfoGuids.AsyncMethodSteppingInformationBlob)
 				return ReadAsyncMethodSteppingInformationBlob();
 			if (kind == CustomDebugInfoGuids.DefaultNamespace)
@@ -75,11 +75,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbUnknownCustomDebugInfo(kind, reader.ReadRemainingBytes());
 		}
 
-		PdbCustomDebugInfo ReadAsyncMethodSteppingInformationBlob() {
+		PdbCustomDebugInfo? ReadAsyncMethodSteppingInformationBlob() {
 			if (bodyOpt is null)
 				return null;
 			uint catchHandlerOffset = reader.ReadUInt32() - 1;
-			Instruction catchHandler;
+			Instruction? catchHandler;
 			if (catchHandlerOffset == uint.MaxValue)
 				catchHandler = null;
 			else {
@@ -98,8 +98,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 				uint resumeOffset = reader.ReadUInt32();
 				var moveNextRid = reader.ReadCompressedUInt32();
 				var moveNextToken = new MDToken(Table.Method, moveNextRid);
-				MethodDef moveNextMethod;
-				Instruction resumeInstr;
+				MethodDef? moveNextMethod;
+				Instruction? resumeInstr;
 				if (gpContext.Method is not null && moveNextToken == gpContext.Method.MDToken) {
 					moveNextMethod = gpContext.Method;
 					resumeInstr = GetInstruction(resumeOffset);
@@ -124,7 +124,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return new PdbDefaultNamespaceCustomDebugInfo(defaultNs);
 		}
 
-		PdbCustomDebugInfo ReadDynamicLocalVariables(long recPosEnd) {
+		PdbCustomDebugInfo? ReadDynamicLocalVariables(long recPosEnd) {
 			// Each byte is 8 flags, and the array size must fit in an int
 			if (reader.Length > int.MaxValue / 8)
 				return null;
@@ -152,7 +152,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		PdbCustomDebugInfo ReadSourceLink() => new PdbSourceLinkCustomDebugInfo(reader.ReadRemainingBytes());
 
-		PdbCustomDebugInfo ReadStateMachineHoistedLocalScopes() {
+		PdbCustomDebugInfo? ReadStateMachineHoistedLocalScopes() {
 			if (bodyOpt is null)
 				return null;
 			int count = (int)(reader.Length / 8);
@@ -174,7 +174,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return smScope;
 		}
 
-		PdbCustomDebugInfo ReadTupleElementNames() {
+		PdbCustomDebugInfo? ReadTupleElementNames() {
 			var tupleListRec = new PortablePdbTupleElementNamesCustomDebugInfo();
 			while (reader.Position < reader.Length) {
 				var name = ReadUTF8Z(reader.Length);
@@ -187,7 +187,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return tupleListRec;
 		}
 
-		string ReadUTF8Z(long recPosEnd) {
+		string? ReadUTF8Z(long recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
 			return reader.TryReadZeroTerminatedUtf8String();
@@ -273,8 +273,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 		PdbCustomDebugInfo ReadPrimaryConstructorInformationBlob() =>
 			new PrimaryConstructorInformationBlobDebugInfo(reader.ReadRemainingBytes());
 
-		Instruction GetInstruction(uint offset) {
-			var instructions = bodyOpt.Instructions;
+		Instruction? GetInstruction(uint offset) {
+			var instructions = bodyOpt!.Instructions;
 			int lo = 0, hi = instructions.Count - 1;
 			while (lo <= hi && hi != -1) {
 				int i = (lo + hi) / 2;
@@ -289,7 +289,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			return null;
 		}
 
-		static Instruction GetInstruction(MethodDef method, uint offset) {
+		static Instruction? GetInstruction(MethodDef method, uint offset) {
 			if (method is null)
 				return null;
 			var body = method.Body;

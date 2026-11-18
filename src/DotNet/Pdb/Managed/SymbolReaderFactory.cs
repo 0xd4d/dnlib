@@ -15,7 +15,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 		/// <param name="pdbContext">PDB context</param>
 		/// <param name="pdbStream">PDB file stream which is now owned by this method</param>
 		/// <returns>A new <see cref="SymbolReader"/> instance or <c>null</c>.</returns>
-		public static SymbolReader Create(PdbReaderContext pdbContext, DataReaderFactory pdbStream) {
+		public static SymbolReader? Create(PdbReaderContext pdbContext, DataReaderFactory pdbStream) {
 			if (pdbStream is null)
 				return null;
 			try {

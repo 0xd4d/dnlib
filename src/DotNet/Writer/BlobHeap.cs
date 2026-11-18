@@ -14,8 +14,8 @@ namespace dnlib.DotNet.Writer {
 		readonly Dictionary<byte[], uint> cachedDict = new Dictionary<byte[], uint>(ByteArrayEqualityComparer.Instance);
 		readonly List<byte[]> cached = new List<byte[]>();
 		uint nextOffset = 1;
-		byte[] originalData;
-		Dictionary<uint, byte[]> userRawData;
+		byte[]? originalData;
+		Dictionary<uint, byte[]>? userRawData;
 
 		/// <inheritdoc/>
 		public override string Name => "#Blob";
@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Writer {
 		/// blob offsets)
 		/// </summary>
 		/// <param name="blobStream">The #Blob stream with the original content</param>
-		public void Populate(BlobStream blobStream) {
+		public void Populate(BlobStream? blobStream) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
 			if (originalData is not null)
@@ -65,7 +65,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="data">The data</param>
 		/// <returns>The offset of the data in the #Blob heap</returns>
-		public uint Add(byte[] data) {
+		public uint Add(byte[]? data) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Blob when it's read-only");
 			if (data is null || data.Length == 0)

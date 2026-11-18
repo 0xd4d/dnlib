@@ -122,7 +122,7 @@ namespace dnlib.DotNet.Resources {
 
 		void InitializeUserTypes(int formatVersion) {
 			foreach (var resource in resources.ResourceElements) {
-				UserResourceType newType;
+				UserResourceType? newType;
 				if (formatVersion == 1 && resource.ResourceData is BuiltInResourceData builtinData) {
 					// V1 writes null as type index -1, which has no entry in the type table
 					if (builtinData.Code == ResourceTypeCode.Null)

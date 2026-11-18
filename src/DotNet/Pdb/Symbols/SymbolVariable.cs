@@ -8,7 +8,7 @@ namespace dnlib.DotNet.Pdb.Symbols {
 		/// <summary>
 		/// Gets the name
 		/// </summary>
-		public abstract string Name { get; }
+		public abstract string? Name { get; }
 
 		/// <summary>
 		/// Gets the attributes

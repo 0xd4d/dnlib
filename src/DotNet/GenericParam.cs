@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.Utils;
 using dnlib.DotNet.MD;
@@ -34,27 +35,36 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the owner type/method
 		/// </summary>
-		public ITypeOrMethodDef Owner {
+		public ITypeOrMethodDef? Owner {
 			get => owner;
 			internal set => owner = value;
 		}
 		/// <summary/>
-		protected ITypeOrMethodDef owner;
+		protected ITypeOrMethodDef? owner;
 
 		/// <summary>
 		/// Gets the declaring type or <c>null</c> if none or if <see cref="Owner"/> is
 		/// not a <see cref="TypeDef"/>
 		/// </summary>
-		public TypeDef DeclaringType => owner as TypeDef;
+		public TypeDef? DeclaringType => owner as TypeDef;
+
+		/// <summary>
+		/// Same as <see cref="DeclaringType"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public TypeDef DeclaringTypeOrThrow => OrThrowHelper.NotNullOptional(DeclaringType, nameof(DeclaringType));
+
+#pragma warning disable RS0030 // Implements the OrThrow interface member
+		ITypeDefOrRef IMemberRef.DeclaringTypeOrThrow => DeclaringTypeOrThrow;
+#pragma warning restore RS0030
 
 		/// <inheritdoc/>
-		ITypeDefOrRef IMemberRef.DeclaringType => owner as TypeDef;
+		ITypeDefOrRef? IMemberRef.DeclaringType => owner as TypeDef;
 
 		/// <summary>
 		/// Gets the declaring method or <c>null</c> if none or if <see cref="Owner"/> is
 		/// not a <see cref="MethodDef"/>
 		/// </summary>
-		public MethodDef DeclaringMethod => owner as MethodDef;
+		public MethodDef? DeclaringMethod => owner as MethodDef;
 
 		/// <summary>
 		/// From column GenericParam.Number
@@ -79,22 +89,23 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// From column GenericParam.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
-		protected UTF8String name;
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column GenericParam.Kind (v1.1 only)
 		/// </summary>
-		public ITypeDefOrRef Kind {
+		public ITypeDefOrRef? Kind {
 			get => kind;
 			set => kind = value;
 		}
 		/// <summary/>
-		protected ITypeDefOrRef kind;
+		protected ITypeDefOrRef? kind;
 
 		/// <summary>
 		/// Gets the generic param constraints
@@ -103,11 +114,11 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParamConstraints is null)
 					InitializeGenericParamConstraints();
-				return genericParamConstraints;
+				return genericParamConstraints!;
 			}
 		}
 		/// <summary/>
-		protected LazyList<GenericParamConstraint> genericParamConstraints;
+		protected LazyList<GenericParamConstraint>? genericParamConstraints;
 		/// <summary>Initializes <see cref="genericParamConstraints"/></summary>
 		protected virtual void InitializeGenericParamConstraints() =>
 			Interlocked.CompareExchange(ref genericParamConstraints, new LazyList<GenericParamConstraint>(this), null);
@@ -119,11 +130,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -144,11 +155,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -159,7 +170,12 @@ namespace dnlib.DotNet {
 		public bool HasGenericParamConstraints => GenericParamConstraints.Count > 0;
 
 		/// <inheritdoc/>
-		public ModuleDef Module => owner?.Module;
+		public ModuleDef? Module => owner?.Module;
+
+		/// <summary>
+		/// Same as <see cref="Module"/> but throws a <see cref="NullValueException"/> if it's <c>null</c>
+		/// </summary>
+		public ModuleDef ModuleOrThrow => OrThrowHelper.NotNullOptional(Module, nameof(Module));
 
 		/// <inheritdoc/>
 		public string FullName => UTF8String.ToSystemStringOrEmpty(name);
@@ -294,7 +310,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<GenericParamConstraint>.OnClear() {
-			foreach (var gpc in genericParamConstraints.GetEnumerable_NoLock())
+			foreach (var gpc in genericParamConstraints!.GetEnumerable_NoLock())
 				gpc.Owner = null;
 		}
 
@@ -342,11 +358,11 @@ namespace dnlib.DotNet {
 		/// <param name="number">The generic param number</param>
 		/// <param name="flags">Flags</param>
 		/// <param name="name">Name</param>
-		public GenericParamUser(ushort number, GenericParamAttributes flags, UTF8String name) {
+		public GenericParamUser(ushort number, GenericParamAttributes flags, UTF8String? name) {
 			genericParamConstraints = new LazyList<GenericParamConstraint>(this);
 			this.number = number;
 			attributes = (int)flags;
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 		}
 	}
 
@@ -379,11 +395,11 @@ namespace dnlib.DotNet {
 		protected override void InitializeGenericParamConstraints() {
 			var list = readerModule.Metadata.GetGenericParamConstraintRidList(origRid);
 			var tmp = list.Count == 0 ? new LazyList<GenericParamConstraint>(this) :
-				new LazyList<GenericParamConstraint, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(list2[index], GetGenericParamContext(owner)));
+				new LazyList<GenericParamConstraint, RidList>(list.Count, this, list, (list2, index) => readerModule.ResolveGenericParamConstraint(list2[index], GetGenericParamContext(owner))!);
 			Interlocked.CompareExchange(ref genericParamConstraints, tmp, null);
 		}
 
-		static GenericParamContext GetGenericParamContext(ITypeOrMethodDef tmOwner) {
+		static GenericParamContext GetGenericParamContext(ITypeOrMethodDef? tmOwner) {
 			if (tmOwner is MethodDef md)
 				return GenericParamContext.Create(md);
 			return new GenericParamContext(tmOwner as TypeDef);

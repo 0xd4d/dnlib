@@ -4,7 +4,7 @@ using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Managed {
 	static class NumericReader {
-		public static bool TryReadNumeric(ref DataReader reader, ulong end, out object value) {
+		public static bool TryReadNumeric(ref DataReader reader, ulong end, out object? value) {
 			value = null;
 			if ((ulong)reader.Position + 2 > end)
 				return false;

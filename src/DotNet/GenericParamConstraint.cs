@@ -32,22 +32,27 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the owner generic param
 		/// </summary>
-		public GenericParam Owner {
+		public GenericParam? Owner {
 			get => owner;
 			internal set => owner = value;
 		}
 		/// <summary/>
-		protected GenericParam owner;
+		protected GenericParam? owner;
 
 		/// <summary>
 		/// From column GenericParamConstraint.Constraint
 		/// </summary>
-		public ITypeDefOrRef Constraint {
+		public ITypeDefOrRef? Constraint {
 			get => constraint;
 			set => constraint = value;
 		}
+
+		/// <summary>
+		/// Same as <see cref="Constraint"/> but throws an <see cref="InvalidMetadataException"/> if it's <c>null</c>
+		/// </summary>
+		public ITypeDefOrRef ConstraintOrThrow => OrThrowHelper.NotNull(constraint, nameof(Constraint));
 		/// <summary/>
-		protected ITypeDefOrRef constraint;
+		protected ITypeDefOrRef? constraint;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -56,11 +61,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -81,11 +86,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -107,7 +112,7 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="constraint">The constraint</param>
-		public GenericParamConstraintUser(ITypeDefOrRef constraint) => this.constraint = constraint;
+		public GenericParamConstraintUser(ITypeDefOrRef? constraint) => this.constraint = constraint;
 	}
 
 	/// <summary>

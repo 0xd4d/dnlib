@@ -251,12 +251,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbForwardMethodInfoCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="method">The referenced method</param>
 		public PdbForwardMethodInfoCustomDebugInfo(IMethodDefOrRef method) => this.method = method;
 	}
@@ -288,12 +282,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbForwardModuleInfoCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="method">The referenced method</param>
 		public PdbForwardModuleInfoCustomDebugInfo(IMethodDefOrRef method) => this.method = method;
 	}
@@ -310,20 +298,20 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// The instruction of the first operation in the scope. Can be null if it's a synthesized local
 		/// </summary>
-		public Instruction Start;
+		public Instruction? Start;
 
 		/// <summary>
 		/// The instruction of the first operation outside of the scope or null if it ends at the last instruction in the body.
 		/// Can also be null if it's a synthesized local (in which case <see cref="Start"/> is also null, see <see cref="IsSynthesizedLocal"/>)
 		/// </summary>
-		public Instruction End;
+		public Instruction? End;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="start">Start of the scope</param>
 		/// <param name="end">First instruction after the end of the scope</param>
-		public StateMachineHoistedLocalScope(Instruction start, Instruction end) {
+		public StateMachineHoistedLocalScope(Instruction? start, Instruction? end) {
 			Start = start;
 			End = end;
 		}
@@ -384,12 +372,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbStateMachineTypeNameCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="type">State machine type</param>
 		public PdbStateMachineTypeNameCustomDebugInfo(TypeDef type) => Type = type;
 	}
@@ -432,8 +414,8 @@ namespace dnlib.DotNet.Pdb {
 	/// </summary>
 	public sealed class PdbDynamicLocal {
 		readonly IList<byte> flags;
-		string name;
-		Local local;
+		string? name;
+		Local? local;
 
 		/// <summary>
 		/// Gets the dynamic flags
@@ -444,7 +426,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets/sets the name of the local. The name must have at most 64 characters and no char can be NUL (0x0000).
 		/// If null is written, <see cref="dnlib.DotNet.Emit.Local.Name"/> is returned instead.
 		/// </summary>
-		public string Name {
+		public string? Name {
 			get {
 				var n = name;
 				if (n is not null)
@@ -467,7 +449,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the local. Could be null if there's no local (it's a 'const' local).
 		/// </summary>
-		public Local Local {
+		public Local? Local {
 			get => local;
 			set => local = value;
 		}
@@ -578,14 +560,14 @@ namespace dnlib.DotNet.Pdb {
 	/// </summary>
 	public sealed class PdbTupleElementNames {
 		readonly IList<string> tupleElementNames;
-		string name;
-		Local local;
-		Instruction scopeStart, scopeEnd;
+		string? name;
+		Local? local;
+		Instruction? scopeStart, scopeEnd;
 
 		/// <summary>
 		/// Gets/sets the name of the local. If null is written, <see cref="dnlib.DotNet.Emit.Local.Name"/> is returned instead.
 		/// </summary>
-		public string Name {
+		public string? Name {
 			get {
 				var n = name;
 				if (n is not null)
@@ -598,7 +580,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the local. It's null if it's a constant, and non-null if it's a variable
 		/// </summary>
-		public Local Local {
+		public Local? Local {
 			get => local;
 			set => local = value;
 		}
@@ -616,7 +598,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the start of the scope or null. Only constants have a scope.
 		/// </summary>
-		public Instruction ScopeStart {
+		public Instruction? ScopeStart {
 			get => scopeStart;
 			set => scopeStart = value;
 		}
@@ -624,7 +606,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets/sets the end of the scope or null if it has no scope or if the scope ends at the end of the body. Only constants have a scope.
 		/// </summary>
-		public Instruction ScopeEnd {
+		public Instruction? ScopeEnd {
 			get => scopeEnd;
 			set => scopeEnd = value;
 		}
@@ -700,7 +682,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Gets the catch handler instruction or null
 		/// </summary>
-		public Instruction CatchHandler { get; set; }
+		public Instruction? CatchHandler { get; set; }
 
 		/// <summary>
 		/// Gets all async step infos
@@ -735,12 +717,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbDefaultNamespaceCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="defaultNamespace">Default namespace</param>
 		public PdbDefaultNamespaceCustomDebugInfo(string defaultNamespace) => Namespace = defaultNamespace;
 	}
@@ -763,12 +739,6 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets/sets the dynamic flags
 		/// </summary>
 		public bool[] Flags { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbDynamicLocalVariablesCustomDebugInfo() {
-		}
 
 		/// <summary>
 		/// Constructor
@@ -803,12 +773,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbEmbeddedSourceCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="sourceCodeBlob">Source code blob</param>
 		public PdbEmbeddedSourceCustomDebugInfo(byte[] sourceCodeBlob) => SourceCodeBlob = sourceCodeBlob;
 	}
@@ -835,12 +799,6 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbSourceLinkCustomDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
 		/// <param name="fileBlob">Source link file contents</param>
 		public PdbSourceLinkCustomDebugInfo(byte[] fileBlob) => FileBlob = fileBlob;
 	}
@@ -863,12 +821,6 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets the source server file contents
 		/// </summary>
 		public byte[] FileBlob { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbSourceServerCustomDebugInfo() {
-		}
 
 		/// <summary>
 		/// Constructor
@@ -902,7 +854,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets/sets the instruction for the compiler generated catch handler that wraps an async method.
 		/// This can be null.
 		/// </summary>
-		public Instruction CatchHandlerInstruction { get; set; }
+		public Instruction? CatchHandlerInstruction { get; set; }
 
 		/// <summary>
 		/// Gets all step infos used by the debugger
@@ -912,13 +864,21 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PdbAsyncMethodCustomDebugInfo() => asyncStepInfos = new List<PdbAsyncStepInfo>();
+		/// <param name="kickoffMethod">Kickoff method</param>
+		public PdbAsyncMethodCustomDebugInfo(MethodDef kickoffMethod) {
+			KickoffMethod = kickoffMethod;
+			asyncStepInfos = new List<PdbAsyncStepInfo>();
+		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="kickoffMethod">Kickoff method</param>
 		/// <param name="stepInfosCapacity">Default capacity for <see cref="StepInfos"/></param>
-		public PdbAsyncMethodCustomDebugInfo(int stepInfosCapacity) => asyncStepInfos = new List<PdbAsyncStepInfo>(stepInfosCapacity);
+		public PdbAsyncMethodCustomDebugInfo(MethodDef kickoffMethod, int stepInfosCapacity) {
+			KickoffMethod = kickoffMethod;
+			asyncStepInfos = new List<PdbAsyncStepInfo>(stepInfosCapacity);
+		}
 	}
 
 	/// <summary>
@@ -971,12 +931,6 @@ namespace dnlib.DotNet.Pdb {
 		/// Gets the kickoff method
 		/// </summary>
 		public MethodDef KickoffMethod { get; set; }
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public PdbIteratorMethodCustomDebugInfo() {
-		}
 
 		/// <summary>
 		/// Constructor
@@ -1139,11 +1093,11 @@ namespace dnlib.DotNet.Pdb {
 			get {
 				if (documents is null)
 					InitializeDocuments();
-				return documents;
+				return documents!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbDocument> documents;
+		protected IList<PdbDocument>? documents;
 		/// <summary>Initializes <see cref="documents"/></summary>
 		protected virtual void InitializeDocuments() =>
 			Interlocked.CompareExchange(ref documents, new List<PdbDocument>(), null);
@@ -1297,13 +1251,7 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public PrimaryConstructorInformationBlobDebugInfo() {
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="blob">Source server file contents</param>
+		/// <param name="blob">Data blob</param>
 		public PrimaryConstructorInformationBlobDebugInfo(byte[] blob) => Blob = blob;
 	}
 }

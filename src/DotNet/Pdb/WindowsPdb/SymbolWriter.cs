@@ -11,10 +11,10 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		public abstract void Initialize(Metadata metadata);
 		public abstract void Close();
-		public abstract bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[] codeViewData);
+		public abstract bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[]? codeViewData);
 
 		public abstract void SetUserEntryPoint(MDToken entryMethod);
-		public abstract ISymbolDocumentWriter DefineDocument(string url, Guid language, Guid languageVendor, Guid documentType);
+		public abstract ISymbolDocumentWriter? DefineDocument(string? url, Guid language, Guid languageVendor, Guid documentType);
 		public abstract void SetSourceServerData(byte[] data);
 		public abstract void SetSourceLinkData(byte[] data);
 
@@ -26,7 +26,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		public abstract void UsingNamespace(string fullName);
 		public abstract void DefineSequencePoints(ISymbolDocumentWriter document, uint arraySize, int[] offsets, int[] lines, int[] columns, int[] endLines, int[] endColumns);
 		public abstract void DefineLocalVariable(string name, uint attributes, uint sigToken, uint addrKind, uint addr1, uint addr2, uint addr3, uint startOffset, uint endOffset);
-		public abstract void DefineConstant(string name, object value, uint sigToken);
+		public abstract void DefineConstant(string? name, object value, uint sigToken);
 		public abstract void DefineKickoffMethod(uint kickoffMethod);
 		public abstract void DefineCatchHandlerILOffset(uint catchHandlerOffset);
 		public abstract void DefineAsyncStepInfo(uint[] yieldOffsets, uint[] breakpointOffset, uint[] breakpointMethod);

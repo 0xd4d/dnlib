@@ -40,7 +40,7 @@ namespace dnlib.DotNet.MD {
 
 		/// <inheritdoc/>
 		protected override void InitializeInternal(DataReaderFactory mdReaderFactory, uint metadataBaseOffset) {
-			DotNetStream dns = null;
+			DotNetStream? dns = null;
 			bool forceAllBig = false;
 			try {
 				if (runtime == CLRRuntimeReaderKind.Mono) {
@@ -521,7 +521,7 @@ namespace dnlib.DotNet.MD {
 		protected override RidList FindAllRowsUnsorted(MDTable tableSource, int keyColIndex, uint key) {
 			if (tablesStream.IsSorted(tableSource))
 				return FindAllRows(tableSource, keyColIndex, key);
-			SortedTable sortedTable;
+			SortedTable? sortedTable;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
@@ -554,7 +554,7 @@ namespace dnlib.DotNet.MD {
 		// See coreclr: md/enc/metamodelrw.cpp / CMiniMdRW::GenericFindWithHash()
 		uint GenericFindWithHash(MDTable tableSource, int keyColIndex, uint key) {
 			var column = tableSource.TableInfo.Columns[keyColIndex];
-			Dictionary<uint, uint> tokenToRid;
+			Dictionary<uint, uint>? tokenToRid;
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif

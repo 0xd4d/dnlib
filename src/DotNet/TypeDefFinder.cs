@@ -17,7 +17,7 @@ namespace dnlib.DotNet {
 		Dictionary<string, TypeDef> normalNameCache = new Dictionary<string, TypeDef>(StringComparer.Ordinal);
 		Dictionary<string, TypeDef> reflectionNameCache = new Dictionary<string, TypeDef>(StringComparer.Ordinal);
 		readonly StringBuilder sb = new StringBuilder();
-		IEnumerator<TypeDef> typeEnumerator;
+		IEnumerator<TypeDef>? typeEnumerator;
 		readonly IEnumerable<TypeDef> rootTypes;
 #if THREAD_SAFE
 		readonly Lock theLock = Lock.Create();
@@ -116,7 +116,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public TypeDef Find(string fullName, bool isReflectionName) {
+		public TypeDef? Find(string fullName, bool isReflectionName) {
 			if (fullName is null)
 				return null;
 #if THREAD_SAFE
@@ -131,7 +131,7 @@ namespace dnlib.DotNet {
 		}
 
 		/// <inheritdoc/>
-		public TypeDef Find(TypeRef typeRef) {
+		public TypeDef? Find(TypeRef? typeRef) {
 			if (typeRef is null)
 				return null;
 #if THREAD_SAFE
@@ -143,7 +143,7 @@ namespace dnlib.DotNet {
 #endif
 		}
 
-		TypeDef FindCache(TypeRef typeRef) {
+		TypeDef? FindCache(TypeRef typeRef) {
 			if (typeRefCache.TryGetValue(typeRef, out var cachedType))
 				return cachedType;
 
@@ -156,7 +156,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		TypeDef FindCacheReflection(string fullName) {
+		TypeDef? FindCacheReflection(string fullName) {
 			if (reflectionNameCache.TryGetValue(fullName, out var cachedType))
 				return cachedType;
 
@@ -171,7 +171,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		TypeDef FindCacheNormal(string fullName) {
+		TypeDef? FindCacheNormal(string fullName) {
 			if (normalNameCache.TryGetValue(fullName, out var cachedType))
 				return cachedType;
 
@@ -186,7 +186,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		TypeDef FindSlow(TypeRef typeRef) {
+		TypeDef? FindSlow(TypeRef typeRef) {
 			InitializeTypeEnumerator();
 			var comparer = new SigComparer(TypeComparerOptions);
 			while (true) {
@@ -196,7 +196,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		TypeDef FindSlowReflection(string fullName) {
+		TypeDef? FindSlowReflection(string fullName) {
 			InitializeTypeEnumerator();
 			while (true) {
 				var type = GetNextTypeDef();
@@ -208,7 +208,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		TypeDef FindSlowNormal(string fullName) {
+		TypeDef? FindSlowNormal(string fullName) {
 			InitializeTypeEnumerator();
 			while (true) {
 				var type = GetNextTypeDef();
@@ -224,8 +224,8 @@ namespace dnlib.DotNet {
 		/// Gets the next <see cref="TypeDef"/> or <c>null</c> if there are no more left
 		/// </summary>
 		/// <returns>The next <see cref="TypeDef"/> or <c>null</c> if none</returns>
-		TypeDef GetNextTypeDef() {
-			while (typeEnumerator.MoveNext()) {
+		TypeDef? GetNextTypeDef() {
+			while (typeEnumerator!.MoveNext()) {
 				var type = typeEnumerator.Current;
 				if (type is not null)
 					return type;
@@ -239,7 +239,7 @@ namespace dnlib.DotNet {
 		/// returns.
 		/// </summary>
 		/// <returns>The next <see cref="TypeDef"/> or <c>null</c> if none</returns>
-		TypeDef GetNextTypeDefCache() {
+		TypeDef? GetNextTypeDefCache() {
 			var type = GetNextTypeDef();
 			if (type is null)
 				return null;
@@ -268,9 +268,9 @@ namespace dnlib.DotNet {
 			if (typeEnumerator is not null)
 				typeEnumerator.Dispose();
 			typeEnumerator = null;
-			typeRefCache = null;
-			normalNameCache = null;
-			reflectionNameCache = null;
+			typeRefCache = null!;
+			normalNameCache = null!;
+			reflectionNameCache = null!;
 #if THREAD_SAFE
 			} finally { theLock.ExitWriteLock(); }
 #endif

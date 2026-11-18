@@ -28,7 +28,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="message">Error message</param>
 		/// <param name="innerException">Other exception</param>
-		public ModuleWriterException(string message, Exception innerException)
+		public ModuleWriterException(string message, Exception? innerException)
 			: base(message, innerException) {
 		}
 

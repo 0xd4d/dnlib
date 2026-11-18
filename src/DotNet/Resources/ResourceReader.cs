@@ -47,7 +47,7 @@ namespace dnlib.DotNet.Resources {
 	/// <param name="serializedData">Serialized data</param>
 	/// <param name="format">Format of the serialized data</param>
 	/// <returns></returns>
-	public delegate IResourceData CreateResourceDataDelegate(ResourceDataFactory resourceDataFactory, UserResourceType type, byte[] serializedData, SerializationFormat format);
+	public delegate IResourceData? CreateResourceDataDelegate(ResourceDataFactory resourceDataFactory, UserResourceType type, byte[] serializedData, SerializationFormat format);
 
 	/// <summary>
 	/// Reads .NET resources
@@ -56,9 +56,9 @@ namespace dnlib.DotNet.Resources {
 		DataReader reader;
 		readonly uint baseFileOffset;
 		readonly ResourceDataFactory resourceDataFactory;
-		readonly CreateResourceDataDelegate createResourceDataDelegate;
+		readonly CreateResourceDataDelegate? createResourceDataDelegate;
 
-		ResourceReader(ResourceDataFactory resourceDataFactory, ref DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) {
+		ResourceReader(ResourceDataFactory resourceDataFactory, ref DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) {
 			// The resources file starts at the current position, and its offsets are relative to that
 			this.reader = reader.Slice(reader.Position);
 			this.resourceDataFactory = resourceDataFactory;
@@ -89,7 +89,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
+		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) =>
 			Read(new ResourceDataFactory(module), reader, createResourceDataDelegate);
 
 		/// <summary>
@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ResourceDataFactory resourceDataFactory, DataReader reader, CreateResourceDataDelegate createResourceDataDelegate) =>
+		public static ResourceElementSet Read(ResourceDataFactory resourceDataFactory, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) =>
 			new ResourceReader(resourceDataFactory, ref reader, createResourceDataDelegate).Read();
 
 		ResourceElementSet Read() {
@@ -274,7 +274,7 @@ namespace dnlib.DotNet.Resources {
 
 		IResourceData ReadSerializedObject(uint endPos, ResourceReaderType readerType, UserResourceType type) {
 			byte[] serializedData;
-			IResourceData res;
+			IResourceData? res;
 			switch (readerType) {
 			case ResourceReaderType.ResourceReader:
 				serializedData = reader.ReadBytes((int)(endPos - reader.Position));
@@ -295,7 +295,7 @@ namespace dnlib.DotNet.Resources {
 			}
 		}
 
-		ResourceElementSet ReadHeader() {
+		ResourceElementSet? ReadHeader() {
 			int headerVersion = reader.ReadInt32();
 			if (headerVersion != 1)
 				throw new ResourceReaderException($"Invalid or unsupported header version: {headerVersion}");

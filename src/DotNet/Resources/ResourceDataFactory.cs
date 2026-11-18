@@ -13,9 +13,9 @@ namespace dnlib.DotNet.Resources {
 	/// </summary>
 	public class ResourceDataFactory {
 		readonly ModuleDef module;
-		readonly ModuleDefMD moduleMD;
+		readonly ModuleDefMD? moduleMD;
 		readonly Dictionary<string, UserResourceType> dict = new Dictionary<string, UserResourceType>(StringComparer.Ordinal);
-		readonly Dictionary<string, string> asmNameToAsmFullName = new Dictionary<string, string>(StringComparer.Ordinal);
+		readonly Dictionary<string, string?> asmNameToAsmFullName = new Dictionary<string, string?>(StringComparer.Ordinal);
 
 		/// <summary>
 		/// Gets the owner module
@@ -191,8 +191,8 @@ namespace dnlib.DotNet.Resources {
 
 		sealed class MyBinder : SerializationBinder {
 			public class OkException : Exception {
-				public string AssemblyName { get; set; }
-				public string TypeName { get; set; }
+				public string? AssemblyName { get; set; }
+				public string? TypeName { get; set; }
 			}
 
 			public override Type BindToType(string assemblyName, string typeName) =>
@@ -206,7 +206,7 @@ namespace dnlib.DotNet.Resources {
 			"which is how the type name is found. If BinaryFormatter isn't supported, it throws and false is returned.";
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = BinaryFormatterJustification)]
 		[UnconditionalSuppressMessage("AOT", "IL3050", Justification = BinaryFormatterJustification)]
-		bool GetSerializedTypeAndAssemblyName(byte[] value, out string assemblyName, out string typeName) {
+		bool GetSerializedTypeAndAssemblyName(byte[] value, [NotNullWhen(true)] out string? assemblyName, [NotNullWhen(true)] out string? typeName) {
 			try {
 				var formatter = new BinaryFormatter();
 				formatter.Binder = new MyBinder();
@@ -215,8 +215,8 @@ namespace dnlib.DotNet.Resources {
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
 			}
 			catch (MyBinder.OkException ex) {
-				assemblyName = ex.AssemblyName;
-				typeName = ex.TypeName;
+				assemblyName = ex.AssemblyName!;
+				typeName = ex.TypeName!;
 				return true;
 			}
 			catch {
@@ -233,10 +233,10 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <param name="typeCode">The built-in resource type code</param>
 		/// <returns>The user type or null if not supported</returns>
-		public UserResourceType CreateBuiltinResourceType(ResourceTypeCode typeCode) {
+		public UserResourceType? CreateBuiltinResourceType(ResourceTypeCode typeCode) {
 			// Boolean and Char aren't supported: V1 readers only read these types directly,
 			// everything else is expected to be BinaryFormatter data
-			string typeName = typeCode switch {
+			string? typeName = typeCode switch {
 				ResourceTypeCode.String => "System.String",
 				ResourceTypeCode.Byte => "System.Byte",
 				ResourceTypeCode.SByte => "System.SByte",
@@ -294,21 +294,21 @@ namespace dnlib.DotNet.Resources {
 
 			var newFullName = fullName;
 
-			string assemblyName = GetRealAssemblyName(asmRef);
+			string? assemblyName = GetRealAssemblyName(asmRef);
 			if (!string.IsNullOrEmpty(assemblyName))
 				newFullName = $"{tr.ReflectionFullName}, {assemblyName}";
 
 			return newFullName;
 		}
 
-		string GetRealAssemblyName(IAssembly asm) {
+		string? GetRealAssemblyName(IAssembly asm) {
 			string assemblyName = asm.FullName;
 			if (!asmNameToAsmFullName.TryGetValue(assemblyName, out var newAsmName))
 				asmNameToAsmFullName[assemblyName] = newAsmName = TryGetRealAssemblyName(asm);
 			return newAsmName;
 		}
 
-		string TryGetRealAssemblyName(IAssembly asm) {
+		string? TryGetRealAssemblyName(IAssembly asm) {
 			var simpleName = asm.Name;
 			if (simpleName == module.CorLibTypes.AssemblyRef.Name)
 				return module.CorLibTypes.AssemblyRef.FullName;
@@ -329,7 +329,7 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <param name="simpleName">Simple name of assembly</param>
 		/// <returns></returns>
-		protected virtual string GetAssemblyFullName(string simpleName) => null;
+		protected virtual string? GetAssemblyFullName(string simpleName) => null;
 
 		/// <summary>
 		/// Gets all types sorted by <see cref="UserResourceType"/>

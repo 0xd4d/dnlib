@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.PE;
 using dnlib.DotNet.Emit;
 
@@ -20,7 +21,7 @@ namespace dnlib.DotNet {
 		/// method returns <c>true</c></param>
 		/// <returns><c>true</c> if the method body was decrypted, <c>false</c> if the method isn't
 		/// encrypted and the default <see cref="MethodDef"/> body reader code should be used.</returns>
-		bool GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters, GenericParamContext gpContext, out MethodBody methodBody);
+		bool GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters, GenericParamContext gpContext, [NotNullWhen(true)] out MethodBody? methodBody);
 	}
 
 	/// <summary>
@@ -32,6 +33,6 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="token">String token</param>
 		/// <returns>A string or <c>null</c> if we should read it from the #US heap</returns>
-		string ReadUserString(uint token);
+		string? ReadUserString(uint token);
 	}
 }

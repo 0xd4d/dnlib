@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -59,7 +60,7 @@ namespace dnlib.DotNet {
 			set => version = value ?? throw new ArgumentNullException(nameof(value));
 		}
 		/// <summary/>
-		protected Version version;
+		protected Version version = null!;
 
 		/// <summary>
 		/// From column AssemblyRef.Flags
@@ -75,42 +76,45 @@ namespace dnlib.DotNet {
 		/// From column AssemblyRef.PublicKeyOrToken
 		/// </summary>
 		/// <exception cref="ArgumentNullException">If <paramref name="value"/> is <c>null</c></exception>
-		public PublicKeyBase PublicKeyOrToken {
+		[DisallowNull]
+		public PublicKeyBase? PublicKeyOrToken {
 			get => publicKeyOrToken;
 			set => publicKeyOrToken = value ?? throw new ArgumentNullException(nameof(value));
 		}
 		/// <summary/>
-		protected PublicKeyBase publicKeyOrToken;
+		protected PublicKeyBase? publicKeyOrToken;
 
 		/// <summary>
 		/// From column AssemblyRef.Name
 		/// </summary>
+		[AllowNull]
 		public UTF8String Name {
 			get => name;
-			set => name = value;
+			set => name = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Name</summary>
-		protected UTF8String name;
+		/// <summary>Name. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String name = UTF8String.Empty;
 
 		/// <summary>
 		/// From column AssemblyRef.Locale
 		/// </summary>
+		[AllowNull]
 		public UTF8String Culture {
 			get => culture;
-			set => culture = value;
+			set => culture = UTF8String.EmptyIfNull(value);
 		}
-		/// <summary>Culture</summary>
-		protected UTF8String culture;
+		/// <summary>Culture. Never <c>null</c>: a subclass that writes it must use <see cref="UTF8String.Empty"/> instead of <c>null</c></summary>
+		protected UTF8String culture = UTF8String.Empty;
 
 		/// <summary>
 		/// From column AssemblyRef.HashValue
 		/// </summary>
-		public byte[] Hash {
+		public byte[]? Hash {
 			get => hashValue;
 			set => hashValue = value;
 		}
 		/// <summary/>
-		protected byte[] hashValue;
+		protected byte[]? hashValue;
 
 		/// <summary>
 		/// Gets all custom attributes
@@ -119,11 +123,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes;
+				return customAttributes!;
 			}
 		}
 		/// <summary/>
-		protected CustomAttributeCollection customAttributes;
+		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
@@ -144,11 +148,11 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos;
+				return customDebugInfos!;
 			}
 		}
 		/// <summary/>
-		protected IList<PdbCustomDebugInfo> customDebugInfos;
+		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
@@ -358,7 +362,7 @@ namespace dnlib.DotNet {
 		/// <param name="version">Version</param>
 		/// <param name="publicKey">Public key or public key token</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyRefUser(UTF8String name, Version version, PublicKeyBase publicKey)
+		public AssemblyRefUser(UTF8String name, Version version, PublicKeyBase? publicKey)
 			: this(name, version, publicKey, UTF8String.Empty) {
 		}
 
@@ -370,15 +374,15 @@ namespace dnlib.DotNet {
 		/// <param name="publicKey">Public key or public key token</param>
 		/// <param name="locale">Locale</param>
 		/// <exception cref="ArgumentNullException">If any of the args is invalid</exception>
-		public AssemblyRefUser(UTF8String name, Version version, PublicKeyBase publicKey, UTF8String locale) {
+		public AssemblyRefUser(UTF8String name, Version version, PublicKeyBase? publicKey, UTF8String locale) {
 			if (name is null)
 				throw new ArgumentNullException(nameof(name));
 			if (locale is null)
 				throw new ArgumentNullException(nameof(locale));
-			this.name = name;
+			this.name = UTF8String.EmptyIfNull(name);
 			this.version = version ?? throw new ArgumentNullException(nameof(version));
 			publicKeyOrToken = publicKey;
-			culture = locale;
+			culture = UTF8String.EmptyIfNull(locale);
 			attributes = (int)(publicKey is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None);
 		}
 
@@ -401,7 +405,7 @@ namespace dnlib.DotNet {
 			version = assembly.Version ?? new Version(0, 0, 0, 0);
 			publicKeyOrToken = assembly.PublicKeyOrToken;
 			name = UTF8String.IsNullOrEmpty(assembly.Name) ? UTF8String.Empty : assembly.Name;
-			culture = assembly.Culture;
+			culture = UTF8String.EmptyIfNull(assembly.Culture);
 			attributes = (int)((publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None) | assembly.ContentType);
 		}
 	}

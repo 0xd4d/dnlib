@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;
 using dnlib.PE;
 
@@ -39,6 +40,7 @@ namespace dnlib.DotNet {
 		/// <param name="module">Module</param>
 		public VTableFixups(ModuleDefMD module) => Initialize(module);
 
+		[MemberNotNull(nameof(vtables))]
 		void Initialize(ModuleDefMD module) {
 			var info = module.Metadata.ImageCor20Header.VTableFixups;
 			if (info.VirtualAddress == 0 || info.Size == 0) {
@@ -141,10 +143,10 @@ namespace dnlib.DotNet {
 	/// <summary>
 	/// One VTable accessed by native code
 	/// </summary>
-	public sealed class VTable : IEnumerable<IMethod> {
+	public sealed class VTable : IEnumerable<IMethod?> {
 		RVA rva;
 		VTableFlags flags;
-		readonly IList<IMethod> methods;
+		readonly IList<IMethod?> methods;
 
 		/// <summary>
 		/// Gets/sets the <see cref="RVA"/> of this vtable
@@ -173,14 +175,14 @@ namespace dnlib.DotNet {
 		public bool Is64Bit => (flags & VTableFlags.Bit64) != 0;
 
 		/// <summary>
-		/// Gets the vtable methods
+		/// Gets the vtable methods. A slot is <c>null</c> if it has no method (invalid token or the slot couldn't be read)
 		/// </summary>
-		public IList<IMethod> Methods => methods;
+		public IList<IMethod?> Methods => methods;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public VTable() => methods = new List<IMethod>();
+		public VTable() => methods = new List<IMethod?>();
 
 		/// <summary>
 		/// Constructor
@@ -188,7 +190,7 @@ namespace dnlib.DotNet {
 		/// <param name="flags">Flags</param>
 		public VTable(VTableFlags flags) {
 			this.flags = flags;
-			methods = new List<IMethod>();
+			methods = new List<IMethod?>();
 		}
 
 		/// <summary>
@@ -200,7 +202,7 @@ namespace dnlib.DotNet {
 		public VTable(RVA rva, VTableFlags flags, int numSlots) {
 			this.rva = rva;
 			this.flags = flags;
-			methods = new List<IMethod>(numSlots);
+			methods = new List<IMethod?>(numSlots);
 		}
 
 		/// <summary>
@@ -209,14 +211,14 @@ namespace dnlib.DotNet {
 		/// <param name="rva">RVA of this vtable</param>
 		/// <param name="flags">Flgas</param>
 		/// <param name="methods">Vtable methods</param>
-		public VTable(RVA rva, VTableFlags flags, IEnumerable<IMethod> methods) {
+		public VTable(RVA rva, VTableFlags flags, IEnumerable<IMethod?> methods) {
 			this.rva = rva;
 			this.flags = flags;
-			this.methods = new List<IMethod>(methods);
+			this.methods = new List<IMethod?>(methods);
 		}
 
 		/// <inheritdoc/>
-		public IEnumerator<IMethod> GetEnumerator() => methods.GetEnumerator();
+		public IEnumerator<IMethod?> GetEnumerator() => methods.GetEnumerator();
 
 		/// <inheritdoc/>
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();

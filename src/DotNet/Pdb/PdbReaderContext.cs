@@ -2,16 +2,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using dnlib.IO;
 using dnlib.PE;
 
 namespace dnlib.DotNet.Pdb {
 	readonly struct PdbReaderContext {
 		readonly IPEImage peImage;
-		readonly ImageDebugDirectory codeViewDebugDir;
+		readonly ImageDebugDirectory? codeViewDebugDir;
 
 		public bool HasDebugInfo => codeViewDebugDir is not null;
-		public ImageDebugDirectory CodeViewDebugDirectory => codeViewDebugDir;
+		public ImageDebugDirectory? CodeViewDebugDirectory => codeViewDebugDir;
 		public PdbReaderOptions Options { get; }
 
 		public PdbReaderContext(IPEImage peImage, PdbReaderOptions options) {
@@ -20,7 +21,7 @@ namespace dnlib.DotNet.Pdb {
 			codeViewDebugDir = TryGetDebugDirectoryEntry(peImage, ImageDebugType.CodeView);
 		}
 
-		public ImageDebugDirectory TryGetDebugDirectoryEntry(ImageDebugType imageDebugType) =>
+		public ImageDebugDirectory? TryGetDebugDirectoryEntry(ImageDebugType imageDebugType) =>
 			TryGetDebugDirectoryEntry(peImage, imageDebugType);
 
 		public List<ImageDebugDirectory> GetDebugDirectoryEntries(ImageDebugType imageDebugType) {
@@ -35,7 +36,7 @@ namespace dnlib.DotNet.Pdb {
 			return result;
 		}
 
-		static ImageDebugDirectory TryGetDebugDirectoryEntry(IPEImage peImage, ImageDebugType imageDebugType) {
+		static ImageDebugDirectory? TryGetDebugDirectoryEntry(IPEImage peImage, ImageDebugType imageDebugType) {
 			var list = peImage.ImageDebugDirectories;
 			int count = list.Count;
 			for (int i = 0; i < count; i++) {
@@ -48,7 +49,7 @@ namespace dnlib.DotNet.Pdb {
 
 		public bool TryGetCodeViewData(out Guid guid, out uint age) => TryGetCodeViewData(out guid, out age, out _);
 
-		public bool TryGetCodeViewData(out Guid guid, out uint age, out string pdbFilename) {
+		public bool TryGetCodeViewData(out Guid guid, out uint age, [NotNullWhen(true)] out string? pdbFilename) {
 			guid = Guid.Empty;
 			age = 0;
 			pdbFilename = null;

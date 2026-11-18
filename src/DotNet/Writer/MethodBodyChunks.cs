@@ -12,8 +12,8 @@ namespace dnlib.DotNet.Writer {
 	/// </summary>
 	public sealed class MethodBodyChunks : IChunk {
 		const uint FAT_BODY_ALIGNMENT = 4;
-		Dictionary<MethodBody, MethodBody> tinyMethodsDict;
-		Dictionary<MethodBody, MethodBody> fatMethodsDict;
+		Dictionary<MethodBody, MethodBody>? tinyMethodsDict;
+		Dictionary<MethodBody, MethodBody>? fatMethodsDict;
 		readonly List<MethodBody> tinyMethods;
 		readonly List<MethodBody> fatMethods;
 		readonly List<ReusedMethodInfo> reusedMethods;
@@ -55,7 +55,7 @@ namespace dnlib.DotNet.Writer {
 		/// Checks if a body with this RVA and size can be overwritten without touching other data.
 		/// Must be set if <see cref="CanReuseOldBodyLocation"/> is <c>true</c>.
 		/// </summary>
-		internal Func<RVA, uint, bool> IsReusableLocation { get; set; }
+		internal Func<RVA, uint, bool>? IsReusableLocation { get; set; }
 		internal bool ReusedAllMethodBodyLocations => tinyMethods.Count == 0 && fatMethods.Count == 0;
 		internal bool HasReusedMethods => reusedMethods.Count > 0;
 
@@ -89,7 +89,7 @@ namespace dnlib.DotNet.Writer {
 			// A fat body must be 4-byte aligned or the 64-bit CLR won't read it. The original body could've been
 			// a tiny body, which can be at any address.
 			bool isAligned = methodBody.IsTiny || ((uint)origRva & (FAT_BODY_ALIGNMENT - 1)) == 0;
-			if (CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && isAligned && methodBody.CanReuse(origRva, origSize) && IsReusableLocation(origRva, origSize)) {
+			if (CanReuseOldBodyLocation && origRva != 0 && origSize != 0 && isAligned && methodBody.CanReuse(origRva, origSize) && IsReusableLocation!(origRva, origSize)) {
 				if (rvaToReusedMethod.TryGetValue((uint)origRva, out var reusedMethod)) {
 					if (methodBody.Equals(reusedMethod))
 						return reusedMethod;
@@ -102,7 +102,7 @@ namespace dnlib.DotNet.Writer {
 			}
 			if (shareBodies) {
 				var dict = methodBody.IsFat ? fatMethodsDict : tinyMethodsDict;
-				if (dict.TryGetValue(methodBody, out var cached)) {
+				if (dict!.TryGetValue(methodBody, out var cached)) {
 					savedBytes += (uint)methodBody.GetApproximateSizeOfMethodBody();
 					return cached;
 				}

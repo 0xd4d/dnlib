@@ -14,8 +14,8 @@ namespace dnlib.DotNet.Writer {
 		readonly Dictionary<string, uint> cachedDict = new Dictionary<string, uint>(StringComparer.Ordinal);
 		readonly List<string> cached = new List<string>();
 		uint nextOffset = 1;
-		byte[] originalData;
-		Dictionary<uint, byte[]> userRawData;
+		byte[]? originalData;
+		Dictionary<uint, byte[]>? userRawData;
 
 		/// <inheritdoc/>
 		public override string Name => "#US";
@@ -25,7 +25,7 @@ namespace dnlib.DotNet.Writer {
 		/// string tokens)
 		/// </summary>
 		/// <param name="usStream">The #US stream with the original content</param>
-		public void Populate(USStream usStream) {
+		public void Populate(USStream? usStream) {
 			if (originalData is not null)
 				throw new InvalidOperationException("Can't call method twice");
 			if (nextOffset != 1)
@@ -67,7 +67,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #US heap</returns>
-		public uint Add(string s) {
+		public uint Add(string? s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #US when it's read-only");
 			if (s is null)
@@ -83,7 +83,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="s">The string</param>
 		/// <returns>The offset of the string in the #US heap</returns>
-		public uint Create(string s) {
+		public uint Create(string? s) {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #US when it's read-only");
 			return AddToCache(s ?? string.Empty);

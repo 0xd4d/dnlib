@@ -46,7 +46,7 @@ namespace dnlib.DotNet.Writer {
 
 		sealed class ReferenceComparer : IEqualityComparer<DataReaderFactory> {
 			public static readonly ReferenceComparer Instance = new ReferenceComparer();
-			public bool Equals(DataReaderFactory x, DataReaderFactory y) => (object)x == y;
+			public bool Equals(DataReaderFactory? x, DataReaderFactory? y) => (object?)x == y;
 			public int GetHashCode(DataReaderFactory obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
 		}
 
@@ -72,7 +72,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns><c>true</c> if <paramref name="dirEntry"/> is valid and
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="dirEntry"/> is not part of the Win32 resources.</returns>
-		public bool GetFileOffsetAndRvaOf(ResourceDirectoryEntry dirEntry, out FileOffset fileOffset, out RVA rva) {
+		public bool GetFileOffsetAndRvaOf(ResourceDirectoryEntry? dirEntry, out FileOffset fileOffset, out RVA rva) {
 			if (dirEntry is ResourceDirectory dir)
 				return GetFileOffsetAndRvaOf(dir, out fileOffset, out rva);
 
@@ -90,7 +90,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dirEntry">A <see cref="ResourceDirectoryEntry"/></param>
 		/// <returns>The file offset or 0 if <paramref name="dirEntry"/> is invalid</returns>
-		public FileOffset GetFileOffset(ResourceDirectoryEntry dirEntry) {
+		public FileOffset GetFileOffset(ResourceDirectoryEntry? dirEntry) {
 			GetFileOffsetAndRvaOf(dirEntry, out var fileOffset, out var rva);
 			return fileOffset;
 		}
@@ -101,7 +101,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dirEntry">A <see cref="ResourceDirectoryEntry"/></param>
 		/// <returns>The RVA or 0 if <paramref name="dirEntry"/> is invalid</returns>
-		public RVA GetRVA(ResourceDirectoryEntry dirEntry) {
+		public RVA GetRVA(ResourceDirectoryEntry? dirEntry) {
 			GetFileOffsetAndRvaOf(dirEntry, out var fileOffset, out var rva);
 			return rva;
 		}
@@ -116,7 +116,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns><c>true</c> if <paramref name="dir"/> is valid and
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="dir"/> is not part of the Win32 resources.</returns>
-		public bool GetFileOffsetAndRvaOf(ResourceDirectory dir, out FileOffset fileOffset, out RVA rva) {
+		public bool GetFileOffsetAndRvaOf(ResourceDirectory? dir, out FileOffset fileOffset, out RVA rva) {
 			if (dir is null || !dirDict.TryGetValue(dir, out uint offs)) {
 				fileOffset = 0;
 				rva = 0;
@@ -134,7 +134,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dir">A <see cref="ResourceDirectory"/></param>
 		/// <returns>The file offset or 0 if <paramref name="dir"/> is invalid</returns>
-		public FileOffset GetFileOffset(ResourceDirectory dir) {
+		public FileOffset GetFileOffset(ResourceDirectory? dir) {
 			GetFileOffsetAndRvaOf(dir, out var fileOffset, out var rva);
 			return fileOffset;
 		}
@@ -145,7 +145,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dir">A <see cref="ResourceDirectory"/></param>
 		/// <returns>The RVA or 0 if <paramref name="dir"/> is invalid</returns>
-		public RVA GetRVA(ResourceDirectory dir) {
+		public RVA GetRVA(ResourceDirectory? dir) {
 			GetFileOffsetAndRvaOf(dir, out var fileOffset, out var rva);
 			return rva;
 		}
@@ -160,7 +160,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns><c>true</c> if <paramref name="dataHeader"/> is valid and
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="dataHeader"/> is not part of the Win32 resources.</returns>
-		public bool GetFileOffsetAndRvaOf(ResourceData dataHeader, out FileOffset fileOffset, out RVA rva) {
+		public bool GetFileOffsetAndRvaOf(ResourceData? dataHeader, out FileOffset fileOffset, out RVA rva) {
 			if (dataHeader is null || !dataHeaderDict.TryGetValue(dataHeader, out uint offs)) {
 				fileOffset = 0;
 				rva = 0;
@@ -178,7 +178,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dataHeader">A <see cref="ResourceData"/></param>
 		/// <returns>The file offset or 0 if <paramref name="dataHeader"/> is invalid</returns>
-		public FileOffset GetFileOffset(ResourceData dataHeader) {
+		public FileOffset GetFileOffset(ResourceData? dataHeader) {
 			GetFileOffsetAndRvaOf(dataHeader, out var fileOffset, out var rva);
 			return fileOffset;
 		}
@@ -189,7 +189,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="dataHeader">A <see cref="ResourceData"/></param>
 		/// <returns>The RVA or 0 if <paramref name="dataHeader"/> is invalid</returns>
-		public RVA GetRVA(ResourceData dataHeader) {
+		public RVA GetRVA(ResourceData? dataHeader) {
 			GetFileOffsetAndRvaOf(dataHeader, out var fileOffset, out var rva);
 			return rva;
 		}
@@ -205,7 +205,7 @@ namespace dnlib.DotNet.Writer {
 		/// <returns><c>true</c> if <paramref name="name"/> is valid and
 		/// <paramref name="fileOffset"/> and <paramref name="rva"/> have been updated. <c>false</c>
 		/// if <paramref name="name"/> is not part of the Win32 resources.</returns>
-		public bool GetFileOffsetAndRvaOf(string name, out FileOffset fileOffset, out RVA rva) {
+		public bool GetFileOffsetAndRvaOf(string? name, out FileOffset fileOffset, out RVA rva) {
 			if (name is null || !stringsDict.TryGetValue(name, out uint offs)) {
 				fileOffset = 0;
 				rva = 0;
@@ -223,7 +223,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="name">The name of a <see cref="ResourceDirectoryEntry"/></param>
 		/// <returns>The file offset or 0 if <paramref name="name"/> is invalid</returns>
-		public FileOffset GetFileOffset(string name) {
+		public FileOffset GetFileOffset(string? name) {
 			GetFileOffsetAndRvaOf(name, out var fileOffset, out var rva);
 			return fileOffset;
 		}
@@ -234,7 +234,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="name">The name of a <see cref="ResourceDirectoryEntry"/></param>
 		/// <returns>The RVA or 0 if <paramref name="name"/> is invalid</returns>
-		public RVA GetRVA(string name) {
+		public RVA GetRVA(string? name) {
 			GetFileOffsetAndRvaOf(name, out var fileOffset, out var rva);
 			return rva;
 		}
@@ -256,7 +256,7 @@ namespace dnlib.DotNet.Writer {
 			return error is null;
 		}
 
-		static uint GetMaxAlignment(FileOffset offset, out string error) {
+		static uint GetMaxAlignment(FileOffset offset, out string? error) {
 			error = null;
 			uint maxAlignment = 1;
 			maxAlignment = Math.Max(maxAlignment, RESOURCE_DIR_ALIGNMENT);
@@ -383,7 +383,7 @@ namespace dnlib.DotNet.Writer {
 					return c;
 				return a.CompareTo(b);
 			});
-			DataBlock current = null;
+			DataBlock? current = null;
 			foreach (int i in indexes) {
 				// Ranges that only touch aren't merged so normal files (no shared data) are written
 				// exactly like before. Empty ranges at the start of a block are part of the block.
@@ -553,7 +553,7 @@ namespace dnlib.DotNet.Writer {
 			var upperNames = new Dictionary<string, string>(StringComparer.Ordinal);
 			var sortedNamed = new List<KeyValuePair<string, ResourceDirectoryEntry>>(named.Count);
 			foreach (var d in named) {
-				var name = d.Name.Name;
+				var name = d.Name.Name!;
 				if (!upperNames.TryGetValue(name, out var upperName)) {
 					upperName = name.ToUpperInvariant();
 					upperNames.Add(name, upperName);
@@ -567,7 +567,7 @@ namespace dnlib.DotNet.Writer {
 
 			foreach (var kv in sortedNamed) {
 				var d = kv.Value;
-				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name]);
+				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name!]);
 				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}
 

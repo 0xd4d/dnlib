@@ -17,8 +17,8 @@ namespace dnlib.DotNet {
 			if (!type.IsNested)
 				@namespace = type.Namespace ?? string.Empty;
 			else {
-				var declTypeFullName = Unescape(type.DeclaringType.FullName);
-				var typeFullName = Unescape(type.FullName);
+				var declTypeFullName = Unescape(type.DeclaringType!.FullName)!;
+				var typeFullName = Unescape(type.FullName)!;
 				if (declTypeFullName.Length + 1 + name.Length == typeFullName.Length)
 					@namespace = string.Empty;
 				else
@@ -108,7 +108,7 @@ namespace dnlib.DotNet {
 		/// Same as .NET 8+ <c>Type.IsFunctionPointer</c>, returns <c>false</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The type</param>
-		public static bool IsFunctionPointer2(this Type self) {
+		public static bool IsFunctionPointer2(this Type? self) {
 			if (self is null)
 				return false;
 #if NET8_0_OR_GREATER
@@ -136,7 +136,7 @@ namespace dnlib.DotNet {
 		/// Same as .NET 8+ <c>Type.GetFunctionPointerReturnType()</c>
 		/// </summary>
 		/// <param name="self">A function pointer type</param>
-		public static Type GetFunctionPointerReturnType2(this Type self) {
+		public static Type? GetFunctionPointerReturnType2(this Type self) {
 #if NET8_0_OR_GREATER
 			return self.GetFunctionPointerReturnType();
 #else
@@ -197,7 +197,7 @@ namespace dnlib.DotNet {
 		/// Same as .NET 8+ <c>ParameterInfo.GetModifiedParameterType()</c>, returns <c>null</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The parameter</param>
-		public static Type GetModifiedParameterType2(this ParameterInfo self) {
+		public static Type? GetModifiedParameterType2(this ParameterInfo self) {
 			try {
 #if NET8_0_OR_GREATER
 				return self.GetModifiedParameterType();
@@ -217,7 +217,7 @@ namespace dnlib.DotNet {
 		/// Same as .NET 8+ <c>FieldInfo.GetModifiedFieldType()</c>, returns <c>null</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The field</param>
-		public static Type GetModifiedFieldType2(this FieldInfo self) {
+		public static Type? GetModifiedFieldType2(this FieldInfo self) {
 			try {
 #if NET8_0_OR_GREATER
 				return self.GetModifiedFieldType();
@@ -237,7 +237,7 @@ namespace dnlib.DotNet {
 		/// Checks whether <paramref name="type"/> is a function pointer or has a function pointer element type
 		/// </summary>
 		/// <param name="type">The type</param>
-		public static bool ContainsFunctionPointer(this Type type) {
+		public static bool ContainsFunctionPointer(this Type? type) {
 			if (!SupportsFunctionPointerTypes)
 				return false;
 			// Function pointers can't be generic arguments so only check element types
@@ -261,7 +261,7 @@ namespace dnlib.DotNet {
 		/// <param name="modifiedType">Modified type of <paramref name="type"/> or <c>null</c></param>
 		/// <param name="alternative">Set to another calling convention that's also possible or <c>null</c>.
 		/// Reflection can't tell <c>unmanaged modopt(CallConvX)</c> from <c>X modopt(CallConvX)</c>.</param>
-		public static CallingConvention? GetFunctionPointerCallingConvention(Type type, Type modifiedType, out CallingConvention? alternative) {
+		public static CallingConvention? GetFunctionPointerCallingConvention(Type type, Type? modifiedType, out CallingConvention? alternative) {
 			alternative = null;
 			if (modifiedType is null || !type.IsUnmanagedFunctionPointer2())
 				return null;
@@ -307,7 +307,7 @@ namespace dnlib.DotNet {
 		/// Same as .NET 8+ <c>PropertyInfo.GetModifiedPropertyType()</c>, returns <c>null</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The property</param>
-		public static Type GetModifiedPropertyType2(this PropertyInfo self) {
+		public static Type? GetModifiedPropertyType2(this PropertyInfo self) {
 			try {
 #if NET8_0_OR_GREATER
 				return self.GetModifiedPropertyType();
@@ -331,14 +331,14 @@ namespace dnlib.DotNet {
 		/// if its declaring type is a generic type instance
 		/// </summary>
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
-		public static MethodBase ResolveMethodDefinition(this MethodBase method) => method.Module.ResolveMethod(method.MetadataToken);
+		public static MethodBase ResolveMethodDefinition(this MethodBase method) => method.Module.ResolveMethod(method.MetadataToken)!;
 
 		/// <summary>
 		/// Gets the field definition of <paramref name="field"/>, eg. the field in the generic type definition
 		/// if its declaring type is a generic type instance
 		/// </summary>
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
-		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) => field.Module.ResolveField(field.MetadataToken);
+		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) => field.Module.ResolveField(field.MetadataToken)!;
 
 		/// <summary>
 		/// Instantiates <paramref name="methodDef"/> (a method in a generic type definition) with the generic method
@@ -350,26 +350,26 @@ namespace dnlib.DotNet {
 
 #if !NET8_0_OR_GREATER
 		static class FnPtrReflection {
-			public static readonly Func<Type, bool> isFunctionPointer = CreateGetter<Type, bool>("IsFunctionPointer");
-			public static readonly Func<Type, bool> isUnmanagedFunctionPointer = CreateGetter<Type, bool>("IsUnmanagedFunctionPointer");
-			public static readonly Func<Type, Type> getFunctionPointerReturnType = CreateMethod<Type, Type>("GetFunctionPointerReturnType");
-			public static readonly Func<Type, Type[]> getFunctionPointerParameterTypes = CreateMethod<Type, Type[]>("GetFunctionPointerParameterTypes");
-			public static readonly Func<Type, Type[]> getFunctionPointerCallingConventions = CreateMethod<Type, Type[]>("GetFunctionPointerCallingConventions");
-			public static readonly Func<Type, Type[]> getRequiredCustomModifiers = CreateMethod<Type, Type[]>("GetRequiredCustomModifiers");
-			public static readonly Func<Type, Type[]> getOptionalCustomModifiers = CreateMethod<Type, Type[]>("GetOptionalCustomModifiers");
-			public static readonly Func<ParameterInfo, Type> getModifiedParameterType = CreateMethod<ParameterInfo, Type>("GetModifiedParameterType");
-			public static readonly Func<FieldInfo, Type> getModifiedFieldType = CreateMethod<FieldInfo, Type>("GetModifiedFieldType");
-			public static readonly Func<PropertyInfo, Type> getModifiedPropertyType = CreateMethod<PropertyInfo, Type>("GetModifiedPropertyType");
+			public static readonly Func<Type, bool>? isFunctionPointer = CreateGetter<Type, bool>("IsFunctionPointer");
+			public static readonly Func<Type, bool>? isUnmanagedFunctionPointer = CreateGetter<Type, bool>("IsUnmanagedFunctionPointer");
+			public static readonly Func<Type, Type>? getFunctionPointerReturnType = CreateMethod<Type, Type>("GetFunctionPointerReturnType");
+			public static readonly Func<Type, Type[]>? getFunctionPointerParameterTypes = CreateMethod<Type, Type[]>("GetFunctionPointerParameterTypes");
+			public static readonly Func<Type, Type[]>? getFunctionPointerCallingConventions = CreateMethod<Type, Type[]>("GetFunctionPointerCallingConventions");
+			public static readonly Func<Type, Type[]>? getRequiredCustomModifiers = CreateMethod<Type, Type[]>("GetRequiredCustomModifiers");
+			public static readonly Func<Type, Type[]>? getOptionalCustomModifiers = CreateMethod<Type, Type[]>("GetOptionalCustomModifiers");
+			public static readonly Func<ParameterInfo, Type>? getModifiedParameterType = CreateMethod<ParameterInfo, Type>("GetModifiedParameterType");
+			public static readonly Func<FieldInfo, Type>? getModifiedFieldType = CreateMethod<FieldInfo, Type>("GetModifiedFieldType");
+			public static readonly Func<PropertyInfo, Type>? getModifiedPropertyType = CreateMethod<PropertyInfo, Type>("GetModifiedPropertyType");
 
-			static Func<T, TResult> CreateGetter<T, TResult>(string name) {
+			static Func<T, TResult>? CreateGetter<T, TResult>(string name) {
 				var prop = typeof(T).GetProperty(name, BindingFlags.Public | BindingFlags.Instance, null, typeof(TResult), Type.EmptyTypes, null);
 				return CreateDelegate<T, TResult>(prop?.GetGetMethod());
 			}
 
-			static Func<T, TResult> CreateMethod<T, TResult>(string name) =>
+			static Func<T, TResult>? CreateMethod<T, TResult>(string name) =>
 				CreateDelegate<T, TResult>(typeof(T).GetMethod(name, BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null));
 
-			static Func<T, TResult> CreateDelegate<T, TResult>(MethodInfo method) {
+			static Func<T, TResult>? CreateDelegate<T, TResult>(MethodInfo? method) {
 				if (method is null || method.ReturnType != typeof(TResult))
 					return null;
 				try {
@@ -387,7 +387,7 @@ namespace dnlib.DotNet {
 		/// not a generic type definition, i.e., a TypeSpec.
 		/// </summary>
 		/// <param name="type">The type</param>
-		public static bool IsGenericButNotGenericTypeDefinition(this Type type) =>
+		public static bool IsGenericButNotGenericTypeDefinition(this Type? type) =>
 			type is not null && !type.IsGenericTypeDefinition && type.IsGenericType;
 
 		/// <summary>
@@ -395,7 +395,7 @@ namespace dnlib.DotNet {
 		/// not a generic method definition, i.e., a MethodSpec.
 		/// </summary>
 		/// <param name="mb">The method</param>
-		public static bool IsGenericButNotGenericMethodDefinition(this MethodBase mb) =>
+		public static bool IsGenericButNotGenericMethodDefinition(this MethodBase? mb) =>
 			mb is not null && !mb.IsGenericMethodDefinition && mb.IsGenericMethod;
 
 		/// <summary>
@@ -407,7 +407,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="declaringType">Declaring type of field/method/event/property</param>
 		/// <param name="t">Field/parameter/property/event type</param>
-		internal static bool MustTreatTypeAsGenericInstType(this Type declaringType, Type t) =>
+		internal static bool MustTreatTypeAsGenericInstType(this Type? declaringType, Type? t) =>
 			declaringType is not null && declaringType.IsGenericTypeDefinition && t == declaringType;
 
 		/// <summary>
@@ -415,11 +415,12 @@ namespace dnlib.DotNet {
 		/// (eg. pointer, generic type instantiation or generic parameter)
 		/// </summary>
 		/// <param name="type">this</param>
-		public static bool IsTypeDef(this Type type) =>
+		public static bool IsTypeDef(this Type? type) =>
 			type is not null && !type.HasElementType && !type.IsGenericParameter && (!type.IsGenericType || type.IsGenericTypeDefinition);
 
-		internal static string Unescape(string name) {
-			if (string.IsNullOrEmpty(name) || name.IndexOf('\\') < 0)
+		[return: NotNullIfNotNull(nameof(name))]
+		internal static string? Unescape(string? name) {
+			if (string.IsNullOrEmpty(name) || name!.IndexOf('\\') < 0)
 				return name;
 			var sb = new StringBuilder(name.Length);
 			for (int i = 0; i < name.Length; i++) {

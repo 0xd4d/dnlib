@@ -63,12 +63,16 @@ namespace dnlib.DotNet.Pdb {
 		/// to find the document again if it's removed and then added back to that <see cref="PdbState"/>.
 		/// It must not reference the <see cref="PdbState"/>, the reader or the module.
 		/// </summary>
-		internal object readerOrigin;
+		internal object? readerOrigin;
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public PdbDocument() => customDebugInfos = new List<PdbCustomDebugInfo>();
+		public PdbDocument() {
+			Url = string.Empty;
+			CheckSum = Array2.Empty<byte>();
+			customDebugInfos = new List<PdbCustomDebugInfo>();
+		}
 
 		/// <summary>
 		/// Constructor
@@ -128,7 +132,7 @@ namespace dnlib.DotNet.Pdb {
 		/// Compares <see cref="Url"/>, <see cref="Language"/>, <see cref="CheckSumAlgorithmId"/> and
 		/// <see cref="CheckSum"/>. Equal documents are written as one document to the PDB file.
 		/// </summary>
-		public override bool Equals(object obj) {
+		public override bool Equals(object? obj) {
 			var other = obj as PdbDocument;
 			if (other is null)
 				return false;
@@ -139,7 +143,7 @@ namespace dnlib.DotNet.Pdb {
 		}
 
 		// Treat null and empty the same to be consistent with other code
-		static bool CheckSumEquals(byte[] a, byte[] b) {
+		static bool CheckSumEquals(byte[]? a, byte[]? b) {
 			if ((a is null || a.Length == 0) && (b is null || b.Length == 0))
 				return true;
 			return Utils.Equals(a, b);

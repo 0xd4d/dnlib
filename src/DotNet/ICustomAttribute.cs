@@ -11,7 +11,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Gets the attribute type
 		/// </summary>
-		ITypeDefOrRef AttributeType { get; }
+		ITypeDefOrRef? AttributeType { get; }
 
 		/// <summary>
 		/// Gets the full name of the attribute type

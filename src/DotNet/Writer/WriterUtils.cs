@@ -24,7 +24,7 @@ namespace dnlib.DotNet.Writer {
 			return value;
 		}
 
-		public static void Write(this DataWriter writer, IWriterError helper, UTF8String s) {
+		public static void Write(this DataWriter writer, IWriterError helper, UTF8String? s) {
 			if (UTF8String.IsNull(s)) {
 				helper.Error("UTF8String is null");
 				s = UTF8String.Empty;

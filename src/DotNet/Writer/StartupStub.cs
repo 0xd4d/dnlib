@@ -12,7 +12,7 @@ namespace dnlib.DotNet.Writer {
 		const StubType stubType = StubType.EntryPoint;
 		readonly RelocDirectory relocDirectory;
 		readonly Machine machine;
-		readonly CpuArch cpuArch;
+		readonly CpuArch? cpuArch;
 		readonly Action<string, object[]> logError;
 		FileOffset offset;
 		RVA rva;
@@ -20,12 +20,12 @@ namespace dnlib.DotNet.Writer {
 		/// <summary>
 		/// Gets/sets the <see cref="ImportDirectory"/>
 		/// </summary>
-		public ImportDirectory ImportDirectory { get; set; }
+		public ImportDirectory ImportDirectory { get; set; } = null!;
 
 		/// <summary>
 		/// Gets/sets the <see cref="PEHeaders"/>
 		/// </summary>
-		public PEHeaders PEHeaders { get; set; }
+		public PEHeaders PEHeaders { get; set; } = null!;
 
 		/// <inheritdoc/>
 		public FileOffset FileOffset => offset;
