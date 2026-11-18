@@ -738,7 +738,7 @@ namespace dnlib.DotNet {
 		IMemberRefParent? GetModuleParent(Module module2) {
 			if (!IsThisAssembly(module2))
 				return null;
-			return module.UpdateRowId(new ModuleRefUser(module, module.Name));
+			return module.UpdateRowId(new ModuleRefUser(module, module2.ScopeName));
 		}
 
 		bool IsThisAssembly(Module module2) {
