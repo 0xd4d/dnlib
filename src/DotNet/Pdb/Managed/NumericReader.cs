@@ -79,6 +79,17 @@ namespace dnlib.DotNet.Pdb.Managed {
 				value = reader.ReadUtf8String(varStrLen);
 				return true;
 
+			case NumericLeaf.LF_DATE:
+				// A DateTime constant's tick count (Roslyn writes it as a VT_DATE)
+				if (position + 8 > end)
+					return false;
+				long ticks = reader.ReadInt64();
+				if ((ulong)ticks <= (ulong)System.DateTime.MaxValue.Ticks)
+					value = new System.DateTime(ticks);
+				else
+					value = null;
+				return true;
+
 			case NumericLeaf.LF_VARIANT:
 				if (position + 0x10 > end)
 					return false;
