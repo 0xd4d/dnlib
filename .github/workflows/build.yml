@@ -33,73 +33,6 @@ env:
   NUGET_USER: 'wtfsck'
 
 jobs:
-  build-windows:
-    name: Build (Windows)
-    runs-on: windows-latest
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
-        with:
-          global-json-file: global.json
-
-      - name: Build
-        shell: bash
-        run: ./build.sh
-
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
-        with:
-          name: nupkg
-          path: src/bin/Release/*.*nupkg
-          if-no-files-found: error
-          compression-level: 0 # .nupkg/.snupkg files are already zip files
-
-  # Publishing is kept in its own job so that no build code runs with id-token: write
-  publish:
-    name: Publish to nuget.org
-    needs: build-windows
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    environment: nuget
-    permissions:
-      id-token: write # Required for NuGet trusted publishing (OIDC) and attestations (Sigstore)
-      attestations: write # Required to store the build provenance attestations
-
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: nupkg
-          path: nuget_files
-
-      # Verify with: gh attestation verify <file>.nupkg -R 0xd4d/dnlib
-      - name: Generate build provenance attestations
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
-        with:
-          subject-path: 'nuget_files/dnlib.*nupkg'
-
-      - name: Get a short-lived nuget.org API key (trusted publishing)
-        id: nuget-login
-        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
-        with:
-          user: ${{env.NUGET_USER}}
-
-      - name: Upload to nuget.org
-        shell: bash
-        env:
-          NUGET_API_KEY: ${{steps.nuget-login.outputs.NUGET_API_KEY}}
-        run: |
-          shopt -s failglob
-          for f in nuget_files/dnlib.*.nupkg; do
-            dotnet nuget push "$f" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
-          done
-
-  # Make sure it builds on Linux too
   build-ubuntu:
     name: Build (Ubuntu)
     runs-on: ubuntu-latest
@@ -138,3 +71,71 @@ jobs:
             echo "::error::src/BannedSymbols.txt is out of date. Run ./update-banned-symbols.sh after ./build.sh and commit the result."
             exit 1
           fi
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
+        with:
+          name: nupkg
+          path: src/bin/Release/*.*nupkg
+          if-no-files-found: error
+          compression-level: 0 # .nupkg/.snupkg files are already zip files
+
+  # Make sure it builds on Windows too
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        shell: bash
+        run: ./build.sh
+
+  # Publishing is kept in its own job so that no build code runs with id-token: write.
+  # The packages come from build-ubuntu, but don't publish if the Windows build fails.
+  publish:
+    name: Publish to nuget.org
+    needs: [build-ubuntu, build-windows]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      id-token: write # Required for NuGet trusted publishing (OIDC) and attestations (Sigstore)
+      attestations: write # Required to store the build provenance attestations
+
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: nupkg
+          path: nuget_files
+
+      # Verify with: gh attestation verify <file>.nupkg -R 0xd4d/dnlib
+      - name: Generate build provenance attestations
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: 'nuget_files/dnlib.*nupkg'
+
+      - name: Get a short-lived nuget.org API key (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{env.NUGET_USER}}
+
+      - name: Upload to nuget.org
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{steps.nuget-login.outputs.NUGET_API_KEY}}
+        run: |
+          shopt -s failglob
+          for f in nuget_files/dnlib.*.nupkg; do
+            dotnet nuget push "$f" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
