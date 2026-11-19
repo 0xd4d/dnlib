@@ -543,6 +543,9 @@ namespace dnlib.DotNet {
 	/// Parses reflection type names. Grammar http://msdn.microsoft.com/en-us/library/yfsftwz6.aspx
 	/// </summary>
 	sealed class ReflectionTypeNameParser : TypeNameParser {
+		// > 0 if we're reading a bracketed generic argument, eg. "[System.Int32, mscorlib]"
+		int bracketedTypeDepth;
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -751,7 +754,11 @@ namespace dnlib.DotNet {
 							if (peeked == ']')
 								break;
 							Verify(!needSeperators || ReadChar() == '[', "Expected '['");
+							if (needSeperators)
+								bracketedTypeDepth++;
 							ginstSpec.args.Add(ReadType(needSeperators));
+							if (needSeperators)
+								bracketedTypeDepth--;
 							SkipWhite();
 							Verify(!needSeperators || ReadChar() == ']', "Expected ']'");
 							SkipWhite();
@@ -795,7 +802,7 @@ namespace dnlib.DotNet {
 			while (true) {
 				SkipWhite();
 				int c = PeekChar();
-				if (c == -1 || c == ']')
+				if (c == -1 || (c == ']' && bracketedTypeDepth > 0))
 					break;
 				if (c == ',') {
 					ReadChar();
@@ -880,7 +887,9 @@ namespace dnlib.DotNet {
 				ReadChar();
 				return ReadChar();
 
-			case ']':
+			// Only a bracketed generic argument's assembly name ends with ']'. It's not escaped in a
+			// top-level assembly name (the CLR doesn't support it there).
+			case ']' when bracketedTypeDepth > 0:
 			case ',':
 				return -1;
 
@@ -898,6 +907,10 @@ namespace dnlib.DotNet {
 			switch (c) {
 			case '\\':
 				ReadChar();
+				return ReadChar();
+
+			// ignoreEqualSign is only true when reading an assembly name's keys and values
+			case ']' when ignoreEqualSign && bracketedTypeDepth == 0:
 				return ReadChar();
 
 			case ',':
