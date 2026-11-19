@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -29,6 +30,13 @@ namespace dnlib.DotNet {
 		const uint MaxMethodGenParamCount = 200;
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
+
+		/// <summary>
+		/// Returns true if a name created by this class has a null value or is too deeply nested so it can't be
+		/// written to eg. a custom attribute blob
+		/// </summary>
+		internal static bool ContainsErrorMarker(string name) =>
+			name.IndexOf(NULLVALUE, StringComparison.Ordinal) >= 0 || name.IndexOf(RECURSION_ERROR_RESULT_STRING, StringComparison.Ordinal) >= 0;
 		readonly StringBuilder sb;
 		readonly bool isReflection;
 		readonly IFullNameFactoryHelper? helper;

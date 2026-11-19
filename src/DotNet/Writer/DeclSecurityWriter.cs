@@ -85,6 +85,8 @@ namespace dnlib.DotNet.Writer {
 				else {
 					sb.Length = 0;
 					fqn = FullNameFactory.AssemblyQualifiedName(attrType, null, sb);
+					if (FullNameFactory.ContainsErrorMarker(fqn))
+						helper.Error("SecurityAttribute attribute type has a null value or is too deeply nested");
 				}
 				Write(writer, fqn);
 
