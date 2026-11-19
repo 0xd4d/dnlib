@@ -804,6 +804,11 @@ namespace dnlib.DotNet {
 				int c = PeekChar();
 				if (c == -1 || (c == ']' && bracketedTypeDepth > 0))
 					break;
+				if (c == ']') {
+					// Invalid, ignore it
+					ReadChar();
+					continue;
+				}
 				if (c == ',') {
 					ReadChar();
 					continue;
@@ -814,7 +819,7 @@ namespace dnlib.DotNet {
 				if (PeekChar() != '=')
 					continue;
 				ReadChar();
-				string value = ReadId();
+				string value = ReadAssemblyValue();
 
 				switch (key.ToUpperInvariant()) {
 				case "VERSION":
@@ -867,6 +872,18 @@ namespace dnlib.DotNet {
 			return asmRef;
 		}
 
+		// A value ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'
+		string ReadAssemblyValue() {
+			SkipWhite();
+			var sb = new StringBuilder();
+			int c;
+			while ((c = GetAsmNameChar()) != -1)
+				sb.Append((char)c);
+			var value = sb.ToString().Trim();
+			Verify(value.Length > 0, "Expected a value");
+			return value;
+		}
+
 		string ReadAssemblyNameId() {
 			SkipWhite();
 			var sb = new StringBuilder();
@@ -907,10 +924,6 @@ namespace dnlib.DotNet {
 			switch (c) {
 			case '\\':
 				ReadChar();
-				return ReadChar();
-
-			// ignoreEqualSign is only true when reading an assembly name's keys and values
-			case ']' when ignoreEqualSign && bracketedTypeDepth == 0:
 				return ReadChar();
 
 			case ',':
