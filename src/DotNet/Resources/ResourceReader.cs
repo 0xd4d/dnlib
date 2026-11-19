@@ -80,6 +80,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="module">Owner module</param>
 		/// <param name="reader">Data of resource</param>
 		/// <returns></returns>
+		/// <exception cref="ResourceReaderException">The data is not a valid resources file</exception>
 		public static ResourceElementSet Read(ModuleDef module, DataReader reader) => Read(module, reader, null);
 
 		/// <summary>
@@ -89,6 +90,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
+		/// <exception cref="ResourceReaderException">The data is not a valid resources file</exception>
 		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) =>
 			Read(new ResourceDataFactory(module), reader, createResourceDataDelegate);
 
@@ -99,8 +101,16 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ResourceDataFactory resourceDataFactory, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) =>
-			new ResourceReader(resourceDataFactory, ref reader, createResourceDataDelegate).Read();
+		/// <exception cref="ResourceReaderException">The data is not a valid resources file</exception>
+		public static ResourceElementSet Read(ResourceDataFactory resourceDataFactory, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) {
+			try {
+				return new ResourceReader(resourceDataFactory, ref reader, createResourceDataDelegate).Read();
+			}
+			catch (DataReaderException ex) {
+				// Truncated or invalid data, eg. an offset or length past the end of the data
+				throw new ResourceReaderException($"Invalid resources file: {ex.Message}");
+			}
+		}
 
 		ResourceElementSet Read() {
 			uint sig = reader.ReadUInt32();
