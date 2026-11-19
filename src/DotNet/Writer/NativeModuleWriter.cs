@@ -349,8 +349,11 @@ namespace dnlib.DotNet.Writer {
 				uint moveAlignment = Math.Max(SECTION_MOVE_ALIGNMENT, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 				headersFileLength = OffsetUtils.Add(firstRawDataOffset, OffsetUtils.AlignUp(headerLen - firstRawDataOffset, moveAlignment));
 			}
-			var origHeaders = peImage.CreateReader((FileOffset)0, firstRawDataOffset);
-			if (origHeaders.Length != firstRawDataOffset)
+			// A section's raw data could start before the end of the section headers (invalid or a tiny PE file) but
+			// the original headers must include all section headers
+			uint origHeadersLength = Math.Max(firstRawDataOffset, GetOffsetAfterLastSectionHeader());
+			var origHeaders = peImage.CreateReader((FileOffset)0, origHeadersLength);
+			if (origHeaders.Length != origHeadersLength)
 				throw new ModuleWriterException("Could not create header");
 			return new PaddedChunk(new DataReaderChunk(origHeaders), headerLen, headersFileLength);
 		}
