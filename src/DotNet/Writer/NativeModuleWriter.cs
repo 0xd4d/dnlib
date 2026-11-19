@@ -469,6 +469,8 @@ namespace dnlib.DotNet.Writer {
 			}
 			if (methodBodies.OverlapsReusedBody(origRva, origSize))
 				return;
+			if (OverlapsInPlaceUpdatedRange(origRva, origSize))
+				return;
 
 			if (section.Remove(chunk) is null)
 				throw new InvalidOperationException();
@@ -523,9 +525,13 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 
 			if (Options.OptimizeImageSize) {
+				// The vtable fixups and vtables are updated in place (see UpdateVTableFixups()) so nothing can be
+				// reused if it overlaps them (invalid images only), else it would be overwritten.
+				inPlaceUpdatedRanges = GetInPlaceUpdatedRanges();
+
 				// Method bodies have already been added. Make sure no reused body overwrites another one.
 				// The chunks below aren't reused if they overlap a reused body.
-				methodBodies.RemoveOverlappingReusedBodies();
+				methodBodies.RemoveOverlappingReusedBodies(OverlapsInPlaceUpdatedRange);
 
 				// Check if we can reuse the old MD location for the new MD.
 				// If we can't reuse it, it could be due to several reasons:
@@ -975,6 +981,30 @@ namespace dnlib.DotNet.Writer {
 				list.Add(new OrigVTableInfo(rva, numSlots * slotSize));
 			}
 			return list;
+		}
+
+		List<OrigVTableInfo>? inPlaceUpdatedRanges;
+
+		List<OrigVTableInfo> GetInPlaceUpdatedRanges() {
+			var origDir = module.Metadata.ImageCor20Header.VTableFixups;
+			var list = ReadOriginalVTables(origDir);
+			if (origDir.VirtualAddress != 0 && origDir.Size != 0)
+				list.Add(new OrigVTableInfo(origDir.VirtualAddress, origDir.Size));
+			return list;
+		}
+
+		bool OverlapsInPlaceUpdatedRange(RVA rva, uint size) {
+			if (inPlaceUpdatedRanges is null)
+				return false;
+			ulong start = (uint)rva;
+			ulong end = start + size;
+			foreach (var range in inPlaceUpdatedRanges) {
+				ulong rangeStart = (uint)range.RVA;
+				ulong rangeEnd = rangeStart + range.Size;
+				if (start < rangeEnd && rangeStart < end)
+					return true;
+			}
+			return false;
 		}
 
 		static bool IsInRange(RVA rva, ulong size, RVA rangeRva, ulong rangeSize) =>
