@@ -364,7 +364,10 @@ namespace dnlib.DotNet {
 
 				case ElementType.GenericInst:
 					var ginstSpec = (GenericInstSpec)tspec;
-					currentSig = new GenericInstSig(currentSig as ClassOrValueTypeSig, ginstSpec.args);
+					// Eg. "List`1&[[System.Int32]]": the generic type would be null
+					var genericType = currentSig as ClassOrValueTypeSig;
+					Verify(genericType is not null, "Generic arguments must follow a generic type");
+					currentSig = new GenericInstSig(genericType, ginstSpec.args);
 					break;
 
 				case ElementType.ByRef:
