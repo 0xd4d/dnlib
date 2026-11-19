@@ -14,7 +14,9 @@ namespace dnlib.DotNet.Resources {
 	public class ResourceDataFactory {
 		readonly ModuleDef module;
 		readonly ModuleDefMD? moduleMD;
+		// Each type is added with its original name and its real name (see GetRealTypeFullName())
 		readonly Dictionary<string, UserResourceType> dict = new Dictionary<string, UserResourceType>(StringComparer.Ordinal);
+		readonly List<UserResourceType> types = new List<UserResourceType>();
 		readonly Dictionary<string, string?> asmNameToAsmFullName = new Dictionary<string, string?>(StringComparer.Ordinal);
 
 		/// <summary>
@@ -34,7 +36,7 @@ namespace dnlib.DotNet.Resources {
 		/// <summary>
 		/// Gets number of user data types
 		/// </summary>
-		public int Count => dict.Count;
+		public int Count => types.Count;
 
 		/// <summary>
 		/// Create null data
@@ -278,9 +280,13 @@ namespace dnlib.DotNet.Resources {
 				return type;
 
 			var newFullName = useFullName ? fullName : GetRealTypeFullName(fullName);
-			type = new UserResourceType(newFullName, ResourceTypeCode.UserTypes + dict.Count);
+			// Another name could have the same real name
+			if (!dict.TryGetValue(newFullName, out type)) {
+				type = new UserResourceType(newFullName, ResourceTypeCode.UserTypes + types.Count);
+				types.Add(type);
+				dict[newFullName] = type;
+			}
 			dict[fullName] = type;
-			dict[newFullName] = type;
 			return type;
 		}
 
@@ -336,9 +342,8 @@ namespace dnlib.DotNet.Resources {
 		/// </summary>
 		/// <returns></returns>
 		public List<UserResourceType> GetSortedTypes() {
-			var list = new List<UserResourceType>(dict.Values);
-			list.Sort((a, b) => ((int)a.Code).CompareTo((int)b.Code));
-			return list;
+			// It's already sorted by Code
+			return new List<UserResourceType>(types);
 		}
 	}
 }
