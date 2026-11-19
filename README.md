@@ -45,7 +45,7 @@ You can also pass in a Stream instance, an address in memory (HINSTANCE) or even
 To get the assembly, use its Assembly property:
 
 ```C#
-    AssemblyDef asm = module.Assembly;
+    var asm = module.Assembly;	// AssemblyDef or null if it's a netmodule
     Console.WriteLine("Assembly: {0}", asm);
 ```
 
@@ -199,9 +199,9 @@ Exported methods should not be generic.
 The method's calling convention should be changed to eg. stdcall, or cdecl, by adding an optional modifier to `MethodDef.MethodSig.RetType`. It must be a `System.Runtime.CompilerServices.CallConvCdecl`, `System.Runtime.CompilerServices.CallConvStdcall`, `System.Runtime.CompilerServices.CallConvThiscall`, or a `System.Runtime.CompilerServices.CallConvFastcall`, eg.:
 
 ```C#
-var type = method.MethodSig.RetType;
+var type = method.MethodSigOrThrow.RetType;
 type = new CModOptSig(module.CorLibTypes.GetTypeRef("System.Runtime.CompilerServices", "CallConvCdecl"), type);
-method.MethodSig.RetType = type;
+method.MethodSigOrThrow.RetType = type;
 ```
 
 Requirements:
@@ -213,11 +213,11 @@ Requirements:
 NOTE: VS' debugger crashes if there's a `DebuggableAttribute` attribute and if the first ctor arg is 0x107. The workaround is to clear the `EnableEditAndContinue` bit:
 
 ```C#
-var ca = module.Assembly.CustomAttributes.Find("System.Diagnostics.DebuggableAttribute");
+var ca = module.Assembly?.CustomAttributes.Find("System.Diagnostics.DebuggableAttribute");
 if (ca is not null && ca.ConstructorArguments.Count == 1) {
     var arg = ca.ConstructorArguments[0];
     // VS' debugger crashes if value == 0x107, so clear EnC bit
-    if (arg.Type.FullName == "System.Diagnostics.DebuggableAttribute/DebuggingModes" && arg.Value is int value && value == 0x107) {
+    if (arg.Type?.FullName == "System.Diagnostics.DebuggableAttribute/DebuggingModes" && arg.Value is int value && value == 0x107) {
         arg.Value = value & ~(int)DebuggableAttribute.DebuggingModes.EnableEditAndContinue;
         ca.ConstructorArguments[0] = arg;
     }
@@ -290,8 +290,8 @@ Sometimes you must convert an `ITypeDefOrRef` (`TypeRef`, `TypeDef`, or `TypeSpe
 
 ```C#
     // array5 is defined above
-    ITypeDefOrRef type1 = array5.ToTypeDefOrRef();
-    TypeSig type2 = type1.ToTypeSig();
+    var type1 = array5.ToTypeDefOrRef();	// ITypeDefOrRef
+    var type2 = type1.ToTypeSig();	// TypeSig
 ```
 
 Naming conventions of metadata table classes
@@ -362,12 +362,12 @@ It has many options you can set, see `SigComparerOptions`. The default options i
 
     // Use the type equality comparer
     Dictionary<IType, int> dict = new Dictionary<IType, int>(TypeEqualityComparer.Instance);
-    TypeDef type1 = ...;
-    dict.Add(type1, 10);
+    TypeDef type3 = ...;
+    dict.Add(type3, 10);
 
     // Compare a `TypeRef` with a `System.Type`
-    TypeRef type1 = ...;
-    if (new SigComparer().Equals(type1, typeof(int)))
+    TypeRef type4 = ...;
+    if (new SigComparer().Equals(type4, typeof(int)))
     	Console.WriteLine("They're equal");
 ```
 
@@ -445,7 +445,7 @@ To import a `System.Type`, `System.Reflection.MethodInfo`, `System.Reflection.Fi
 ```C#
     Importer importer = new Importer(mod);
     ITypeDefOrRef consoleRef = importer.Import(typeof(System.Console));
-    IMethod writeLine = importer.Import(typeof(System.Console).GetMethod("WriteLine"));
+    IMethod writeLine = importer.Import(typeof(System.Console).GetMethod("WriteLine", new[] { typeof(string) })!);
 ```
 
 You can also use it to import types, methods etc from another `ModuleDef`.
