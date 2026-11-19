@@ -1575,19 +1575,14 @@ namespace dnlib.DotNet {
 			AddName(exportedType.TypeName);
 		}
 
-		static string EscapeAssemblyName(UTF8String asmSimpleName) =>
-			EscapeAssemblyName(UTF8String.ToSystemString(asmSimpleName));
-
-		static string EscapeAssemblyName(string asmSimpleName) {
-			if (asmSimpleName.IndexOf(']') < 0)
-				return asmSimpleName;
-			var sb = new StringBuilder(asmSimpleName.Length);
-			foreach (var c in asmSimpleName) {
-				if (c == ']')
+		// Escapes the chars that end an assembly name or a value (TypeNameParser reads them). ']' is only escaped in a
+		// bracketed generic argument's assembly name: the CLR doesn't support escaping it in a top-level assembly name.
+		void AddAssemblyNamePart(string s, bool escapeClosingBracket) {
+			foreach (var c in s) {
+				if (c == '\\' || c == ',' || c == '=' || (escapeClosingBracket && c == ']'))
 					sb.Append('\\');
 				sb.Append(c);
 			}
-			return sb.ToString();
 		}
 
 		void AddNestedTypeSeparator() {
@@ -1621,11 +1616,7 @@ namespace dnlib.DotNet {
 				return;
 			}
 
-			foreach (var c in UTF8String.ToSystemStringOrEmpty(assembly.Name)) {
-				if (c == ',' || c == '=' || (escapeClosingBracket && c == ']'))
-					sb.Append('\\');
-				sb.Append(c);
-			}
+			AddAssemblyNamePart(UTF8String.ToSystemStringOrEmpty(assembly.Name), escapeClosingBracket);
 
 			if (assembly.Version is not null) {
 				sb.Append(", Version=");
@@ -1637,7 +1628,7 @@ namespace dnlib.DotNet {
 				if (UTF8String.IsNullOrEmpty(assembly.Culture))
 					sb.Append("neutral");
 				else
-					sb.Append(escapeClosingBracket ? EscapeAssemblyName(assembly.Culture) : assembly.Culture.String);
+					AddAssemblyNamePart(assembly.Culture.String, escapeClosingBracket);
 			}
 
 			var publicKey = assembly.PublicKeyOrToken;
