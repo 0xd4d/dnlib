@@ -212,6 +212,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long Write() {
+			// The original image's alignments are used to lay out the new file
+			var optHdr = peImage.ImageNTHeaders.OptionalHeader;
+			if (!IsPowerOfTwo(optHdr.SectionAlignment) || !IsPowerOfTwo(optHdr.FileAlignment))
+				throw new ModuleWriterException($"Invalid PE alignment: SectionAlignment = 0x{optHdr.SectionAlignment:X}, FileAlignment = 0x{optHdr.FileAlignment:X}. Both must be powers of two.");
+
 			Initialize();
 
 			// It's not safe to create new Field RVAs so re-use them all. The user can override
@@ -314,6 +319,9 @@ namespace dnlib.DotNet.Writer {
 					extraLen = headerLen - origHeadersLen;
 					headerLen = origHeadersLen;
 				}
+				// Eg. a section's raw data is far past the end of the file
+				if (extraLen > int.MaxValue)
+					throw new ModuleWriterException("Could not create header");
 				if (extraLen > 0)
 					extraHeaderData = new ByteArrayChunk(new byte[(int)extraLen]);
 				else
@@ -340,6 +348,8 @@ namespace dnlib.DotNet.Writer {
 			return new PaddedChunk(new DataReaderChunk(origHeaders), headerLen, headersFileLength);
 		}
 		const uint SECTION_MOVE_ALIGNMENT = 0x10000;
+
+		static bool IsPowerOfTwo(uint v) => v != 0 && (v & (v - 1)) == 0;
 
 		ulong GetFirstSectionRva() {
 			ulong rva = ulong.MaxValue;
