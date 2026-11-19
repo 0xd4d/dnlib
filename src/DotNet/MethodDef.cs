@@ -1217,7 +1217,10 @@ namespace dnlib.DotNet {
 			MemberMDInitializer.Initialize(MethodBody);
 			MemberMDInitializer.Initialize(DeclaringType);
 			MemberMDInitializer.Initialize(CustomAttributes);
-			MemberMDInitializer.Initialize(Overrides);
+			// Overrides isn't initialized: this is called by a type's Methods list (holding its lock) when
+			// the method has more than one owner, and initializing it calls TypeDef.FindMethod(), which
+			// could read the same list again (recursive lock, or infinite recursion if !THREAD_SAFE).
+			// It's initialized when it's first used, after the declaring type has been updated.
 			MemberMDInitializer.Initialize(ParamDefs);
 			MemberMDInitializer.Initialize(GenericParameters);
 			MemberMDInitializer.Initialize(DeclSecurities);
