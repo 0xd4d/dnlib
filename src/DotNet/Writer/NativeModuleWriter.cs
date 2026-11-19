@@ -686,7 +686,8 @@ namespace dnlib.DotNet.Writer {
 		void UpdateHeaderFields(DataWriter writer, bool entryPointIsManagedOrNoEntryPoint, uint entryPointToken, ref SectionSizes sectionSizes) {
 			long fileHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.FileHeader.StartOffset;
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
-			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
+			// Same offset as the first section header (if any), the image could have no sections
+			long sectionsOffset = optionalHeaderOffset + peImage.ImageNTHeaders.FileHeader.SizeOfOptionalHeader;
 			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			// The data directories are at a fixed offset in the optional header. Don't use its end offset,
 			// SizeOfOptionalHeader can be bigger than the standard size.
