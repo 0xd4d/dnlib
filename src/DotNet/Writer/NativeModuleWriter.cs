@@ -216,6 +216,13 @@ namespace dnlib.DotNet.Writer {
 			var optHdr = peImage.ImageNTHeaders.OptionalHeader;
 			if (!IsPowerOfTwo(optHdr.SectionAlignment) || !IsPowerOfTwo(optHdr.FileAlignment))
 				throw new ModuleWriterException($"Invalid PE alignment: SectionAlignment = 0x{optHdr.SectionAlignment:X}, FileAlignment = 0x{optHdr.FileAlignment:X}. Both must be powers of two.");
+			// The original sections keep their RVAs and the new sections are added after them. The reader finds the section
+			// containing an RVA by aligning its virtual size, so a section with an unaligned RVA (the OS loader doesn't load
+			// such images) could overlap a new section.
+			foreach (var section in peImage.ImageSectionHeaders) {
+				if (((uint)section.VirtualAddress & (optHdr.SectionAlignment - 1)) != 0)
+					throw new ModuleWriterException($"Section {section.DisplayName}'s RVA 0x{(uint)section.VirtualAddress:X8} isn't aligned to SectionAlignment (0x{optHdr.SectionAlignment:X})");
+			}
 
 			Initialize();
 
