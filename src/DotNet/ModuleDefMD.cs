@@ -1451,6 +1451,9 @@ namespace dnlib.DotNet {
 				return new CilBody();
 
 			var reader = metadata.PEImage.CreateReader();
+			// The section's raw data could extend past the end of the file
+			if ((uint)offset >= reader.Length)
+				return new CilBody();
 			reader.Position = (uint)offset;
 			return MethodBodyReader.CreateCilBody(this, reader, null, parameters, gpContext, Context, methodBodyReaderOptions);
 		}
