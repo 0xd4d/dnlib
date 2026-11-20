@@ -6,24 +6,24 @@ namespace dnlib.DotNet {
 	/// </summary>
 	public sealed class CorLibTypes : ICorLibTypes {
 		readonly ModuleDef module;
-		CorLibTypeSig typeVoid = null!;
-		CorLibTypeSig typeBoolean = null!;
-		CorLibTypeSig typeChar = null!;
-		CorLibTypeSig typeSByte = null!;
-		CorLibTypeSig typeByte = null!;
-		CorLibTypeSig typeInt16 = null!;
-		CorLibTypeSig typeUInt16 = null!;
-		CorLibTypeSig typeInt32 = null!;
-		CorLibTypeSig typeUInt32 = null!;
-		CorLibTypeSig typeInt64 = null!;
-		CorLibTypeSig typeUInt64 = null!;
-		CorLibTypeSig typeSingle = null!;
-		CorLibTypeSig typeDouble = null!;
-		CorLibTypeSig typeString = null!;
-		CorLibTypeSig typeTypedReference = null!;
-		CorLibTypeSig typeIntPtr = null!;
-		CorLibTypeSig typeUIntPtr = null!;
-		CorLibTypeSig typeObject = null!;
+		readonly CorLibTypeSig typeVoid;
+		readonly CorLibTypeSig typeBoolean;
+		readonly CorLibTypeSig typeChar;
+		readonly CorLibTypeSig typeSByte;
+		readonly CorLibTypeSig typeByte;
+		readonly CorLibTypeSig typeInt16;
+		readonly CorLibTypeSig typeUInt16;
+		readonly CorLibTypeSig typeInt32;
+		readonly CorLibTypeSig typeUInt32;
+		readonly CorLibTypeSig typeInt64;
+		readonly CorLibTypeSig typeUInt64;
+		readonly CorLibTypeSig typeSingle;
+		readonly CorLibTypeSig typeDouble;
+		readonly CorLibTypeSig typeString;
+		readonly CorLibTypeSig typeTypedReference;
+		readonly CorLibTypeSig typeIntPtr;
+		readonly CorLibTypeSig typeUIntPtr;
+		readonly CorLibTypeSig typeObject;
 		readonly AssemblyRef corLibAssemblyRef;
 
 		/// <inheritdoc/>
@@ -100,12 +100,6 @@ namespace dnlib.DotNet {
 		public CorLibTypes(ModuleDef module, AssemblyRef? corLibAssemblyRef) {
 			this.module = module;
 			this.corLibAssemblyRef = corLibAssemblyRef ?? CreateCorLibAssemblyRef();
-			Initialize();
-		}
-
-		AssemblyRef CreateCorLibAssemblyRef() => module.UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR20());
-
-		void Initialize() {
 			bool isCorLib = module.Assembly.IsCorLib();
 			typeVoid = new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "Void"), ElementType.Void);
 			typeBoolean = new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "Boolean"), ElementType.Boolean);
@@ -126,6 +120,8 @@ namespace dnlib.DotNet {
 			typeUIntPtr = new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "UIntPtr"), ElementType.U);
 			typeObject = new CorLibTypeSig(CreateCorLibTypeRef(isCorLib, "Object"), ElementType.Object);
 		}
+
+		AssemblyRef CreateCorLibAssemblyRef() => module.UpdateRowId(AssemblyRefUser.CreateMscorlibReferenceCLR20());
 
 		ITypeDefOrRef CreateCorLibTypeRef(bool isCorLib, string name) {
 			var tr = new TypeRefUser(module, "System", name, corLibAssemblyRef);
