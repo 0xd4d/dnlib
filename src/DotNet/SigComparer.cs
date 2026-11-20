@@ -3595,6 +3595,9 @@ exit:;
 				return false;
 			if (b is null)
 				return a.IsGlobalModuleType;
+			b = GetUnmodifiedType(b, out var modifiedB);
+			if (modifiedB is not null && HasModifiers(modifiedB))
+				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -3650,6 +3653,9 @@ exit:;
 				return false;
 			if (b is null)
 				return false;   // Must use a ModuleRef to reference the global type, so always fail
+			b = GetUnmodifiedType(b, out var modifiedB);
+			if (modifiedB is not null && HasModifiers(modifiedB))
+				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -3727,7 +3733,33 @@ exit:;
 		/// <param name="a">Type #1</param>
 		/// <param name="b">Type #2</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		public bool Equals(TypeSig? a, Type? b) => Equals(a, b, null, false);
+		public bool Equals(TypeSig? a, Type? b) {
+			b = GetUnmodifiedType(b, out var modifiedB);
+			if (modifiedB is null)
+				return Equals(a, b, null, false);
+			// Same as when comparing a field's type: compare the modifiers, then the unmodified type
+			if (!recursionCounter.Increment())
+				return false;
+			bool result = ModifiersEquals(a, modifiedB.GetRequiredCustomModifiers2(), modifiedB.GetOptionalCustomModifiers2(), out var a2) &&
+				Equals(a2, b, null, modifiedB.IsGenericInstOfOwnGenericParams(b!), modifiedB);
+			recursionCounter.Decrement();
+			return result;
+		}
+
+		// A .NET 8+ modified type (eg. from FieldInfo.GetModifiedFieldType()) doesn't support most members. Returns the
+		// unmodified type and the modified type in modifiedB, or b and null if it's not a modified type.
+		[return: NotNullIfNotNull(nameof(b))]
+		static Type? GetUnmodifiedType(Type? b, out Type? modifiedB) {
+			if (b is not null && b.IsModifiedType()) {
+				modifiedB = b;
+				return b.UnderlyingSystemType;
+			}
+			modifiedB = null;
+			return b;
+		}
+
+		static bool HasModifiers(Type modifiedB) =>
+			modifiedB.GetRequiredCustomModifiers2().Length != 0 || modifiedB.GetOptionalCustomModifiers2().Length != 0;
 
 		bool Equals(ITypeDefOrRef? a, Type? b, Type? declaringType) {
 			if (a is TypeSpec ts)
@@ -3776,7 +3808,7 @@ exit:;
 				return false;
 			bool result;
 
-			bool treatAsGenericInst2 = treatAsGenericInst ?? declaringType.MustTreatTypeAsGenericInstType(b);
+			bool treatAsGenericInst2 = treatAsGenericInst ?? (declaringType.MustTreatTypeAsGenericInstType(b) || modifiedB.IsGenericInstOfOwnGenericParams(b));
 			if (genericArguments is not null)
 				a = genericArguments.Resolve(a);
 
@@ -3991,6 +4023,9 @@ exit:;
 				return false;
 			if (b is null)
 				return false;   // Must use a ModuleRef to reference the global type, so always fail
+			b = GetUnmodifiedType(b, out var modifiedB);
+			if (modifiedB is not null && HasModifiers(modifiedB))
+				return false;
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -4038,9 +4073,20 @@ exit:;
 		/// <param name="treatAsGenericInst"><c>true</c> if we should treat <paramref name="a"/>
 		/// as a generic instance type</param>
 		/// <returns>The hash code</returns>
-		public int GetHashCode(Type? a, bool treatAsGenericInst) => GetHashCode(a, null, treatAsGenericInst);
+		public int GetHashCode(Type? a, bool treatAsGenericInst) {
+			// TypeSig hash codes don't include modifiers, so a modified type has the same hash code as its unmodified type
+			a = GetUnmodifiedType(a, out var modifiedA);
+			if (modifiedA is not null)
+				treatAsGenericInst |= modifiedA.IsGenericInstOfOwnGenericParams(a!);
+			return GetHashCode(a, null, treatAsGenericInst, modifiedA);
+		}
 
-		int GetHashCode(Type? a, Type? declaringType, bool? treatAsGenericInst = null) {
+		/// <param name="a">The type</param>
+		/// <param name="declaringType">Root declaring type to check if we should treat <paramref name="a"/> as a generic instance type</param>
+		/// <param name="treatAsGenericInst">See <see cref="ReflectionExtensions.MustTreatTypeAsGenericInstType(Type, Type)"/></param>
+		/// <param name="modifiedA">The .NET 8+ modified type of <paramref name="a"/> or <c>null</c>. It's only used to check
+		/// whether a generic type definition is a generic instance type (like Equals(TypeSig, Type) does).</param>
+		int GetHashCode(Type? a, Type? declaringType, bool? treatAsGenericInst = null, Type? modifiedA = null) {
 			// **************************************************************************
 			// IMPORTANT: This hash code must match the TypeSig/TypeDef/TypeRef hash code
 			// **************************************************************************
@@ -4050,7 +4096,7 @@ exit:;
 				return 0;
 			int hash;
 
-			bool treatAsGenericInst2 = treatAsGenericInst ?? declaringType.MustTreatTypeAsGenericInstType(a);
+			bool treatAsGenericInst2 = treatAsGenericInst ?? (declaringType.MustTreatTypeAsGenericInstType(a) || modifiedA.IsGenericInstOfOwnGenericParams(a));
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : a.GetElementType2()) {
 			case ElementType.Void:
 			case ElementType.Boolean:
@@ -4085,30 +4131,30 @@ exit:;
 
 			case ElementType.Ptr:
 				hash = HASHCODE_MAGIC_ET_PTR +
-					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType, null, modifiedA?.GetElementType()));
 				break;
 
 			case ElementType.ByRef:
 				hash = HASHCODE_MAGIC_ET_BYREF +
-					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType, null, modifiedA?.GetElementType()));
 				break;
 
 			case ElementType.SZArray:
 				hash = HASHCODE_MAGIC_ET_SZARRAY +
-					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType, null, modifiedA?.GetElementType()));
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
-				hash = GetHashCode(a.GetElementType(), declaringType);
+				hash = GetHashCode(a.GetElementType(), declaringType, null, modifiedA?.GetElementType());
 				break;
 
 			case ElementType.Array:
 				// The type doesn't store sizes and lower bounds, so can't use them to
 				// create the hash
 				hash = HASHCODE_MAGIC_ET_ARRAY + a.GetArrayRank() +
-					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType));
+					(IsFnPtrElementType(a) ? GetHashCode_FnPtr_SystemIntPtr() : GetHashCode(a.GetElementType(), declaringType, null, modifiedA?.GetElementType()));
 				break;
 
 			case ElementType.Var:
