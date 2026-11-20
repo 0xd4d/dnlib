@@ -3173,10 +3173,15 @@ exit:;
 		}
 
 		bool IsMethodGenericParameter(TypeSig? a) {
+			bool resolve = genericArguments is not null;
 			// The limit stops TypeSpec loops
 			for (int i = 0; i < 100 && a is not null; i++) {
-				if (genericArguments is not null)
-					a = genericArguments.Resolve(a);
+				// Same as Equals(TypeSig, Type): generic vars in a generic arg aren't replaced
+				if (resolve) {
+					var origA = a;
+					a = genericArguments!.Resolve(a);
+					resolve = a == origA;
+				}
 				switch (a.ElementType) {
 				case ElementType.MVar:
 					return true;
@@ -3809,8 +3814,15 @@ exit:;
 			bool result;
 
 			bool treatAsGenericInst2 = treatAsGenericInst ?? (declaringType.MustTreatTypeAsGenericInstType(b) || modifiedB.IsGenericInstOfOwnGenericParams(b));
-			if (genericArguments is not null)
+			// Like GetHashCode(TypeSig, bool): if a generic var is replaced with a generic arg, the generic vars in the generic arg
+			// (eg. !0 in IEnumerator`1<KeyValuePair`2<!0,!1>>::get_Current()) are from another context so they aren't replaced.
+			var oldGenericArguments = genericArguments;
+			if (genericArguments is not null) {
+				var origA = a;
 				a = genericArguments.Resolve(a);
+				if (a != origA)
+					genericArguments = null;
+			}
 
 			switch (a.ElementType) {
 			case ElementType.Void:
@@ -3937,6 +3949,7 @@ exit:;
 				break;
 			}
 
+			genericArguments = oldGenericArguments;
 			recursionCounter.Decrement();
 			return result;
 		}
