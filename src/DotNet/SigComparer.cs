@@ -4246,6 +4246,8 @@ exit:;
 			// return GetHashCodeGlobalType() here.
 			if (a is null)
 				return GetHashCodeGlobalType();
+			// A modified type doesn't support DeclaringType (used by IsNested)
+			a = GetUnmodifiedType(a, out _);
 			int hash;
 			hash = GetHashCode_TypeName(ReflectionExtensions.Unescape(a.Name));
 			if (a.IsNested)

@@ -212,7 +212,10 @@ namespace dnlib.DotNet {
 		/// <param name="modifiedType">The modified type or <c>null</c></param>
 		/// <param name="type">The unmodified type</param>
 		internal static bool IsGenericInstOfOwnGenericParams(this Type? modifiedType, Type type) =>
-			modifiedType is not null && type.IsGenericTypeDefinition && modifiedType.IsGenericType && !modifiedType.IsGenericTypeDefinition;
+			// A modified type is created from a signature which can't have a generic type definition (only a generic
+			// instance type), so it's a generic instance type if its unmodified type is a generic type definition. Its
+			// IsGenericTypeDefinition property can't be used: ModifiedType doesn't override it so it's always false.
+			modifiedType is not null && type.IsGenericTypeDefinition;
 
 		/// <summary>
 		/// Gets the generic arguments of <paramref name="modifiedType"/> (a .NET 8+ modified type or <c>null</c>). They
