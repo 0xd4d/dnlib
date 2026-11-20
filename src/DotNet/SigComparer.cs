@@ -3825,8 +3825,12 @@ exit:;
 			if (genericArguments is not null) {
 				var origA = a;
 				a = genericArguments.Resolve(a);
-				if (a != origA)
+				if (a != origA) {
 					genericArguments = null;
+					// The member's sig has a generic param here so its modified type has no modifiers or calling convention
+					// (and .NET 10 can return garbage modifiers, eg. Action`14<delegate*<ref int, ref int>[], ...>::Invoke()'s params)
+					modifiedB = null;
+				}
 			}
 
 			switch (a.ElementType) {
