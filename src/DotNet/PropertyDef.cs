@@ -515,7 +515,8 @@ namespace dnlib.DotNet {
 			MemberMDInitializer.Initialize(Name);
 			MemberMDInitializer.Initialize(Type);
 			MemberMDInitializer.Initialize(Constant);
-			MemberMDInitializer.Initialize(CustomAttributes);
+			// CustomAttributes isn't initialized: this is called by the owner's list (holding its lock) when there's more
+			// than one owner, and reading a CA can read other lists, eg. an enum's fields (recursive lock).
 			MemberMDInitializer.Initialize(GetMethod);
 			MemberMDInitializer.Initialize(SetMethod);
 			MemberMDInitializer.Initialize(OtherMethods);
