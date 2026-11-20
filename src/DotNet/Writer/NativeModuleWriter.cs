@@ -992,29 +992,90 @@ namespace dnlib.DotNet.Writer {
 			return list;
 		}
 
-		List<OrigVTableInfo>? inPlaceUpdatedRanges;
+		/// <summary>
+		/// Sorted, non-overlapping RVA ranges. Overlapping and adjacent ranges are merged so lookups are fast,
+		/// eg. a C++/CLI image can have many vtables and many reused method bodies.
+		/// </summary>
+		sealed class RvaRanges {
+			readonly ulong[] starts;
+			readonly ulong[] ends;
 
-		List<OrigVTableInfo> GetInPlaceUpdatedRanges() {
+			public RvaRanges(List<OrigVTableInfo> ranges) {
+				var sorted = new List<OrigVTableInfo>(ranges.Count);
+				foreach (var range in ranges) {
+					if (range.Size != 0)
+						sorted.Add(range);
+				}
+				sorted.Sort((a, b) => ((uint)a.RVA).CompareTo((uint)b.RVA));
+				var starts = new List<ulong>(sorted.Count);
+				var ends = new List<ulong>(sorted.Count);
+				foreach (var range in sorted) {
+					ulong start = (uint)range.RVA;
+					ulong end = start + range.Size;
+					int last = ends.Count - 1;
+					if (last >= 0 && start <= ends[last]) {
+						if (end > ends[last])
+							ends[last] = end;
+					}
+					else {
+						starts.Add(start);
+						ends.Add(end);
+					}
+				}
+				this.starts = starts.ToArray();
+				this.ends = ends.ToArray();
+			}
+
+			// Returns the index of the last range that starts at or before rva, or -1
+			int FindLastStartingAtOrBefore(ulong rva) {
+				int lo = 0, hi = starts.Length - 1, result = -1;
+				while (lo <= hi) {
+					int mid = lo + (hi - lo) / 2;
+					if (starts[mid] <= rva) {
+						result = mid;
+						lo = mid + 1;
+					}
+					else
+						hi = mid - 1;
+				}
+				return result;
+			}
+
+			/// <summary>
+			/// Checks if any byte in [rva, rva + size) is in a range
+			/// </summary>
+			public bool Overlaps(RVA rva, ulong size) {
+				if (size == 0)
+					return false;
+				ulong start = (uint)rva;
+				ulong end = start + size;
+				// The ranges don't overlap so only the last range starting before end can overlap
+				int index = FindLastStartingAtOrBefore(end - 1);
+				return index >= 0 && ends[index] > start;
+			}
+
+			/// <summary>
+			/// Checks if [rva, rva + size) is inside a range
+			/// </summary>
+			public bool Contains(RVA rva, ulong size) {
+				ulong start = (uint)rva;
+				int index = FindLastStartingAtOrBefore(start);
+				return index >= 0 && start + size <= ends[index];
+			}
+		}
+
+		RvaRanges? inPlaceUpdatedRanges;
+
+		RvaRanges GetInPlaceUpdatedRanges() {
 			var origDir = module.Metadata.ImageCor20Header.VTableFixups;
 			var list = ReadOriginalVTables(origDir);
 			if (origDir.VirtualAddress != 0 && origDir.Size != 0)
 				list.Add(new OrigVTableInfo(origDir.VirtualAddress, origDir.Size));
-			return list;
+			return new RvaRanges(list);
 		}
 
-		bool OverlapsInPlaceUpdatedRange(RVA rva, uint size) {
-			if (inPlaceUpdatedRanges is null)
-				return false;
-			ulong start = (uint)rva;
-			ulong end = start + size;
-			foreach (var range in inPlaceUpdatedRanges) {
-				ulong rangeStart = (uint)range.RVA;
-				ulong rangeEnd = rangeStart + range.Size;
-				if (start < rangeEnd && rangeStart < end)
-					return true;
-			}
-			return false;
-		}
+		bool OverlapsInPlaceUpdatedRange(RVA rva, uint size) =>
+			inPlaceUpdatedRanges is not null && inPlaceUpdatedRanges.Overlaps(rva, size);
 
 		static bool IsInRange(RVA rva, ulong size, RVA rangeRva, ulong rangeSize) =>
 			rva >= rangeRva && (ulong)rva + size <= (ulong)rangeRva + rangeSize;
@@ -1023,7 +1084,7 @@ namespace dnlib.DotNet.Writer {
 		/// The vtable fixups and vtables are written over the original data so they can't be moved or grow
 		/// past their original locations. Returns false if any of them doesn't fit.
 		/// </summary>
-		bool CanUpdateVTableFixups(VTableFixups vtableFixups, ImageDataDirectory origDir, List<OrigVTableInfo> origVTables) {
+		bool CanUpdateVTableFixups(VTableFixups vtableFixups, ImageDataDirectory origDir, RvaRanges origVTables) {
 			var vtables = vtableFixups.VTables;
 			ulong headersSize = (ulong)vtables.Count * 8;
 			if (!IsInRange(vtableFixups.RVA, headersSize, origDir.VirtualAddress, origDir.Size) || !IsInOneSectionsFileData(vtableFixups.RVA, (uint)headersSize)) {
@@ -1037,14 +1098,9 @@ namespace dnlib.DotNet.Writer {
 				if (count == 0)
 					continue;
 				ulong size = (ulong)count * (vtable.Is64Bit ? 8U : 4);
-				bool fits = false;
-				foreach (var orig in origVTables) {
-					if (IsInRange(vtable.RVA, size, orig.RVA, orig.Size)) {
-						fits = true;
-						break;
-					}
-				}
-				if (!fits || !IsInOneSectionsFileData(vtable.RVA, (uint)size)) {
+				// Adjacent original vtables are merged so a vtable can use more than one of them. That's fine since
+				// it's still written inside the original vtables.
+				if (!origVTables.Contains(vtable.RVA, size) || !IsInOneSectionsFileData(vtable.RVA, (uint)size)) {
 					Error("VTable (RVA {0:X8}, {1} slots) doesn't fit in an original vtable location", (uint)vtable.RVA, count);
 					return false;
 				}
@@ -1066,7 +1122,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			// Check everything first, if something doesn't fit, nothing is updated (the logger might not throw)
-			if (!CanUpdateVTableFixups(vtableFixups, origDir, ReadOriginalVTables(origDir)))
+			if (!CanUpdateVTableFixups(vtableFixups, origDir, new RvaRanges(ReadOriginalVTables(origDir))))
 				return;
 
 			// The original size isn't always a multiple of 8 (MSVC), so only update the data directory if needed
