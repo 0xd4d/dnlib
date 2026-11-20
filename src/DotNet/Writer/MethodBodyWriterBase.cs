@@ -165,10 +165,6 @@ namespace dnlib.DotNet.Writer {
 				writer.WriteByte((byte)((ushort)code >> 8));
 				writer.WriteByte((byte)code);
 			}
-			else if (code == Code.UNKNOWN1)
-				writer.WriteByte((byte)Code.Nop);
-			else if (code == Code.UNKNOWN2)
-				writer.WriteUInt16((ushort)(((ushort)Code.Nop << 8) | Code.Nop));
 			else {
 				Error("Unknown instruction");
 				writer.WriteByte((byte)Code.Nop);

@@ -50,7 +50,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// Gets the size of the opcode. It's either 1 or 2 bytes.
 		/// </summary>
-		public int Size => Code < (Code)0x100 || Code == Code.UNKNOWN1 ? 1 : 2;
+		public int Size => Code < (Code)0x100 ? 1 : 2;
 
 		/// <summary>
 		/// Constructs an experimental opcode.
