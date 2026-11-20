@@ -3907,7 +3907,8 @@ exit:;
 				}
 				var gia = (GenericInstSig)a;
 				result = Equals(gia.GenericType, b.GetGenericTypeDefinition(), null, false);
-				result = result && Equals(gia.GenericArguments, b.GetGenericArguments(), declaringType);
+				var bGenArgs = b.GetGenericArguments();
+				result = result && Equals(gia.GenericArguments, bGenArgs, declaringType, modifiedB.GetModifiedGenericArguments(bGenArgs));
 				break;
 
 			case ElementType.CModReqd:
@@ -4166,8 +4167,9 @@ exit:;
 				break;
 
 			case ElementType.GenericInst:
+				var aGenArgs = a.GetGenericArguments();
 				hash = HASHCODE_MAGIC_ET_GENERICINST + GetHashCode(a.GetGenericTypeDefinition(), false) +
-					GetHashCode(a.GetGenericArguments(), declaringType);
+					GetHashCode(aGenArgs, declaringType, modifiedA.GetModifiedGenericArguments(aGenArgs));
 				break;
 
 			case ElementType.ValueArray:
@@ -4191,8 +4193,9 @@ exit:;
 		/// <param name="a">The type list</param>
 		/// <param name="declaringType">Root declaring type to check if we should
 		/// treat <paramref name="a"/> as a generic instance type</param>
+		/// <param name="modifiedA">The .NET 8+ modified types of <paramref name="a"/> or <c>null</c></param>
 		/// <returns>The hash code</returns>
-		int GetHashCode(IList<Type>? a, Type? declaringType) {
+		int GetHashCode(IList<Type>? a, Type? declaringType, IList<Type>? modifiedA = null) {
 			//************************************************************************
 			// IMPORTANT: This code must match any other GetHashCode(IList<SOME_TYPE>)
 			//************************************************************************
@@ -4202,7 +4205,7 @@ exit:;
 				return 0;
 			uint hash = 0;
 			for (int i = 0; i < a.Count; i++) {
-				hash += (uint)GetHashCode(a[i], declaringType);
+				hash += (uint)GetHashCode(a[i], declaringType, null, modifiedA?[i]);
 				hash = (hash << 13) | (hash >> 19);
 			}
 			recursionCounter.Decrement();
@@ -4259,8 +4262,9 @@ exit:;
 		/// <param name="b">Type list #2</param>
 		/// <param name="declaringType">Root declaring type to check if we should
 		/// treat <paramref name="b"/> as a generic instance type</param>
+		/// <param name="modifiedB">The .NET 8+ modified types of <paramref name="b"/> or <c>null</c></param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
-		bool Equals(IList<TypeSig?>? a, IList<Type>? b, Type? declaringType) {
+		bool Equals(IList<TypeSig?>? a, IList<Type>? b, Type? declaringType, IList<Type>? modifiedB = null) {
 			if ((object?)a == (object?)b)
 				return true;    // both are null
 			if (a is null || b is null)
@@ -4274,7 +4278,7 @@ exit:;
 			else {
 				int i;
 				for (i = 0; i < a.Count; i++) {
-					if (!Equals(a[i], b[i], declaringType))
+					if (!Equals(a[i], b[i], declaringType, null, modifiedB?[i]))
 						break;
 				}
 				result = i == a.Count;

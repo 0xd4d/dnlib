@@ -214,6 +214,20 @@ namespace dnlib.DotNet {
 		internal static bool IsGenericInstOfOwnGenericParams(this Type? modifiedType, Type type) =>
 			modifiedType is not null && type.IsGenericTypeDefinition && modifiedType.IsGenericType && !modifiedType.IsGenericTypeDefinition;
 
+		/// <summary>
+		/// Gets the generic arguments of <paramref name="modifiedType"/> (a .NET 8+ modified type or <c>null</c>). They
+		/// have the custom modifiers and function pointer calling conventions, eg. <c>List&lt;delegate* unmanaged[Cdecl]&lt;void&gt;[]&gt;</c>.
+		/// Returns <c>null</c> if it's <c>null</c> or if it doesn't have the same number of generic arguments as the unmodified type.
+		/// </summary>
+		/// <param name="modifiedType">The modified type or <c>null</c></param>
+		/// <param name="genericArguments">The generic arguments of the unmodified type</param>
+		internal static Type[]? GetModifiedGenericArguments(this Type? modifiedType, Type[] genericArguments) {
+			if (modifiedType is null || !modifiedType.IsGenericType)
+				return null;
+			var modifiedArgs = modifiedType.GetGenericArguments();
+			return modifiedArgs.Length == genericArguments.Length ? modifiedArgs : null;
+		}
+
 		static class ModifiedTypeReflection {
 			// The class is internal so typeof() can't be used. It's looked up in CoreLib so a user type with the same
 			// name can't match. It's null if the runtime doesn't have modified types (.NET Framework, < .NET 8).
@@ -267,10 +281,21 @@ namespace dnlib.DotNet {
 		public static bool ContainsFunctionPointer(this Type? type) {
 			if (!SupportsFunctionPointerTypes)
 				return false;
-			// Function pointers can't be generic arguments so only check element types
-			for (int i = 0; type is not null && i < 1000; i++) {
+			return ContainsFunctionPointer(type, 0);
+		}
+
+		static bool ContainsFunctionPointer(Type? type, int depth) {
+			// Function pointers can't be generic arguments but eg. arrays of function pointers can
+			for (; type is not null && depth < 1000; depth++) {
 				if (type.IsFunctionPointer2())
 					return true;
+				if (type.IsGenericType && !type.IsGenericTypeDefinition) {
+					foreach (var genArg in type.GetGenericArguments()) {
+						if (ContainsFunctionPointer(genArg, depth + 1))
+							return true;
+					}
+					return false;
+				}
 				if (!type.HasElementType)
 					break;
 				type = type.GetElementType();

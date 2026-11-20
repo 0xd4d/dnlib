@@ -310,9 +310,10 @@ namespace dnlib.DotNet {
 
 			case ElementType.GenericInst:
 				var typeGenArgs = type.GetGenericArguments();
+				var modGenArgs = modifiedType.GetModifiedGenericArguments(typeGenArgs);
 				var git = new GenericInstSig(ImportAsTypeSigOrNull(type.GetGenericTypeDefinition(), null, false) as ClassOrValueTypeSig, (uint)typeGenArgs.Length);
-				foreach (var ga in typeGenArgs)
-					git.GenericArguments.Add(ImportAsTypeSigOrNull(ga, declaringType));
+				for (int i = 0; i < typeGenArgs.Length; i++)
+					git.GenericArguments.Add(ImportAsTypeSigOrNull(typeGenArgs[i], declaringType, null, modGenArgs?[i]));
 				result = git;
 				break;
 
