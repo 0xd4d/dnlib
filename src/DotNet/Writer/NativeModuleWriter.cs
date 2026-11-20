@@ -216,13 +216,6 @@ namespace dnlib.DotNet.Writer {
 			var optHdr = peImage.ImageNTHeaders.OptionalHeader;
 			if (!IsPowerOfTwo(optHdr.SectionAlignment) || !IsPowerOfTwo(optHdr.FileAlignment))
 				throw new ModuleWriterException($"Invalid PE alignment: SectionAlignment = 0x{optHdr.SectionAlignment:X}, FileAlignment = 0x{optHdr.FileAlignment:X}. Both must be powers of two.");
-			// The original sections keep their RVAs and the new sections are added after them. The reader finds the section
-			// containing an RVA by aligning its virtual size, so a section with an unaligned RVA (the OS loader doesn't load
-			// such images) could overlap a new section.
-			foreach (var section in peImage.ImageSectionHeaders) {
-				if (((uint)section.VirtualAddress & (optHdr.SectionAlignment - 1)) != 0)
-					throw new ModuleWriterException($"Section {section.DisplayName}'s RVA 0x{(uint)section.VirtualAddress:X8} isn't aligned to SectionAlignment (0x{optHdr.SectionAlignment:X})");
-			}
 
 			Initialize();
 
@@ -360,6 +353,16 @@ namespace dnlib.DotNet.Writer {
 		const uint SECTION_MOVE_ALIGNMENT = 0x10000;
 
 		static bool IsPowerOfTwo(uint v) => v != 0 && (v & (v - 1)) == 0;
+
+		RVA GetFirstNewSectionRva() {
+			uint sectionAlignment = peImage.ImageNTHeaders.OptionalHeader.SectionAlignment;
+			uint rva = 0;
+			foreach (var section in peImage.ImageSectionHeaders) {
+				var end = OffsetUtils.Add((uint)section.VirtualAddress, OffsetUtils.AlignUp(section.LoadedVirtualSize, sectionAlignment));
+				rva = Math.Max(rva, end);
+			}
+			return (RVA)OffsetUtils.AlignUp(rva, sectionAlignment);
+		}
 
 		ulong GetFirstSectionRva() {
 			ulong rva = ulong.MaxValue;
@@ -608,8 +611,14 @@ namespace dnlib.DotNet.Writer {
 			var origSectionRvas = new Dictionary<IChunk, RVA>(origSections.Count);
 			foreach (var origSection in origSections)
 				origSectionRvas[origSection.Chunk] = (RVA)origSection.PESection.VirtualAddress;
+			// The new sections are added after the original sections. The reader (and the CLR) find the section that contains
+			// an RVA by aligning its virtual size, not its end, so start the new sections after that: if a section's RVA
+			// isn't aligned (invalid but readable), AlignUp(RVA + VirtualSize) could be inside it.
+			// Only the first new section needs it, the following chunks are after it.
+			var newSectionsRva = GetFirstNewSectionRva();
+			var firstNewSection = sections.Count > 0 ? sections[0] : null;
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment,
-				chunk => origSectionRvas.TryGetValue(chunk, out var origRva) ? origRva : null);
+				chunk => origSectionRvas.TryGetValue(chunk, out var origRva) ? origRva : chunk == firstNewSection ? newSectionsRva : null);
 			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
 				methodBodies.InitializeReusedMethodBodies(GetNewFileOffset);
 				foreach (var info in reusedChunks) {
