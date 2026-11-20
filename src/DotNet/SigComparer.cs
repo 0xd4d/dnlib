@@ -542,8 +542,11 @@ namespace dnlib.DotNet {
 		RecursionCounter recursionCounter;
 		SigComparerOptions options;
 		GenericArguments? genericArguments;
-		// Generic method args that replace the generic method params when hashing reflection types, see GetHashCode_MethodSig(MethodBase)
+		// Generic type and method args that replace the generic params when hashing reflection types, see GetHashCode_MethodSig(MethodBase)
+		Type[]? reflectionTypeArgs;
 		Type[]? reflectionMethodArgs;
+		// The declaring type passed to GetHashCode(Type, Type) when hashing a reflectionTypeArgs/reflectionMethodArgs arg
+		Type? reflectionGenArgsDeclaringType;
 		readonly ModuleDef? sourceModule;
 		// Type pairs that are currently being compared for type equivalence
 		internal TIAHelper.TypeDefPairList? typeEquivalenceVisited;
@@ -4174,16 +4177,15 @@ exit:;
 				break;
 
 			case ElementType.Var:
-				hash = HASHCODE_MAGIC_ET_VAR + a.GenericParameterPosition;
+				if (reflectionTypeArgs is Type[] typeArgs && (uint)a.GenericParameterPosition < (uint)typeArgs.Length)
+					hash = GetHashCode_ReflectionGenericArg(typeArgs[a.GenericParameterPosition]);
+				else
+					hash = HASHCODE_MAGIC_ET_VAR + a.GenericParameterPosition;
 				break;
 
 			case ElementType.MVar:
-				if (reflectionMethodArgs is Type[] methodArgs && (uint)a.GenericParameterPosition < (uint)methodArgs.Length) {
-					// The method args can't be replaced again
-					reflectionMethodArgs = null;
-					hash = GetHashCode(methodArgs[a.GenericParameterPosition], declaringType);
-					reflectionMethodArgs = methodArgs;
-				}
+				if (reflectionMethodArgs is Type[] methodArgs && (uint)a.GenericParameterPosition < (uint)methodArgs.Length)
+					hash = GetHashCode_ReflectionGenericArg(methodArgs[a.GenericParameterPosition]);
 				else
 					hash = HASHCODE_MAGIC_ET_MVAR + a.GenericParameterPosition;
 				break;
@@ -4768,6 +4770,19 @@ exit:;
 			return hash;
 		}
 
+		// Hashes a generic arg that replaces a generic param. Like GetHashCode(TypeSig), the generic params in the
+		// arg aren't replaced again.
+		int GetHashCode_ReflectionGenericArg(Type a) {
+			var oldReflectionTypeArgs = reflectionTypeArgs;
+			var oldReflectionMethodArgs = reflectionMethodArgs;
+			reflectionTypeArgs = null;
+			reflectionMethodArgs = null;
+			int hash = GetHashCode(a, reflectionGenArgsDeclaringType);
+			reflectionTypeArgs = oldReflectionTypeArgs;
+			reflectionMethodArgs = oldReflectionMethodArgs;
+			return hash;
+		}
+
 		int GetHashCode_MethodSig(MethodBase? a) {
 			if (a is null)
 				return 0;
@@ -4775,14 +4790,23 @@ exit:;
 				return 0;
 			int hash;
 
-			// A generic method instance's sig is hashed by hashing the generic method def's sig and replacing its generic
-			// method params with the generic method args, like GetHashCode(MethodSpec) does. The instance's param types can't
-			// be used: reflection uses a generic type def for a generic type instantiated with its own generic params, eg.
-			// Comparison<T> in Array.Sort<T>(T[], Comparison<T>) instantiated with Comparison<T>'s T.
+			// The sig is hashed by hashing the method def's sig and replacing its generic params with the generic args,
+			// like GetHashCode(MemberRef) and GetHashCode(MethodSpec) do: the generic method args always, and the
+			// declaring type's generic args if CompareMethodFieldDeclaringType is set. Each generic param is only
+			// replaced once. The instance's param types can't be used:
+			//	- reflection uses a generic type def for a generic type instantiated with its own generic params, eg.
+			//	  Comparison<T> in Array.Sort<T>(T[], Comparison<T>) instantiated with Comparison<T>'s T.
+			//	- a declaring type's generic arg can be a generic param of the method, eg. Task<TNewResult>.ContinueWith<TNewResult>,
+			//	  and the instance's generic method def's sig uses that generic param in place of Task<TResult>'s TResult.
+			var oldReflectionTypeArgs = reflectionTypeArgs;
 			var oldReflectionMethodArgs = reflectionMethodArgs;
-			if (!CompareMethodFieldDeclaringType && a.DeclaringType.IsGenericButNotGenericTypeDefinition()) {
+			var oldReflectionGenArgsDeclaringType = reflectionGenArgsDeclaringType;
+			reflectionGenArgsDeclaringType = a.DeclaringType;
+			if (a.DeclaringType.IsGenericButNotGenericTypeDefinition()) {
 				var t = a;
 				a = a.ResolveMethodDefinition();
+				if (CompareMethodFieldDeclaringType)
+					reflectionTypeArgs = t.DeclaringType!.GetGenericArguments();
 				if (t.IsGenericButNotGenericMethodDefinition())
 					reflectionMethodArgs = t.GetGenericArguments();
 			}
@@ -4796,7 +4820,9 @@ exit:;
 				hash += GetHashCode_ReturnType(a);
 			if (a.IsGenericMethod)
 				hash += GetHashCode_ElementType_MVar(a.GetGenericArguments().Length);
+			reflectionTypeArgs = oldReflectionTypeArgs;
 			reflectionMethodArgs = oldReflectionMethodArgs;
+			reflectionGenArgsDeclaringType = oldReflectionGenArgsDeclaringType;
 
 			recursionCounter.Decrement();
 			return hash;
