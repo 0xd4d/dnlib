@@ -542,6 +542,8 @@ namespace dnlib.DotNet {
 		RecursionCounter recursionCounter;
 		SigComparerOptions options;
 		GenericArguments? genericArguments;
+		// Generic method args that replace the generic method params when hashing reflection types, see GetHashCode_MethodSig(MethodBase)
+		Type[]? reflectionMethodArgs;
 		readonly ModuleDef? sourceModule;
 		// Type pairs that are currently being compared for type equivalence
 		internal TIAHelper.TypeDefPairList? typeEquivalenceVisited;
@@ -4176,7 +4178,14 @@ exit:;
 				break;
 
 			case ElementType.MVar:
-				hash = HASHCODE_MAGIC_ET_MVAR + a.GenericParameterPosition;
+				if (reflectionMethodArgs is Type[] methodArgs && (uint)a.GenericParameterPosition < (uint)methodArgs.Length) {
+					// The method args can't be replaced again
+					reflectionMethodArgs = null;
+					hash = GetHashCode(methodArgs[a.GenericParameterPosition], declaringType);
+					reflectionMethodArgs = methodArgs;
+				}
+				else
+					hash = HASHCODE_MAGIC_ET_MVAR + a.GenericParameterPosition;
 				break;
 
 			case ElementType.GenericInst:
@@ -4766,11 +4775,20 @@ exit:;
 				return 0;
 			int hash;
 
+			// A generic method instance's sig is hashed by hashing the generic method def's sig and replacing its generic
+			// method params with the generic method args, like GetHashCode(MethodSpec) does. The instance's param types can't
+			// be used: reflection uses a generic type def for a generic type instantiated with its own generic params, eg.
+			// Comparison<T> in Array.Sort<T>(T[], Comparison<T>) instantiated with Comparison<T>'s T.
+			var oldReflectionMethodArgs = reflectionMethodArgs;
 			if (!CompareMethodFieldDeclaringType && a.DeclaringType.IsGenericButNotGenericTypeDefinition()) {
 				var t = a;
 				a = a.ResolveMethodDefinition();
 				if (t.IsGenericButNotGenericMethodDefinition())
-					a = ((MethodInfo)a).MakeGenericMethodForSignature(t);
+					reflectionMethodArgs = t.GetGenericArguments();
+			}
+			else if (a.IsGenericButNotGenericMethodDefinition()) {
+				reflectionMethodArgs = a.GetGenericArguments();
+				a = ((MethodInfo)a).GetGenericMethodDefinition();
 			}
 			hash = GetHashCode_CallingConvention(a.CallingConvention, a.IsGenericMethod) +
 					GetHashCode(a.GetParameters(), a.DeclaringType);
@@ -4778,6 +4796,7 @@ exit:;
 				hash += GetHashCode_ReturnType(a);
 			if (a.IsGenericMethod)
 				hash += GetHashCode_ElementType_MVar(a.GetGenericArguments().Length);
+			reflectionMethodArgs = oldReflectionMethodArgs;
 
 			recursionCounter.Decrement();
 			return hash;
