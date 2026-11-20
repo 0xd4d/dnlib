@@ -465,13 +465,28 @@ namespace dnlib.DotNet {
 		/// Checks whether a parameter/prop/event type should be treated as if it is really a
 		/// generic instance type and not a generic type definition. In the .NET metadata (method
 		/// sig), the parameter is a generic instance type, but the CLR treats it as if it's just
-		/// a generic type def. This seems to happen only if the parameter type is exactly the same
-		/// type as the declaring type, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>.
+		/// a generic type def. Reflection uses the generic type def for a generic instance type instantiated
+		/// with its own generic parameters, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>,
+		/// or a method in a generic instance type that is instantiated with the type's generic parameters, eg.
+		/// <c>ConfiguredTaskAwaitable&lt;TResult&gt;(Task&lt;TResult&gt;)</c> where <c>TResult</c> is <c>Task&lt;TResult&gt;</c>'s
+		/// generic parameter. A generic type def can't be used in a signature so it's a generic instance type.
 		/// </summary>
 		/// <param name="declaringType">Declaring type of field/method/event/property</param>
 		/// <param name="t">Field/parameter/property/event type</param>
-		internal static bool MustTreatTypeAsGenericInstType(this Type? declaringType, Type? t) =>
-			declaringType is not null && declaringType.IsGenericTypeDefinition && t == declaringType;
+		internal static bool MustTreatTypeAsGenericInstType(this Type? declaringType, Type? t) {
+			if (declaringType is null || t is null || !t.IsGenericTypeDefinition)
+				return false;
+			if (declaringType.IsGenericTypeDefinition)
+				return t == declaringType;
+			if (declaringType.IsGenericType) {
+				// t's generic params can only be in the sig if the declaring type is instantiated with them
+				foreach (var genArg in declaringType.GetGenericArguments()) {
+					if (genArg.IsGenericParameter && genArg.DeclaringMethod is null && genArg.DeclaringType == t)
+						return true;
+				}
+			}
+			return false;
+		}
 
 		/// <summary>
 		/// Checks whether <paramref name="type"/> is a type definition and not a type spec
