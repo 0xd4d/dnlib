@@ -691,8 +691,10 @@ namespace dnlib.DotNet {
 		GenericInstMethodSig? CreateGenericInstMethodSig(MethodBase mb) {
 			var genMethodArgs = mb.GetGenericArguments();
 			var gim = new GenericInstMethodSig(CallingConvention.GenericInst, (uint)genMethodArgs.Length);
+			// Same as the method's param types: if a generic method arg is the declaring type (a generic type def), it's a
+			// generic inst instantiated with its own generic params since a sig can't have a generic type def
 			foreach (var gma in genMethodArgs)
-				gim.GenericArguments.Add(ImportAsTypeSigOrNull(gma));
+				gim.GenericArguments.Add(ImportAsTypeSigOrNull(gma, mb.DeclaringType));
 			return gim;
 		}
 
