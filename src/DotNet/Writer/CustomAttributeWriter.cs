@@ -722,8 +722,8 @@ namespace dnlib.DotNet.Writer {
 			}
 			else {
 				sb.Length = 0;
-				var name = FullNameFactory.AssemblyQualifiedName(type, helper, sb);
-				if (FullNameFactory.ContainsErrorMarker(name))
+				var name = FullNameFactory.AssemblyQualifiedName(type, helper, sb, out bool hasError);
+				if (hasError)
 					helper.Error("Custom attribute: Type has a null value or is too deeply nested");
 				WriteUTF8String(name);
 			}

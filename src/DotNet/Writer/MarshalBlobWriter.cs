@@ -75,8 +75,8 @@ namespace dnlib.DotNet.Writer {
 				if (UpdateCanWrite(safeArray.IsVariantTypeValid, "VariantType", ref canWrite))
 					WriteCompressedUInt32((uint)safeArray.VariantType);
 				if (UpdateCanWrite(safeArray.IsUserDefinedSubTypeValid, "UserDefinedSubType", ref canWrite)) {
-					var subTypeName = safeArray.UserDefinedSubType!.AssemblyQualifiedName;
-					if (FullNameFactory.ContainsErrorMarker(subTypeName))
+					var subTypeName = FullNameFactory.AssemblyQualifiedName(safeArray.UserDefinedSubType!, null, null, out bool hasError);
+					if (hasError)
 						helper.Error("Marshal type: UserDefinedSubType has a null value or is too deeply nested");
 					Write(subTypeName);
 				}
@@ -111,8 +111,8 @@ namespace dnlib.DotNet.Writer {
 				if (cm is null)
 					cmName = custMarshaler.CustomMarshalerTypeName;
 				else {
-					var cmFullName = FullNameFactory.AssemblyQualifiedName(cm, this);
-					if (FullNameFactory.ContainsErrorMarker(cmFullName))
+					var cmFullName = FullNameFactory.AssemblyQualifiedName(cm, this, null, out bool hasError);
+					if (hasError)
 						helper.Error("Marshal type: Custom marshaler type has a null value or is too deeply nested");
 					cmName = cmFullName;
 				}

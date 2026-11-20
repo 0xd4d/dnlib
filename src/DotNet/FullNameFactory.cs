@@ -1,6 +1,5 @@
 // dnlib: See LICENSE.txt for more info
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -30,18 +29,13 @@ namespace dnlib.DotNet {
 		const uint MaxMethodGenParamCount = 200;
 		const string RECURSION_ERROR_RESULT_STRING = "<<<INFRECURSION>>>";
 		const string NULLVALUE = "<<<NULL>>>";
-
-		/// <summary>
-		/// Returns true if a name created by this class has a null value or is too deeply nested so it can't be
-		/// written to eg. a custom attribute blob
-		/// </summary>
-		internal static bool ContainsErrorMarker(string name) =>
-			name.IndexOf(NULLVALUE, StringComparison.Ordinal) >= 0 || name.IndexOf(RECURSION_ERROR_RESULT_STRING, StringComparison.Ordinal) >= 0;
 		readonly StringBuilder sb;
 		readonly bool isReflection;
 		readonly IFullNameFactoryHelper? helper;
 		GenericArguments? genericArguments;
 		RecursionCounter recursionCounter;
+		// true if a null value or too deep nesting was found (and an error marker was added to the name)
+		bool hasError;
 
 		/// <summary>
 		/// Checks whether the assembly name should be included when printing the full name.
@@ -187,6 +181,33 @@ namespace dnlib.DotNet {
 		/// <returns>The assembly qualified full name</returns>
 		public static string AssemblyQualifiedName(IType? type, IFullNameFactoryHelper? helper = null, StringBuilder? sb = null) =>
 			AssemblyQualifiedNameSB(type, helper, sb).ToString();
+
+		/// <summary>
+		/// Returns the assembly qualified full name of a <see cref="IType"/>
+		/// </summary>
+		/// <param name="type">The <c>IType</c></param>
+		/// <param name="helper">Helps print the name</param>
+		/// <param name="sb">String builder to use or null</param>
+		/// <param name="hasError">Updated with true if the type (or a type it references) has a null value or is
+		/// too deeply nested so the name can't be written to eg. a custom attribute blob</param>
+		/// <returns>The assembly qualified full name</returns>
+		internal static string AssemblyQualifiedName(IType type, IFullNameFactoryHelper? helper, StringBuilder? sb, out bool hasError) {
+			var fnc = new FullNameFactory(true, helper, sb);
+			if (type is TypeDef td)
+				fnc.CreateAssemblyQualifiedName(td);
+			else if (type is TypeRef tr)
+				fnc.CreateAssemblyQualifiedName(tr);
+			else if (type is TypeSpec ts)
+				fnc.CreateAssemblyQualifiedName(ts);
+			else if (type is TypeSig sig)
+				fnc.CreateAssemblyQualifiedName(sig);
+			else if (type is ExportedType et)
+				fnc.CreateAssemblyQualifiedName(et);
+			else
+				fnc.hasError = true;
+			hasError = fnc.hasError;
+			return fnc.sb.ToString();
+		}
 
 		/// <summary>
 		/// Returns the assembly qualified full name of a <see cref="IType"/>
@@ -1042,6 +1063,17 @@ namespace dnlib.DotNet {
 			this.helper = helper;
 			genericArguments = null;
 			recursionCounter = new RecursionCounter();
+			hasError = false;
+		}
+
+		void AppendNullValue() {
+			hasError = true;
+			sb.Append(NULLVALUE);
+		}
+
+		void AppendRecursionError() {
+			hasError = true;
+			sb.Append(RECURSION_ERROR_RESULT_STRING);
 		}
 
 		bool MustUseAssemblyName(IType? type) {
@@ -1079,7 +1111,7 @@ namespace dnlib.DotNet {
 			else if (typeDefOrRef is TypeSpec)
 				CreateFullName((TypeSpec)typeDefOrRef);
 			else
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 		}
 
 		void CreateNamespace(ITypeDefOrRef? typeDefOrRef, bool onlyNamespace) {
@@ -1090,7 +1122,7 @@ namespace dnlib.DotNet {
 			else if (typeDefOrRef is TypeSpec)
 				CreateNamespace((TypeSpec)typeDefOrRef, onlyNamespace);
 			else
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 		}
 
 		void CreateName(ITypeDefOrRef? typeDefOrRef) {
@@ -1101,7 +1133,7 @@ namespace dnlib.DotNet {
 			else if (typeDefOrRef is TypeSpec)
 				CreateName((TypeSpec)typeDefOrRef);
 			else
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 		}
 
 		void CreateAssemblyQualifiedName(ITypeDefOrRef? typeDefOrRef) {
@@ -1112,16 +1144,16 @@ namespace dnlib.DotNet {
 			else if (typeDefOrRef is TypeSpec)
 				CreateAssemblyQualifiedName((TypeSpec)typeDefOrRef);
 			else
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 		}
 
 		void CreateAssemblyQualifiedName(TypeRef? typeRef) {
 			if (typeRef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1136,11 +1168,11 @@ namespace dnlib.DotNet {
 
 		void CreateFullName(TypeRef? typeRef) {
 			if (typeRef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1158,7 +1190,7 @@ namespace dnlib.DotNet {
 
 		void CreateNamespace(TypeRef? typeRef, bool onlyNamespace) {
 			if (typeRef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			AddNamespace(typeRef.Namespace, onlyNamespace);
@@ -1166,7 +1198,7 @@ namespace dnlib.DotNet {
 
 		void CreateName(TypeRef? typeRef) {
 			if (typeRef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			AddName(typeRef.Name);
@@ -1174,11 +1206,11 @@ namespace dnlib.DotNet {
 
 		void CreateAssemblyQualifiedName(TypeDef? typeDef) {
 			if (typeDef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1193,11 +1225,11 @@ namespace dnlib.DotNet {
 
 		void CreateFullName(TypeDef? typeDef) {
 			if (typeDef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1216,7 +1248,7 @@ namespace dnlib.DotNet {
 
 		void CreateNamespace(TypeDef? typeDef, bool onlyNamespace) {
 			if (typeDef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			AddNamespace(typeDef.Namespace, onlyNamespace);
@@ -1224,7 +1256,7 @@ namespace dnlib.DotNet {
 
 		void CreateName(TypeDef? typeDef) {
 			if (typeDef is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			AddName(typeDef.Name);
@@ -1232,7 +1264,7 @@ namespace dnlib.DotNet {
 
 		void CreateAssemblyQualifiedName(TypeSpec? typeSpec) {
 			if (typeSpec is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			CreateAssemblyQualifiedName(typeSpec.TypeSig);
@@ -1240,7 +1272,7 @@ namespace dnlib.DotNet {
 
 		void CreateFullName(TypeSpec? typeSpec) {
 			if (typeSpec is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			CreateFullName(typeSpec.TypeSig);
@@ -1248,7 +1280,7 @@ namespace dnlib.DotNet {
 
 		void CreateNamespace(TypeSpec? typeSpec, bool onlyNamespace) {
 			if (typeSpec is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			CreateNamespace(typeSpec.TypeSig, onlyNamespace);
@@ -1256,7 +1288,7 @@ namespace dnlib.DotNet {
 
 		void CreateName(TypeSpec? typeSpec) {
 			if (typeSpec is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			CreateName(typeSpec.TypeSig);
@@ -1265,11 +1297,11 @@ namespace dnlib.DotNet {
 
 		void CreateAssemblyQualifiedName(TypeSig? typeSig) {
 			if (typeSig is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1301,11 +1333,11 @@ namespace dnlib.DotNet {
 		const int TYPESIG_ONLY_NAMESPACE = 4;
 		void CreateTypeSigName(TypeSig? typeSig, int flags) {
 			if (typeSig is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1528,11 +1560,11 @@ namespace dnlib.DotNet {
 
 		void CreateAssemblyQualifiedName(ExportedType? exportedType) {
 			if (exportedType is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1547,11 +1579,11 @@ namespace dnlib.DotNet {
 
 		void CreateFullName(ExportedType? exportedType) {
 			if (exportedType is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			if (!recursionCounter.Increment()) {
-				sb.Append(RECURSION_ERROR_RESULT_STRING);
+				AppendRecursionError();
 				return;
 			}
 
@@ -1569,7 +1601,7 @@ namespace dnlib.DotNet {
 
 		void CreateNamespace(ExportedType? exportedType, bool onlyNamespace) {
 			if (exportedType is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			AddNamespace(exportedType.TypeNamespace, onlyNamespace);
@@ -1577,7 +1609,7 @@ namespace dnlib.DotNet {
 
 		void CreateName(ExportedType? exportedType) {
 			if (exportedType is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 			AddName(exportedType.TypeName);
@@ -1620,7 +1652,7 @@ namespace dnlib.DotNet {
 
 		void CreateAssemblyFullName(IAssembly? assembly, bool useToken, bool escapeClosingBracket = false) {
 			if (assembly is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 
@@ -2181,7 +2213,7 @@ namespace dnlib.DotNet {
 
 		void CreateMethodFullName(string? declaringType, string? name, MethodBaseSig? methodSig, MethodDef? gppMethod) {
 			if (methodSig is null) {
-				sb.Append(NULLVALUE);
+				AppendNullValue();
 				return;
 			}
 
