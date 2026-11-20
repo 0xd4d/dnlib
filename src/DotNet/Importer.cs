@@ -267,7 +267,8 @@ namespace dnlib.DotNet {
 
 			TypeSig? result;
 			bool treatAsGenericInst2 = treatAsGenericInst ??
-				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type));
+				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type) ||
+				modifiedType.IsGenericInstOfOwnGenericParams(type));
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
 			case ElementType.Void: result = module.CorLibTypes.Void; break;
 			case ElementType.Boolean: result = module.CorLibTypes.Boolean; break;

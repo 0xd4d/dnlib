@@ -203,6 +203,17 @@ namespace dnlib.DotNet {
 			return modifiedType is not null && modifiedType.IsAssignableFrom(self.GetType());
 		}
 
+		/// <summary>
+		/// Checks whether <paramref name="modifiedType"/> (a .NET 8+ modified type of <paramref name="type"/> or <c>null</c>)
+		/// is a generic type instantiated with its own generic parameters, eg. the type of a field whose type is its
+		/// declaring type. It's a generic instance type in the signature, but reflection uses the generic type definition
+		/// for both of them so <paramref name="type"/> (the unmodified type) is the generic type definition.
+		/// </summary>
+		/// <param name="modifiedType">The modified type or <c>null</c></param>
+		/// <param name="type">The unmodified type</param>
+		internal static bool IsGenericInstOfOwnGenericParams(this Type? modifiedType, Type type) =>
+			modifiedType is not null && type.IsGenericTypeDefinition && modifiedType.IsGenericType && !modifiedType.IsGenericTypeDefinition;
+
 		static class ModifiedTypeReflection {
 			// The class is internal so typeof() can't be used. It's looked up in CoreLib so a user type with the same
 			// name can't match. It's null if the runtime doesn't have modified types (.NET Framework, < .NET 8).
