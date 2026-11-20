@@ -520,8 +520,20 @@ namespace dnlib.DotNet {
 		/// <param name="requiredModifiers">A list of all required modifiers or <c>null</c></param>
 		/// <param name="optionalModifiers">A list of all optional modifiers or <c>null</c></param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers) =>
-			ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null);
+		public TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers) {
+			// A .NET 8+ modified type (eg. from FieldInfo.GetModifiedFieldType()) doesn't support most members. Import
+			// the unmodified type with the modified type's custom modifiers (unless the caller passed modifiers).
+			if (type is not null && type.IsModifiedType()) {
+				var modifiedType = type;
+				type = modifiedType.UnderlyingSystemType;
+				if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers)) {
+					requiredModifiers = modifiedType.GetRequiredCustomModifiers2();
+					optionalModifiers = modifiedType.GetOptionalCustomModifiers2();
+				}
+				return ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null, modifiedType);
+			}
+			return ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null);
+		}
 
 		TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers, Type? declaringType, Type? modifiedType = null) {
 			if (type is null)

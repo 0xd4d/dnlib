@@ -194,6 +194,22 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Checks whether <paramref name="self"/> is a .NET 8+ modified type (returned by eg. <c>FieldInfo.GetModifiedFieldType()</c>).
+		/// It has the custom modifiers but doesn't support most other members.
+		/// </summary>
+		/// <param name="self">The type</param>
+		public static bool IsModifiedType(this Type self) {
+			var modifiedType = ModifiedTypeReflection.modifiedType;
+			return modifiedType is not null && modifiedType.IsAssignableFrom(self.GetType());
+		}
+
+		static class ModifiedTypeReflection {
+			// The class is internal so typeof() can't be used. It's looked up in CoreLib so a user type with the same
+			// name can't match. It's null if the runtime doesn't have modified types (.NET Framework, < .NET 8).
+			public static readonly Type? modifiedType = Type.GetType("System.Reflection.ModifiedType, System.Private.CoreLib", throwOnError: false);
+		}
+
+		/// <summary>
 		/// Same as .NET 8+ <c>ParameterInfo.GetModifiedParameterType()</c>, returns <c>null</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The parameter</param>
