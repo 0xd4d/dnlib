@@ -50,8 +50,13 @@ namespace dnlib.DotNet {
 		}
 
 		AssemblyRef GetCurrentAssemblyRef(AssemblyDef? modAsm) {
-			if (modAsm is not null)
-				return module.UpdateRowId(new AssemblyRefUser(modAsm));
+			if (modAsm is not null) {
+				// TypeNameParser only resolves the type if the assembly ref and the assembly have the same
+				// Retargetable flag, which isn't copied by the constructor.
+				var asmRef = new AssemblyRefUser(modAsm);
+				asmRef.IsRetargetable = modAsm.IsRetargetable;
+				return module.UpdateRowId(asmRef);
+			}
 			return AssemblyRef.CurrentAssembly;
 		}
 
