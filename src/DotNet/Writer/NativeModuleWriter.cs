@@ -212,6 +212,11 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		long Write() {
+			// The original image's alignments are used to lay out the new file
+			var optHdr = peImage.ImageNTHeaders.OptionalHeader;
+			if (!IsPowerOfTwo(optHdr.SectionAlignment) || !IsPowerOfTwo(optHdr.FileAlignment))
+				throw new ModuleWriterException($"Invalid PE alignment: SectionAlignment = 0x{optHdr.SectionAlignment:X}, FileAlignment = 0x{optHdr.FileAlignment:X}. Both must be powers of two.");
+
 			Initialize();
 
 			// It's not safe to create new Field RVAs so re-use them all. The user can override
@@ -314,6 +319,9 @@ namespace dnlib.DotNet.Writer {
 					extraLen = headerLen - origHeadersLen;
 					headerLen = origHeadersLen;
 				}
+				// Eg. a section's raw data is far past the end of the file
+				if (extraLen > int.MaxValue)
+					throw new ModuleWriterException("Could not create header");
 				if (extraLen > 0)
 					extraHeaderData = new ByteArrayChunk(new byte[(int)extraLen]);
 				else
@@ -334,12 +342,27 @@ namespace dnlib.DotNet.Writer {
 				uint moveAlignment = Math.Max(SECTION_MOVE_ALIGNMENT, peImage.ImageNTHeaders.OptionalHeader.FileAlignment);
 				headersFileLength = OffsetUtils.Add(firstRawDataOffset, OffsetUtils.AlignUp(headerLen - firstRawDataOffset, moveAlignment));
 			}
-			var origHeaders = peImage.CreateReader((FileOffset)0, firstRawDataOffset);
-			if (origHeaders.Length != firstRawDataOffset)
+			// A section's raw data could start before the end of the section headers (invalid or a tiny PE file) but
+			// the original headers must include all section headers
+			uint origHeadersLength = Math.Max(firstRawDataOffset, GetOffsetAfterLastSectionHeader());
+			var origHeaders = peImage.CreateReader((FileOffset)0, origHeadersLength);
+			if (origHeaders.Length != origHeadersLength)
 				throw new ModuleWriterException("Could not create header");
 			return new PaddedChunk(new DataReaderChunk(origHeaders), headerLen, headersFileLength);
 		}
 		const uint SECTION_MOVE_ALIGNMENT = 0x10000;
+
+		static bool IsPowerOfTwo(uint v) => v != 0 && (v & (v - 1)) == 0;
+
+		RVA GetFirstNewSectionRva() {
+			uint sectionAlignment = peImage.ImageNTHeaders.OptionalHeader.SectionAlignment;
+			uint rva = 0;
+			foreach (var section in peImage.ImageSectionHeaders) {
+				var end = OffsetUtils.Add((uint)section.VirtualAddress, OffsetUtils.AlignUp(section.LoadedVirtualSize, sectionAlignment));
+				rva = Math.Max(rva, end);
+			}
+			return (RVA)OffsetUtils.AlignUp(rva, sectionAlignment);
+		}
 
 		ulong GetFirstSectionRva() {
 			ulong rva = ulong.MaxValue;
@@ -449,6 +472,8 @@ namespace dnlib.DotNet.Writer {
 			}
 			if (methodBodies.OverlapsReusedBody(origRva, origSize))
 				return;
+			if (OverlapsInPlaceUpdatedRange(origRva, origSize))
+				return;
 
 			if (section.Remove(chunk) is null)
 				throw new InvalidOperationException();
@@ -503,9 +528,13 @@ namespace dnlib.DotNet.Writer {
 			OnWriterEvent(ModuleWriterEvent.BeginCalculateRvasAndFileOffsets);
 
 			if (Options.OptimizeImageSize) {
+				// The vtable fixups and vtables are updated in place (see UpdateVTableFixups()) so nothing can be
+				// reused if it overlaps them (invalid images only), else it would be overwritten.
+				inPlaceUpdatedRanges = GetInPlaceUpdatedRanges();
+
 				// Method bodies have already been added. Make sure no reused body overwrites another one.
 				// The chunks below aren't reused if they overlap a reused body.
-				methodBodies.RemoveOverlappingReusedBodies();
+				methodBodies.RemoveOverlappingReusedBodies(OverlapsInPlaceUpdatedRange);
 
 				// Check if we can reuse the old MD location for the new MD.
 				// If we can't reuse it, it could be due to several reasons:
@@ -582,8 +611,14 @@ namespace dnlib.DotNet.Writer {
 			var origSectionRvas = new Dictionary<IChunk, RVA>(origSections.Count);
 			foreach (var origSection in origSections)
 				origSectionRvas[origSection.Chunk] = (RVA)origSection.PESection.VirtualAddress;
+			// The new sections are added after the original sections. The reader (and the CLR) find the section that contains
+			// an RVA by aligning its virtual size, not its end, so start the new sections after that: if a section's RVA
+			// isn't aligned (invalid but readable), AlignUp(RVA + VirtualSize) could be inside it.
+			// Only the first new section needs it, the following chunks are after it.
+			var newSectionsRva = GetFirstNewSectionRva();
+			var firstNewSection = sections.Count > 0 ? sections[0] : null;
 			CalculateRvasAndFileOffsets(chunks, 0, 0, peImage.ImageNTHeaders.OptionalHeader.FileAlignment, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment,
-				chunk => origSectionRvas.TryGetValue(chunk, out var origRva) ? origRva : null);
+				chunk => origSectionRvas.TryGetValue(chunk, out var origRva) ? origRva : chunk == firstNewSection ? newSectionsRva : null);
 			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
 				methodBodies.InitializeReusedMethodBodies(GetNewFileOffset);
 				foreach (var info in reusedChunks) {
@@ -686,7 +721,8 @@ namespace dnlib.DotNet.Writer {
 		void UpdateHeaderFields(DataWriter writer, bool entryPointIsManagedOrNoEntryPoint, uint entryPointToken, ref SectionSizes sectionSizes) {
 			long fileHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.FileHeader.StartOffset;
 			long optionalHeaderOffset = destStreamBaseOffset + (long)peImage.ImageNTHeaders.OptionalHeader.StartOffset;
-			long sectionsOffset = destStreamBaseOffset + (long)peImage.ImageSectionHeaders[0].StartOffset;
+			// Same offset as the first section header (if any), the image could have no sections
+			long sectionsOffset = optionalHeaderOffset + peImage.ImageNTHeaders.FileHeader.SizeOfOptionalHeader;
 			bool is32BitOptionalHeader = peImage.ImageNTHeaders.OptionalHeader is ImageOptionalHeader32;
 			// The data directories are at a fixed offset in the optional header. Don't use its end offset,
 			// SizeOfOptionalHeader can be bigger than the standard size.
@@ -956,6 +992,91 @@ namespace dnlib.DotNet.Writer {
 			return list;
 		}
 
+		/// <summary>
+		/// Sorted, non-overlapping RVA ranges. Overlapping and adjacent ranges are merged so lookups are fast,
+		/// eg. a C++/CLI image can have many vtables and many reused method bodies.
+		/// </summary>
+		sealed class RvaRanges {
+			readonly ulong[] starts;
+			readonly ulong[] ends;
+
+			public RvaRanges(List<OrigVTableInfo> ranges) {
+				var sorted = new List<OrigVTableInfo>(ranges.Count);
+				foreach (var range in ranges) {
+					if (range.Size != 0)
+						sorted.Add(range);
+				}
+				sorted.Sort((a, b) => ((uint)a.RVA).CompareTo((uint)b.RVA));
+				var starts = new List<ulong>(sorted.Count);
+				var ends = new List<ulong>(sorted.Count);
+				foreach (var range in sorted) {
+					ulong start = (uint)range.RVA;
+					ulong end = start + range.Size;
+					int last = ends.Count - 1;
+					if (last >= 0 && start <= ends[last]) {
+						if (end > ends[last])
+							ends[last] = end;
+					}
+					else {
+						starts.Add(start);
+						ends.Add(end);
+					}
+				}
+				this.starts = starts.ToArray();
+				this.ends = ends.ToArray();
+			}
+
+			// Returns the index of the last range that starts at or before rva, or -1
+			int FindLastStartingAtOrBefore(ulong rva) {
+				int lo = 0, hi = starts.Length - 1, result = -1;
+				while (lo <= hi) {
+					int mid = lo + (hi - lo) / 2;
+					if (starts[mid] <= rva) {
+						result = mid;
+						lo = mid + 1;
+					}
+					else
+						hi = mid - 1;
+				}
+				return result;
+			}
+
+			/// <summary>
+			/// Checks if any byte in [rva, rva + size) is in a range
+			/// </summary>
+			public bool Overlaps(RVA rva, ulong size) {
+				if (size == 0)
+					return false;
+				ulong start = (uint)rva;
+				ulong end = start + size;
+				// The ranges don't overlap so only the last range starting before end can overlap
+				int index = FindLastStartingAtOrBefore(end - 1);
+				return index >= 0 && ends[index] > start;
+			}
+
+			/// <summary>
+			/// Checks if [rva, rva + size) is inside a range
+			/// </summary>
+			public bool Contains(RVA rva, ulong size) {
+				ulong start = (uint)rva;
+				int index = FindLastStartingAtOrBefore(start);
+				return index >= 0 && start + size <= ends[index];
+			}
+		}
+
+		RvaRanges? inPlaceUpdatedRanges;
+
+		RvaRanges GetInPlaceUpdatedRanges() {
+			var origDir = module.Metadata.ImageCor20Header.VTableFixups;
+			var list = ReadOriginalVTables(origDir);
+			if (origDir.VirtualAddress != 0 && origDir.Size != 0)
+				list.Add(new OrigVTableInfo(origDir.VirtualAddress, origDir.Size));
+			return new RvaRanges(list);
+		}
+
+		bool OverlapsInPlaceUpdatedRange(RVA rva, uint size) =>
+			inPlaceUpdatedRanges is not null && inPlaceUpdatedRanges.Overlaps(rva, size);
+
 		static bool IsInRange(RVA rva, ulong size, RVA rangeRva, ulong rangeSize) =>
 			rva >= rangeRva && (ulong)rva + size <= (ulong)rangeRva + rangeSize;
 
@@ -963,7 +1084,7 @@ namespace dnlib.DotNet.Writer {
 		/// The vtable fixups and vtables are written over the original data so they can't be moved or grow
 		/// past their original locations. Returns false if any of them doesn't fit.
 		/// </summary>
-		bool CanUpdateVTableFixups(VTableFixups vtableFixups, ImageDataDirectory origDir, List<OrigVTableInfo> origVTables) {
+		bool CanUpdateVTableFixups(VTableFixups vtableFixups, ImageDataDirectory origDir, RvaRanges origVTables) {
 			var vtables = vtableFixups.VTables;
 			ulong headersSize = (ulong)vtables.Count * 8;
 			if (!IsInRange(vtableFixups.RVA, headersSize, origDir.VirtualAddress, origDir.Size) || !IsInOneSectionsFileData(vtableFixups.RVA, (uint)headersSize)) {
@@ -977,14 +1098,9 @@ namespace dnlib.DotNet.Writer {
 				if (count == 0)
 					continue;
 				ulong size = (ulong)count * (vtable.Is64Bit ? 8U : 4);
-				bool fits = false;
-				foreach (var orig in origVTables) {
-					if (IsInRange(vtable.RVA, size, orig.RVA, orig.Size)) {
-						fits = true;
-						break;
-					}
-				}
-				if (!fits || !IsInOneSectionsFileData(vtable.RVA, (uint)size)) {
+				// Adjacent original vtables are merged so a vtable can use more than one of them. That's fine since
+				// it's still written inside the original vtables.
+				if (!origVTables.Contains(vtable.RVA, size) || !IsInOneSectionsFileData(vtable.RVA, (uint)size)) {
 					Error("VTable (RVA {0:X8}, {1} slots) doesn't fit in an original vtable location", (uint)vtable.RVA, count);
 					return false;
 				}
@@ -1006,7 +1122,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			// Check everything first, if something doesn't fit, nothing is updated (the logger might not throw)
-			if (!CanUpdateVTableFixups(vtableFixups, origDir, ReadOriginalVTables(origDir)))
+			if (!CanUpdateVTableFixups(vtableFixups, origDir, new RvaRanges(ReadOriginalVTables(origDir))))
 				return;
 
 			// The original size isn't always a multiple of 8 (MSVC), so only update the data directory if needed

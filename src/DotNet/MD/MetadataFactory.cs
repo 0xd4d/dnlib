@@ -152,6 +152,11 @@ namespace dnlib.DotNet.MD {
 
 				return md;
 			}
+			catch (DataReaderException ex) {
+				// Truncated or invalid .NET header, metadata header, stream headers or tables header
+				md?.Dispose();
+				throw new BadImageFormatException($"Invalid .NET metadata: {ex.Message}", ex);
+			}
 			catch {
 				if (md is not null)
 					md.Dispose();
@@ -186,6 +191,10 @@ namespace dnlib.DotNet.MD {
 				md.Initialize(mdReaderFactory);
 
 				return md;
+			}
+			catch (DataReaderException ex) {
+				md?.Dispose();
+				throw new BadImageFormatException($"Invalid .NET metadata: {ex.Message}", ex);
 			}
 			catch {
 				md?.Dispose();

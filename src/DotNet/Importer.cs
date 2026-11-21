@@ -267,7 +267,8 @@ namespace dnlib.DotNet {
 
 			TypeSig? result;
 			bool treatAsGenericInst2 = treatAsGenericInst ??
-				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type));
+				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type) ||
+				modifiedType.IsGenericInstOfOwnGenericParams(type));
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
 			case ElementType.Void: result = module.CorLibTypes.Void; break;
 			case ElementType.Boolean: result = module.CorLibTypes.Boolean; break;
@@ -309,9 +310,10 @@ namespace dnlib.DotNet {
 
 			case ElementType.GenericInst:
 				var typeGenArgs = type.GetGenericArguments();
+				var modGenArgs = modifiedType.GetModifiedGenericArguments(typeGenArgs);
 				var git = new GenericInstSig(ImportAsTypeSigOrNull(type.GetGenericTypeDefinition(), null, false) as ClassOrValueTypeSig, (uint)typeGenArgs.Length);
-				foreach (var ga in typeGenArgs)
-					git.GenericArguments.Add(ImportAsTypeSigOrNull(ga, declaringType));
+				for (int i = 0; i < typeGenArgs.Length; i++)
+					git.GenericArguments.Add(ImportAsTypeSigOrNull(typeGenArgs[i], declaringType, null, modGenArgs?[i]));
 				result = git;
 				break;
 
@@ -520,8 +522,20 @@ namespace dnlib.DotNet {
 		/// <param name="requiredModifiers">A list of all required modifiers or <c>null</c></param>
 		/// <param name="optionalModifiers">A list of all optional modifiers or <c>null</c></param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers) =>
-			ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null);
+		public TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers) {
+			// A .NET 8+ modified type (eg. from FieldInfo.GetModifiedFieldType()) doesn't support most members. Import
+			// the unmodified type with the modified type's custom modifiers (unless the caller passed modifiers).
+			if (type is not null && type.IsModifiedType()) {
+				var modifiedType = type;
+				type = modifiedType.UnderlyingSystemType;
+				if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers)) {
+					requiredModifiers = modifiedType.GetRequiredCustomModifiers2();
+					optionalModifiers = modifiedType.GetOptionalCustomModifiers2();
+				}
+				return ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null, modifiedType);
+			}
+			return ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null);
+		}
 
 		TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers, Type? declaringType, Type? modifiedType = null) {
 			if (type is null)
@@ -677,8 +691,10 @@ namespace dnlib.DotNet {
 		GenericInstMethodSig? CreateGenericInstMethodSig(MethodBase mb) {
 			var genMethodArgs = mb.GetGenericArguments();
 			var gim = new GenericInstMethodSig(CallingConvention.GenericInst, (uint)genMethodArgs.Length);
+			// Same as the method's param types: if a generic method arg is the declaring type (a generic type def), it's a
+			// generic inst instantiated with its own generic params since a sig can't have a generic type def
 			foreach (var gma in genMethodArgs)
-				gim.GenericArguments.Add(ImportAsTypeSigOrNull(gma));
+				gim.GenericArguments.Add(ImportAsTypeSigOrNull(gma, mb.DeclaringType));
 			return gim;
 		}
 

@@ -517,7 +517,6 @@ namespace dnlib.DotNet.Writer {
 		readonly Dictionary<object, HashSet<uint>> sharedRowDataOwners = new Dictionary<object, HashSet<uint>>();
 		readonly Dictionary<FieldDef, ByteArrayChunk> fieldToInitialValue = new Dictionary<FieldDef, ByteArrayChunk>();
 		readonly Rows<PdbDocument> pdbDocumentInfos = new Rows<PdbDocument>();
-		bool methodDebugInformationInfosUsed;
 		readonly SortedRows<PdbScope, RawLocalScopeRow> localScopeInfos = new SortedRows<PdbScope, RawLocalScopeRow>();
 		readonly Rows<PdbLocal> localVariableInfos = new Rows<PdbLocal>();
 		readonly Rows<PdbConstant> localConstantInfos = new Rows<PdbConstant>();
@@ -3460,7 +3459,6 @@ namespace dnlib.DotNet.Writer {
 			var seqPointsBlob = outStream.ToArray();
 			var row = new RawMethodDebugInformationRow(singleDoc is null ? 0 : AddPdbDocument(singleDoc), debugMetadata!.blobHeap.Add(seqPointsBlob));
 			debugMetadata.tablesHeap.MethodDebugInformationTable[rid] = row;
-			debugMetadata.methodDebugInformationInfosUsed = true;
 			Free(ref bwctx);
 		}
 
@@ -3878,8 +3876,6 @@ namespace dnlib.DotNet.Writer {
 
 			tablesHeap.GetSystemTableRows(out ulong systemTablesMask, pdbHeap.TypeSystemTableRows);
 			debugMetadata.tablesHeap.SetSystemTableRows(pdbHeap.TypeSystemTableRows);
-			if (!debugMetadata.methodDebugInformationInfosUsed)
-				debugMetadata.tablesHeap.MethodDebugInformationTable.Reset();
 			pdbHeap.ReferencedTypeSystemTables = systemTablesMask;
 			var writer = new DataWriter(output);
 			debugMetadata.OnBeforeSetOffset();

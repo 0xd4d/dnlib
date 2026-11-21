@@ -364,7 +364,10 @@ namespace dnlib.DotNet {
 
 				case ElementType.GenericInst:
 					var ginstSpec = (GenericInstSpec)tspec;
-					currentSig = new GenericInstSig(currentSig as ClassOrValueTypeSig, ginstSpec.args);
+					// Eg. "List`1&[[System.Int32]]": the generic type would be null
+					var genericType = currentSig as ClassOrValueTypeSig;
+					Verify(genericType is not null, "Generic arguments must follow a generic type");
+					currentSig = new GenericInstSig(genericType, ginstSpec.args);
 					break;
 
 				case ElementType.ByRef:
@@ -540,6 +543,9 @@ namespace dnlib.DotNet {
 	/// Parses reflection type names. Grammar http://msdn.microsoft.com/en-us/library/yfsftwz6.aspx
 	/// </summary>
 	sealed class ReflectionTypeNameParser : TypeNameParser {
+		// > 0 if we're reading a bracketed generic argument, eg. "[System.Int32, mscorlib]"
+		int bracketedTypeDepth;
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -748,7 +754,11 @@ namespace dnlib.DotNet {
 							if (peeked == ']')
 								break;
 							Verify(!needSeperators || ReadChar() == '[', "Expected '['");
+							if (needSeperators)
+								bracketedTypeDepth++;
 							ginstSpec.args.Add(ReadType(needSeperators));
+							if (needSeperators)
+								bracketedTypeDepth--;
 							SkipWhite();
 							Verify(!needSeperators || ReadChar() == ']', "Expected ']'");
 							SkipWhite();
@@ -792,8 +802,13 @@ namespace dnlib.DotNet {
 			while (true) {
 				SkipWhite();
 				int c = PeekChar();
-				if (c == -1 || c == ']')
+				if (c == -1 || (c == ']' && bracketedTypeDepth > 0))
 					break;
+				if (c == ']') {
+					// Invalid, ignore it
+					ReadChar();
+					continue;
+				}
 				if (c == ',') {
 					ReadChar();
 					continue;
@@ -804,7 +819,7 @@ namespace dnlib.DotNet {
 				if (PeekChar() != '=')
 					continue;
 				ReadChar();
-				string value = ReadId();
+				string value = ReadAssemblyValue();
 
 				switch (key.ToUpperInvariant()) {
 				case "VERSION":
@@ -857,6 +872,18 @@ namespace dnlib.DotNet {
 			return asmRef;
 		}
 
+		// A value ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'
+		string ReadAssemblyValue() {
+			SkipWhite();
+			var sb = new StringBuilder();
+			int c;
+			while ((c = GetAsmNameChar()) != -1)
+				sb.Append((char)c);
+			var value = sb.ToString().Trim();
+			Verify(value.Length > 0, "Expected a value");
+			return value;
+		}
+
 		string ReadAssemblyNameId() {
 			SkipWhite();
 			var sb = new StringBuilder();
@@ -877,7 +904,9 @@ namespace dnlib.DotNet {
 				ReadChar();
 				return ReadChar();
 
-			case ']':
+			// Only a bracketed generic argument's assembly name ends with ']'. It's not escaped in a
+			// top-level assembly name (the CLR doesn't support it there).
+			case ']' when bracketedTypeDepth > 0:
 			case ',':
 				return -1;
 

@@ -171,7 +171,8 @@ namespace dnlib.DotNet {
 		internal GenericParamConstraintMD InitializeAll() {
 			MemberMDInitializer.Initialize(Owner);
 			MemberMDInitializer.Initialize(Constraint);
-			MemberMDInitializer.Initialize(CustomAttributes);
+			// CustomAttributes isn't initialized: this is called by the owner's list (holding its lock) when there's more
+			// than one owner, and reading a CA can read other lists, eg. an enum's fields (recursive lock).
 			return this;
 		}
 	}

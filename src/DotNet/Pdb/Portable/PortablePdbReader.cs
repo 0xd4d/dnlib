@@ -165,7 +165,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 				return null;
 			var mdTable = pdbMetadata.TablesStream.MethodDebugInformationTable;
 			uint methodRid = method.Rid;
-			if (!mdTable.IsValidRID(methodRid))
+			// The table is either empty or has one row per method. It can be empty if no method has sequence
+			// points, but the methods can still have scopes and custom debug infos.
+			if (methodRid == 0 || (!mdTable.IsEmpty && !mdTable.IsValidRID(methodRid)))
 				return null;
 
 			var sequencePoints = ReadSequencePoints(methodRid) ?? Array2.Empty<SymbolSequencePoint>();

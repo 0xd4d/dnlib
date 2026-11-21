@@ -74,8 +74,12 @@ namespace dnlib.DotNet.Writer {
 				var safeArray = (SafeArrayMarshalType)marshalType;
 				if (UpdateCanWrite(safeArray.IsVariantTypeValid, "VariantType", ref canWrite))
 					WriteCompressedUInt32((uint)safeArray.VariantType);
-				if (UpdateCanWrite(safeArray.IsUserDefinedSubTypeValid, "UserDefinedSubType", ref canWrite))
-					Write(safeArray.UserDefinedSubType!.AssemblyQualifiedName);
+				if (UpdateCanWrite(safeArray.IsUserDefinedSubTypeValid, "UserDefinedSubType", ref canWrite)) {
+					var subTypeName = FullNameFactory.AssemblyQualifiedName(safeArray.UserDefinedSubType!, null, null, out bool hasError);
+					if (hasError)
+						helper.Error("Marshal type: UserDefinedSubType has a null value or is too deeply nested");
+					Write(subTypeName);
+				}
 				break;
 
 			case NativeType.FixedArray:
@@ -103,7 +107,15 @@ namespace dnlib.DotNet.Writer {
 				Write(custMarshaler.Guid);
 				Write(custMarshaler.NativeTypeName);
 				var cm = custMarshaler.CustomMarshaler;
-				UTF8String? cmName = cm is null ? custMarshaler.CustomMarshalerTypeName : FullNameFactory.AssemblyQualifiedName(cm, this);
+				UTF8String? cmName;
+				if (cm is null)
+					cmName = custMarshaler.CustomMarshalerTypeName;
+				else {
+					var cmFullName = FullNameFactory.AssemblyQualifiedName(cm, this, null, out bool hasError);
+					if (hasError)
+						helper.Error("Marshal type: Custom marshaler type has a null value or is too deeply nested");
+					cmName = cmFullName;
+				}
 				Write(cmName);
 				Write(custMarshaler.Cookie);
 				break;

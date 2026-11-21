@@ -16,8 +16,6 @@ namespace dnlib.DotNet.Emit {
 		public static readonly OpCode[] TwoByteOpCodes = new OpCode[0x100];
 
 #pragma warning disable 1591 // disable XML doc warning                              
-		public static readonly OpCode UNKNOWN1      = new OpCode("UNKNOWN1",        Code.UNKNOWN1, OperandType.InlineNone, FlowControl.Meta, OpCodeType.Nternal, StackBehaviour.Push0, StackBehaviour.Pop0);
-		public static readonly OpCode UNKNOWN2      = new OpCode("UNKNOWN2",        Code.UNKNOWN2, OperandType.InlineNone, FlowControl.Meta, OpCodeType.Nternal, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Nop           = new OpCode("nop",             Code.Nop, OperandType.InlineNone, FlowControl.Next, OpCodeType.Primitive, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Break         = new OpCode("break",           Code.Break, OperandType.InlineNone, FlowControl.Break, OpCodeType.Primitive, StackBehaviour.Push0, StackBehaviour.Pop0);
 		public static readonly OpCode Ldarg_0       = new OpCode("ldarg.0",         Code.Ldarg_0, OperandType.InlineNone, FlowControl.Next, OpCodeType.Macro, StackBehaviour.Push1, StackBehaviour.Pop0);
@@ -248,15 +246,16 @@ namespace dnlib.DotNet.Emit {
 #pragma warning restore
 
 		static OpCodes() {
-			// The OpCode ctor copies itself to one of these arrays. Whatever are still null
-			// are unsupported opcodes. Set them all to UNKNOWN1 or UNKNOWN2.
+			// The OpCode ctor copies itself to one of these arrays. Whatever are still null are undefined
+			// opcodes. Each one gets its own instance so the original opcode value isn't lost (eg. it's
+			// written back by the method body writer).
 			for (int i = 0; i < OneByteOpCodes.Length; i++) {
 				if (OneByteOpCodes[i] is null)
-					OneByteOpCodes[i] = UNKNOWN1;
+					_ = new OpCode($"UNKNOWN_{i:X2}", (Code)i, OperandType.InlineNone, FlowControl.Meta, OpCodeType.Nternal, StackBehaviour.Push0, StackBehaviour.Pop0);
 			}
 			for (int i = 0; i < TwoByteOpCodes.Length; i++) {
 				if (TwoByteOpCodes[i] is null)
-					TwoByteOpCodes[i] = UNKNOWN2;
+					_ = new OpCode($"UNKNOWN_FE{i:X2}", (Code)(0xFE00 | i), OperandType.InlineNone, FlowControl.Meta, OpCodeType.Nternal, StackBehaviour.Push0, StackBehaviour.Pop0);
 			}
 		}
 	}

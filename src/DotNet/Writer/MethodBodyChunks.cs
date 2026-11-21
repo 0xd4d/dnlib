@@ -133,7 +133,7 @@ namespace dnlib.DotNet.Writer {
 		/// new location, so no reused body overwrites another one. The body with the lowest RVA is kept. Must be called after all bodies
 		/// have been added and before <see cref="OverlapsReusedBody(RVA, uint)"/> is called.
 		/// </summary>
-		internal void RemoveOverlappingReusedBodies() {
+		internal void RemoveOverlappingReusedBodies(Func<RVA, uint, bool>? isExcluded = null) {
 			if (reusedMethods.Count == 0)
 				return;
 			// The RVAs are unique (see rvaToReusedMethod) so the order doesn't depend on the sort implementation
@@ -142,7 +142,8 @@ namespace dnlib.DotNet.Writer {
 			reusedMethods.Clear();
 			ulong prevEnd = 0;
 			foreach (var info in sorted) {
-				if ((uint)info.RVA < prevEnd) {
+				// Also don't reuse it if something else is written to the same location
+				if ((uint)info.RVA < prevEnd || (isExcluded is not null && isExcluded(info.RVA, info.Length))) {
 					// Each body is only stored once, and all methods using it get its new RVA
 					rvaToReusedMethod.Remove((uint)info.RVA);
 					var list = info.MethodBody.IsFat ? fatMethods : tinyMethods;

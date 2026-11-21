@@ -877,14 +877,15 @@ namespace dnlib.DotNet {
 		}
 
 		internal FieldDefMD InitializeAll() {
-			MemberMDInitializer.Initialize(CustomAttributes);
+			// CustomAttributes and InitialValue aren't initialized: this is called by the owner's list (holding its lock)
+			// when there's more than one owner, and reading a CA (eg. an enum's fields) or the initial value (its size can
+			// depend on the declaring type's fields) can read other lists (recursive lock).
 			MemberMDInitializer.Initialize(Attributes);
 			MemberMDInitializer.Initialize(Name);
 			MemberMDInitializer.Initialize(Signature);
 			MemberMDInitializer.Initialize(FieldOffset);
 			MemberMDInitializer.Initialize(MarshalType);
 			MemberMDInitializer.Initialize(RVA);
-			MemberMDInitializer.Initialize(InitialValue);
 			MemberMDInitializer.Initialize(ImplMap);
 			MemberMDInitializer.Initialize(Constant);
 			MemberMDInitializer.Initialize(DeclaringType);

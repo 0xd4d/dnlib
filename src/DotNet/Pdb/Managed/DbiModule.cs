@@ -86,7 +86,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var sig = (ModuleStreamType)reader.ReadUInt32();
 				var size = reader.ReadUInt32();
 				var begin = reader.Position;
-				var end = (begin + size + 3) & ~3U;
+				var end = GetEnd(ref reader, begin, size, align: true);
 
 				if (sig == ModuleStreamType.FileInfo)
 					ReadFiles(pdbReader, docs, ref reader, end);
@@ -103,13 +103,23 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var sig = (ModuleStreamType)reader.ReadUInt32();
 				var size = reader.ReadUInt32();
 				var begin = reader.Position;
-				var end = begin + size;
+				var end = GetEnd(ref reader, begin, size, align: false);
 
 				if (sig == ModuleStreamType.Lines)
 					ReadLines(sortedFuncs, docs, ref reader, end);
 
 				reader.Position = end;
 			}
+		}
+
+		// A big size could wrap around to an earlier position and the caller would loop forever
+		static uint GetEnd(ref DataReader reader, uint begin, uint size, bool align) {
+			ulong end = (ulong)begin + size;
+			if (align)
+				end = (end + 3) & ~3UL;
+			if (end > reader.Length)
+				throw new PdbException("Invalid size");
+			return (uint)end;
 		}
 
 		void ReadFiles(PdbReader pdbReader, Dictionary<uint, DbiDocument> documents, ref DataReader reader, uint end) {
@@ -184,6 +194,11 @@ namespace dnlib.DotNet.Pdb.Managed {
 				const int LINE_ENTRY_SIZE = 8;
 				const int COL_ENTRY_SIZE = 4;
 				var lineTablePos = reader.Position;
+				// The line and column tables must end before 'end', or the positions below could wrap around and
+				// a big count would add billions of sequence points
+				ulong tablesSize = (ulong)count * (uint)((flags & 1) != 0 ? LINE_ENTRY_SIZE + COL_ENTRY_SIZE : LINE_ENTRY_SIZE);
+				if (lineTablePos > end || tablesSize > end - lineTablePos)
+					throw new PdbException("Invalid line count");
 				var colTablePos = reader.Position + count * LINE_ENTRY_SIZE;
 
 				for (uint i = 0; i < count; i++) {

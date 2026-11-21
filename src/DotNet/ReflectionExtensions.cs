@@ -194,6 +194,50 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Checks whether <paramref name="self"/> is a .NET 8+ modified type (returned by eg. <c>FieldInfo.GetModifiedFieldType()</c>).
+		/// It has the custom modifiers but doesn't support most other members.
+		/// </summary>
+		/// <param name="self">The type</param>
+		public static bool IsModifiedType(this Type self) {
+			var modifiedType = ModifiedTypeReflection.modifiedType;
+			return modifiedType is not null && modifiedType.IsAssignableFrom(self.GetType());
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="modifiedType"/> (a .NET 8+ modified type of <paramref name="type"/> or <c>null</c>)
+		/// is a generic type instantiated with its own generic parameters, eg. the type of a field whose type is its
+		/// declaring type. It's a generic instance type in the signature, but reflection uses the generic type definition
+		/// for both of them so <paramref name="type"/> (the unmodified type) is the generic type definition.
+		/// </summary>
+		/// <param name="modifiedType">The modified type or <c>null</c></param>
+		/// <param name="type">The unmodified type</param>
+		internal static bool IsGenericInstOfOwnGenericParams(this Type? modifiedType, Type type) =>
+			// A modified type is created from a signature which can't have a generic type definition (only a generic
+			// instance type), so it's a generic instance type if its unmodified type is a generic type definition. Its
+			// IsGenericTypeDefinition property can't be used: ModifiedType doesn't override it so it's always false.
+			modifiedType is not null && type.IsGenericTypeDefinition;
+
+		/// <summary>
+		/// Gets the generic arguments of <paramref name="modifiedType"/> (a .NET 8+ modified type or <c>null</c>). They
+		/// have the custom modifiers and function pointer calling conventions, eg. <c>List&lt;delegate* unmanaged[Cdecl]&lt;void&gt;[]&gt;</c>.
+		/// Returns <c>null</c> if it's <c>null</c> or if it doesn't have the same number of generic arguments as the unmodified type.
+		/// </summary>
+		/// <param name="modifiedType">The modified type or <c>null</c></param>
+		/// <param name="genericArguments">The generic arguments of the unmodified type</param>
+		internal static Type[]? GetModifiedGenericArguments(this Type? modifiedType, Type[] genericArguments) {
+			if (modifiedType is null || !modifiedType.IsGenericType)
+				return null;
+			var modifiedArgs = modifiedType.GetGenericArguments();
+			return modifiedArgs.Length == genericArguments.Length ? modifiedArgs : null;
+		}
+
+		static class ModifiedTypeReflection {
+			// The class is internal so typeof() can't be used. It's looked up in CoreLib so a user type with the same
+			// name can't match. It's null if the runtime doesn't have modified types (.NET Framework, < .NET 8).
+			public static readonly Type? modifiedType = Type.GetType("System.Reflection.ModifiedType, System.Private.CoreLib", throwOnError: false);
+		}
+
+		/// <summary>
 		/// Same as .NET 8+ <c>ParameterInfo.GetModifiedParameterType()</c>, returns <c>null</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The parameter</param>
@@ -240,10 +284,21 @@ namespace dnlib.DotNet {
 		public static bool ContainsFunctionPointer(this Type? type) {
 			if (!SupportsFunctionPointerTypes)
 				return false;
-			// Function pointers can't be generic arguments so only check element types
-			for (int i = 0; type is not null && i < 1000; i++) {
+			return ContainsFunctionPointer(type, 0);
+		}
+
+		static bool ContainsFunctionPointer(Type? type, int depth) {
+			// Function pointers can't be generic arguments but eg. arrays of function pointers can
+			for (; type is not null && depth < 1000; depth++) {
 				if (type.IsFunctionPointer2())
 					return true;
+				if (type.IsGenericType && !type.IsGenericTypeDefinition) {
+					foreach (var genArg in type.GetGenericArguments()) {
+						if (ContainsFunctionPointer(genArg, depth + 1))
+							return true;
+					}
+					return false;
+				}
 				if (!type.HasElementType)
 					break;
 				type = type.GetElementType();
@@ -410,13 +465,28 @@ namespace dnlib.DotNet {
 		/// Checks whether a parameter/prop/event type should be treated as if it is really a
 		/// generic instance type and not a generic type definition. In the .NET metadata (method
 		/// sig), the parameter is a generic instance type, but the CLR treats it as if it's just
-		/// a generic type def. This seems to happen only if the parameter type is exactly the same
-		/// type as the declaring type, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>.
+		/// a generic type def. Reflection uses the generic type def for a generic instance type instantiated
+		/// with its own generic parameters, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>,
+		/// or a method in a generic instance type that is instantiated with the type's generic parameters, eg.
+		/// <c>ConfiguredTaskAwaitable&lt;TResult&gt;(Task&lt;TResult&gt;)</c> where <c>TResult</c> is <c>Task&lt;TResult&gt;</c>'s
+		/// generic parameter. A generic type def can't be used in a signature so it's a generic instance type.
 		/// </summary>
 		/// <param name="declaringType">Declaring type of field/method/event/property</param>
 		/// <param name="t">Field/parameter/property/event type</param>
-		internal static bool MustTreatTypeAsGenericInstType(this Type? declaringType, Type? t) =>
-			declaringType is not null && declaringType.IsGenericTypeDefinition && t == declaringType;
+		internal static bool MustTreatTypeAsGenericInstType(this Type? declaringType, Type? t) {
+			if (declaringType is null || t is null || !t.IsGenericTypeDefinition)
+				return false;
+			if (declaringType.IsGenericTypeDefinition)
+				return t == declaringType;
+			if (declaringType.IsGenericType) {
+				// t's generic params can only be in the sig if the declaring type is instantiated with them
+				foreach (var genArg in declaringType.GetGenericArguments()) {
+					if (genArg.IsGenericParameter && genArg.DeclaringMethod is null && genArg.DeclaringType == t)
+						return true;
+				}
+			}
+			return false;
+		}
 
 		/// <summary>
 		/// Checks whether <paramref name="type"/> is a type definition and not a type spec
