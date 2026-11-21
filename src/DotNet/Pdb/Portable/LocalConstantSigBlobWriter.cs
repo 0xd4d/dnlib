@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.Portable {
@@ -63,7 +62,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 					if (value is null)
 						writer.WriteByte((byte)0xFF);
 					else if (value is string)
-						writer.WriteBytes(Encoding.Unicode.GetBytes((string)value));
+						writer.WriteBytes(Utils.GetUtf16Bytes((string)value));
 					else
 						helper.Error("Expected a String constant");
 					return;

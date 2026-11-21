@@ -57,7 +57,7 @@ namespace dnlib.DotNet.Writer {
 			return WriteFormat2(secAttrs);
 		}
 
-		byte[] WriteFormat1(string xml) => Encoding.Unicode.GetBytes(xml);
+		byte[] WriteFormat1(string xml) => Utils.GetUtf16Bytes(xml);
 
 		byte[] WriteFormat2(IList<SecurityAttribute> secAttrs) {
 			var sb = new StringBuilder();

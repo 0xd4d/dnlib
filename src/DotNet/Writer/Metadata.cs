@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -2952,7 +2951,7 @@ namespace dnlib.DotNet.Writer {
 
 			case TypeCode.String:
 				VerifyConstantType(etype, ElementType.String);
-				return Encoding.Unicode.GetBytes((string)o);
+				return Utils.GetUtf16Bytes((string)o);
 
 			default:
 				Error("Invalid constant type: {0}", typeCode);
