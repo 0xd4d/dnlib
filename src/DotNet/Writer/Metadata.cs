@@ -2094,15 +2094,13 @@ namespace dnlib.DotNet.Writer {
 
 					var cilBody = method.Body;
 					if (cilBody is not null) {
-						if (!(cilBody.Instructions.Count == 0 && cilBody.Variables.Count == 0)) {
-							writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
-							writer.Write();
-							var origRva = method.RVA;
-							uint origSize = cilBody.MetadataBodySize;
-							var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok), origRva, origSize);
-							methodToBody[method] = mb;
-							localVarSigTok = writer.LocalVarSigTok;
-						}
+						writer.Reset(cilBody, keepMaxStack || cilBody.KeepOldMaxStack);
+						writer.Write();
+						var origRva = method.RVA;
+						uint origSize = cilBody.MetadataBodySize;
+						var mb = methodBodies.Add(new MethodBody(writer.Code, writer.ExtraSections, writer.LocalVarSigTok), origRva, origSize);
+						methodToBody[method] = mb;
+						localVarSigTok = writer.LocalVarSigTok;
 					}
 					else {
 						var nativeBody = method.NativeBody;
