@@ -2030,6 +2030,7 @@ namespace dnlib.DotNet.Writer {
 			public PdbScope Scope;
 			public uint ScopeStart;
 			public uint ScopeLength;
+			public int Index;
 		}
 
 		/// <summary>
@@ -2140,7 +2141,10 @@ namespace dnlib.DotNet.Writer {
 											Error("PDB scope is used more than once in the method (Scopes loop?)");
 											continue;
 										}
-										scopeStack.AddRange(scope.Scopes);
+										// Pre-order, child scopes in list order: see the sort below
+										var childScopes = scope.Scopes;
+										for (int j = childScopes.Count - 1; j >= 0; j--)
+											scopeStack.Add(childScopes[j]);
 										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
 										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
 										if (scopeEnd < scopeStart) {
@@ -2153,6 +2157,7 @@ namespace dnlib.DotNet.Writer {
 											Scope = scope,
 											ScopeStart = scopeStart,
 											ScopeLength = scopeEnd - scopeStart,
+											Index = methodScopeDebugInfos.Count,
 										});
 									}
 								}
@@ -2172,7 +2177,13 @@ namespace dnlib.DotNet.Writer {
 					c = a.ScopeStart.CompareTo(b.ScopeStart);
 					if (c != 0)
 						return c;
-					return b.ScopeLength.CompareTo(a.ScopeLength);
+					c = b.ScopeLength.CompareTo(a.ScopeLength);
+					if (c != 0)
+						return c;
+					// List<T>.Sort() isn't a stable sort. A reader makes a scope a child of the previous scope if
+					// they have the same range, so a scope must be written before its child scopes, and scopes
+					// with the same parent in the same order as in the list.
+					return a.Index.CompareTo(b.Index);
 				});
 				MethodDef? currentMethod = null;
 				IDisposable? currentSource = null;
