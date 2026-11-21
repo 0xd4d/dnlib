@@ -406,7 +406,9 @@ namespace dnlib.DotNet {
 			publicKeyOrToken = assembly.PublicKeyOrToken;
 			name = UTF8String.IsNullOrEmpty(assembly.Name) ? UTF8String.Empty : assembly.Name;
 			culture = UTF8String.EmptyIfNull(assembly.Culture);
-			attributes = (int)((publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None) | assembly.ContentType);
+			// Like compilers, only these flags are copied: the others describe the assembly, not a reference to it
+			attributes = (int)((publicKeyOrToken is PublicKey ? AssemblyAttributes.PublicKey : AssemblyAttributes.None) | assembly.ContentType |
+				(assembly.IsRetargetable ? AssemblyAttributes.Retargetable : AssemblyAttributes.None));
 		}
 	}
 
