@@ -4120,15 +4120,9 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="pds">All <see cref="ParamDef"/>s</param>
 		/// <returns>A sorted <see cref="ParamDef"/> list</returns>
 		protected static List<ParamDef> Sort(IEnumerable<ParamDef> pds) {
-			var sorted = new List<ParamDef>(pds);
-			sorted.Sort((a, b) => {
-				if (a is null)
-					return b is null ? 0 : -1;
-				if (b is null)
-					return 1;
-				return a.Sequence.CompareTo(b.Sequence);
-			});
-			return sorted;
+			// A stable sort (List<T>.Sort() isn't): params with the same sequence (invalid metadata) must keep
+			// their order or they'd be written in another order every time the module is written.
+			return pds.OrderBy(a => a is null ? -1 : a.Sequence).ToList();
 		}
 
 		DataWriterContext AllocBinaryWriterContext() {
