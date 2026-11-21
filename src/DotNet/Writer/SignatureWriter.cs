@@ -135,7 +135,11 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.ValueType:
 			case ElementType.Class:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				var tdr = ((TypeDefOrRefSig)typeSig).TypeDefOrRef;
+				// The CLR throws a BadImageFormatException and SignatureReader reads a null type
+				if (tdr is TypeSpec)
+					helper.Error("A ClassSig/ValueTypeSig can't have a TypeSpec, only a TypeDef or a TypeRef. Use the TypeSpec's TypeSig.");
+				Write(tdr);
 				break;
 
 			case ElementType.Var:
