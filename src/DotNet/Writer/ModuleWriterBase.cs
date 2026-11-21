@@ -1321,7 +1321,7 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteInt32(0x53445352);
 			writer.WriteBytes(guid.ToByteArray());
 			writer.WriteUInt32(age);
-			writer.WriteBytes(Encoding.UTF8.GetBytes(filename));
+			writer.WriteBytes(WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(filename));
 			writer.WriteByte(0);
 			return stream.ToArray();
 		}
