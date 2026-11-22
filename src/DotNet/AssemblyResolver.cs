@@ -35,6 +35,8 @@ namespace dnlib.DotNet {
 		readonly List<string> postSearchPaths = new List<string>();
 		bool findExactMatch;
 		bool enableFrameworkRedirect;
+		FrameworkRedirectVersion? frameworkRedirectVersion;
+		bool useTargetFrameworkForFrameworkRedirect;
 		bool enableTypeDefCache = true;
 		bool useGac = true;
 #if THREAD_SAFE
@@ -168,6 +170,31 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// The .NET Framework version whose assembly versions are used when an assembly reference in a CLR 4.0
+		/// module is redirected, eg. the installed .NET Framework version or the version of the reference assemblies
+		/// in the search paths. It's ignored if it's older than <see cref="DotNet.FrameworkRedirectVersion.Net40"/>.
+		/// If it's <c>null</c> (default), the .NET Framework 4.0/4.5 versions are used unless
+		/// <see cref="UseTargetFrameworkForFrameworkRedirect"/> is <c>true</c>.
+		/// Only used if <see cref="EnableFrameworkRedirect"/> is <c>true</c>.
+		/// </summary>
+		public FrameworkRedirectVersion? FrameworkRedirectVersion {
+			get => frameworkRedirectVersion;
+			set => frameworkRedirectVersion = value;
+		}
+
+		/// <summary>
+		/// <c>true</c> to use the .NET Framework version in the source module's
+		/// <c>System.Runtime.Versioning.TargetFrameworkAttribute</c> when an assembly reference in a CLR 4.0
+		/// .NET Framework module is redirected (see <see cref="FrameworkRedirect.TryGetFrameworkRedirectVersion"/>).
+		/// It's ignored if <see cref="FrameworkRedirectVersion"/> isn't <c>null</c>. Default value is <c>false</c>.
+		/// Only used if <see cref="EnableFrameworkRedirect"/> is <c>true</c>.
+		/// </summary>
+		public bool UseTargetFrameworkForFrameworkRedirect {
+			get => useTargetFrameworkForFrameworkRedirect;
+			set => useTargetFrameworkForFrameworkRedirect = value;
+		}
+
+		/// <summary>
 		/// If <c>true</c>, all modules in newly resolved assemblies will have their
 		/// <see cref="ModuleDef.EnableTypeDefFindCache"/> property set to <c>true</c>. This is
 		/// enabled by default since these modules shouldn't be modified by the user.
@@ -211,13 +238,31 @@ namespace dnlib.DotNet {
 			enableFrameworkRedirect = true;
 		}
 
+		void ApplyFrameworkRedirect(ref IAssembly assembly, ModuleDef? sourceModule) {
+			if (sourceModule is not null && sourceModule.IsClr40) {
+				if (frameworkRedirectVersion is { } version) {
+					if (version >= DotNet.FrameworkRedirectVersion.Net40) {
+						FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, version);
+						return;
+					}
+				}
+				else if (useTargetFrameworkForFrameworkRedirect &&
+					FrameworkRedirect.TryGetFrameworkRedirectVersion(sourceModule, out version) &&
+					version >= DotNet.FrameworkRedirectVersion.Net40) {
+					FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, version);
+					return;
+				}
+			}
+			FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, sourceModule);
+		}
+
 		/// <inheritdoc/>
 		public AssemblyDef? Resolve(IAssembly? assembly, ModuleDef? sourceModule) {
 			if (assembly is null)
 				return null;
 
 			if (EnableFrameworkRedirect && !FindExactMatch)
-				FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, sourceModule);
+				ApplyFrameworkRedirect(ref assembly, sourceModule);
 
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
