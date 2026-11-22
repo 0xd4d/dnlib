@@ -3251,6 +3251,12 @@ exit:;
 				result = EqualsGlobal(td, modb);
 			else if (moda is not null && (td = b as TypeDef) is not null)
 				result = EqualsGlobal(td, moda);
+			// A MethodDef parent (vararg call site) is the same as its declaring type, see
+			// GetHashCode(IMemberRefParent) and Equals(IMemberRefParent, Type, Module)
+			else if (a is MethodDef ma2)
+				result = Equals((IMemberRefParent?)ma2.DeclaringType, b);
+			else if (b is MethodDef mb2)
+				result = Equals(a, (IMemberRefParent?)mb2.DeclaringType);
 			else
 				result = false;
 
