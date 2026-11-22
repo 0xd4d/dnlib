@@ -5254,7 +5254,9 @@ exit:;
 
 			var bType = b.PropertyType;
 			bool result = ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null);
+					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null) &&
+					// Indexers can be overloaded
+					Equals(a.Params, b.GetIndexParameters(), b.DeclaringType);
 
 			recursionCounter.Decrement();
 			return result;
