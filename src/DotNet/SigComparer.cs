@@ -5263,6 +5263,9 @@ exit:;
 			if (!recursionCounter.Increment())
 				return false;
 
+			// Same as fields and methods: the property in the generic type definition is compared
+			if (!ComparePropertyDeclaringType)
+				b = b.ResolvePropertyDefinition();
 			var bType = b.PropertyType;
 			TypeSig? a2 = null;
 			bool result = (DontCompareReturnType || (ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
@@ -5289,10 +5292,12 @@ exit:;
 				return 0;
 
 			int hash = GetHashCode_PropertyName(a.Name);
-			if (!DontCompareReturnType)
-				hash += GetHashCode(a.PropertyType, a.DeclaringType);
 			if (ComparePropertyDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
+			else
+				a = a.ResolvePropertyDefinition();
+			if (!DontCompareReturnType)
+				hash += GetHashCode(a.PropertyType, a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;
@@ -5312,8 +5317,10 @@ exit:;
 			if (!recursionCounter.Increment())
 				return false;
 
+			// Same as fields and methods: the event in the generic type definition is compared
+			var bDef = CompareEventDeclaringType ? b : b.ResolveEventDefinition();
 			bool result = Equals_EventNames(a.Name, b.Name) &&
-					Equals(a.EventType, b.EventHandlerType, b.DeclaringType) &&
+					Equals(a.EventType, bDef.EventHandlerType, bDef.DeclaringType) &&
 					(!CompareEventDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
@@ -5334,10 +5341,12 @@ exit:;
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = GetHashCode_EventName(a.Name) +
-					GetHashCode(a.EventHandlerType, a.DeclaringType);
+			int hash = GetHashCode_EventName(a.Name);
 			if (CompareEventDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
+			else
+				a = a.ResolveEventDefinition();
+			hash += GetHashCode(a.EventHandlerType, a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;

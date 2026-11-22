@@ -403,6 +403,44 @@ namespace dnlib.DotNet {
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
 		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) => field.Module.ResolveField(field.MetadataToken)!;
 
+		const string ResolveOwnDefinitionJustification = "The property/event is looked up in the generic type definition of its own declaring type. " +
+			"If the trimmer removed it, the original property/event is returned.";
+		const BindingFlags DeclaredMembers = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
+
+		/// <summary>
+		/// Gets the property definition of <paramref name="property"/>, eg. the property in the generic type definition
+		/// if its declaring type is a generic type instance
+		/// </summary>
+		[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = ResolveOwnDefinitionJustification)]
+		public static PropertyInfo ResolvePropertyDefinition(this PropertyInfo property) {
+			var declType = property.DeclaringType;
+			if (!declType.IsGenericButNotGenericTypeDefinition())
+				return property;
+			int token = property.MetadataToken;
+			foreach (var p in declType!.GetGenericTypeDefinition().GetProperties(DeclaredMembers)) {
+				if (p.MetadataToken == token)
+					return p;
+			}
+			return property;
+		}
+
+		/// <summary>
+		/// Gets the event definition of <paramref name="evt"/>, eg. the event in the generic type definition
+		/// if its declaring type is a generic type instance
+		/// </summary>
+		[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = ResolveOwnDefinitionJustification)]
+		public static EventInfo ResolveEventDefinition(this EventInfo evt) {
+			var declType = evt.DeclaringType;
+			if (!declType.IsGenericButNotGenericTypeDefinition())
+				return evt;
+			int token = evt.MetadataToken;
+			foreach (var e in declType!.GetGenericTypeDefinition().GetEvents(DeclaredMembers)) {
+				if (e.MetadataToken == token)
+					return e;
+			}
+			return evt;
+		}
+
 		/// <summary>
 		/// Instantiates <paramref name="methodDef"/> (a method in a generic type definition) with the generic method
 		/// arguments of <paramref name="instance"/>. The result is only used to compare and hash signatures.
