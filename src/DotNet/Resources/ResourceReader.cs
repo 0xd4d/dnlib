@@ -171,13 +171,21 @@ namespace dnlib.DotNet.Resources {
 
 			// A stable sort (List<T>.Sort() isn't): resources that use the same data keep their order
 			infos = infos.OrderBy(a => a.offset).ToList();
+			// The data ends where the next data starts. Resources that use the same data have the same
+			// offset, so it's the next offset that is different.
+			var nextDataOffsets = new long[infos.Count];
+			for (int i = infos.Count - 1; i >= 0; i--) {
+				if (i == infos.Count - 1)
+					nextDataOffsets[i] = end;
+				else
+					nextDataOffsets[i] = infos[i + 1].offset != infos[i].offset ? infos[i + 1].offset : nextDataOffsets[i + 1];
+			}
 			for (int i = 0; i < infos.Count; i++) {
 				var info = infos[i];
 				var element = new ResourceElement();
 				element.Name = info.name;
 				reader.Position = (uint)info.offset;
-				long nextDataOffset = i == infos.Count - 1 ? end : infos[i + 1].offset;
-				int size = (int)(nextDataOffset - info.offset);
+				int size = (int)(nextDataOffsets[i] - info.offset);
 				element.ResourceData = resources.FormatVersion == 1
 					? ReadResourceDataV1(userTypes, resources.ReaderType, size)
 					: ReadResourceDataV2(userTypes, resources.ReaderType, size);
