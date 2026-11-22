@@ -2453,16 +2453,45 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		/// <summary>
-		/// Marks the not yet added <see cref="TypeRef"/>s in <paramref name="tr"/>'s
-		/// ResolutionScope chain as being added (rid 0) and returns them, innermost first,
-		/// or <c>null</c> if there are none.
+		/// The <c>ResolutionScope</c> column of a <see cref="TypeRef"/> whose <c>ResolutionScope</c> closes an
+		/// infinite loop: a <c>TypeRef</c> coded token with rid 0
 		/// </summary>
-		internal static List<TypeRef>? GetTypeRefScopesToAdd(TypeRef tr, Rows<TypeRef> typeRefInfos) {
+		internal const uint InvalidTypeRefResolutionScope = 3;
+
+		/// <summary>
+		/// Gets the <see cref="TypeRef"/>s in the <c>ResolutionScope</c> chain of <paramref name="tr"/> that
+		/// haven't been added yet, innermost first. Nothing is added to <paramref name="typeRefInfos"/>.
+		/// </summary>
+		/// <param name="tr">The type ref</param>
+		/// <param name="typeRefInfos">All added type refs</param>
+		/// <param name="isLoop"><c>true</c> if the chain is an infinite loop. The last returned type ref (or
+		/// <paramref name="tr"/> if nothing is returned) is the one whose <c>ResolutionScope</c> closes the loop.</param>
+		/// <returns></returns>
+		internal static List<TypeRef>? GetTypeRefScopesToAdd(TypeRef tr, Rows<TypeRef> typeRefInfos, out bool isLoop) {
+			isLoop = false;
 			List<TypeRef>? scopes = null;
+			HashSet<TypeRef>? seen = null;
 			var scope = tr.ResolutionScope as TypeRef;
 			while (scope is not null && !typeRefInfos.Exists(scope)) {
-				typeRefInfos.Add(scope, 0); // Prevent inf recursion
+				if (scope == tr) {
+					isLoop = true;
+					break;
+				}
 				scopes ??= new List<TypeRef>();
+				const int maxListSearch = 8;
+				if (scopes.Count < maxListSearch) {
+					if (scopes.Contains(scope)) {
+						isLoop = true;
+						break;
+					}
+				}
+				else {
+					seen ??= new HashSet<TypeRef>(scopes);
+					if (!seen.Add(scope)) {
+						isLoop = true;
+						break;
+					}
+				}
 				scopes.Add(scope);
 				scope = scope.ResolutionScope as TypeRef;
 			}
