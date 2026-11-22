@@ -1734,7 +1734,10 @@ exit:;
 			result = Equals_TypeNames(a.Name, b.Name) &&
 					Equals_TypeNamespaces(a.Namespace, b.Namespace) &&
 					Equals(a.DeclaringType, b.DeclaringType) &&
-					(DontCompareTypeScope || TypeDefScopeEquals(a, b));
+					(DontCompareTypeScope || TypeDefScopeEquals(a, b)) &&
+					// The global type has its own hash code (see GetHashCode(TypeDef)) and isn't equal to a
+					// TypeRef/ExportedType with its name, so it's not equal to another type with its name either
+					(TypeRefCanReferenceGlobalType || a.IsGlobalModuleType == b.IsGlobalModuleType);
 
 exit:;
 			recursionCounter.Decrement();
