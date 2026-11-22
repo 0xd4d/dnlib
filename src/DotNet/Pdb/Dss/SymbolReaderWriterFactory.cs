@@ -83,6 +83,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// The trimmer removes unused interface members, but a COM interface's vtable must have all of its methods.
 		/// This method is only kept (and only keeps them) if the COM code isn't removed by the trimmer.
 		/// </summary>
+		// The runtime's IStream: its members are only called by native code (the symbol reader/writer). If
+		// they're removed, the implementations in DataReaderIStream and StreamIStream are removed too.
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(System.Runtime.InteropServices.ComTypes.IStream))]
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IMetaDataEmit))]
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IMetaDataImport))]
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IPdbWriter))]
