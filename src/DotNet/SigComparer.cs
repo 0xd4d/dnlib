@@ -3466,8 +3466,10 @@ exit:;
 				return 0;
 
 			var sig = a.PropertySig;
-			int hash = GetHashCode_PropertyName(a.Name) +
-					GetHashCode(sig?.RetType);
+			int hash = GetHashCode_PropertyName(a.Name);
+			// Equals() doesn't compare the property type if DontCompareReturnType is used
+			if (!DontCompareReturnType)
+				hash += GetHashCode(sig?.RetType);
 			if (ComparePropertyDeclaringType)
 				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
@@ -5256,8 +5258,9 @@ exit:;
 				return false;
 
 			var bType = b.PropertyType;
-			bool result = ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out var a2) &&
-					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null) &&
+			TypeSig? a2 = null;
+			bool result = (DontCompareReturnType || (ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
+					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null))) &&
 					// Indexers can be overloaded
 					Equals(a.Params, b.GetIndexParameters(), b.DeclaringType);
 
@@ -5279,8 +5282,9 @@ exit:;
 			if (!recursionCounter.Increment())
 				return 0;
 
-			int hash = GetHashCode_PropertyName(a.Name) +
-					GetHashCode(a.PropertyType, a.DeclaringType);
+			int hash = GetHashCode_PropertyName(a.Name);
+			if (!DontCompareReturnType)
+				hash += GetHashCode(a.PropertyType, a.DeclaringType);
 			if (ComparePropertyDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
 
