@@ -479,7 +479,7 @@ namespace dnlib.DotNet.Writer {
 				if (VerifyTypeAndValue(value, ElementType.String, typeof(UTF8String)))
 					WriteUTF8String((UTF8String)value.Value!);
 				else if (VerifyTypeAndValue(value, ElementType.String, typeof(string)))
-					WriteUTF8String((string)value.Value!);
+					WriteString((string)value.Value!);
 				else
 					WriteUTF8String(UTF8String.Empty);
 				break;
@@ -725,7 +725,7 @@ namespace dnlib.DotNet.Writer {
 				var name = FullNameFactory.AssemblyQualifiedName(type, helper, sb, out bool hasError);
 				if (hasError)
 					helper.Error("Custom attribute: Type has a null value or is too deeply nested");
-				WriteUTF8String(name);
+				WriteString(name);
 			}
 		}
 
@@ -747,6 +747,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static MethodSig? GetMethodSig(ICustomAttributeType? ctor) => ctor?.MethodSig;
+
+		// Like Roslyn, an unpaired surrogate is written like any other char, it's not replaced with U+FFFD
+		void WriteString(string s) => WriteUTF8String(WriterUtils.ToUTF8StringKeepUnpairedSurrogates(s));
 
 		void WriteUTF8String(UTF8String? s) {
 			if (s is null || s.Data is null)

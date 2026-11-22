@@ -82,7 +82,7 @@ namespace dnlib.DotNet.Writer {
 					var subTypeName = FullNameFactory.AssemblyQualifiedName(safeArray.UserDefinedSubType!, null, null, out bool hasError);
 					if (hasError)
 						helper.Error("Marshal type: UserDefinedSubType has a null value or is too deeply nested");
-					Write(subTypeName);
+					Write(WriterUtils.ToUTF8StringKeepUnpairedSurrogates(subTypeName));
 				}
 				break;
 
@@ -123,7 +123,7 @@ namespace dnlib.DotNet.Writer {
 					var cmFullName = FullNameFactory.AssemblyQualifiedName(cm, this, null, out bool hasError);
 					if (hasError)
 						helper.Error("Marshal type: Custom marshaler type has a null value or is too deeply nested");
-					cmName = cmFullName;
+					cmName = WriterUtils.ToUTF8StringKeepUnpairedSurrogates(cmFullName);
 				}
 				Write(cmName);
 				Write(custMarshaler.Cookie);

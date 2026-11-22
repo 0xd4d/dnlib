@@ -88,7 +88,7 @@ namespace dnlib.DotNet.Writer {
 					if (hasError)
 						helper.Error("SecurityAttribute attribute type has a null value or is too deeply nested");
 				}
-				Write(writer, fqn);
+				Write(writer, WriterUtils.ToUTF8StringKeepUnpairedSurrogates(fqn));
 
 				var namedArgsBlob = context is null ?
 					CustomAttributeWriter.Write(this, sa.NamedArguments) :
