@@ -64,7 +64,7 @@ namespace dnlib.PE {
 		/// <returns></returns>
 		public ImageSectionHeader? ToImageSectionHeader(FileOffset offset) {
 			foreach (var section in imageSectionHeaders) {
-				if ((uint)offset >= section.PointerToRawData && (uint)offset < section.PointerToRawData + section.LoadedSizeOfRawData)
+				if ((uint)offset >= section.PointerToRawData && (uint)offset < section.PointerToRawData + section.SizeOfRawData)
 					return section;
 			}
 			return null;
@@ -104,7 +104,7 @@ namespace dnlib.PE {
 			// The last section header isn't necessarily the one with the last file data (eg. it could be .bss)
 			ulong endOfData = imageNTHeaders.OptionalHeader.SizeOfHeaders;
 			foreach (var s in imageSectionHeaders) {
-				uint size = s.LoadedSizeOfRawData;
+				uint size = s.SizeOfRawData;
 				if (size != 0)
 					endOfData = Math.Max(endOfData, (ulong)s.PointerToRawData + size);
 			}
@@ -129,7 +129,7 @@ namespace dnlib.PE {
 			if (section is not null) {
 				uint offset = rva - section.VirtualAddress;
 				// Virtual size may be bigger than raw size and there may be no corresponding file offset to rva
-				if (offset < section.LoadedSizeOfRawData)
+				if (offset < section.SizeOfRawData)
 					return (FileOffset)offset + section.PointerToRawData;
 				return 0;
 			}

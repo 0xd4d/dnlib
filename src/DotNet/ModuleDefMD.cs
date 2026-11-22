@@ -1865,7 +1865,7 @@ namespace dnlib.DotNet {
 			if (peImage is PEImage pe && pe.IsFileImageLayout && pe.ToImageSectionHeader(rva) is ImageSectionHeader section) {
 				uint offset = rva - section.VirtualAddress;
 				uint virtualSize = Utils.AlignUp(section.LoadedVirtualSize, peImage.ImageNTHeaders.OptionalHeader.SectionAlignment);
-				uint rawSize = section.LoadedSizeOfRawData;
+				uint rawSize = section.SizeOfRawData;
 				ulong end = (ulong)offset + (uint)size;
 				if (end > rawSize && end <= virtualSize) {
 					// The zero-filled part isn't in the file so its size isn't bounded by the file size. Don't allow

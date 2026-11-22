@@ -294,8 +294,9 @@ namespace dnlib.DotNet.Writer {
 			foreach (var peSection in peImage.ImageSectionHeaders) {
 				var newSection = new OrigSection(peSection);
 				origSections.Add(newSection);
-				// Sections without file data (PointerToRawData == 0) get an empty chunk
-				uint sectionSize = Utils.AlignUp(peSection.LoadedSizeOfRawData, fileAlignment);
+				// Sections without file data (SizeOfRawData == 0) get an empty chunk. If PointerToRawData is 0 but
+				// SizeOfRawData isn't, the data starts at file offset 0 (Mono loads such files, the CLR doesn't).
+				uint sectionSize = Utils.AlignUp(peSection.SizeOfRawData, fileAlignment);
 				newSection.Chunk = new DataReaderChunk(peImage.CreateReader(peSection.VirtualAddress, sectionSize), peSection.LoadedVirtualSize);
 			}
 		}
@@ -418,7 +419,7 @@ namespace dnlib.DotNet.Writer {
 		uint GetFirstRawDataFileOffset() {
 			uint len = uint.MaxValue;
 			foreach (var section in peImage.ImageSectionHeaders) {
-				if (section.LoadedSizeOfRawData != 0)
+				if (section.SizeOfRawData != 0)
 					len = Math.Min(len, section.PointerToRawData);
 			}
 			return len;
@@ -443,11 +444,11 @@ namespace dnlib.DotNet.Writer {
 			ulong end = GetOriginalHeadersLength();
 			foreach (var sect in origSections) {
 				var section = sect.PESection;
-				if (section.LoadedSizeOfRawData == 0)
+				if (section.SizeOfRawData == 0)
 					continue;
 				ulong sectEnd = isFileLayout ?
 					(ulong)section.PointerToRawData + sect.Chunk.GetFileLength() :
-					(ulong)section.VirtualAddress + section.LoadedSizeOfRawData;
+					(ulong)section.VirtualAddress + section.SizeOfRawData;
 				end = Math.Max(end, sectEnd);
 			}
 			return (uint)Math.Min(end, peImage.CreateReader().Length);
@@ -845,8 +846,9 @@ namespace dnlib.DotNet.Writer {
 			writer.Position = sectionsOffset;
 			foreach (var section in origSections) {
 				writer.Position += 0x14;
-				// Keep 0 if the section has no file data, else the loader would read SizeOfRawData bytes from that offset
-				writer.WriteUInt32(section.PESection.PointerToRawData == 0 ? 0 : (uint)section.Chunk.FileOffset);   // PointerToRawData
+				// Keep 0 if the section has no file data
+				bool hasNoFileData = section.PESection.PointerToRawData == 0 && section.PESection.SizeOfRawData == 0;
+				writer.WriteUInt32(hasNoFileData ? 0 : (uint)section.Chunk.FileOffset);   // PointerToRawData
 				writer.Position += 0x10;
 			}
 			foreach (var section in sections)
