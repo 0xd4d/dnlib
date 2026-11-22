@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using dnlib.DotNet.Pdb.Symbols;
 using dnlib.IO;
 
@@ -94,9 +95,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 				reader.Position = end;
 			}
 
-			var sortedFuncs = new DbiFunction[Functions.Count];
-			Functions.CopyTo(sortedFuncs, 0);
-			Array.Sort(sortedFuncs, (a, b) => a.Address.CompareTo(b.Address));
+			// A stable sort (Array.Sort() isn't): if functions have the same address, ReadLines() gives the 1st
+			// line block to the 1st one, the 2nd block to the 2nd one, etc
+			var sortedFuncs = Functions.OrderBy(a => a.Address).ToArray();
 
 			reader.Position = 0;
 			while (reader.Position < reader.Length) {
