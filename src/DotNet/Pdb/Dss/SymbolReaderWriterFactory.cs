@@ -217,8 +217,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 				canTry_Microsoft_DiaSymReader_Native = false;
 			}
 
-			if (useOldDiaSymReader)
-				return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS)!)!;
+			if (useOldDiaSymReader) {
+				try {
+					return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS)!)!;
+				}
+				catch (NotSupportedException) {
+					// NativeAOT has no built-in COM interop even if an app enables the feature switch
+					return null;
+				}
+			}
 
 			return null;
 		}
@@ -271,8 +278,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 				canTry_Microsoft_DiaSymReader_Native = false;
 			}
 
-			if (useOldDiaSymReader)
-				return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS)!)!;
+			if (useOldDiaSymReader) {
+				try {
+					return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS)!)!;
+				}
+				catch (NotSupportedException) {
+					// NativeAOT has no built-in COM interop even if an app enables the feature switch
+					return null;
+				}
+			}
 
 			return null;
 		}
