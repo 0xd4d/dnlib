@@ -378,6 +378,50 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		// NativeAOT has no metadata tokens: MemberInfo.MetadataToken throws InvalidOperationException and
+		// Module.ResolveMethod()/ResolveField() throw PlatformNotSupportedException.
+		static readonly bool hasMetadataTokens = CalculateHasMetadataTokens();
+
+		static bool CalculateHasMetadataTokens() {
+			try {
+				return typeof(object).MetadataToken != 0;
+			}
+			catch (InvalidOperationException) {
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Gets the metadata token of <paramref name="member"/>. Returns <c>false</c> if the runtime has no
+		/// metadata tokens (NativeAOT).
+		/// </summary>
+		public static bool TryGetMetadataToken(this MemberInfo member, out int token) {
+			if (!hasMetadataTokens) {
+				token = 0;
+				return false;
+			}
+			token = member.MetadataToken;
+			return true;
+		}
+
+#if NET
+		/// <summary>
+		/// Gets the member in the generic type definition if the declaring type of <paramref name="member"/> is a
+		/// generic type instance, else <paramref name="member"/> is returned. Doesn't use metadata tokens.
+		/// </summary>
+		static MemberInfo GetMemberOfGenericTypeDefinition(MemberInfo member) {
+			var declType = member.DeclaringType;
+			if (!declType.IsGenericButNotGenericTypeDefinition())
+				return member;
+			try {
+				return declType.GetGenericTypeDefinition().GetMemberWithSameMetadataDefinitionAs(member);
+			}
+			catch (ArgumentException) {
+				return member;
+			}
+		}
+#endif
+
 		const string ResolveOwnTokenJustification = "The token is the member's own token and it's resolved in the member's own module. The trimmer " +
 			"keeps the definition of any member that's kept, and the tokens in a trimmed module are consistent with that module.";
 
@@ -387,6 +431,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
 		public static MethodBase ResolveMethodDefinition(this MethodBase method) {
+#if NET
+			if (!hasMetadataTokens) {
+				if (method is MethodInfo gmi && gmi.IsGenericMethod && !gmi.IsGenericMethodDefinition)
+					method = gmi.GetGenericMethodDefinition();
+				return (MethodBase)GetMemberOfGenericTypeDefinition(method);
+			}
+#endif
 			var def = method.Module.ResolveMethod(method.MetadataToken)!;
 			// The runtime can return the generic method instantiated with its own generic parameters instead of the
 			// generic method definition, eg. Base64Helper.Base64DecoderByte.DecodeWithWhiteSpaceBlockwiseWrapper<T>()
@@ -401,7 +452,13 @@ namespace dnlib.DotNet {
 		/// if its declaring type is a generic type instance
 		/// </summary>
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
-		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) => field.Module.ResolveField(field.MetadataToken)!;
+		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) {
+#if NET
+			if (!hasMetadataTokens)
+				return (FieldInfo)GetMemberOfGenericTypeDefinition(field);
+#endif
+			return field.Module.ResolveField(field.MetadataToken)!;
+		}
 
 		const string ResolveOwnDefinitionJustification = "The property/event is looked up in the generic type definition of its own declaring type. " +
 			"If the trimmer removed it, the original property/event is returned.";
@@ -416,6 +473,10 @@ namespace dnlib.DotNet {
 			var declType = property.DeclaringType;
 			if (!declType.IsGenericButNotGenericTypeDefinition())
 				return property;
+#if NET
+			if (!hasMetadataTokens)
+				return (PropertyInfo)GetMemberOfGenericTypeDefinition(property);
+#endif
 			int token = property.MetadataToken;
 			foreach (var p in declType.GetGenericTypeDefinition().GetProperties(DeclaredMembers)) {
 				if (p.MetadataToken == token)
@@ -433,6 +494,10 @@ namespace dnlib.DotNet {
 			var declType = evt.DeclaringType;
 			if (!declType.IsGenericButNotGenericTypeDefinition())
 				return evt;
+#if NET
+			if (!hasMetadataTokens)
+				return (EventInfo)GetMemberOfGenericTypeDefinition(evt);
+#endif
 			int token = evt.MetadataToken;
 			foreach (var e in declType.GetGenericTypeDefinition().GetEvents(DeclaredMembers)) {
 				if (e.MetadataToken == token)

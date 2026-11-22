@@ -476,7 +476,7 @@ namespace dnlib.DotNet {
 			if (tdr is TypeRef tr)
 				return TryResolve(tr);
 
-			if (TryToUseTypeDefs && IsThisModule(type.Module) && module.ResolveToken(type.MetadataToken) is TypeDef def)
+			if (TryToUseTypeDefs && IsThisModule(type.Module) && type.TryGetMetadataToken(out int typeToken) && module.ResolveToken(typeToken) is TypeDef def)
 				return def;
 
 			return TryResolve(CreateTypeRef(type));
@@ -577,7 +577,7 @@ namespace dnlib.DotNet {
 
 			if (TryToUseMethodDefs && IsThisModule(methodBase.Module) &&
 				!methodBase.IsGenericMethod && (methodBase.DeclaringType is null || !methodBase.DeclaringType.IsGenericType) &&
-				module.ResolveToken(methodBase.MetadataToken) is MethodDef md) {
+				methodBase.TryGetMetadataToken(out int methodToken) && module.ResolveToken(methodToken) is MethodDef md) {
 				// In same module and method and declaring type are both non-generic, directly resolve method definition.
 				// Obfuscator may rename many methods into same name then TryResolveMethod will return inconsistent method.
 				return md;
@@ -613,7 +613,7 @@ namespace dnlib.DotNet {
 				MethodBase? origMethod;
 				// Methods created by the runtime (eg. multi-dimensional array methods) have token 0x06000000.
 				// Check it first since ResolveMethod() would throw, and exceptions are slow.
-				if (HasNilRid(methodBase.MetadataToken))
+				if (methodBase.TryGetMetadataToken(out int token) && HasNilRid(token))
 					origMethod = methodBase;
 				else {
 					try {
@@ -722,7 +722,7 @@ namespace dnlib.DotNet {
 
 			if (TryToUseFieldDefs && IsThisModule(fieldInfo.Module) &&
 				(fieldInfo.DeclaringType is null || !fieldInfo.DeclaringType.IsGenericType) &&
-				module.ResolveToken(fieldInfo.MetadataToken) is FieldDef fd) {
+				fieldInfo.TryGetMetadataToken(out int fieldToken) && module.ResolveToken(fieldToken) is FieldDef fd) {
 				// In same module and declaring type is non-generic, directly resolve field definition.
 				// Obfuscator may rename many fields into same name then TryResolveField will return inconsistent field.
 				return fd;
@@ -740,7 +740,7 @@ namespace dnlib.DotNet {
 
 			FieldInfo? origField;
 			// Check it first since ResolveField() would throw, and exceptions are slow
-			if (HasNilRid(fieldInfo.MetadataToken))
+			if (fieldInfo.TryGetMetadataToken(out int token) && HasNilRid(token))
 				origField = fieldInfo;
 			else {
 				try {
