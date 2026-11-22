@@ -138,7 +138,8 @@ namespace dnlib.DotNet.MD {
 				var mdHeader = new MetadataHeader(ref mdHeaderReader, runtime, verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
-						if ((ulong)(uint)mdHeader.StartOffset + sh.Offset + sh.StreamSize > mdHeaderReader.EndOffset)
+						// Same check as in MetadataHeader, see the comment there
+						if ((ulong)sh.Offset + sh.StreamSize > mdHeaderReader.EndOffset)
 							throw new BadImageFormatException("Invalid stream header");
 					}
 				}
