@@ -239,12 +239,13 @@ namespace dnlib.DotNet {
 			get {
 				if (fields is null)
 					InitializeFields();
-				return fields!;
+				return fields;
 			}
 		}
 		/// <summary/>
 		protected LazyList<FieldDef>? fields;
 		/// <summary>Initializes <see cref="fields"/></summary>
+		[MemberNotNull(nameof(fields))]
 		protected virtual void InitializeFields() =>
 			Interlocked.CompareExchange(ref fields, new LazyList<FieldDef>(this), null);
 
@@ -255,12 +256,13 @@ namespace dnlib.DotNet {
 			get {
 				if (methods is null)
 					InitializeMethods();
-				return methods!;
+				return methods;
 			}
 		}
 		/// <summary/>
 		protected LazyList<MethodDef>? methods;
 		/// <summary>Initializes <see cref="methods"/></summary>
+		[MemberNotNull(nameof(methods))]
 		protected virtual void InitializeMethods() =>
 			Interlocked.CompareExchange(ref methods, new LazyList<MethodDef>(this), null);
 
@@ -269,12 +271,13 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParameters is null)
 					InitializeGenericParameters();
-				return genericParameters!;
+				return genericParameters;
 			}
 		}
 		/// <summary/>
 		protected LazyList<GenericParam>? genericParameters;
 		/// <summary>Initializes <see cref="genericParameters"/></summary>
+		[MemberNotNull(nameof(genericParameters))]
 		protected virtual void InitializeGenericParameters() =>
 			Interlocked.CompareExchange(ref genericParameters, new LazyList<GenericParam>(this), null);
 
@@ -285,12 +288,13 @@ namespace dnlib.DotNet {
 			get {
 				if (interfaces is null)
 					InitializeInterfaces();
-				return interfaces!;
+				return interfaces;
 			}
 		}
 		/// <summary/>
 		protected IList<InterfaceImpl>? interfaces;
 		/// <summary>Initializes <see cref="interfaces"/></summary>
+		[MemberNotNull(nameof(interfaces))]
 		protected virtual void InitializeInterfaces() =>
 			Interlocked.CompareExchange(ref interfaces, new List<InterfaceImpl>(), null);
 
@@ -299,12 +303,13 @@ namespace dnlib.DotNet {
 			get {
 				if (declSecurities is null)
 					InitializeDeclSecurities();
-				return declSecurities!;
+				return declSecurities;
 			}
 		}
 		/// <summary/>
 		protected IList<DeclSecurity>? declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
+		[MemberNotNull(nameof(declSecurities))]
 		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
 
@@ -448,12 +453,13 @@ namespace dnlib.DotNet {
 			get {
 				if (nestedTypes is null)
 					InitializeNestedTypes();
-				return nestedTypes!;
+				return nestedTypes;
 			}
 		}
 		/// <summary/>
 		protected LazyList<TypeDef>? nestedTypes;
 		/// <summary>Initializes <see cref="nestedTypes"/></summary>
+		[MemberNotNull(nameof(nestedTypes))]
 		protected virtual void InitializeNestedTypes() =>
 			Interlocked.CompareExchange(ref nestedTypes, new LazyList<TypeDef>(this), null);
 
@@ -464,12 +470,13 @@ namespace dnlib.DotNet {
 			get {
 				if (events is null)
 					InitializeEvents();
-				return events!;
+				return events;
 			}
 		}
 		/// <summary/>
 		protected LazyList<EventDef>? events;
 		/// <summary>Initializes <see cref="events"/></summary>
+		[MemberNotNull(nameof(events))]
 		protected virtual void InitializeEvents() =>
 			Interlocked.CompareExchange(ref events, new LazyList<EventDef>(this), null);
 
@@ -480,12 +487,13 @@ namespace dnlib.DotNet {
 			get {
 				if (properties is null)
 					InitializeProperties();
-				return properties!;
+				return properties;
 			}
 		}
 		/// <summary/>
 		protected LazyList<PropertyDef>? properties;
 		/// <summary>Initializes <see cref="properties"/></summary>
+		[MemberNotNull(nameof(properties))]
 		protected virtual void InitializeProperties() =>
 			Interlocked.CompareExchange(ref properties, new LazyList<PropertyDef>(this), null);
 
@@ -496,12 +504,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -521,12 +530,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -1015,7 +1025,7 @@ namespace dnlib.DotNet {
 			bool severalStatics = false;
 			if (this.fields is null)
 				InitializeFields();
-			var fields = this.fields!;
+			var fields = this.fields;
 			for (int i = FindFieldIndex(fields, 0, name, caseInsensitive, out var field); i >= 0; i = FindFieldIndex(fields, i + 1, name, caseInsensitive, out field)) {
 				if (field.IsLiteral)
 					continue;
@@ -2618,7 +2628,7 @@ namespace dnlib.DotNet {
 			if (methodRidToOverrides is null)
 				InitializeMethodOverrides();
 
-			if (methodRidToOverrides!.TryGetValue(method.OrigRid, out var overrides)) {
+			if (methodRidToOverrides.TryGetValue(method.OrigRid, out var overrides)) {
 				var newList = new List<MethodOverride>(overrides.Count);
 
 				for (int i = 0; i < overrides.Count; i++) {
@@ -2642,6 +2652,7 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		[MemberNotNull(nameof(methodRidToOverrides))]
 		void InitializeMethodOverrides() {
 			var newMethodRidToOverrides = new Dictionary<uint, IList<MethodOverrideTokens>>();
 

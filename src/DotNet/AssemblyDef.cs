@@ -113,12 +113,13 @@ namespace dnlib.DotNet {
 			get {
 				if (declSecurities is null)
 					InitializeDeclSecurities();
-				return declSecurities!;
+				return declSecurities;
 			}
 		}
 		/// <summary/>
 		protected IList<DeclSecurity>? declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
+		[MemberNotNull(nameof(declSecurities))]
 		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
 
@@ -138,12 +139,13 @@ namespace dnlib.DotNet {
 			get {
 				if (modules is null)
 					InitializeModules();
-				return modules!;
+				return modules;
 			}
 		}
 		/// <summary/>
 		protected LazyList<ModuleDef>? modules;
 		/// <summary>Initializes <see cref="modules"/></summary>
+		[MemberNotNull(nameof(modules))]
 		protected virtual void InitializeModules() =>
 			Interlocked.CompareExchange(ref modules, new LazyList<ModuleDef>(this), null);
 
@@ -154,12 +156,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -180,12 +183,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 		/// <inheritdoc/>

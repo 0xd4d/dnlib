@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.Emit;
 
@@ -1094,12 +1095,13 @@ namespace dnlib.DotNet.Pdb {
 			get {
 				if (documents is null)
 					InitializeDocuments();
-				return documents!;
+				return documents;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbDocument>? documents;
 		/// <summary>Initializes <see cref="documents"/></summary>
+		[MemberNotNull(nameof(documents))]
 		protected virtual void InitializeDocuments() =>
 			Interlocked.CompareExchange(ref documents, new List<PdbDocument>(), null);
 	}

@@ -81,12 +81,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -103,12 +104,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -167,10 +169,11 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods is null)
 					InitializeEventMethods();
-				return otherMethods!;
+				return otherMethods;
 			}
 		}
 
+		[MemberNotNull(nameof(otherMethods))]
 		void InitializeEventMethods() {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -187,6 +190,7 @@ namespace dnlib.DotNet {
 		/// Initializes <see cref="otherMethods"/>, <see cref="addMethod"/>,
 		/// <see cref="invokeMethod"/> and <see cref="removeMethod"/>.
 		/// </summary>
+		[MemberNotNull(nameof(otherMethods))]
 		protected virtual void InitializeEventMethods_NoLock() =>
 			otherMethods = new List<MethodDef>();
 

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using dnlib.IO;
@@ -451,11 +452,12 @@ namespace dnlib.DotNet.MD {
 			if (fieldRidToTypeDefRid is null)
 				InitializeInverseFieldOwnerRidList();
 			uint index = fieldRid - 1;
-			if (index >= fieldRidToTypeDefRid!.LongLength)
+			if (index >= fieldRidToTypeDefRid.LongLength)
 				return 0;
 			return fieldRidToTypeDefRid[index];
 		}
 
+		[MemberNotNull(nameof(fieldRidToTypeDefRid))]
 		void InitializeInverseFieldOwnerRidList() {
 			if (fieldRidToTypeDefRid is not null)
 				return;
@@ -478,11 +480,12 @@ namespace dnlib.DotNet.MD {
 			if (methodRidToTypeDefRid is null)
 				InitializeInverseMethodOwnerRidList();
 			uint index = methodRid - 1;
-			if (index >= methodRidToTypeDefRid!.LongLength)
+			if (index >= methodRidToTypeDefRid.LongLength)
 				return 0;
 			return methodRidToTypeDefRid[index];
 		}
 
+		[MemberNotNull(nameof(methodRidToTypeDefRid))]
 		void InitializeInverseMethodOwnerRidList() {
 			if (methodRidToTypeDefRid is not null)
 				return;
@@ -505,11 +508,12 @@ namespace dnlib.DotNet.MD {
 			if (eventRidToTypeDefRid is null)
 				InitializeInverseEventOwnerRidList();
 			uint index = eventRid - 1;
-			if (index >= eventRidToTypeDefRid!.LongLength)
+			if (index >= eventRidToTypeDefRid.LongLength)
 				return 0;
 			return eventRidToTypeDefRid[index];
 		}
 
+		[MemberNotNull(nameof(eventRidToTypeDefRid))]
 		void InitializeInverseEventOwnerRidList() {
 			if (eventRidToTypeDefRid is not null)
 				return;
@@ -532,11 +536,12 @@ namespace dnlib.DotNet.MD {
 			if (propertyRidToTypeDefRid is null)
 				InitializeInversePropertyOwnerRidList();
 			uint index = propertyRid - 1;
-			if (index >= propertyRidToTypeDefRid!.LongLength)
+			if (index >= propertyRidToTypeDefRid.LongLength)
 				return 0;
 			return propertyRidToTypeDefRid[index];
 		}
 
+		[MemberNotNull(nameof(propertyRidToTypeDefRid))]
 		void InitializeInversePropertyOwnerRidList() {
 			if (propertyRidToTypeDefRid is not null)
 				return;
@@ -565,11 +570,12 @@ namespace dnlib.DotNet.MD {
 			if (gpRidToOwnerRid is null)
 				InitializeInverseGenericParamOwnerRidList();
 			uint index = gpRid - 1;
-			if (index >= gpRidToOwnerRid!.LongLength)
+			if (index >= gpRidToOwnerRid.LongLength)
 				return 0;
 			return gpRidToOwnerRid[index];
 		}
 
+		[MemberNotNull(nameof(gpRidToOwnerRid))]
 		void InitializeInverseGenericParamOwnerRidList() {
 			if (gpRidToOwnerRid is not null)
 				return;
@@ -610,11 +616,12 @@ namespace dnlib.DotNet.MD {
 			if (gpcRidToOwnerRid is null)
 				InitializeInverseGenericParamConstraintOwnerRidList();
 			uint index = gpcRid - 1;
-			if (index >= gpcRidToOwnerRid!.LongLength)
+			if (index >= gpcRidToOwnerRid.LongLength)
 				return 0;
 			return gpcRidToOwnerRid[index];
 		}
 
+		[MemberNotNull(nameof(gpcRidToOwnerRid))]
 		void InitializeInverseGenericParamConstraintOwnerRidList() {
 			if (gpcRidToOwnerRid is not null)
 				return;
@@ -648,11 +655,12 @@ namespace dnlib.DotNet.MD {
 			if (paramRidToOwnerRid is null)
 				InitializeInverseParamOwnerRidList();
 			uint index = paramRid - 1;
-			if (index >= paramRidToOwnerRid!.LongLength)
+			if (index >= paramRidToOwnerRid.LongLength)
 				return 0;
 			return paramRidToOwnerRid[index];
 		}
 
+		[MemberNotNull(nameof(paramRidToOwnerRid))]
 		void InitializeInverseParamOwnerRidList() {
 			if (paramRidToOwnerRid is not null)
 				return;
@@ -674,11 +682,12 @@ namespace dnlib.DotNet.MD {
 		public override RidList GetNestedClassRidList(uint typeDefRid) {
 			if (typeDefRidToNestedClasses is null)
 				InitializeNestedClassesDictionary();
-			if (typeDefRidToNestedClasses!.TryGetValue(typeDefRid, out var ridList))
+			if (typeDefRidToNestedClasses.TryGetValue(typeDefRid, out var ridList))
 				return RidList.Create(ridList);
 			return RidList.Empty;
 		}
 
+		[MemberNotNull(nameof(typeDefRidToNestedClasses))]
 		void InitializeNestedClassesDictionary() {
 			var table = tablesStream.NestedClassTable;
 			var destTable = tablesStream.TypeDefTable;

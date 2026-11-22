@@ -1677,9 +1677,10 @@ namespace dnlib.DotNet {
 		internal RidList GetModuleRidList() {
 			if (moduleRidList is null)
 				InitializeModuleList();
-			return moduleRidList!.Value;
+			return moduleRidList.Value;
 		}
 
+		[MemberNotNull(nameof(moduleRidList))]
 		void InitializeModuleList() {
 			if (moduleRidList is not null)
 				return;
@@ -2037,9 +2038,10 @@ namespace dnlib.DotNet {
 		internal MethodExportInfo? GetExportInfo(uint methodRid) {
 			if (methodExportInfoProvider is null)
 				InitializeMethodExportInfoProvider();
-			return methodExportInfoProvider!.GetMethodExportInfo(0x06000000 + methodRid);
+			return methodExportInfoProvider.GetMethodExportInfo(0x06000000 + methodRid);
 		}
 
+		[MemberNotNull(nameof(methodExportInfoProvider))]
 		void InitializeMethodExportInfoProvider() =>
 			Interlocked.CompareExchange(ref methodExportInfoProvider, new MethodExportInfoProvider(this), null);
 		MethodExportInfoProvider? methodExportInfoProvider;
