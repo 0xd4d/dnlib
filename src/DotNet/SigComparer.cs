@@ -3986,8 +3986,9 @@ exit:;
 				return false;
 			// Reflection doesn't have the other calling convention bits (HasThis, ExplicitThis, Generic) and
 			// it can't tell Default from VarArg so they're not compared.
+			// With IgnoreModifiers, all unmanaged calling conventions are equal, see FnPtrCallingConventionEquals()
 			var cc = ReflectionExtensions.GetFunctionPointerCallingConvention(b, modifiedB, out var ccAlt);
-			if (cc is not null) {
+			if (cc is not null && !IgnoreModifiers) {
 				var aCC = a.CallingConvention & CallingConvention.Mask;
 				if (aCC != cc.Value && (ccAlt is null || aCC != ccAlt.Value))
 					return false;
@@ -4940,8 +4941,8 @@ exit:;
 			var mi = b as MethodInfo;
 			if (mi is not null)
 				result = Equals(a, mi.ReturnParameter, b.DeclaringType);
-			else if (b is ConstructorInfo)
-				result = IsSystemVoid(a);
+			else if (b is ConstructorInfo) // It has no return parameter and no modifiers
+				result = ModifiersEquals(a, Type.EmptyTypes, Type.EmptyTypes, out var a2) && IsSystemVoid(a2);
 			else
 				result = false;
 
@@ -5006,6 +5007,11 @@ exit:;
 		}
 
 		bool ModifiersEquals(TypeSig? a, IList<Type> reqMods2, IList<Type> optMods2, out TypeSig? aAfterModifiers) {
+			// Same as Equals(TypeSig, TypeSig)
+			if (IgnoreModifiers) {
+				aAfterModifiers = a.RemoveModifiers();
+				return true;
+			}
 			aAfterModifiers = a;
 			if (!(a is ModifierSig))
 				return reqMods2.Count == 0 && optMods2.Count == 0;
