@@ -92,7 +92,19 @@ namespace dnlib.DotNet.Emit {
 		readonly DynamicMethodBodyReaderOptions options;
 
 		class ReflectionFieldInfo {
-			SR.FieldInfo? fieldInfo;
+			// The instances are static and some of them are used with more than one type (eg. "m_code" is a field
+			// of DynamicResolver and of DynamicILInfo), so the field is cached together with its type. It's replaced
+			// with one write so other threads never see a field of another type.
+			sealed class CachedField {
+				public readonly Type Type;
+				public readonly SR.FieldInfo? FieldInfo;
+				public CachedField(Type type, SR.FieldInfo? fieldInfo) {
+					Type = type;
+					FieldInfo = fieldInfo;
+				}
+			}
+
+			volatile CachedField? cachedField;
 			readonly string fieldName1;
 			readonly string? fieldName2;
 
@@ -104,28 +116,27 @@ namespace dnlib.DotNet.Emit {
 			}
 
 			public object? Read(object instance) {
-				if (fieldInfo is null)
-					InitializeField(instance.GetType());
+				var fieldInfo = GetField(instance.GetType());
 				if (fieldInfo is null)
 					throw new Exception($"Couldn't find field '{fieldName1}' or '{fieldName2}'");
 
 				return fieldInfo.GetValue(instance);
 			}
 
-			public bool Exists(object instance) {
-				InitializeField(instance.GetType());
-				return fieldInfo is not null;
-			}
+			public bool Exists(object instance) => GetField(instance.GetType()) is not null;
 
 			[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Only used by DynamicMethodBodyReader which has [RequiresUnreferencedCode]")]
-			void InitializeField(Type type) {
-				if (fieldInfo is not null)
-					return;
+			SR.FieldInfo? GetField(Type type) {
+				var cached = cachedField;
+				if (cached is not null && cached.Type == type)
+					return cached.FieldInfo;
 
 				const SR.BindingFlags flags = SR.BindingFlags.Instance | SR.BindingFlags.Public | SR.BindingFlags.NonPublic;
-				fieldInfo = type.GetField(fieldName1, flags);
+				var fieldInfo = type.GetField(fieldName1, flags);
 				if (fieldInfo is null && fieldName2 is not null)
 					fieldInfo = type.GetField(fieldName2, flags);
+				cachedField = new CachedField(type, fieldInfo);
+				return fieldInfo;
 			}
 		}
 
