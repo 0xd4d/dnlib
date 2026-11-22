@@ -654,7 +654,7 @@ namespace dnlib.DotNet {
 			if (IsValidAssemblySignatureKeyAttribute(ca))
 				ca.NamedArguments.Clear();
 			else
-				ca = CreateAssemblySignatureKeyAttribute();
+				ca = CreateAssemblySignatureKeyAttribute(manifestModule);
 
 			var counterSig = StrongNameKey.CreateCounterSignatureAsString(identityPubKey, identityKey, signaturePubKey);
 			ca.ConstructorArguments[0] = new CAArgument(manifestModule.CorLibTypes.String, new UTF8String(signaturePubKey.ToString()));
@@ -685,8 +685,7 @@ namespace dnlib.DotNet {
 		ModuleDef GetManifestModuleForWrite() =>
 			ManifestModule ?? throw new InvalidOperationException("Can't write the assembly: it has no modules");
 
-		CustomAttribute CreateAssemblySignatureKeyAttribute() {
-			var manifestModule = ManifestModule!;
+		CustomAttribute CreateAssemblySignatureKeyAttribute(ModuleDef manifestModule) {
 			var owner = manifestModule.UpdateRowId(new TypeRefUser(manifestModule, "System.Reflection", "AssemblySignatureKeyAttribute", manifestModule.CorLibTypes.AssemblyRef));
 			var methodSig = MethodSig.CreateInstance(manifestModule.CorLibTypes.Void, manifestModule.CorLibTypes.String, manifestModule.CorLibTypes.String);
 			var ctor = manifestModule.UpdateRowId(new MemberRefUser(manifestModule, MethodDef.InstanceConstructorName, methodSig, owner));

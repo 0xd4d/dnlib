@@ -477,7 +477,7 @@ namespace dnlib.DotNet.Writer {
 
 			case ElementType.String:
 				if (VerifyTypeAndValue(value, ElementType.String, typeof(UTF8String)))
-					WriteUTF8String((UTF8String)value.Value!);
+					WriteUTF8String((UTF8String?)value.Value);
 				else if (VerifyTypeAndValue(value, ElementType.String, typeof(string)))
 					WriteString((string)value.Value!);
 				else

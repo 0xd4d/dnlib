@@ -431,7 +431,7 @@ namespace dnlib.DotNet {
 			get {
 				if (typeDefFinder is null)
 					Interlocked.CompareExchange(ref typeDefFinder, new TypeDefFinder(Types), null);
-				return typeDefFinder!;
+				return typeDefFinder;
 			}
 		}
 
@@ -443,7 +443,7 @@ namespace dnlib.DotNet {
 			get {
 				if (context is null)
 					Interlocked.CompareExchange(ref context, new ModuleContext(), null);
-				return context!;
+				return context;
 			}
 			set => context = value ?? new ModuleContext();
 		}

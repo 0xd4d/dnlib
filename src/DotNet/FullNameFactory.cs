@@ -260,7 +260,7 @@ namespace dnlib.DotNet {
 			var fnc = new FullNameFactory(false, null, sb);
 			if (typeGenArgs is not null) {
 				fnc.genericArguments = new GenericArguments();
-				fnc.genericArguments!.PushTypeArgs(typeGenArgs);
+				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
 
 			fnc.CreatePropertyFullName(declaringType, name, propertySig);
@@ -292,7 +292,7 @@ namespace dnlib.DotNet {
 			var fnc = new FullNameFactory(false, null, sb);
 			if (typeGenArgs is not null) {
 				fnc.genericArguments = new GenericArguments();
-				fnc.genericArguments!.PushTypeArgs(typeGenArgs);
+				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
 
 			fnc.CreateEventFullName(declaringType, name, typeDefOrRef);
@@ -324,7 +324,7 @@ namespace dnlib.DotNet {
 			var fnc = new FullNameFactory(false, null, sb);
 			if (typeGenArgs is not null) {
 				fnc.genericArguments = new GenericArguments();
-				fnc.genericArguments!.PushTypeArgs(typeGenArgs);
+				fnc.genericArguments.PushTypeArgs(typeGenArgs);
 			}
 
 			fnc.CreateFieldFullName(declaringType, name, fieldSig);

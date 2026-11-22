@@ -440,11 +440,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a constant and not a variable (<see cref="Local"/> is null)
 		/// </summary>
+		[MemberNotNullWhen(false, nameof(Local))]
 		public bool IsConstant => Local is null;
 
 		/// <summary>
 		/// true if it's a variable (<see cref="Local"/> is not null)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Local))]
 		public bool IsVariable => Local is not null;
 
 		/// <summary>
@@ -589,11 +591,13 @@ namespace dnlib.DotNet.Pdb {
 		/// <summary>
 		/// true if it's a constant. Constants have a scope (<see cref="ScopeStart"/> and <see cref="ScopeEnd"/>)
 		/// </summary>
+		[MemberNotNullWhen(false, nameof(Local))]
 		public bool IsConstant => local is null;
 
 		/// <summary>
 		/// true if it's a variable. Variables don't have a scope (<see cref="ScopeStart"/> and <see cref="ScopeEnd"/>)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(Local))]
 		public bool IsVariable => local is not null;
 
 		/// <summary>

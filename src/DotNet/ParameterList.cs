@@ -473,7 +473,7 @@ namespace dnlib.DotNet {
 			set {
 				var paramDef = ParamDef;
 				if (paramDef is not null)
-					paramDef.Name = value!; // null is converted to an empty string
+					paramDef.Name = value; // null is converted to an empty string
 			}
 		}
 

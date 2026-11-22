@@ -12,7 +12,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// The opcode
 		/// </summary>
-		public OpCode OpCode = null!;
+		public OpCode OpCode;
 
 		/// <summary>
 		/// The opcode operand. A branch target (<see cref="OperandType.InlineBrTarget"/>,

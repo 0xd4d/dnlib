@@ -508,7 +508,7 @@ namespace dnlib.DotNet {
 			var pkt = asmName.GetPublicKeyToken();
 			if (pkt is null || pkt.Length == 0)
 				pkt = null;
-			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(asmName.Name!) is AssemblyRef asmRef)
+			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(asmName.Name) is AssemblyRef asmRef)
 				return asmRef;
 			return module.UpdateRowId(new AssemblyRefUser(asmName.Name!, asmName.Version!, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo?.Name ?? string.Empty) {
 				ContentType = AssemblyNameInfo.GetContentType(asmName),

@@ -769,7 +769,7 @@ namespace dnlib.DotNet {
 			var index = nonNestedTypeDefNameIndex;
 			if (index is null) {
 				Interlocked.CompareExchange(ref nonNestedTypeDefNameIndex, new NonNestedTypeDefNameIndex(this), null);
-				index = nonNestedTypeDefNameIndex!;
+				index = nonNestedTypeDefNameIndex;
 			}
 
 			var comparer = new SigComparer(TypeDefFinder.TypeComparerOptions);

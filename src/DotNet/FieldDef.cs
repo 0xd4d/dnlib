@@ -467,6 +467,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldOffset"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(FieldOffset))]
 		public bool HasLayoutInfo => FieldOffset is not null;
 
 		/// <summary>

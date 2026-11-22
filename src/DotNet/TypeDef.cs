@@ -1190,7 +1190,7 @@ namespace dnlib.DotNet {
 		static MethodDef? FindMethodInSlotOrder(TypeDef td, IList<TypeSig?>? typeArgs, int level, UTF8String? name, MethodSig sig, SigComparer comparer, bool caseInsensitive, out MethodDef? nonVirtualMethod) {
 			if (td.methods is null)
 				td.InitializeMethods();
-			var methods = td.methods!;
+			var methods = td.methods;
 			int paramCount = sig.Params is null ? -1 : sig.Params.Count;
 			// Only read if needed
 			bool isValueType = false, isValueTypeInitd = false;

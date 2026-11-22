@@ -9,7 +9,7 @@ using dnlib.DotNet.Writer;
 
 namespace dnlib.DotNet.Pdb.WindowsPdb {
 	sealed class WindowsPdbWriter : IDisposable {
-		SymbolWriter writer = null!;
+		SymbolWriter writer;
 		readonly PdbState pdbState;
 		readonly ModuleDef module;
 		readonly Metadata metadata;
@@ -23,31 +23,23 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		public ILogger? Logger { get; set; }
 
-		public WindowsPdbWriter(SymbolWriter writer, PdbState pdbState, Metadata metadata)
-			: this(pdbState, metadata) {
-			if (pdbState is null)
-				throw new ArgumentNullException(nameof(pdbState));
-			if (metadata is null)
-				throw new ArgumentNullException(nameof(metadata));
+		public WindowsPdbWriter(SymbolWriter writer, PdbState pdbState, Metadata metadata) {
 			this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
-			writer.Initialize(metadata);
-		}
-
-		WindowsPdbWriter(PdbState pdbState, Metadata metadata) {
-			this.pdbState = pdbState;
-			this.metadata = metadata;
+			this.pdbState = pdbState ?? throw new ArgumentNullException(nameof(pdbState));
+			this.metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
 			module = metadata.Module;
 			instrToOffset = new Dictionary<Instruction, uint>();
 			visitedScopes = new HashSet<PdbScope>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
 			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
+			writer.Initialize(metadata);
 		}
 
 		ISymbolDocumentWriter Add(PdbDocument pdbDoc) {
 			if (pdbDocs.TryGetValue(pdbDoc, out var docWriter))
 				return docWriter;
 			docWriter = writer.DefineDocument(pdbDoc.Url, pdbDoc.Language, pdbDoc.LanguageVendor, pdbDoc.DocumentType)!;
-			docWriter.SetCheckSum(pdbDoc.CheckSumAlgorithmId, pdbDoc.CheckSum!);
+			docWriter.SetCheckSum(pdbDoc.CheckSumAlgorithmId, pdbDoc.CheckSum);
 			if (TryGetCustomDebugInfo(pdbDoc, out PdbEmbeddedSourceCustomDebugInfo? sourceCdi))
 				docWriter.SetSource(sourceCdi.SourceCodeBlob);
 			pdbDocs.Add(pdbDoc, docWriter);
@@ -80,9 +72,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					var method = typeMethods[i];
 					if (method is null)
 						continue;
-					if (!ShouldAddMethod(method))
+					if (!ShouldAddMethod(method, out var body))
 						continue;
-					Write(method, cdiBuilder);
+					Write(method, body, cdiBuilder);
 				}
 			}
 
@@ -92,8 +84,8 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				writer.SetSourceServerData(sourceServerCdi.FileBlob);
 		}
 
-		bool ShouldAddMethod(MethodDef method) {
-			var body = method.Body;
+		bool ShouldAddMethod(MethodDef method, [NotNullWhen(true)] out CilBody? body) {
+			body = method.Body;
 			if (body is null)
 				return false;
 
@@ -158,7 +150,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				PdbDocument? lastDoc = null;
 				int lastDocIndex = -1;
 				Instruction? instr = null;
-				for (int i = 0; i < instrs.Count; i++, instrOffset += instr!.GetSize()) {
+				for (int i = 0; i < instrs.Count; i++, instrOffset += instr.GetSize()) {
 					instr = instrs[i];
 					var seqp = instr.SequencePoint;
 					if (seqp is null)
@@ -261,13 +253,13 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			readonly Dictionary<Instruction, uint> toOffset;
 			public readonly uint BodySize;
 
-			public CurrentMethod(WindowsPdbWriter pdbWriter, MethodDef method, Dictionary<Instruction, uint> toOffset) {
+			public CurrentMethod(WindowsPdbWriter pdbWriter, MethodDef method, CilBody body, Dictionary<Instruction, uint> toOffset) {
 				this.pdbWriter = pdbWriter;
 				Method = method;
 				this.toOffset = toOffset;
 				toOffset.Clear();
 				uint offset = 0;
-				var instructions = method.Body!.Instructions;
+				var instructions = body.Instructions;
 				int count = instructions.Count;
 				for (int i = 0; i < count; i++) {
 					var instr = instructions[i];
@@ -297,21 +289,20 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			}
 		}
 
-		void Write(MethodDef method, List<PdbCustomDebugInfo> cdiBuilder) {
+		void Write(MethodDef method, CilBody body, List<PdbCustomDebugInfo> cdiBuilder) {
 			uint rid = metadata.GetRid(method);
 			if (rid == 0) {
 				Error("Method {0} ({1:X8}) is not defined in this module ({2})", method, method.MDToken.Raw, module);
 				return;
 			}
 
-			var info = new CurrentMethod(this, method, instrToOffset);
-			var body = method.Body;
+			var info = new CurrentMethod(this, method, body, instrToOffset);
 			var symbolToken = new MDToken(MD.Table.Method, rid);
 			writer.OpenMethod(symbolToken);
-			seqPointsHelper.Write(this, info.Method.Body!.Instructions);
+			seqPointsHelper.Write(this, body.Instructions);
 
 			// Don't modify the module: it may be read by another thread while it's being written
-			var scope = body!.PdbMethod?.Scope;
+			var scope = body.PdbMethod?.Scope;
 			// A scope can be reached twice only if the user's Scopes lists have a loop or share a
 			// scope. Write it once so a loop ends.
 			visitedScopes.Clear();

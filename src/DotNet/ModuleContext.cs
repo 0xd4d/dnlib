@@ -21,7 +21,7 @@ namespace dnlib.DotNet {
 			get {
 				if (assemblyResolver is null)
 					Interlocked.CompareExchange(ref assemblyResolver, NullResolver.Instance, null);
-				return assemblyResolver!;
+				return assemblyResolver;
 			}
 			set => assemblyResolver = value;
 		}
@@ -34,7 +34,7 @@ namespace dnlib.DotNet {
 			get {
 				if (resolver is null)
 					Interlocked.CompareExchange(ref resolver, NullResolver.Instance, null);
-				return resolver!;
+				return resolver;
 			}
 			set => resolver = value;
 		}

@@ -273,7 +273,7 @@ namespace dnlib.DotNet {
 				var modifier = a as ModifierSig;
 				if (modifier is null)
 					return a;
-				a = a!.Next;
+				a = modifier.Next;
 			}
 		}
 
@@ -507,16 +507,19 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeRef"/> != <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(TypeRef), nameof(TypeDefOrRef))]
 		public bool IsTypeRef => TypeRef is not null;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeDef"/> != <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(TypeDef), nameof(TypeDefOrRef))]
 		public bool IsTypeDef => TypeDef is not null;
 
 		/// <summary>
 		/// Returns <c>true</c> if <see cref="TypeSpec"/> != <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(TypeSpec), nameof(TypeDefOrRef))]
 		public bool IsTypeSpec => TypeSpec is not null;
 
 		/// <summary>

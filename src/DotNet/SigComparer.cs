@@ -3910,7 +3910,7 @@ exit:;
 					var ara = (ArraySig)a;
 					result = ara.Rank == b.GetArrayRank() &&
 						(IsFnPtrElementType(b) ?
-								(a = a!.Next.RemoveModifiers()!) is not null && a.ElementType == ElementType.FnPtr :
+								(a = a!.Next.RemoveModifiers()) is not null && a.ElementType == ElementType.FnPtr :
 								Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType()));
 				}
 				break;
@@ -4632,7 +4632,7 @@ exit:;
 			if (b.IsGenericMethod && !b.IsGenericMethodDefinition) {
 				// 'a' must be a method ref in a generic type. This comparison must match
 				// the MethodSpec vs MethodBase comparison code.
-				result = a.IsMethodRef && a.MethodSig!.Generic;
+				result = a.IsMethodRef && a.MethodSig.Generic;
 
 				var oldOptions = ClearOptions(SigComparerOptions.CompareMethodFieldDeclaringType);
 				SetOptions(SigComparerOptions_DontSubstituteGenericParameters);
@@ -5038,7 +5038,7 @@ exit:;
 
 				// This can only loop forever if the user created a loop. It's not possible
 				// to create a loop with invalid metadata.
-				aAfterModifiers = aAfterModifiers!.Next;
+				aAfterModifiers = modifierSig.Next;
 			}
 			optMods1.Reverse();
 			reqMods1.Reverse();

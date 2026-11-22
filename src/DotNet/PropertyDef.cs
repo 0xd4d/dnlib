@@ -171,7 +171,7 @@ namespace dnlib.DotNet {
 				if (value is null)
 					getMethods!.Clear();
 				else if (getMethods!.Count == 0)
-					getMethods!.Add(value);
+					getMethods.Add(value);
 				else
 					getMethods[0] = value;
 			}
@@ -192,7 +192,7 @@ namespace dnlib.DotNet {
 				if (value is null)
 					setMethods!.Clear();
 				else if (setMethods!.Count == 0)
-					setMethods!.Add(value);
+					setMethods.Add(value);
 				else
 					setMethods[0] = value;
 			}

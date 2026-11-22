@@ -534,7 +534,7 @@ namespace dnlib.DotNet.Writer {
 			uint expectedOffset = 0;
 			uint stubCodeOffset = cpuArch.GetStubCodeOffset(stubType);
 			uint stubSize = cpuArch.GetStubSize(stubType);
-			uint stubAlignment = cpuArch!.GetStubAlignment(stubType);
+			uint stubAlignment = cpuArch.GetStubAlignment(stubType);
 			int zeros = (int)((stubSize + stubAlignment - 1 & ~(stubAlignment - 1)) - stubSize);
 			foreach (var info in allMethodInfos) {
 				uint currentOffset = info.StubChunkOffset - stubCodeOffset;

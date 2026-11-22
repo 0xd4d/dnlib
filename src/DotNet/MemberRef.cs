@@ -190,11 +190,13 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if this is a method reference (<see cref="MethodSig"/> != <c>null</c>)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(MethodSig))]
 		public bool IsMethodRef => MethodSig is not null;
 
 		/// <summary>
 		/// <c>true</c> if this is a field reference (<see cref="FieldSig"/> != <c>null</c>)
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(FieldSig))]
 		public bool IsFieldRef => FieldSig is not null;
 
 		/// <summary>

@@ -193,15 +193,17 @@ namespace dnlib.DotNet.Resources {
 
 		sealed class MyBinder : SerializationBinder {
 			public class OkException : Exception {
-				public string? AssemblyName { get; set; }
-				public string? TypeName { get; set; }
+				public readonly string AssemblyName;
+				public readonly string TypeName;
+
+				public OkException(string assemblyName, string typeName) {
+					AssemblyName = assemblyName;
+					TypeName = typeName;
+				}
 			}
 
 			public override Type BindToType(string assemblyName, string typeName) =>
-				throw new OkException {
-					AssemblyName = assemblyName,
-					TypeName = typeName,
-				};
+				throw new OkException(assemblyName, typeName);
 		}
 
 		const string BinaryFormatterJustification = "Nothing is deserialized: the binder throws the first time it's asked for a type, " +
@@ -217,8 +219,8 @@ namespace dnlib.DotNet.Resources {
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
 			}
 			catch (MyBinder.OkException ex) {
-				assemblyName = ex.AssemblyName!;
-				typeName = ex.TypeName!;
+				assemblyName = ex.AssemblyName;
+				typeName = ex.TypeName;
 				return true;
 			}
 			catch {

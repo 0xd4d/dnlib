@@ -2206,7 +2206,7 @@ namespace dnlib.DotNet.Writer {
 					int count = variables.Count;
 					for (int i = 0; i < count; i++) {
 						var local = variables[i];
-						AddLocalVariable(local, currentMethod!.Body);
+						AddLocalVariable(local, currentMethod.Body);
 					}
 					var constants = info.Scope.Constants;
 					count = constants.Count;
@@ -3434,7 +3434,7 @@ namespace dnlib.DotNet.Writer {
 			int line = -1, column = 0;
 			uint instrOffset = 0;
 			Instruction? instr = null;
-			for (int i = 0; i < instrs.Count; i++, instrOffset += (uint)instr!.GetSize()) {
+			for (int i = 0; i < instrs.Count; i++, instrOffset += (uint)instr.GetSize()) {
 				instr = instrs[i];
 				var seqPoint = instr.SequencePoint;
 				if (seqPoint is null)
