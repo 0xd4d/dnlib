@@ -302,7 +302,13 @@ namespace dnlib.DotNet.Writer {
 				throw new ArgumentNullException(nameof(module));
 			if (module is ModuleDefMD mod) {
 				if (addCustomHeaps) {
-					var otherStreams = mod.Metadata.AllStreams.Where(a => a.GetType() == typeof(CustomDotNetStream)).Select(a => new DataReaderHeap(a));
+					// The written module always has compressed metadata (#~). If the original module has ENC metadata (#-),
+					// the first heap with a known name is used, but in a module with compressed metadata the last one is
+					// used. A duplicate heap that was ignored would be used instead of the heap we write, and a #- or
+					// #Schema heap would also turn it into ENC metadata, so don't add them.
+					bool ignoreKnownNames = !mod.Metadata.IsCompressed;
+					var otherStreams = mod.Metadata.AllStreams.Where(a => a.GetType() == typeof(CustomDotNetStream) &&
+						!(ignoreKnownNames && IsKnownHeapName(a.Name))).Select(a => new DataReaderHeap(a));
 					CustomHeaps.AddRange(otherStreams.OfType<IHeap>());
 				}
 				var streamToOrder = new Dictionary<DotNetStream, int>(mod.Metadata.AllStreams.Count);
@@ -331,6 +337,9 @@ namespace dnlib.DotNet.Writer {
 				};
 			}
 		}
+
+		static bool IsKnownHeapName(string name) =>
+			name == "#~" || name == "#-" || name == "#Schema" || name == "#Strings" || name == "#US" || name == "#Blob" || name == "#GUID";
 
 		static int GetOrder(Dictionary<DotNetStream, int> streamToOrder, Dictionary<string, int> nameToOrder, IHeap heap) {
 			if (heap is DataReaderHeap drHeap && drHeap.OptionalOriginalStream is DotNetStream dnHeap && streamToOrder.TryGetValue(dnHeap, out int order))
