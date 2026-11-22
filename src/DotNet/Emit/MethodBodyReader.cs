@@ -552,10 +552,6 @@ namespace dnlib.DotNet.Emit {
 		void ReadFatExceptionHandlers(ref DataReader ehReader) {
 			ehReader.Position--;
 			uint fullCount = (ehReader.ReadUInt32() >> 8) / 24;
-			// The CLR (CheckILMethod) verifies that the whole clause table is readable before
-			// anything truncates the count
-			if (!ehReader.CanRead(fullCount * 24))
-				throw new InvalidMethodException("Exception handler table extends past the end of the data");
 			// The CLR only passes the low 16 bits of the count to the JIT (getMethodInfoILMethodHeaderHelper)
 			int num = (int)(fullCount & 0xFFFF);
 			for (int i = 0; i < num; i++) {
