@@ -8,8 +8,6 @@ namespace dnlib.DotNet.MD {
 	/// Represents the #US stream
 	/// </summary>
 	public sealed class USStream : HeapStream {
-		readonly CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR;
-
 		/// <inheritdoc/>
 		public USStream() {
 		}
@@ -18,13 +16,6 @@ namespace dnlib.DotNet.MD {
 		public USStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader)
 			: base(mdReaderFactory, metadataBaseOffset, streamHeader) {
 		}
-
-		internal USStream(DataReaderFactory mdReaderFactory, uint metadataBaseOffset, StreamHeader streamHeader, CLRRuntimeReaderKind runtime)
-			: base(mdReaderFactory, metadataBaseOffset, streamHeader) => this.runtime = runtime;
-
-		// The CLR fails to read the entry if its length is encoded as 111x, other runtimes treat it as 110x.
-		bool TryReadLength(ref DataReader reader, out uint length) =>
-			runtime == CLRRuntimeReaderKind.CLR ? reader.TryReadCompressedUInt32Strict(out length) : reader.TryReadCompressedUInt32(out length);
 
 		/// <summary>
 		/// Reads a unicode string
@@ -38,7 +29,7 @@ namespace dnlib.DotNet.MD {
 				return null;
 			var reader = dataReader;
 			reader.Position = offset;
-			if (!TryReadLength(ref reader, out uint length))
+			if (!reader.TryReadCompressedUInt32(out uint length))
 				return null;
 			if (!reader.CanRead(length))
 				return null;
