@@ -324,14 +324,10 @@ namespace dnlib.DotNet.Writer {
 					order++;
 				}
 				MetadataHeapsAdded += (s, e) => {
-					e.Heaps.Sort((a, b) => {
-						int oa = GetOrder(streamToOrder, nameToOrder, a);
-						int ob = GetOrder(streamToOrder, nameToOrder, b);
-						int c = oa - ob;
-						if (c != 0)
-							return c;
-						return StringComparer.Ordinal.Compare(a.Name, b.Name);
-					});
+					// A stable sort (List<T>.Sort() isn't): heaps with the same order and name keep their order
+					var sorted = e.Heaps.OrderBy(a => GetOrder(streamToOrder, nameToOrder, a)).ThenBy(a => a.Name, StringComparer.Ordinal).ToArray();
+					e.Heaps.Clear();
+					e.Heaps.AddRange(sorted);
 				};
 			}
 		}
