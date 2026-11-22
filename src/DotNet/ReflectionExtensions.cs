@@ -108,7 +108,7 @@ namespace dnlib.DotNet {
 		/// Same as .NET 8+ <c>Type.IsFunctionPointer</c>, returns <c>false</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The type</param>
-		public static bool IsFunctionPointer2(this Type? self) {
+		public static bool IsFunctionPointer2([NotNullWhen(true)] this Type? self) {
 			if (self is null)
 				return false;
 #if NET8_0_OR_GREATER
@@ -211,7 +211,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="modifiedType">The modified type or <c>null</c></param>
 		/// <param name="type">The unmodified type</param>
-		internal static bool IsGenericInstOfOwnGenericParams(this Type? modifiedType, Type type) =>
+		internal static bool IsGenericInstOfOwnGenericParams([NotNullWhen(true)] this Type? modifiedType, Type type) =>
 			// A modified type is created from a signature which can't have a generic type definition (only a generic
 			// instance type), so it's a generic instance type if its unmodified type is a generic type definition. Its
 			// IsGenericTypeDefinition property can't be used: ModifiedType doesn't override it so it's always false.
@@ -281,13 +281,13 @@ namespace dnlib.DotNet {
 		/// Checks whether <paramref name="type"/> is a function pointer or has a function pointer element type
 		/// </summary>
 		/// <param name="type">The type</param>
-		public static bool ContainsFunctionPointer(this Type? type) {
+		public static bool ContainsFunctionPointer([NotNullWhen(true)] this Type? type) {
 			if (!SupportsFunctionPointerTypes)
 				return false;
 			return ContainsFunctionPointer(type, 0);
 		}
 
-		static bool ContainsFunctionPointer(Type? type, int depth) {
+		static bool ContainsFunctionPointer([NotNullWhen(true)] Type? type, int depth) {
 			// Function pointers can't be generic arguments but eg. arrays of function pointers can
 			for (; type is not null && depth < 1000; depth++) {
 				if (type.IsFunctionPointer2())
@@ -417,7 +417,7 @@ namespace dnlib.DotNet {
 			if (!declType.IsGenericButNotGenericTypeDefinition())
 				return property;
 			int token = property.MetadataToken;
-			foreach (var p in declType!.GetGenericTypeDefinition().GetProperties(DeclaredMembers)) {
+			foreach (var p in declType.GetGenericTypeDefinition().GetProperties(DeclaredMembers)) {
 				if (p.MetadataToken == token)
 					return p;
 			}
@@ -434,7 +434,7 @@ namespace dnlib.DotNet {
 			if (!declType.IsGenericButNotGenericTypeDefinition())
 				return evt;
 			int token = evt.MetadataToken;
-			foreach (var e in declType!.GetGenericTypeDefinition().GetEvents(DeclaredMembers)) {
+			foreach (var e in declType.GetGenericTypeDefinition().GetEvents(DeclaredMembers)) {
 				if (e.MetadataToken == token)
 					return e;
 			}
@@ -488,7 +488,7 @@ namespace dnlib.DotNet {
 		/// not a generic type definition, i.e., a TypeSpec.
 		/// </summary>
 		/// <param name="type">The type</param>
-		public static bool IsGenericButNotGenericTypeDefinition(this Type? type) =>
+		public static bool IsGenericButNotGenericTypeDefinition([NotNullWhen(true)] this Type? type) =>
 			type is not null && !type.IsGenericTypeDefinition && type.IsGenericType;
 
 		/// <summary>
@@ -496,7 +496,7 @@ namespace dnlib.DotNet {
 		/// not a generic method definition, i.e., a MethodSpec.
 		/// </summary>
 		/// <param name="mb">The method</param>
-		public static bool IsGenericButNotGenericMethodDefinition(this MethodBase? mb) =>
+		public static bool IsGenericButNotGenericMethodDefinition([NotNullWhen(true)] this MethodBase? mb) =>
 			mb is not null && !mb.IsGenericMethodDefinition && mb.IsGenericMethod;
 
 		/// <summary>
@@ -511,7 +511,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="declaringType">Declaring type of field/method/event/property</param>
 		/// <param name="t">Field/parameter/property/event type</param>
-		internal static bool MustTreatTypeAsGenericInstType(this Type? declaringType, Type? t) {
+		internal static bool MustTreatTypeAsGenericInstType([NotNullWhen(true)] this Type? declaringType, [NotNullWhen(true)] Type? t) {
 			if (declaringType is null || t is null || !t.IsGenericTypeDefinition)
 				return false;
 			if (declaringType.IsGenericTypeDefinition)
@@ -531,7 +531,7 @@ namespace dnlib.DotNet {
 		/// (eg. pointer, generic type instantiation or generic parameter)
 		/// </summary>
 		/// <param name="type">this</param>
-		public static bool IsTypeDef(this Type? type) =>
+		public static bool IsTypeDef([NotNullWhen(true)] this Type? type) =>
 			type is not null && !type.HasElementType && !type.IsGenericParameter && (!type.IsGenericType || type.IsGenericTypeDefinition);
 
 		[return: NotNullIfNotNull(nameof(name))]

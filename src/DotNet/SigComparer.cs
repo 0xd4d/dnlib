@@ -4820,7 +4820,7 @@ exit:;
 				var t = a;
 				a = a.ResolveMethodDefinition();
 				if (CompareMethodFieldDeclaringType)
-					reflectionTypeArgs = t.DeclaringType!.GetGenericArguments();
+					reflectionTypeArgs = t.DeclaringType.GetGenericArguments();
 				if (t.IsGenericButNotGenericMethodDefinition())
 					reflectionMethodArgs = t.GetGenericArguments();
 			}
