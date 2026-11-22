@@ -3677,6 +3677,7 @@ exit:;
 				return false;
 			if (b is null)
 				return false;   // Must use a ModuleRef to reference the global type, so always fail
+
 			// Modifiers are ignored, same as when comparing with a ModifierSig
 			b = GetUnmodifiedType(b, out _);
 			if (!recursionCounter.Increment())
@@ -4057,6 +4058,7 @@ exit:;
 				return false;
 			if (b is null)
 				return false;   // Must use a ModuleRef to reference the global type, so always fail
+
 			// Modifiers are ignored, same as when comparing with a ModifierSig
 			b = GetUnmodifiedType(b, out _);
 			if (!recursionCounter.Increment())
