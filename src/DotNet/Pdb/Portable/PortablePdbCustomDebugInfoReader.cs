@@ -120,7 +120,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		PdbCustomDebugInfo ReadDefaultNamespace() {
-			var defaultNs = reader.ReadUtf8String((int)reader.BytesLeft);
+			var defaultNs = reader.ReadUtf8StringKeepUnpairedSurrogates((int)reader.BytesLeft);
 			return new PdbDefaultNamespaceCustomDebugInfo(defaultNs);
 		}
 
@@ -190,18 +190,18 @@ namespace dnlib.DotNet.Pdb.Portable {
 		string? ReadUTF8Z(long recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
-			return reader.TryReadZeroTerminatedUtf8String();
+			return reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 		}
 
 		PdbCustomDebugInfo ReadCompilationMetadataReferences() {
 			var cdi = new PdbCompilationMetadataReferencesCustomDebugInfo();
 
 			while (reader.BytesLeft > 0) {
-				var name = reader.TryReadZeroTerminatedUtf8String();
+				var name = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 				Debug.Assert(name is not null);
 				if (name is null)
 					break;
-				var aliases = reader.TryReadZeroTerminatedUtf8String();
+				var aliases = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 				Debug.Assert(aliases is not null);
 				if (aliases is null)
 					break;
@@ -227,11 +227,11 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var cdi = new PdbCompilationOptionsCustomDebugInfo();
 
 			while (reader.BytesLeft > 0) {
-				var key = reader.TryReadZeroTerminatedUtf8String();
+				var key = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 				Debug.Assert(key is not null);
 				if (key is null)
 					break;
-				var value = reader.TryReadZeroTerminatedUtf8String();
+				var value = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 				Debug.Assert(value is not null);
 				if (value is null)
 					break;

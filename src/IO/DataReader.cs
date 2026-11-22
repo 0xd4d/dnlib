@@ -847,6 +847,71 @@ namespace dnlib.IO {
 		public string ReadUtf8String(int byteCount) => ReadString(byteCount, Encoding.UTF8);
 
 		/// <summary>
+		/// Reads a UTF-8 encoded string. Unlike <see cref="ReadUtf8String(int)"/>, an unpaired surrogate that's encoded
+		/// like any other char (3 bytes, <c>ED A0..BF 80..BF</c>) is decoded to that surrogate instead of U+FFFD chars.
+		/// Roslyn (System.Reflection.Metadata) writes unpaired surrogates this way in portable PDB blob strings and
+		/// other serialized strings, and so does dnlib's writer.
+		/// </summary>
+		/// <param name="byteCount">Number of bytes to read (not characters)</param>
+		/// <returns></returns>
+		internal string ReadUtf8StringKeepUnpairedSurrogates(int byteCount) {
+			var pos = Position;
+			var s = ReadUtf8String(byteCount);
+			// Valid UTF-8 without U+FFFD is the normal case
+			if (s.IndexOf('\uFFFD') < 0)
+				return s;
+			Position = pos;
+			return DecodeUtf8KeepUnpairedSurrogates(ReadBytes(byteCount));
+		}
+
+		/// <summary>
+		/// Reads a zero-terminated UTF-8 encoded string or returns <c>null</c> if the string couldn't be read. See
+		/// <see cref="ReadUtf8StringKeepUnpairedSurrogates(int)"/> for how unpaired surrogates are decoded.
+		/// </summary>
+		/// <returns></returns>
+		internal string? TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates() {
+			var pos = Position;
+			var s = TryReadZeroTerminatedUtf8String();
+			if (s is null || s.IndexOf('\uFFFD') < 0)
+				return s;
+			var endPos = Position;
+			Position = pos;
+			var bytes = ReadBytes((int)(endPos - pos - 1));
+			Position = endPos;
+			return DecodeUtf8KeepUnpairedSurrogates(bytes);
+		}
+
+		static string DecodeUtf8KeepUnpairedSurrogates(byte[] data) {
+			StringBuilder? sb = null;
+			int start = 0;
+			for (int i = 0; i + 2 < data.Length; i++) {
+				if (!IsEncodedSurrogate(data, i))
+					continue;
+				bool isHigh = (data[i + 1] & 0xF0) == 0xA0;
+				if (isHigh && i + 5 < data.Length && IsEncodedSurrogate(data, i + 3) && (data[i + 4] & 0xF0) == 0xB0) {
+					// A surrogate pair must be encoded as 4 bytes and would be written as 4 bytes, so it's not
+					// decoded (it's invalid UTF-8)
+					i += 5;
+					continue;
+				}
+				sb ??= new StringBuilder(data.Length);
+				// 'ED' can't be a part of the previous char, so everything before it can be decoded on its own
+				sb.Append(Encoding.UTF8.GetString(data, start, i - start));
+				sb.Append((char)(0xD000 | ((data[i + 1] & 0x3F) << 6) | (data[i + 2] & 0x3F)));
+				i += 2;
+				start = i + 1;
+			}
+			if (sb is null)
+				return Encoding.UTF8.GetString(data);
+			sb.Append(Encoding.UTF8.GetString(data, start, data.Length - start));
+			return sb.ToString();
+		}
+
+		// ED A0..BF 80..BF: U+D800-U+DFFF encoded as 3 bytes
+		static bool IsEncodedSurrogate(byte[] data, int index) =>
+			data[index] == 0xED && (data[index + 1] & 0xE0) == 0xA0 && (data[index + 2] & 0xC0) == 0x80;
+
+		/// <summary>
 		/// Reads a string
 		/// </summary>
 		/// <param name="byteCount">Number of bytes to read (not characters)</param>

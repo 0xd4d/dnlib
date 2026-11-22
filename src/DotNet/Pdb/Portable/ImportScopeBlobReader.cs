@@ -199,7 +199,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		string ReadUTF8(uint offset) {
 			if (!blobStream.TryCreateReader(offset, out var reader))
 				return string.Empty;
-			return reader.ReadUtf8String((int)reader.BytesLeft);
+			return reader.ReadUtf8StringKeepUnpairedSurrogates((int)reader.BytesLeft);
 		}
 	}
 }

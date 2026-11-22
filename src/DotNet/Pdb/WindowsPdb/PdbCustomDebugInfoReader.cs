@@ -320,7 +320,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		string? ReadUTF8Z(ulong recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
-			return reader.TryReadZeroTerminatedUtf8String();
+			return reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 		}
 
 		Instruction? GetInstruction(uint offset) {
