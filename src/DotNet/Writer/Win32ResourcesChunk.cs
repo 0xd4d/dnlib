@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using dnlib.IO;
 using dnlib.PE;
 using dnlib.W32Resources;
@@ -551,27 +552,26 @@ namespace dnlib.DotNet.Writer {
 			// Each name is uppercased once, not in every comparison, since many entries can
 			// have the same long name.
 			var upperNames = new Dictionary<string, string>(StringComparer.Ordinal);
-			var sortedNamed = new List<KeyValuePair<string, ResourceDirectoryEntry>>(named.Count);
+			var namedWithUpperNames = new List<KeyValuePair<string, ResourceDirectoryEntry>>(named.Count);
 			foreach (var d in named) {
 				var name = d.Name.Name!;
 				if (!upperNames.TryGetValue(name, out var upperName)) {
 					upperName = name.ToUpperInvariant();
 					upperNames.Add(name, upperName);
 				}
-				sortedNamed.Add(new KeyValuePair<string, ResourceDirectoryEntry>(upperName, d));
+				namedWithUpperNames.Add(new KeyValuePair<string, ResourceDirectoryEntry>(upperName, d));
 			}
 			// The comparison must be ordinal, it's what Windows uses and it doesn't depend on
 			// the current culture.
-			sortedNamed.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
-			ids.Sort((a, b) => a.Name.Id.CompareTo(b.Name.Id));
-
-			foreach (var kv in sortedNamed) {
+			// A stable sort (List<T>.Sort() isn't): entries with the same name or id (invalid) keep their
+			// order or they'd be written in another order every time the resources are written.
+			foreach (var kv in namedWithUpperNames.OrderBy(a => a.Key, StringComparer.Ordinal)) {
 				var d = kv.Value;
 				writer.WriteUInt32(0x80000000 | stringsDict[d.Name.Name!]);
 				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}
 
-			foreach (var d in ids) {
+			foreach (var d in ids.OrderBy(a => a.Name.Id)) {
 				writer.WriteInt32(d.Name.Id);
 				writer.WriteUInt32(GetDirectoryEntryOffset(d));
 			}
