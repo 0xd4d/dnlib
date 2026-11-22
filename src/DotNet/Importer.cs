@@ -940,16 +940,16 @@ namespace dnlib.DotNet {
 			case ElementType.Object: result = module.CorLibTypes.Object; break;
 			case ElementType.Ptr: result = new PtrSig(ImportOrNull(type.Next)); break;
 			case ElementType.ByRef: result = new ByRefSig(ImportOrNull(type.Next)); break;
-			case ElementType.ValueType: result = CreateClassOrValueType((type as ClassOrValueTypeSig)!.TypeDefOrRef, true); break;
-			case ElementType.Class: result = CreateClassOrValueType((type as ClassOrValueTypeSig)!.TypeDefOrRef, false); break;
-			case ElementType.Var: result = new GenericVar((type as GenericVar)!.Number, gpContext.Type); break;
-			case ElementType.ValueArray: result = new ValueArraySig(ImportOrNull(type.Next), (type as ValueArraySig)!.Size); break;
-			case ElementType.FnPtr: result = new FnPtrSig(ImportOrNull((type as FnPtrSig)!.Signature)); break;
+			case ElementType.ValueType: result = CreateClassOrValueType(((ClassOrValueTypeSig)type).TypeDefOrRef, true); break;
+			case ElementType.Class: result = CreateClassOrValueType(((ClassOrValueTypeSig)type).TypeDefOrRef, false); break;
+			case ElementType.Var: result = new GenericVar(((GenericVar)type).Number, gpContext.Type); break;
+			case ElementType.ValueArray: result = new ValueArraySig(ImportOrNull(type.Next), ((ValueArraySig)type).Size); break;
+			case ElementType.FnPtr: result = new FnPtrSig(ImportOrNull(((FnPtrSig)type).Signature)); break;
 			case ElementType.SZArray: result = new SZArraySig(ImportOrNull(type.Next)); break;
-			case ElementType.MVar: result = new GenericMVar((type as GenericMVar)!.Number, gpContext.Method); break;
-			case ElementType.CModReqd: result = new CModReqdSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
-			case ElementType.CModOpt: result = new CModOptSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
-			case ElementType.Module: result = new ModuleSig((type as ModuleSig)!.Index, ImportOrNull(type.Next)); break;
+			case ElementType.MVar: result = new GenericMVar(((GenericMVar)type).Number, gpContext.Method); break;
+			case ElementType.CModReqd: result = new CModReqdSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
+			case ElementType.CModOpt: result = new CModOptSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
+			case ElementType.Module: result = new ModuleSig(((ModuleSig)type).Index, ImportOrNull(type.Next)); break;
 			case ElementType.Sentinel: result = new SentinelSig(); break;
 			case ElementType.Pinned: result = new PinnedSig(ImportOrNull(type.Next)); break;
 

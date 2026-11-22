@@ -2228,8 +2228,8 @@ exit:;
 					break;
 
 				case ElementType.Array:
-					ArraySig? ara = a as ArraySig, arb = b as ArraySig;
-					result = ara!.Rank == arb!.Rank &&
+					ArraySig ara = (ArraySig)a, arb = (ArraySig)b;
+					result = ara.Rank == arb.Rank &&
 							(IgnoreMultiDimensionalArrayLowerBoundsAndSizes ||
 							(Equals(ara.Sizes, arb.Sizes) &&
 							Equals(ara.LowerBounds, arb.LowerBounds))) &&
@@ -2239,14 +2239,14 @@ exit:;
 				case ElementType.ValueType:
 				case ElementType.Class:
 					if (RawSignatureCompare)
-						result = TokenEquals((a as ClassOrValueTypeSig)!.TypeDefOrRef, (b as ClassOrValueTypeSig)!.TypeDefOrRef);
+						result = TokenEquals(((ClassOrValueTypeSig)a).TypeDefOrRef, ((ClassOrValueTypeSig)b).TypeDefOrRef);
 					else
-						result = Equals((IType?)(a as ClassOrValueTypeSig)!.TypeDefOrRef, (IType?)(b as ClassOrValueTypeSig)!.TypeDefOrRef);
+						result = Equals((IType?)((ClassOrValueTypeSig)a).TypeDefOrRef, (IType?)((ClassOrValueTypeSig)b).TypeDefOrRef);
 					break;
 
 				case ElementType.Var:
 				case ElementType.MVar:
-					result = (a as GenericSig)!.Number == (b as GenericSig)!.Number;
+					result = ((GenericSig)a).Number == ((GenericSig)b).Number;
 					break;
 
 				case ElementType.GenericInst:
@@ -2277,8 +2277,8 @@ exit:;
 				case ElementType.FnPtr:
 					// The CLR compares the fnptr calling convention byte exactly (incl. bit 0x80), unless
 					// modifiers are ignored, see FnPtrCallingConventionEquals()
-					var fpa = (a as FnPtrSig)!.Signature;
-					var fpb = (b as FnPtrSig)!.Signature;
+					var fpa = ((FnPtrSig)a).Signature;
+					var fpb = ((FnPtrSig)b).Signature;
 					// The CLR doesn't allow type equivalence inside (and after) function pointers. The state isn't restored afterwards.
 					if (typeEquivalenceStrict)
 						typeEquivalenceForbidden = true;
@@ -2299,25 +2299,25 @@ exit:;
 				case ElementType.CModReqd:
 				case ElementType.CModOpt:
 					if (RawSignatureCompare)
-						result = TokenEquals((a as ModifierSig)!.Modifier, (b as ModifierSig)!.Modifier) &&
+						result = TokenEquals(((ModifierSig)a).Modifier, ((ModifierSig)b).Modifier) &&
 								Equals(a.Next, b.Next);
 					else {
-						var moda = (a as ModifierSig)!.Modifier;
+						var moda = ((ModifierSig)a).Modifier;
 						// A TypeSpec modifier (eg. a generic instance) can forbid type equivalence in the rest of this
 						// TypeSig element. Mark it here since the modifier compare returns early if moda == modb.
 						if (!typeEquivalenceStrict && moda is TypeSpec)
 							typeEquivalenceMaybeForbidden = true;
-						result = Equals((IType?)moda, (IType?)(b as ModifierSig)!.Modifier) &&
+						result = Equals((IType?)moda, (IType?)((ModifierSig)b).Modifier) &&
 								Equals(a.Next, b.Next);
 					}
 					break;
 
 				case ElementType.ValueArray:
-					result = (a as ValueArraySig)!.Size == (b as ValueArraySig)!.Size && Equals(a.Next, b.Next);
+					result = ((ValueArraySig)a).Size == ((ValueArraySig)b).Size && Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.Module:
-					result = (a as ModuleSig)!.Index == (b as ModuleSig)!.Index && Equals(a.Next, b.Next);
+					result = ((ModuleSig)a).Index == ((ModuleSig)b).Index && Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.End:
@@ -2396,7 +2396,7 @@ exit:;
 			case ElementType.Class:
 				// When comparing an ExportedType/TypeDef/TypeRef to a TypeDefOrRefSig/Class/ValueType,
 				// the ET is ignored, so we must ignore it when calculating the hash.
-				hash = GetHashCode((IType?)(a as TypeDefOrRefSig)!.TypeDefOrRef);
+				hash = GetHashCode((IType?)((TypeDefOrRefSig)a).TypeDefOrRef);
 				break;
 
 			case ElementType.Sentinel:
@@ -2431,11 +2431,11 @@ exit:;
 				break;
 
 			case ElementType.Var:
-				hash = HASHCODE_MAGIC_ET_VAR + (int)(a as GenericVar)!.Number;
+				hash = HASHCODE_MAGIC_ET_VAR + (int)((GenericVar)a).Number;
 				break;
 
 			case ElementType.MVar:
-				hash = HASHCODE_MAGIC_ET_MVAR + (int)(a as GenericMVar)!.Number;
+				hash = HASHCODE_MAGIC_ET_MVAR + (int)((GenericMVar)a).Number;
 				break;
 
 			case ElementType.GenericInst:
@@ -2450,11 +2450,11 @@ exit:;
 				break;
 
 			case ElementType.ValueArray:
-				hash = HASHCODE_MAGIC_ET_VALUEARRAY + (int)(a as ValueArraySig)!.Size + GetHashCode(a.Next, substituteGenericParameters);
+				hash = HASHCODE_MAGIC_ET_VALUEARRAY + (int)((ValueArraySig)a).Size + GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.Module:
-				hash = HASHCODE_MAGIC_ET_MODULE + (int)(a as ModuleSig)!.Index + GetHashCode(a.Next, substituteGenericParameters);
+				hash = HASHCODE_MAGIC_ET_MODULE + (int)((ModuleSig)a).Index + GetHashCode(a.Next, substituteGenericParameters);
 				break;
 
 			case ElementType.End:
@@ -3907,8 +3907,8 @@ exit:;
 				if (!b.IsArray || b.IsSZArray())
 					result = false;
 				else {
-					var ara = a as ArraySig;
-					result = ara!.Rank == b.GetArrayRank() &&
+					var ara = (ArraySig)a;
+					result = ara.Rank == b.GetArrayRank() &&
 						(IsFnPtrElementType(b) ?
 								(a = a!.Next.RemoveModifiers()!) is not null && a.ElementType == ElementType.FnPtr :
 								Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType()));
@@ -3917,18 +3917,18 @@ exit:;
 
 			case ElementType.ValueType:
 			case ElementType.Class:
-				result = Equals((a as ClassOrValueTypeSig)!.TypeDefOrRef, b, declaringType);
+				result = Equals(((ClassOrValueTypeSig)a).TypeDefOrRef, b, declaringType);
 				break;
 
 			case ElementType.Var:
 				result = b.IsGenericParameter &&
-						b.GenericParameterPosition == (a as GenericSig)!.Number &&
+						b.GenericParameterPosition == ((GenericSig)a).Number &&
 						b.DeclaringMethod is null;
 				break;
 
 			case ElementType.MVar:
 				result = b.IsGenericParameter &&
-						b.GenericParameterPosition == (a as GenericSig)!.Number &&
+						b.GenericParameterPosition == ((GenericSig)a).Number &&
 						b.DeclaringMethod is not null;
 				break;
 

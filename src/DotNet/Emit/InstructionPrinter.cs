@@ -65,8 +65,8 @@ namespace dnlib.DotNet.Emit {
 			case OperandType.InlineTok:
 			case OperandType.InlineType:
 				sb.Append(extra);
-				if (op is IFullName)
-					sb.Append((op as IFullName)!.FullName);
+				if (op is IFullName fn)
+					sb.Append(fn.FullName);
 				else if (op is not null)
 					sb.Append(op.ToString());
 				else
