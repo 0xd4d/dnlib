@@ -5271,10 +5271,18 @@ exit:;
 			bool result = (DontCompareReturnType || (ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
 					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null))) &&
 					// Indexers can be overloaded
-					Equals(a.Params, b.GetIndexParameters(), b.DeclaringType);
+					Equals(a.Params, b.GetIndexParameters(), b.DeclaringType) &&
+					HasThisEquals(a, b);
 
 			recursionCounter.Decrement();
 			return result;
+		}
+
+		// A PropertyInfo has no calling convention. Equals(PropertySig, PropertySig) compares it, so compare
+		// HasThis with one of the accessors (nothing to compare with if it has none).
+		static bool HasThisEquals(PropertySig a, PropertyInfo b) {
+			var accessor = b.GetGetMethod(true) ?? b.GetSetMethod(true);
+			return accessor is null || a.HasThis == !accessor.IsStatic;
 		}
 
 		/// <summary>
