@@ -50,7 +50,8 @@ namespace dnlib.DotNet {
 		public CLRRuntimeReaderKind Runtime { get; set; } = CLRRuntimeReaderKind.CLR;
 
 		/// <summary>
-		/// Method body reader options, default is <see cref="MethodBodyReaderOptions.None"/>
+		/// Method body reader options, default is <see cref="MethodBodyReaderOptions.None"/> (all method
+		/// bodies that v4.5.0 could read are read)
 		/// </summary>
 		public MethodBodyReaderOptions MethodBodyReaderOptions { get; set; } = MethodBodyReaderOptions.None;
 

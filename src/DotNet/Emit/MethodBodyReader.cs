@@ -14,20 +14,22 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// No option is enabled
 		/// </summary>
-		None                        = 0,
+		None                         = 0,
 
 		/// <summary>
-		/// Allow a fat header whose size is less than 3 dwords. The code then starts inside the method
-		/// header and no extra sections (eg. exception handlers) are read. The CLR only accepts this for
-		/// IL that doesn't come from a PE file, eg. IL set by a profiler.
+		/// Don't allow a fat header whose size is less than 3 dwords: the method gets an empty body, like
+		/// the CLR which rejects such method bodies in PE files. By default, the code starts inside the
+		/// method header and no extra sections (eg. exception handlers) are read, which is what the CLR
+		/// does with IL that doesn't come from a PE file, eg. IL set by a profiler.
 		/// </summary>
-		AllowCodeInsideFatHeader    = 0x00000001,
+		DontAllowCodeInsideFatHeader = 0x00000001,
 
 		/// <summary>
-		/// Allow a fat header that isn't 4-byte aligned. The 64-bit CLR doesn't decode such a header,
-		/// the method gets an empty body and the JIT fails to compile it. The 32-bit CLR reads it.
+		/// Don't allow a fat header that isn't 4-byte aligned: the method gets an empty body, like the
+		/// 64-bit CLR which doesn't decode such a header (the JIT then fails to compile the method).
+		/// By default, the header is read, like the 32-bit CLR.
 		/// </summary>
-		AllowUnalignedFatHeader     = 0x00000002,
+		DontAllowUnalignedFatHeader  = 0x00000002,
 	}
 
 	/// <summary>
@@ -434,8 +436,8 @@ namespace dnlib.DotNet.Emit {
 
 				// The 64-bit CLR (DecoderInit) only decodes a fat header if it's 4-byte aligned,
 				// else the method gets an empty body (code size 0) and the JIT fails to compile it.
-				// The 32-bit CLR doesn't verify it.
-				if ((startOfHeader & 3) != 0 && (options & MethodBodyReaderOptions.AllowUnalignedFatHeader) == 0)
+				// The 32-bit CLR doesn't verify it so it's read by default.
+				if ((startOfHeader & 3) != 0 && (options & MethodBodyReaderOptions.DontAllowUnalignedFatHeader) != 0)
 					return false;
 				flags = (ushort)((reader.ReadByte() << 8) | b);
 				headerSize = (byte)(flags >> 12);
@@ -446,9 +448,9 @@ namespace dnlib.DotNet.Emit {
 				// The CLR rejects method bodies in PE files if the header size is less than 3 dwords
 				// (CheckILMethod). IL that doesn't come from a PE file (eg. IL set by a profiler) is
 				// only decoded by DecoderInit, which allows the code to start inside the method
-				// header but doesn't read any extra sections.
+				// header but doesn't read any extra sections. That's what we do by default.
 				if (headerSize < 3) {
-					if ((options & MethodBodyReaderOptions.AllowCodeInsideFatHeader) == 0)
+					if ((options & MethodBodyReaderOptions.DontAllowCodeInsideFatHeader) != 0)
 						return false;
 					flags &= 0xFFF7;
 				}
