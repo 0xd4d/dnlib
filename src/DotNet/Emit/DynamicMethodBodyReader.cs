@@ -67,6 +67,7 @@ namespace dnlib.DotNet.Emit {
 		static readonly ReflectionFieldInfo ehCatchAddrFieldInfo = new ReflectionFieldInfo("m_catchAddr");
 		static readonly ReflectionFieldInfo ehCatchClassFieldInfo = new ReflectionFieldInfo("m_catchClass");
 		static readonly ReflectionFieldInfo ehCatchEndAddrFieldInfo = new ReflectionFieldInfo("m_catchEndAddr");
+		static readonly ReflectionFieldInfo ehFilterAddrFieldInfo = new ReflectionFieldInfo("m_filterAddr");
 		static readonly ReflectionFieldInfo ehCurrentCatchFieldInfo = new ReflectionFieldInfo("m_currentCatch");
 		static readonly ReflectionFieldInfo ehTypeFieldInfo = new ReflectionFieldInfo("m_type");
 		static readonly ReflectionFieldInfo ehStartAddrFieldInfo = new ReflectionFieldInfo("m_startAddr");
@@ -240,6 +241,7 @@ namespace dnlib.DotNet.Emit {
 			public int[] CatchAddr = null!;
 			public Type[] CatchClass = null!;
 			public int[] CatchEndAddr = null!;
+			public int[]? FilterAddr;
 			public int CurrentCatch;
 			public int[] Type = null!;
 			public int StartAddr;
@@ -260,6 +262,7 @@ namespace dnlib.DotNet.Emit {
 					CatchAddr = (int[])ehCatchAddrFieldInfo.Read(ehInfo)!,
 					CatchClass = (Type[])ehCatchClassFieldInfo.Read(ehInfo)!,
 					CatchEndAddr = (int[])ehCatchEndAddrFieldInfo.Read(ehInfo)!,
+					FilterAddr = ehFilterAddrFieldInfo.Exists(ehInfo) ? ehFilterAddrFieldInfo.Read(ehInfo) as int[] : null,
 					CurrentCatch = (int)ehCurrentCatchFieldInfo.Read(ehInfo)!,
 					Type = (int[])ehTypeFieldInfo.Read(ehInfo)!,
 					StartAddr = (int)ehStartAddrFieldInfo.Read(ehInfo)!,
@@ -398,7 +401,9 @@ namespace dnlib.DotNet.Emit {
 						eh.HandlerType = (ExceptionHandlerType)ehInfo.Type[i];
 						eh.TryStart = tryStart;
 						eh.TryEnd = eh.IsFinally ? endFinally : tryEnd;
-						eh.FilterStart = null;  // not supported by DynamicMethod.ILGenerator
+						// .NET Framework's DynamicMethod.ILGenerator doesn't support filters, .NET does. The filter's
+						// offset is in m_filterAddr (a catch handler's class token is stored there too).
+						eh.FilterStart = eh.IsFilter && ehInfo.FilterAddr is int[] filterAddr && (uint)i < (uint)filterAddr.Length ? GetInstruction((uint)filterAddr[i]) : null;
 						eh.HandlerStart = GetInstructionOrThrow((uint)ehInfo.CatchAddr[i]);
 						eh.HandlerEnd = GetInstruction((uint)ehInfo.CatchEndAddr[i]);
 						eh.CatchType = importer.ImportAsOperandOrNull(ehInfo.CatchClass[i]);
