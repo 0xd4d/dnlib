@@ -143,7 +143,9 @@ namespace dnlib.DotNet.Emit {
 			if (codeEndOffs < codeStartOffs || codeEndOffs > reader.Length)
 				throw new InvalidMethodException("Invalid code size");
 
-			this.instructions = new List<Instruction>();    //TODO: Estimate number of instructions based on codeSize
+			// An instruction is 2.6 bytes on average. codeSize/2+1 is enough for ~95% of all methods
+			// and doesn't use more memory than a list that had to grow to the same size.
+			this.instructions = new List<Instruction>((int)Math.Min(codeSize / 2 + 1, int.MaxValue));
 			currentOffset = 0;
 			var instructions = this.instructions;
 			while (reader.Position < codeEndOffs)
