@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -168,7 +169,8 @@ namespace dnlib.DotNet.Resources {
 				infos.Add(new ResourceInfo(name, offset));
 			}
 
-			infos.Sort((a, b) => a.offset.CompareTo(b.offset));
+			// A stable sort (List<T>.Sort() isn't): resources that use the same data keep their order
+			infos = infos.OrderBy(a => a.offset).ToList();
 			for (int i = 0; i < infos.Count; i++) {
 				var info = infos[i];
 				var element = new ResourceElement();
