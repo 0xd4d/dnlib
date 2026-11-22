@@ -224,9 +224,26 @@ namespace dnlib.DotNet {
 		/// here, else this will be <c>null</c></param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, out byte[]? extraData) {
+		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, out byte[]? extraData) =>
+			ReadTypeSig(readerModule, sig, gpContext, 0, out extraData);
+
+		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="recursionDepth">Initial recursion depth. It's not 0 if this signature is read while another
+		/// signature is being read (a <c>TypeSpec</c> token in a signature), so all nested signatures share one
+		/// recursion limit.</param>
+		/// <param name="extraData">If there's any extra data after the signature, it's saved
+		/// here, else this will be <c>null</c></param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		internal static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, int recursionDepth, out byte[]? extraData) {
 			try {
 				var reader = new SignatureReader(readerModule, sig, gpContext);
+				reader.recursionCounter = new RecursionCounter(recursionDepth);
 				TypeSig? ts;
 				try {
 					ts = reader.ReadType();
@@ -1024,8 +1041,13 @@ exit:
 		ITypeDefOrRef? ReadTypeDefOrRef(bool allowTypeSpec) {
 			if (!reader.TryReadCompressedUInt32(out uint codedToken))
 				return null;
-			if (!allowTypeSpec && CodedToken.TypeDefOrRef.Decode2(codedToken).Table == Table.TypeSpec)
-				return null;
+			if (CodedToken.TypeDefOrRef.Decode2(codedToken).Table == Table.TypeSpec) {
+				if (!allowTypeSpec)
+					return null;
+				// If the TypeSpec hasn't been read yet, its signature is read now, while this signature
+				// is being read. It continues at our recursion depth, see TypeSpecMD.Create().
+				TypeSpecMD.SetOuterSignatureDepth(recursionCounter.Counter);
+			}
 			return helper.ResolveTypeDefOrRef(codedToken, default);
 		}
 	}

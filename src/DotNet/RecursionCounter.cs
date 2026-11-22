@@ -19,6 +19,12 @@ namespace dnlib.DotNet {
 		public int Counter => counter;
 
 		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="counter">Initial value of the recursion counter</param>
+		public RecursionCounter(int counter) => this.counter = counter;
+
+		/// <summary>
 		/// Increments <see cref="counter"/> if it's not too high. <c>ALL</c> instance methods
 		/// that can be called recursively must call this method and <see cref="Decrement"/>
 		/// (if this method returns <c>true</c>)
