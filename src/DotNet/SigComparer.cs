@@ -608,6 +608,10 @@ namespace dnlib.DotNet {
 
 		bool DontCompareTypeScope => (options & SigComparerOptions.DontCompareTypeScope) != 0;
 		bool CompareMethodFieldDeclaringType => (options & SigComparerOptions.CompareMethodFieldDeclaringType) != 0;
+		// A method/field's declaring type isn't hashed if TypeRefCanReferenceGlobalType is set: a global method/field is
+		// then equal to a MemberRef whose parent is a TypeRef (hashed by name), a ModuleRef (no name) or the global TypeDef,
+		// and to a reflection method/field (null declaring type), and the global type can have any name.
+		bool HashMethodFieldDeclaringType => CompareMethodFieldDeclaringType && !TypeRefCanReferenceGlobalType;
 		bool ComparePropertyDeclaringType => (options & SigComparerOptions.ComparePropertyDeclaringType) != 0;
 		bool CompareEventDeclaringType => (options & SigComparerOptions.CompareEventDeclaringType) != 0;
 		bool CompareSentinelParams => (options & SigComparerOptions.CompareSentinelParams) != 0;
@@ -3031,7 +3035,7 @@ exit:;
 
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
-			if (CompareMethodFieldDeclaringType)
+			if (HashMethodFieldDeclaringType)
 				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
@@ -3102,7 +3106,7 @@ exit:;
 				hash += GetHashCode(a.Signature);
 			if (methodArgs is not null)
 				genericArguments!.PopMethodArgs();
-			if (CompareMethodFieldDeclaringType)
+			if (HashMethodFieldDeclaringType)
 				hash += GetHashCode(a.Class);
 
 			recursionCounter.Decrement();
@@ -3426,7 +3430,7 @@ exit:;
 
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode(a.Signature);
-			if (CompareMethodFieldDeclaringType)
+			if (HashMethodFieldDeclaringType)
 				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
@@ -4767,7 +4771,7 @@ exit:;
 			// ***********************************************************************
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode_MethodSig(a);
-			if (CompareMethodFieldDeclaringType)
+			if (HashMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
 			if (a.IsGenericMethod && !a.IsGenericMethodDefinition) {
 				// Must match GetHashCode(MethodSpec)
@@ -5211,7 +5215,7 @@ exit:;
 
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode_FieldSig(a);
-			if (CompareMethodFieldDeclaringType)
+			if (HashMethodFieldDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
 
 			recursionCounter.Decrement();
