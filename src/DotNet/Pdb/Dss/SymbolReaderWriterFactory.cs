@@ -117,7 +117,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter8))]
 		static void KeepComInterfaces() { }
 
-		public static SymbolReader? Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream) {
+		/// <summary>
+		/// Creates a COM symbol reader. If <paramref name="noComReader"/> is <c>true</c>, the COM reader couldn't be
+		/// created (eg. built-in COM interop is disabled, or no symbol reader is installed), <c>null</c> is returned
+		/// and <paramref name="pdbStream"/> isn't disposed so the caller can use another reader.
+		/// </summary>
+		public static SymbolReader? Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream, out bool noComReader) {
+			noComReader = false;
 			ISymUnmanagedReader? unmanagedReader = null;
 			SymbolReaderImpl? symReader = null;
 			ReaderMetaDataImport? mdImporter = null;
@@ -132,9 +138,17 @@ namespace dnlib.DotNet.Pdb.Dss {
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
-				unmanagedReader = CreateSymUnmanagedReader(pdbContext.Options);
-				if (unmanagedReader is null)
+				try {
+					unmanagedReader = CreateSymUnmanagedReader(pdbContext.Options);
+				}
+				catch (InvalidCastException) {
+				}
+				catch (COMException) {
+				}
+				if (unmanagedReader is null) {
+					noComReader = true;
 					return null;
+				}
 
 				mdImporter = new ReaderMetaDataImport(metadata);
 				comPdbStream = new DataReaderIStream(pdbStream);
@@ -159,7 +173,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 			finally {
 				if (error) {
-					pdbStream?.Dispose();
+					if (!noComReader)
+						pdbStream?.Dispose();
 					symReader?.Dispose();
 					mdImporter?.Dispose();
 					comPdbStream?.Dispose();

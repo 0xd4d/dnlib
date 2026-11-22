@@ -19,7 +19,9 @@ namespace dnlib.DotNet.Pdb {
 		/// This is NOT recommended since the COM reader can only be called on the same
 		/// thread it was created on. It also requires a Windows OS.
 		/// 
-		/// If this is not set, the managed PDB reader will be used.
+		/// If this is not set, the managed PDB reader will be used. It's also used if the COM reader can't be
+		/// created, eg. it's not a Windows OS, built-in COM interop is disabled (the default in trimmed and
+		/// NativeAOT apps) or no symbol reader is installed.
 		/// 
 		/// This option is only used if it's a Windows PDB file, not if it's a Portable PDB file.
 		/// </summary>

@@ -73,8 +73,13 @@ namespace dnlib.DotNet.Pdb {
 				var isWindows = true;
 #endif
 
-				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && isWindows && pdbStream is not null && IsWindowsPdb(pdbStream.CreateReader()))
-					symReader = Dss.SymbolReaderWriterFactory.Create(pdbContext, metadata, pdbStream);
+				if ((pdbContext.Options & PdbReaderOptions.MicrosoftComReader) != 0 && isWindows && pdbStream is not null && IsWindowsPdb(pdbStream.CreateReader())) {
+					symReader = Dss.SymbolReaderWriterFactory.Create(pdbContext, metadata, pdbStream, out bool noComReader);
+					// Use the managed reader if there's no COM reader, eg. built-in COM interop is disabled (the
+					// default in trimmed and NativeAOT apps) or no symbol reader is installed
+					if (symReader is null && noComReader)
+						symReader = CreateManaged(pdbContext, metadata, pdbStream);
+				}
 				else
 					symReader = CreateManaged(pdbContext, metadata, pdbStream);
 
