@@ -3616,9 +3616,8 @@ exit:;
 				return false;
 			if (b is null)
 				return a.IsGlobalModuleType;
-			b = GetUnmodifiedType(b, out var modifiedB);
-			if (modifiedB is not null && HasModifiers(modifiedB))
-				return false;
+			// Modifiers are ignored, same as when comparing with a ModifierSig
+			b = GetUnmodifiedType(b, out _);
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -3674,9 +3673,8 @@ exit:;
 				return false;
 			if (b is null)
 				return false;   // Must use a ModuleRef to reference the global type, so always fail
-			b = GetUnmodifiedType(b, out var modifiedB);
-			if (modifiedB is not null && HasModifiers(modifiedB))
-				return false;
+			// Modifiers are ignored, same as when comparing with a ModifierSig
+			b = GetUnmodifiedType(b, out _);
 			if (!recursionCounter.Increment())
 				return false;
 
@@ -3778,9 +3776,6 @@ exit:;
 			modifiedB = null;
 			return b;
 		}
-
-		static bool HasModifiers(Type modifiedB) =>
-			modifiedB.GetRequiredCustomModifiers2().Length != 0 || modifiedB.GetOptionalCustomModifiers2().Length != 0;
 
 		bool Equals(ITypeDefOrRef? a, Type? b, Type? declaringType) {
 			if (a is TypeSpec ts)
@@ -4058,9 +4053,8 @@ exit:;
 				return false;
 			if (b is null)
 				return false;   // Must use a ModuleRef to reference the global type, so always fail
-			b = GetUnmodifiedType(b, out var modifiedB);
-			if (modifiedB is not null && HasModifiers(modifiedB))
-				return false;
+			// Modifiers are ignored, same as when comparing with a ModifierSig
+			b = GetUnmodifiedType(b, out _);
 			if (!recursionCounter.Increment())
 				return false;
 
