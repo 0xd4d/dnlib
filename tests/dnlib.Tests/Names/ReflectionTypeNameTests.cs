@@ -124,8 +124,8 @@ namespace dnlib.Tests.Names {
 		}
 
 		[Theory, MemberData(nameof(Types))]
-		public void ParsedFullNameIsTheSameTypeInTheCoreLibrary(Type type) {
-			// A name without an assembly is looked up in the module and then in the core library
+		public void FullNameWithoutAssemblyCanBeParsed(Type type) {
+			// The name without the assembly can be parsed too. Which assembly the type is then in isn't checked.
 			if (type.Assembly != typeof(object).Assembly)
 				return;
 			var module = CreateModule();
