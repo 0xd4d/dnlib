@@ -1,7 +1,7 @@
 // A test input, not a test: this file is compiled by the tests (see Fixtures.cs), it's not part of dnlib.Tests.
 //
-// It uses as many metadata features as C# can express, so that a test that reads or writes it touches most of
-// dnlib. It must compile with .NET Framework 4.5's mscorlib/System/System.Core too, so no newer library types
+// It uses many metadata features that C# can express, so that a test that reads or writes it touches a lot of
+// dnlib's code. When a feature turns out to be missing, add it here. It must compile with .NET Framework 4.5's mscorlib/System/System.Core too, so no newer library types
 // (tuples, Span<T>, records, default interface methods).
 //
 // Main() returns 0 if the code still works. Tests that write the assembly with dnlib run it.
@@ -42,6 +42,43 @@ namespace Features {
 		public Color ColorField;
 		public Type TypeProperty { get; set; }
 		public object[] Objects { get; set; }
+	}
+
+	// A generic attribute: its constructor is a method of a generic type instance (a MemberRef whose class is a
+	// TypeSpec), and the types of its arguments are the type's generic arguments
+	[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+	public sealed class GenericAttribute<T> : Attribute {
+		public GenericAttribute(T value) { }
+		public GenericAttribute(T[] values, object boxed) { }
+		public T Property { get; set; }
+		public T[] Field;
+	}
+
+	[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+	public sealed class GenericAttribute<TKey, TValue> : Attribute {
+		public GenericAttribute(TKey key, TValue value, TValue[] values) { }
+	}
+
+	// An enum in a generic type: the enum type itself is generic, eg. GenericOwner<int>.Kind
+	public class GenericOwner<T> {
+		public enum Kind : short {
+			First,
+			Second = 5,
+		}
+	}
+
+	[Generic<int>(5, Property = 6)]
+	[Generic<string>(new[] { "a", null }, 1.5, Field = new[] { "b" })]
+	[Generic<Type>(typeof(List<>), Property = typeof(Dictionary<int, string[]>))]
+	[Generic<object>("boxed", Property = 123)]
+	[Generic<Color>(Color.Blue, Field = new[] { Color.Red, Color.Green })]
+	[Generic<string, long>("key", long.MinValue, new long[] { 1, 2 })]
+	[Everything(typeof(GenericOwner<int>.Kind), Color.Red, GenericOwner<string>.Kind.Second)]
+	[Everything(null, null, null, new object[] { GenericOwner<int>.Kind.Second, new[] { GenericOwner<int>.Kind.First } })]
+	public static class GenericAttributeUser {
+		// Generic attributes and generic enum types need .NET 7 or later
+		public static bool IsSupported => Environment.Version.Major >= 7;
+		public static int CountAttributes() => typeof(GenericAttributeUser).GetCustomAttributes(false).Length;
 	}
 
 	public interface IShape {
@@ -346,6 +383,9 @@ namespace Features {
 			Check(Shape.Kind == "shape" && Shape.Created.Year == 2000, "constants and static fields");
 			var attributes = typeof(Shape).GetCustomAttributes(typeof(EverythingAttribute), false);
 			Check(attributes.Length == 4, "custom attributes");
+
+			if (GenericAttributeUser.IsSupported)
+				Check(GenericAttributeUser.CountAttributes() == 8, "generic custom attributes");
 
 			return failures;
 		}

@@ -12,7 +12,7 @@ namespace dnlib.Tests.Fixtures {
 	/// </summary>
 	static class Fixtures {
 		/// <summary>
-		/// <c>Sources/Features.cs</c>: an EXE that uses as many metadata features as C# can express and whose
+		/// <c>Sources/Features.cs</c>: an EXE that uses many metadata features that C# can express (see the file) and whose
 		/// <c>Main()</c> returns 0 if its code works
 		/// </summary>
 		public static CompiledAssembly Features => features.Value;
