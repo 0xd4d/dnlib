@@ -15,5 +15,11 @@ namespace dnlib.TestUtils.Dumping {
 		/// <c>true</c> to write the info of exported methods (name, ordinal, options)
 		/// </summary>
 		public bool MethodExportInfo { get; set; } = true;
+
+		/// <summary>
+		/// <c>true</c> to write the debug info that was read from a PDB file: documents, sequence points,
+		/// scopes, local variable names, constants, imports and custom debug info
+		/// </summary>
+		public bool Pdb { get; set; }
 	}
 }

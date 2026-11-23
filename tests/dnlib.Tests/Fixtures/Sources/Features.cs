@@ -271,11 +271,18 @@ namespace Features {
 		}
 
 		public static unsafe int Locals(int count) {
+			// Constants of a method are only stored in the PDB
+			const int Factor = 3;
+			const string Label = "label";
+			const double Half = 0.5;
+			const Color Favorite = Color.Green;
+			const object NoObject = null;
 			int* buffer = stackalloc int[count];
 			for (int i = 0; i < count; i++)
 				buffer[i] = primes[i % primes.Length];
 			fixed (byte* p = bytes) {
-				long total = Native.Sum(buffer, count);
+				// Locals in a nested scope
+				long total = Native.Sum(buffer, count) * Factor / (Label.Length - 2);
 				decimal money = 1.5m;
 				double real = 2.5;
 				float small = 0.5f;

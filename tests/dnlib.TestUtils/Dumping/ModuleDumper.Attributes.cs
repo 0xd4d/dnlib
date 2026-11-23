@@ -13,7 +13,11 @@ namespace dnlib.TestUtils.Dumping {
 		// An argument can be an array of arguments, and invalid data could nest them deeply
 		const int MaxArgumentDepth = 40;
 
+		// Also writes the owner's custom debug info (PDB): everything that can have custom debug info can have
+		// custom attributes too
 		void WriteCustomAttributes(IHasCustomAttribute owner) {
+			if (owner is IHasCustomDebugInformation debugInfoOwner)
+				WriteCustomDebugInfos(debugInfoOwner);
 			foreach (var customAttribute in owner.CustomAttributes) {
 				// dnlib keeps the bytes of a custom attribute it can't decode
 				if (customAttribute.IsRawBlob) {

@@ -63,6 +63,7 @@ namespace dnlib.TestUtils.Dumping {
 			writer.Line("entrypoint=" + ReferenceFormatter.Format(module.ManagedEntryPoint));
 			WriteCustomAttributes(module);
 			writer.Unindent();
+			WritePdbState(module);
 
 			var assembly = module.Assembly;
 			if (assembly is not null)
@@ -185,6 +186,7 @@ namespace dnlib.TestUtils.Dumping {
 		}
 
 		void WriteMethod(MethodDef method) {
+			SetCurrentMethodBody(method.Body);
 			writer.Line("method " + DumpText.Quote(method.Name) + " " + ReferenceFormatter.Format(method.Signature));
 			writer.Indent();
 			writer.Line("flags=" + method.Attributes + " implflags=" + method.ImplAttributes + " semantics=" + method.SemanticsAttributes);

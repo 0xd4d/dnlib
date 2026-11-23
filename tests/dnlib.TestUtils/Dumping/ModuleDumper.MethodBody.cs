@@ -8,16 +8,25 @@ using dnlib.DotNet.Emit;
 
 namespace dnlib.TestUtils.Dumping {
 	public sealed partial class ModuleDumper {
+		// Branch targets, exception handler ranges and scopes are shown as instruction indexes: the writer can
+		// change the offsets (eg. when it uses a shorter instruction). These are the indexes of the instructions
+		// of the method that's being written.
+		readonly Dictionary<Instruction, int> instructionIndexes = new Dictionary<Instruction, int>();
+
+		void SetCurrentMethodBody(CilBody? body) {
+			instructionIndexes.Clear();
+			if (body is null)
+				return;
+			var instructions = body.Instructions;
+			for (int i = 0; i < instructions.Count; i++)
+				instructionIndexes[instructions[i]] = i;
+		}
+
 		void WriteMethodBody(CilBody body) {
 			var instructions = body.Instructions;
-
-			// Branch targets and exception handler ranges are shown as instruction indexes: the writer can
-			// change the offsets (eg. when it uses a shorter instruction)
-			var instructionIndexes = new Dictionary<Instruction, int>(instructions.Count);
 			bool hasLocalloc = false;
-			for (int i = 0; i < instructions.Count; i++) {
-				instructionIndexes[instructions[i]] = i;
-				if (instructions[i].OpCode.Code == Code.Localloc)
+			foreach (var instruction in instructions) {
+				if (instruction.OpCode.Code == Code.Localloc)
 					hasLocalloc = true;
 			}
 
@@ -33,32 +42,42 @@ namespace dnlib.TestUtils.Dumping {
 			writer.Line(header);
 			writer.Indent();
 
-			foreach (var local in body.Variables)
-				writer.Line("local " + local.Index.ToString(CultureInfo.InvariantCulture) + " " + ReferenceFormatter.Format(local.Type));
+			foreach (var local in body.Variables) {
+				var text = "local " + local.Index.ToString(CultureInfo.InvariantCulture) + " " + ReferenceFormatter.Format(local.Type);
+				// The name and attributes come from the PDB
+				if (options.Pdb)
+					text += " " + DumpText.Quote(local.Name) + " " + local.Attributes;
+				writer.Line(text);
+			}
 
-			foreach (var instruction in instructions)
-				writer.Line(instruction.OpCode.Name + FormatOperand(instruction.Operand, instructionIndexes));
+			foreach (var instruction in instructions) {
+				var text = instruction.OpCode.Name + FormatOperand(instruction.Operand);
+				if (options.Pdb)
+					text += FormatSequencePoint(instruction.SequencePoint);
+				writer.Line(text);
+			}
 
 			foreach (var handler in body.ExceptionHandlers) {
 				writer.Line("exceptionhandler " + handler.HandlerType +
-					" try=" + FormatTarget(handler.TryStart, instructionIndexes) + "-" + FormatTarget(handler.TryEnd, instructionIndexes) +
-					" filter=" + FormatTarget(handler.FilterStart, instructionIndexes) +
-					" handler=" + FormatTarget(handler.HandlerStart, instructionIndexes) + "-" + FormatTarget(handler.HandlerEnd, instructionIndexes) +
+					" try=" + FormatTarget(handler.TryStart) + "-" + FormatTarget(handler.TryEnd) +
+					" filter=" + FormatTarget(handler.FilterStart) +
+					" handler=" + FormatTarget(handler.HandlerStart) + "-" + FormatTarget(handler.HandlerEnd) +
 					" catch=" + ReferenceFormatter.Format(handler.CatchType));
 			}
+			WritePdbMethod(body.PdbMethod);
 			writer.Unindent();
 		}
 
-		static string FormatOperand(object? operand, Dictionary<Instruction, int> instructionIndexes) {
+		string FormatOperand(object? operand) {
 			switch (operand) {
 			case null:
 				return string.Empty;
 			case Instruction target:
-				return " -> " + FormatTarget(target, instructionIndexes);
+				return " -> " + FormatTarget(target);
 			case IList<Instruction> targets:
 				var text = new StringBuilder(" ->");
 				foreach (var target in targets)
-					text.Append(' ').Append(FormatTarget(target, instructionIndexes));
+					text.Append(' ').Append(FormatTarget(target));
 				return text.ToString();
 			case Local local:
 				return " local " + local.Index.ToString(CultureInfo.InvariantCulture);
@@ -72,7 +91,7 @@ namespace dnlib.TestUtils.Dumping {
 		}
 
 		// null: the end of the method (eg. a try block that ends at the last instruction), or an invalid target
-		static string FormatTarget(Instruction? target, Dictionary<Instruction, int> instructionIndexes) {
+		string FormatTarget(Instruction? target) {
 			if (target is null)
 				return "null";
 			if (instructionIndexes.TryGetValue(target, out int index))

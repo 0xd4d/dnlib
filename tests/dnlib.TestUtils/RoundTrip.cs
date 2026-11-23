@@ -49,6 +49,51 @@ namespace dnlib.TestUtils {
 			}
 		}
 
+		/// <summary>
+		/// Reads a module and its portable PDB, writes both and reads them again. The debug info (documents,
+		/// sequence points, scopes, locals, constants, imports, custom debug info) must be the same too.
+		/// </summary>
+		/// <param name="image">A PE file with only IL code</param>
+		/// <param name="pdb">Its portable PDB</param>
+		/// <param name="preserveMetadata"><c>true</c> to write with <see cref="MetadataFlags.PreserveAll"/> and
+		/// <see cref="MetadataFlags.KeepOldMaxStack"/>, <c>false</c> to let the writer create new metadata</param>
+		/// <returns>The written files</returns>
+		public static CompiledAssembly CheckWithPortablePdb(byte[] image, byte[] pdb, bool preserveMetadata) {
+			using (var original = LoadWithPdb(image, pdb)) {
+				var writerOptions = new ModuleWriterOptions(original);
+				if (preserveMetadata)
+					writerOptions.MetadataOptions.Flags |= MetadataFlags.PreserveAll | MetadataFlags.KeepOldMaxStack;
+				var pdbStream = new MemoryStream();
+				writerOptions.WritePdb = true;
+				writerOptions.PdbStream = pdbStream;
+				// The name that's stored in the PE file's debug directory. Nothing is written to this file.
+				writerOptions.PdbFileName = "written.pdb";
+
+				var writtenImage = Write(original, writerOptions);
+				var writtenPdb = pdbStream.ToArray();
+				using (var written = LoadWithPdb(writtenImage, writtenPdb))
+					ModuleComparer.AssertEqual(original, written, new ModuleDumpOptions { Pdb = true, MaxStack = preserveMetadata });
+				return new CompiledAssembly(writtenImage, writtenPdb);
+			}
+		}
+
+		/// <summary>
+		/// Reads a module and its PDB. Throws if dnlib doesn't accept the PDB.
+		/// </summary>
+		public static ModuleDefMD LoadWithPdb(byte[] image, byte[] pdb) {
+			var options = new ModuleCreationOptions {
+				PdbFileOrData = pdb,
+				// Only use the PDB that was passed in
+				TryToLoadPdbFromDisk = false,
+			};
+			var module = ModuleDefMD.Load(image, options);
+			if (module.PdbState is null) {
+				module.Dispose();
+				throw new ModuleDifferenceException("The PDB wasn't loaded");
+			}
+			return module;
+		}
+
 		static byte[] Write(ModuleDef module, ModuleWriterOptions options) {
 			var stream = new MemoryStream();
 			module.Write(stream, options);
