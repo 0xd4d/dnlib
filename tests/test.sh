@@ -53,10 +53,16 @@ run_leg() {
 		# The exit code is then wrong, so the summary line decides.
 		# It also writes mono_crash.*.json files to the current directory, so run it in the output directory
 		# (ignored by git) and delete them.
+		# Mono's crash report is long, so it's only shown if the tests didn't pass.
 		local log=$out/test-output.log
-		(cd "$out" && mono dnlib.Tests.exe "${test_args[@]}" 2>&1 || true) | tee "$log"
+		(cd "$out" && mono dnlib.Tests.exe "${test_args[@]}" >test-output.log 2>&1 || true)
 		rm -f "$out"/mono_crash.*
-		grep -q "Errors: 0, Failed: 0" "$log"
+		if grep -q "Errors: 0, Failed: 0" "$log"; then
+			sed '/Errors: 0, Failed: 0/q' "$log"
+		else
+			cat "$log"
+			return 1
+		fi
 	else
 		echo "Skipped: .NET Framework tests need Windows or Mono"
 	fi
