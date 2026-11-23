@@ -14,11 +14,18 @@
     <EmbeddedResource Include="Fixtures\Sources\**" LogicalName="Fixtures/Sources/%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <!-- The public API of every dnlib build as text, see Api/PublicApiTests.cs -->
+  <ItemGroup>
+    <EmbeddedResource Include="Api\Baselines\*.txt" LogicalName="Api/Baselines/%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\dnlib.TestUtils\dnlib.TestUtils.csproj" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="All" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <!-- Writes the public API of an assembly as C# declarations -->
+    <PackageReference Include="PublicApiGenerator" Version="11.5.4" />
   </ItemGroup>
 
 </Project>
