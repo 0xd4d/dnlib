@@ -2199,8 +2199,12 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		void IListListener<TypeDef>.OnClear() {
-			foreach (var type in nestedTypes!.GetEnumerable_NoLock())
+			foreach (var type in nestedTypes!.GetEnumerable_NoLock()) {
 				type.DeclaringType2 = null;
+				// Same as OnRemove(): a nested type read from metadata whose module hasn't been initialized yet
+				// would otherwise return the module it was read from now that it has no declaring type
+				type.Module2 = null;
+			}
 		}
 
 		/// <inheritdoc/>
