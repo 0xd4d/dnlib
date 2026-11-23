@@ -694,7 +694,10 @@ namespace dnlib.DotNet {
 				break;
 
 			case ElementType.GenericInst:
-				nextType = ReadType();
+				if (IsGenericInstTypeKindIgnored())
+					nextType = new ClassSig(ReadTypeDefOrRef(false));
+				else
+					nextType = ReadType();
 				// The CLR only allows up to 0xFFFF generic arguments
 				if (!reader.TryReadCompressedUInt32(out num) || num > 0xFFFF || num > reader.BytesLeft)
 					break;
@@ -928,7 +931,10 @@ exit:
 
 			case ElementType.GenericInst:
 				stack.Add(new SkipItem(SkipKind.GenericInstArgs, 0));
-				stack.Add(new SkipItem(SkipKind.Types, 1));
+				if (IsGenericInstTypeKindIgnored())
+					reader.TryReadCompressedUInt32(out _);
+				else
+					stack.Add(new SkipItem(SkipKind.Types, 1));
 				return;
 
 			case ElementType.Array:
@@ -952,6 +958,22 @@ exit:
 			default:
 				return;
 			}
+		}
+
+		/// <summary>
+		/// The generic type of a generic instance is <c>CLASS</c> or <c>VALUETYPE</c> followed by a token. The CLR
+		/// reads that byte but ignores its value (<c>SigPointer::GetGenericInstType()</c>), so any other byte followed
+		/// by a token is a generic type too. If the next byte is such a byte, it's read and <c>true</c> is returned.
+		/// </summary>
+		bool IsGenericInstTypeKindIgnored() {
+			if (reader.BytesLeft == 0)
+				return false;
+			var kind = (ElementType)reader.ReadByte();
+			if (kind is ElementType.Class or ElementType.ValueType or ElementType.Internal) {
+				reader.Position--;
+				return false;
+			}
+			return true;
 		}
 
 		void SkipInternalAddress() {
