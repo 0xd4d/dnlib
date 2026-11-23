@@ -5255,6 +5255,7 @@ exit:;
 
 			bool result = Equals_PropertyNames(a.Name, b.Name) &&
 					Equals(a.PropertySig, b) &&
+					IsStaticEquals(a, b) &&
 					(!ComparePropertyDeclaringType || Equals(a.DeclaringType, b.DeclaringType));
 
 			recursionCounter.Decrement();
@@ -5277,18 +5278,24 @@ exit:;
 			bool result = (DontCompareReturnType || (ModifiersEquals(a.RetType, b.GetRequiredCustomModifiers(), b.GetOptionalCustomModifiers(), out a2) &&
 					Equals(a2, bType, b.DeclaringType, null, bType.ContainsFunctionPointer() ? b.GetModifiedPropertyType2() : null))) &&
 					// Indexers can be overloaded
-					Equals(a.Params, b.GetIndexParameters(), b.DeclaringType) &&
-					HasThisEquals(a, b);
+					Equals(a.Params, b.GetIndexParameters(), b.DeclaringType);
 
 			recursionCounter.Decrement();
 			return result;
 		}
 
-		// A PropertyInfo has no calling convention. Equals(PropertySig, PropertySig) compares it, so compare
-		// HasThis with one of the accessors (nothing to compare with if it has none).
-		static bool HasThisEquals(PropertySig a, PropertyInfo b) {
-			var accessor = b.GetGetMethod(true) ?? b.GetSetMethod(true);
-			return accessor is null || a.HasThis == !accessor.IsStatic;
+		// A PropertyInfo has no calling convention: it's static if its accessors are static. Equals(PropertySig, PropertySig)
+		// compares HasThis, so a static property must not be equal to an instance property's PropertyInfo.
+		// The accessors are compared if possible and not the signature's HasThis bit, since some instance properties
+		// don't have it set (eg. in interop assemblies created by tlbimp).
+		static bool IsStaticEquals(PropertyDef a, PropertyInfo b) {
+			var bAccessor = b.GetGetMethod(true) ?? b.GetSetMethod(true);
+			if (bAccessor is null)
+				return true;
+			var aAccessor = a.GetMethod ?? a.SetMethod;
+			if (aAccessor is not null)
+				return aAccessor.IsStatic == bAccessor.IsStatic;
+			return a.PropertySig is not PropertySig sig || sig.HasThis == !bAccessor.IsStatic;
 		}
 
 		/// <summary>
