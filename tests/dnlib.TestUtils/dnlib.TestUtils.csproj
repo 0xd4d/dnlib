@@ -14,13 +14,20 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
     <!-- Native library (Windows only) that reads and writes Windows PDB files. The C# compiler needs it to
          create a Windows PDB, and dnlib's COM PDB reader and Windows PDB writer use it. -->
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" GeneratePathProperty="true" />
     <!-- ilasm is a native program. It's only downloaded, the tests start it (see IlAssembler). -->
     <PackageDownload Include="runtime.$(IlasmRid).Microsoft.NETCore.ILAsm" Version="[$(IlasmVersion)]" />
     <AssemblyMetadata Include="IlasmPath" Value="$(NuGetPackageRoot)runtime.$(IlasmRid.ToLowerInvariant()).microsoft.netcore.ilasm/$(IlasmVersion)/runtimes/$(IlasmRid)/native/$(IlasmExe)" />
     <AssemblyMetadata Include="DnlibExpectedTfm" Value="$(DnlibExpectedTfm)" />
     <AssemblyMetadata Include="DnlibExpectedThreadSafe" Value="true" Condition=" '$(DnlibThreadSafe)' != 'false' " />
     <AssemblyMetadata Include="DnlibExpectedThreadSafe" Value="false" Condition=" '$(DnlibThreadSafe)' == 'false' " />
+  </ItemGroup>
+
+  <!-- .NET finds the native library in the package's runtimes folder, .NET Framework only looks next to the
+       test program. It loads the file that matches the process: x86 or amd64. -->
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+    <None Include="$(PkgMicrosoft_DiaSymReader_Native)/runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll" Link="Microsoft.DiaSymReader.Native.x86.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(PkgMicrosoft_DiaSymReader_Native)/runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll" Link="Microsoft.DiaSymReader.Native.amd64.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
 </Project>
