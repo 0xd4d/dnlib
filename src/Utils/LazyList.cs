@@ -294,6 +294,9 @@ namespace dnlib.Utils {
 		}
 
 		void Insert_NoLock(int index, TValue item) {
+			// Check it before the listener is called, or the item gets an owner without being in the list
+			if ((uint)index > (uint)list.Count)
+				throw new ArgumentOutOfRangeException(nameof(index));
 			if (listener is not null)
 				listener.OnAdd(index, item);
 			list.Insert(index, new Element(item));
