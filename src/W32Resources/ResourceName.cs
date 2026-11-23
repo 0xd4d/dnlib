@@ -101,7 +101,8 @@ namespace dnlib.W32Resources {
 		public override int GetHashCode() {
 			if (HasId)
 				return id;
-			return name.GetHashCode();
+			// Names are compared without case, see CompareTo()
+			return StringComparer.Ordinal.GetHashCode(name.ToUpperInvariant());
 		}
 
 		/// <inheritdoc/>
