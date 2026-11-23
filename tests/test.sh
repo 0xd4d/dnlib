@@ -51,14 +51,12 @@ run_leg() {
 	elif command -v mono >/dev/null; then
 		# Mono 6.12 can crash when the process exits, after all tests have run and the summary was printed.
 		# The exit code is then wrong, so the summary line decides.
-		local log
-		log=$(mktemp)
-		mono "$out/dnlib.Tests.exe" "${test_args[@]}" 2>&1 | tee "$log" || true
-		if ! grep -q "Errors: 0, Failed: 0" "$log"; then
-			rm -f "$log"
-			return 1
-		fi
-		rm -f "$log"
+		# It also writes mono_crash.*.json files to the current directory, so run it in the output directory
+		# (ignored by git) and delete them.
+		local log=$out/test-output.log
+		(cd "$out" && mono dnlib.Tests.exe "${test_args[@]}" 2>&1 || true) | tee "$log"
+		rm -f "$out"/mono_crash.*
+		grep -q "Errors: 0, Failed: 0" "$log"
 	else
 		echo "Skipped: .NET Framework tests need Windows or Mono"
 	fi
