@@ -170,5 +170,119 @@ namespace dnlib.Tests.Pdb {
 				}
 			}
 		}
+
+		// The values and the types of the fixture's constants. A Windows PDB stores them in other ways than a
+		// portable PDB: eg. a bool as a 16-bit number, and an empty string and a null string as the same value.
+		// Fixed in 773b54ae (strings), ac3edc8c (the COM reader returned a double as a date) and 4edcb0fb (enums).
+		[Theory]
+		[InlineData(PdbReaderOptions.None)]
+		[InlineData(PdbReaderOptions.MicrosoftComReader)]
+		public void ConstantsHaveTheirValuesAndTypes(PdbReaderOptions readerOptions) {
+			SkipUnlessWindows();
+			using (var module = Load(Windows, readerOptions)) {
+				var rootScope = module.Find("Features.Code", isReflectionName: true)!.FindMethod("Locals")!.Body!.PdbMethod!.Scope!;
+				var constants = GetScopes(rootScope).SelectMany(a => a.Constants).ToDictionary(a => a.Name!, a => a.Value);
+
+				Assert.Equal(3, constants["Factor"]);
+				Assert.Equal("label", constants["Label"]);
+				Assert.Equal(0.5, constants["Half"]);
+				Assert.Equal((byte)2, constants["Favorite"]);
+				Assert.Null(constants["NoObject"]);
+				Assert.Equal("", constants["Empty"]);
+				Assert.Null(constants["NoText"]);
+				Assert.Equal(1E+300, constants["Huge"]);
+				Assert.Equal(0.25f, constants["Quarter"]);
+				Assert.Equal(long.MinValue, constants["Lowest"]);
+				Assert.Equal(ulong.MaxValue, constants["Highest"]);
+				Assert.Equal('x', constants["Letter"]);
+				Assert.Equal(true, constants["Yes"]);
+				Assert.Equal((sbyte)-5, constants["Small"]);
+				Assert.Equal((short)-300, constants["Medium"]);
+				Assert.Equal(12.5m, constants["Price"]);
+			}
+		}
+
+		static IEnumerable<PdbScope> GetScopes(PdbScope scope) {
+			yield return scope;
+			foreach (var child in scope.Scopes) {
+				foreach (var nested in GetScopes(child))
+					yield return nested;
+			}
+		}
+
+		// Fixed in 0ea1d899: the COM PDB writer got the whole stream, tried to read the data in it as a PDB and
+		// threw. Like a portable PDB, the PDB is written at the stream's position.
+		[Fact]
+		public void WindowsPdbIsWrittenAtTheStreamsPosition() {
+			SkipUnlessWindows();
+			using (var module = Load(Windows)) {
+				var stream = new MemoryStream();
+				var dataBeforePdb = Enumerable.Repeat((byte)0xAA, 10).ToArray();
+				stream.Write(dataBeforePdb, 0, dataBeforePdb.Length);
+				// Old data that's longer than the PDB
+				stream.Write(new byte[Windows.Pdb!.Length * 3], 0, Windows.Pdb.Length * 3);
+				stream.Position = dataBeforePdb.Length;
+				var options = new ModuleWriterOptions(module) { WritePdb = true, PdbStream = stream, PdbFileName = "written.pdb" };
+				var image = new MemoryStream();
+
+				module.Write(image, options);
+
+				var all = stream.ToArray();
+				Assert.Equal(dataBeforePdb, all.Take(dataBeforePdb.Length));
+				Assert.Equal(stream.Length, stream.Position);
+				var written = new CompiledAssembly(image.ToArray(), all.Skip(dataBeforePdb.Length).ToArray());
+				Assert.StartsWith("Microsoft C/C++ MSF 7.00", Encoding.ASCII.GetString(written.Pdb!, 0, 30));
+				using (var reloaded = Load(written))
+					Assert.Equal(GetSourceLevelDebugInfo(module), GetSourceLevelDebugInfo(reloaded));
+			}
+		}
+
+		// Fixed in 2ad84703: the writer added a PdbMethod and a scope to every method that had none
+		[Fact]
+		public void WritingAWindowsPdbDoesNotChangeTheModule() {
+			SkipUnlessWindows();
+			using (var module = Load(Windows)) {
+				var type = module.Find("Features.Code", isReflectionName: true)!;
+				var withoutDebugInfo = new MethodDefUser("WithoutDebugInfo", MethodSig.CreateStatic(module.CorLibTypes.Void), dnlib.DotNet.MethodAttributes.Public | dnlib.DotNet.MethodAttributes.Static);
+				withoutDebugInfo.Body = new dnlib.DotNet.Emit.CilBody();
+				withoutDebugInfo.Body.Instructions.Add(dnlib.DotNet.Emit.OpCodes.Ret.ToInstruction());
+				type.Methods.Add(withoutDebugInfo);
+				var withoutScope = new MethodDefUser("WithoutScope", MethodSig.CreateStatic(module.CorLibTypes.Void), dnlib.DotNet.MethodAttributes.Public | dnlib.DotNet.MethodAttributes.Static);
+				withoutScope.Body = new dnlib.DotNet.Emit.CilBody { PdbMethod = new PdbMethod() };
+				withoutScope.Body.Instructions.Add(dnlib.DotNet.Emit.OpCodes.Ret.ToInstruction());
+				type.Methods.Add(withoutScope);
+
+				Write(module, PdbFileKind.WindowsPDB);
+
+				Assert.Null(withoutDebugInfo.Body.PdbMethod);
+				Assert.Null(withoutScope.Body.PdbMethod!.Scope);
+			}
+		}
+
+		// Fixed in 95a1b808: two PdbDocument objects with the same name and checksum are the same document.
+		// The sequence points of the second object weren't written.
+		[Fact]
+		public void SequencePointsOfEqualDocumentObjectsAreWritten() {
+			SkipUnlessWindows();
+			using (var module = Load(Windows)) {
+				var expected = GetSourceLevelDebugInfo(module);
+				var original = module.PdbState!.Documents.Single();
+				var copy = new PdbDocument(original.Url, original.Language, original.LanguageVendor, original.DocumentType, original.CheckSumAlgorithmId, original.CheckSum);
+				Assert.Equal(original, copy);
+				// Every second sequence point uses the copy
+				int count = 0;
+				foreach (var instruction in module.GetTypes().SelectMany(a => a.Methods).Where(a => a.Body is not null).SelectMany(a => a.Body!.Instructions)) {
+					if (instruction.SequencePoint is not null && count++ % 2 == 1)
+						instruction.SequencePoint.Document = copy;
+				}
+
+				var written = Write(module, PdbFileKind.WindowsPDB);
+
+				using (var reloaded = Load(written)) {
+					Assert.Single(reloaded.PdbState!.Documents);
+					Assert.Equal(expected, GetSourceLevelDebugInfo(reloaded));
+				}
+			}
+		}
 	}
 }

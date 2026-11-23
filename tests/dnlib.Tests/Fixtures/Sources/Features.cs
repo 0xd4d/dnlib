@@ -286,6 +286,18 @@ namespace Features {
 			const double Half = 0.5;
 			const Color Favorite = Color.Green;
 			const object NoObject = null;
+			// A constant of every type that's stored in its own way in a PDB
+			const string Empty = "";
+			const string NoText = null;
+			const double Huge = 1E+300;
+			const float Quarter = 0.25f;
+			const long Lowest = long.MinValue;
+			const ulong Highest = ulong.MaxValue;
+			const char Letter = 'x';
+			const bool Yes = true;
+			const sbyte Small = -5;
+			const short Medium = -300;
+			const decimal Price = 12.5m;
 			int* buffer = stackalloc int[count];
 			for (int i = 0; i < count; i++)
 				buffer[i] = primes[i % primes.Length];
