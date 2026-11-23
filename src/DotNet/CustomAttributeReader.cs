@@ -570,6 +570,13 @@ namespace dnlib.DotNet {
 		CAArgument ReadArrayArgument(SZArraySig arrayType) {
 			if (!recursionCounter.Increment())
 				throw new CABlobParserException("Too much recursion");
+			var elementType = arrayType.Next;
+			if (genericArguments is not null) {
+				// The argument's type is eg. int[] and not T[] if the attribute type is a generic instance type
+				elementType = FixTypeSig(elementType);
+				if (elementType != arrayType.Next)
+					arrayType = new SZArraySig(elementType);
+			}
 			var arg = new CAArgument(arrayType);
 
 			int arrayCount = reader.ReadInt32();
@@ -581,7 +588,7 @@ namespace dnlib.DotNet {
 				var array = new List<CAArgument>(arrayCount);
 				arg.Value = array;
 				for (int i = 0; i < arrayCount; i++)
-					array.Add(ReadFixedArg(FixTypeSig(arrayType.Next)));
+					array.Add(ReadFixedArg(FixTypeSig(elementType)));
 			}
 
 			recursionCounter.Decrement();
