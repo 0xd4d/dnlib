@@ -614,6 +614,10 @@ namespace dnlib.DotNet {
 		bool HashMethodFieldDeclaringType => CompareMethodFieldDeclaringType && !TypeRefCanReferenceGlobalType;
 		bool ComparePropertyDeclaringType => (options & SigComparerOptions.ComparePropertyDeclaringType) != 0;
 		bool CompareEventDeclaringType => (options & SigComparerOptions.CompareEventDeclaringType) != 0;
+		// Same as HashMethodFieldDeclaringType: the global type is then equal to any type with its name (hashed by name)
+		// and a global property/event has a null reflection declaring type.
+		bool HashPropertyDeclaringType => ComparePropertyDeclaringType && !TypeRefCanReferenceGlobalType;
+		bool HashEventDeclaringType => CompareEventDeclaringType && !TypeRefCanReferenceGlobalType;
 		bool CompareSentinelParams => (options & SigComparerOptions.CompareSentinelParams) != 0;
 		bool CompareAssemblyPublicKeyToken => (options & SigComparerOptions.CompareAssemblyPublicKeyToken) != 0;
 		bool CompareAssemblyVersion => (options & SigComparerOptions.CompareAssemblyVersion) != 0;
@@ -3480,7 +3484,7 @@ exit:;
 			// Equals() doesn't compare the property type if DontCompareReturnType is used
 			if (!DontCompareReturnType)
 				hash += GetHashCode(sig?.RetType);
-			if (ComparePropertyDeclaringType)
+			if (HashPropertyDeclaringType)
 				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
@@ -3527,7 +3531,7 @@ exit:;
 
 			int hash = GetHashCode_EventName(a.Name) +
 					GetHashCode((IType?)a.EventType);
-			if (CompareEventDeclaringType)
+			if (HashEventDeclaringType)
 				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
@@ -5313,9 +5317,9 @@ exit:;
 				return 0;
 
 			int hash = GetHashCode_PropertyName(a.Name);
-			if (ComparePropertyDeclaringType)
+			if (HashPropertyDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
-			else
+			if (!ComparePropertyDeclaringType)
 				a = a.ResolvePropertyDefinition();
 			if (!DontCompareReturnType)
 				hash += GetHashCode(a.PropertyType, a.DeclaringType);
@@ -5363,9 +5367,9 @@ exit:;
 				return 0;
 
 			int hash = GetHashCode_EventName(a.Name);
-			if (CompareEventDeclaringType)
+			if (HashEventDeclaringType)
 				hash += GetHashCode(a.DeclaringType);
-			else
+			if (!CompareEventDeclaringType)
 				a = a.ResolveEventDefinition();
 			hash += GetHashCode(a.EventHandlerType, a.DeclaringType);
 
