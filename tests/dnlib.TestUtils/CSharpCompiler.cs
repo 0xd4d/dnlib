@@ -48,6 +48,11 @@ namespace dnlib.TestUtils {
 		public Platform Platform { get; set; } = Platform.AnyCpu;
 
 		/// <summary>
+		/// Embedded resources: name and content
+		/// </summary>
+		public Dictionary<string, byte[]> Resources { get; } = new Dictionary<string, byte[]>();
+
+		/// <summary>
 		/// Extra assemblies the code can use, eg. another test assembly
 		/// </summary>
 		public List<byte[]> References { get; } = new List<byte[]>();
@@ -102,7 +107,13 @@ namespace dnlib.TestUtils {
 				break;
 			}
 
-			var result = compilation.Emit(imageStream, pdbStream, options: emitOptions);
+			var resources = new List<ResourceDescription>();
+			foreach (var resource in options.Resources) {
+				var content = resource.Value;
+				resources.Add(new ResourceDescription(resource.Key, () => new MemoryStream(content), isPublic: true));
+			}
+
+			var result = compilation.Emit(imageStream, pdbStream, manifestResources: resources, options: emitOptions);
 			if (!result.Success) {
 				var errors = result.Diagnostics.Where(a => a.Severity == DiagnosticSeverity.Error).Select(a => a.ToString());
 				throw new InvalidOperationException("The test's C# code doesn't compile:" + Environment.NewLine + string.Join(Environment.NewLine, errors));

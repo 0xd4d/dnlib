@@ -141,6 +141,22 @@ namespace dnlib.TestUtils {
 			throw new ArgumentException($"There's no metadata stream called {name}");
 		}
 
+		/// <summary>
+		/// Changes the size of a metadata stream in its stream header. The stream's data isn't changed or moved.
+		/// </summary>
+		/// <param name="name">Name of the stream, eg. <c>#GUID</c>. If several streams have this name, the first one is changed.</param>
+		/// <param name="size">New size in bytes</param>
+		public MetadataPatcher SetStreamSize(string name, uint size) {
+			foreach (var header in metadata.MetadataHeader.StreamHeaders) {
+				if (header.Name != name)
+					continue;
+				// A stream header is: uint32 offset, uint32 size, zero terminated name
+				const int sizeOffsetInHeader = 4;
+				return SetBytes((long)header.StartOffset + sizeOffsetInHeader, (byte)size, (byte)(size >> 8), (byte)(size >> 16), (byte)(size >> 24));
+			}
+			throw new ArgumentException($"There's no metadata stream called {name}");
+		}
+
 		MDTable GetTable(Table table) =>
 			metadata.TablesStream.Get(table) ?? throw new ArgumentException($"Unknown table {table}");
 
