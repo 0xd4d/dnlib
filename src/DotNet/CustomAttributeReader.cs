@@ -454,6 +454,12 @@ namespace dnlib.DotNet {
 					}
 				}
 
+				// The CLR reads an argument whose type is any other class or interface like a System.Object argument
+				if (GetTypeDef(argType) is TypeDef classTypeDef && !classTypeDef.IsValueType) {
+					result = ReadValue(SerializationType.TaggedObject, argType, out realArgType);
+					break;
+				}
+
 				// Assume it's an enum that couldn't be resolved
 				realArgType = argType;
 				result = ReadEnumValue(null);

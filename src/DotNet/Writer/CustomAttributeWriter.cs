@@ -515,7 +515,16 @@ namespace dnlib.DotNet.Writer {
 					}
 					break;
 				}
-				else if (tdr is TypeRef && TryWriteEnumUnderlyingTypeValue(value.Value)) {
+				// The CLR reads an argument whose type is any other class or interface like a System.Object argument
+				if (GetTypeDef(argType) is TypeDef classTypeDef && !classTypeDef.IsValueType) {
+					// The value's type is the boxed type, it can't be a class except System.Type
+					if (value.Type is null || (value.Type.ElementType == ElementType.Class && !CheckCorLibType(value.Type, "Type")))
+						goto default;
+					WriteFieldOrPropType(value.Type);
+					WriteElem(value.Type, value);
+					break;
+				}
+				if (tdr is TypeRef && TryWriteEnumUnderlyingTypeValue(value.Value)) {
 					// No error. Assume it's an enum that couldn't be resolved.
 					break;
 				}
