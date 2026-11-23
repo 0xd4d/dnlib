@@ -1,0 +1,35 @@
+<Project>
+
+  <!-- Settings shared by all test projects. Nothing in this directory is part of the dnlib NuGet package. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- dnlib has [InternalsVisibleTo] for the test assemblies, so they must be signed with dnlib's key -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\dnlib.snk</AssemblyOriginatorKeyFile>
+
+    <!-- Which build of dnlib is tested. Empty: the one the test's target framework normally gets
+         (net10.0 tests use dnlib's net10.0 build, net48 tests use its net45 build).
+         Set it to test another build: netstandard2.0 (with -f net10.0) or net35 (with -f net48). -->
+    <DnlibTfm Condition=" '$(DnlibTfm)' == '' "></DnlibTfm>
+    <DnlibExpectedTfm>$(DnlibTfm)</DnlibExpectedTfm>
+    <DnlibExpectedTfm Condition=" '$(DnlibExpectedTfm)' == '' AND '$(TargetFramework)' == 'net48' ">net45</DnlibExpectedTfm>
+    <DnlibExpectedTfm Condition=" '$(DnlibExpectedTfm)' == '' ">$(TargetFramework)</DnlibExpectedTfm>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Needed to build for .NET Framework on Linux/macOS -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\dnlib.csproj" Condition=" '$(DnlibTfm)' == '' " />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\dnlib.csproj" Condition=" '$(DnlibTfm)' != '' "
+                      SetTargetFramework="TargetFramework=$(DnlibTfm)" SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+</Project>
