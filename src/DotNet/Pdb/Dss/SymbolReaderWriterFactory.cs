@@ -83,6 +83,9 @@ namespace dnlib.DotNet.Pdb.Dss {
 		/// The trimmer removes unused interface members, but a COM interface's vtable must have all of its methods.
 		/// This method is only kept (and only keeps them) if the COM code isn't removed by the trimmer.
 		/// </summary>
+		// The runtime's IStream: its members are only called by native code (the symbol reader/writer). If
+		// they're removed, the implementations in DataReaderIStream and StreamIStream are removed too.
+		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(System.Runtime.InteropServices.ComTypes.IStream))]
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IMetaDataEmit))]
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IMetaDataImport))]
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(IPdbWriter))]
@@ -114,7 +117,13 @@ namespace dnlib.DotNet.Pdb.Dss {
 		[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ISymUnmanagedWriter8))]
 		static void KeepComInterfaces() { }
 
-		public static SymbolReader? Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream) {
+		/// <summary>
+		/// Creates a COM symbol reader. If <paramref name="noComReader"/> is <c>true</c>, the COM reader couldn't be
+		/// created (eg. built-in COM interop is disabled, or no symbol reader is installed), <c>null</c> is returned
+		/// and <paramref name="pdbStream"/> isn't disposed so the caller can use another reader.
+		/// </summary>
+		public static SymbolReader? Create(PdbReaderContext pdbContext, MD.Metadata metadata, DataReaderFactory pdbStream, out bool noComReader) {
+			noComReader = false;
 			ISymUnmanagedReader? unmanagedReader = null;
 			SymbolReaderImpl? symReader = null;
 			ReaderMetaDataImport? mdImporter = null;
@@ -129,9 +138,17 @@ namespace dnlib.DotNet.Pdb.Dss {
 				if (!pdbContext.TryGetCodeViewData(out var pdbGuid, out uint age))
 					return null;
 
-				unmanagedReader = CreateSymUnmanagedReader(pdbContext.Options);
-				if (unmanagedReader is null)
+				try {
+					unmanagedReader = CreateSymUnmanagedReader(pdbContext.Options);
+				}
+				catch (InvalidCastException) {
+				}
+				catch (COMException) {
+				}
+				if (unmanagedReader is null) {
+					noComReader = true;
 					return null;
+				}
 
 				mdImporter = new ReaderMetaDataImport(metadata);
 				comPdbStream = new DataReaderIStream(pdbStream);
@@ -156,7 +173,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 			}
 			finally {
 				if (error) {
-					pdbStream?.Dispose();
+					if (!noComReader)
+						pdbStream?.Dispose();
 					symReader?.Dispose();
 					mdImporter?.Dispose();
 					comPdbStream?.Dispose();
@@ -214,8 +232,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 				canTry_Microsoft_DiaSymReader_Native = false;
 			}
 
-			if (useOldDiaSymReader)
-				return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS)!)!;
+			if (useOldDiaSymReader) {
+				try {
+					return (ISymUnmanagedReader)Activator.CreateInstance(CorSymReader_Type ??= Type.GetTypeFromCLSID(CLSID_CorSymReader_SxS)!)!;
+				}
+				catch (NotSupportedException) {
+					// NativeAOT has no built-in COM interop even if an app enables the feature switch
+					return null;
+				}
+			}
 
 			return null;
 		}
@@ -268,8 +293,15 @@ namespace dnlib.DotNet.Pdb.Dss {
 				canTry_Microsoft_DiaSymReader_Native = false;
 			}
 
-			if (useOldDiaSymReader)
-				return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS)!)!;
+			if (useOldDiaSymReader) {
+				try {
+					return (ISymUnmanagedWriter2)Activator.CreateInstance(CorSymWriterType ??= Type.GetTypeFromCLSID(CLSID_CorSymWriter_SxS)!)!;
+				}
+				catch (NotSupportedException) {
+					// NativeAOT has no built-in COM interop even if an app enables the feature switch
+					return null;
+				}
+			}
 
 			return null;
 		}
@@ -281,7 +313,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return null;
 			FileStream? pdbStream = null;
 			try {
-				if (File.Exists(pdbFileName))
+				if (File2.Exists(pdbFileName))
 					File.Delete(pdbFileName);
 				pdbStream = File.Create(pdbFileName);
 				return new SymbolWriterImpl(writer, pdbFileName, pdbStream, options, ownsStream: true);

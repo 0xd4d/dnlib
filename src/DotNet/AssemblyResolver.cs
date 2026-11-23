@@ -35,6 +35,8 @@ namespace dnlib.DotNet {
 		readonly List<string> postSearchPaths = new List<string>();
 		bool findExactMatch;
 		bool enableFrameworkRedirect;
+		FrameworkRedirectVersion? frameworkRedirectVersion;
+		bool useTargetFrameworkForFrameworkRedirect;
 		bool enableTypeDefCache = true;
 		bool useGac = true;
 #if THREAD_SAFE
@@ -95,7 +97,7 @@ namespace dnlib.DotNet {
 			}
 			else {
 				var windir = Environment.GetEnvironmentVariable("WINDIR");
-				if (!string.IsNullOrEmpty(windir)) {
+				if (!String2.IsNullOrEmpty(windir)) {
 					string path;
 
 					// .NET Framework 1.x and 2.x
@@ -129,7 +131,7 @@ namespace dnlib.DotNet {
 			yield return GetCurrentMonoPrefix();
 
 			var prefixes = Environment.GetEnvironmentVariable("MONO_GAC_PREFIX");
-			if (!string.IsNullOrEmpty(prefixes)) {
+			if (!String2.IsNullOrEmpty(prefixes)) {
 				foreach (var tmp in prefixes.Split(Path.PathSeparator)) {
 					var prefix = tmp.Trim();
 					if (prefix != string.Empty)
@@ -165,6 +167,31 @@ namespace dnlib.DotNet {
 		public bool EnableFrameworkRedirect {
 			get => enableFrameworkRedirect;
 			set => enableFrameworkRedirect = value;
+		}
+
+		/// <summary>
+		/// The .NET Framework version whose assembly versions are used when an assembly reference in a CLR 4.0
+		/// module is redirected, eg. the installed .NET Framework version or the version of the reference assemblies
+		/// in the search paths. It's ignored if it's older than <see cref="DotNet.FrameworkRedirectVersion.Net40"/>.
+		/// If it's <c>null</c> (default), the .NET Framework 4.0/4.5 versions are used unless
+		/// <see cref="UseTargetFrameworkForFrameworkRedirect"/> is <c>true</c>.
+		/// Only used if <see cref="EnableFrameworkRedirect"/> is <c>true</c>.
+		/// </summary>
+		public FrameworkRedirectVersion? FrameworkRedirectVersion {
+			get => frameworkRedirectVersion;
+			set => frameworkRedirectVersion = value;
+		}
+
+		/// <summary>
+		/// <c>true</c> to use the .NET Framework version in the source module's
+		/// <c>System.Runtime.Versioning.TargetFrameworkAttribute</c> when an assembly reference in a CLR 4.0
+		/// .NET Framework module is redirected (see <see cref="FrameworkRedirect.TryGetFrameworkRedirectVersion"/>).
+		/// It's ignored if <see cref="FrameworkRedirectVersion"/> isn't <c>null</c>. Default value is <c>false</c>.
+		/// Only used if <see cref="EnableFrameworkRedirect"/> is <c>true</c>.
+		/// </summary>
+		public bool UseTargetFrameworkForFrameworkRedirect {
+			get => useTargetFrameworkForFrameworkRedirect;
+			set => useTargetFrameworkForFrameworkRedirect = value;
 		}
 
 		/// <summary>
@@ -211,13 +238,31 @@ namespace dnlib.DotNet {
 			enableFrameworkRedirect = true;
 		}
 
+		void ApplyFrameworkRedirect(ref IAssembly assembly, ModuleDef? sourceModule) {
+			if (sourceModule is not null && sourceModule.IsClr40) {
+				if (frameworkRedirectVersion is { } version) {
+					if (version >= DotNet.FrameworkRedirectVersion.Net40) {
+						FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, version);
+						return;
+					}
+				}
+				else if (useTargetFrameworkForFrameworkRedirect &&
+					FrameworkRedirect.TryGetFrameworkRedirectVersion(sourceModule, out version) &&
+					version >= DotNet.FrameworkRedirectVersion.Net40) {
+					FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, version);
+					return;
+				}
+			}
+			FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, sourceModule);
+		}
+
 		/// <inheritdoc/>
 		public AssemblyDef? Resolve(IAssembly? assembly, ModuleDef? sourceModule) {
 			if (assembly is null)
 				return null;
 
 			if (EnableFrameworkRedirect && !FindExactMatch)
-				FrameworkRedirect.ApplyFrameworkRedirect(ref assembly, sourceModule);
+				ApplyFrameworkRedirect(ref assembly, sourceModule);
 
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -533,7 +578,7 @@ namespace dnlib.DotNet {
 							// Invalid path chars
 							yield break;
 						}
-						if (File.Exists(fullPath))
+						if (File2.Exists(fullPath))
 							yield return fullPath;
 					}
 				}
@@ -581,8 +626,8 @@ namespace dnlib.DotNet {
 					// Invalid path chars
 					path = null;
 				}
-				if (File.Exists(path))
-					yield return path!;
+				if (File2.Exists(path))
+					yield return path;
 			}
 			else {
 				if (UseGAC) {
@@ -635,7 +680,7 @@ namespace dnlib.DotNet {
 						// Invalid path chars
 						break;
 					}
-					if (File.Exists(file))
+					if (File2.Exists(file))
 						yield return file;
 				}
 			}
@@ -661,7 +706,7 @@ namespace dnlib.DotNet {
 					}
 					baseDir = Path.Combine(baseDir, $"{gacInfo.Prefix}{verString}_{cultureString}_{pktString}");
 					var pathName = Path.Combine(baseDir, asmSimpleName + ".dll");
-					if (File.Exists(pathName))
+					if (File2.Exists(pathName))
 						yield return pathName;
 				}
 			}
@@ -692,7 +737,7 @@ namespace dnlib.DotNet {
 					}
 					foreach (var dir in GetDirs(baseDir)) {
 						var pathName = Path.Combine(dir, asmSimpleName + ".dll");
-						if (File.Exists(pathName))
+						if (File2.Exists(pathName))
 							yield return pathName;
 					}
 				}
@@ -730,7 +775,7 @@ namespace dnlib.DotNet {
 							// Invalid path chars
 							yield break;
 						}
-						if (File.Exists(path2))
+						if (File2.Exists(path2))
 							yield return path2;
 					}
 				}
@@ -784,7 +829,7 @@ namespace dnlib.DotNet {
 					if (directoryInfo is not null) {
 						baseDir = directoryInfo.FullName;
 						var configName = imageName + ".config";
-						if (File.Exists(configName))
+						if (File2.Exists(configName))
 							return GetPrivatePaths(baseDir, configName);
 					}
 				}
@@ -811,7 +856,7 @@ namespace dnlib.DotNet {
 						if (probingElem is null)
 							continue;
 						var privatePath = probingElem.GetAttribute("privatePath");
-						if (string.IsNullOrEmpty(privatePath))
+						if (String2.IsNullOrEmpty(privatePath))
 							continue;
 						foreach (var tmp2 in privatePath.Split(';')) {
 							var path = tmp2.Trim();

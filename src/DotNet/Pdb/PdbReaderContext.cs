@@ -61,7 +61,7 @@ namespace dnlib.DotNet.Pdb {
 				return false;
 			guid = reader.ReadGuid();
 			age = reader.ReadUInt32();
-			pdbFilename = reader.TryReadZeroTerminatedUtf8String();
+			pdbFilename = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 			return pdbFilename is not null;
 		}
 

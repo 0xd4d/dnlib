@@ -122,7 +122,7 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			bool b = readerModule.TablesStream.TryReadConstantRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			type = (ElementType)row.Type;
 			var reader = readerModule.BlobStream.CreateReader(row.Value);
 			value = GetValue(type, ref reader);

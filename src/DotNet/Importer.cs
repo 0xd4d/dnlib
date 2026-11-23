@@ -267,7 +267,8 @@ namespace dnlib.DotNet {
 
 			TypeSig? result;
 			bool treatAsGenericInst2 = treatAsGenericInst ??
-				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type));
+				((treatGenericTypeDefsAsGenericInsts && type.IsGenericTypeDefinition) || declaringType.MustTreatTypeAsGenericInstType(type) ||
+				modifiedType.IsGenericInstOfOwnGenericParams(type));
 			switch (treatAsGenericInst2 ? ElementType.GenericInst : type.GetElementType2()) {
 			case ElementType.Void: result = module.CorLibTypes.Void; break;
 			case ElementType.Boolean: result = module.CorLibTypes.Boolean; break;
@@ -309,9 +310,10 @@ namespace dnlib.DotNet {
 
 			case ElementType.GenericInst:
 				var typeGenArgs = type.GetGenericArguments();
+				var modGenArgs = modifiedType.GetModifiedGenericArguments(typeGenArgs);
 				var git = new GenericInstSig(ImportAsTypeSigOrNull(type.GetGenericTypeDefinition(), null, false) as ClassOrValueTypeSig, (uint)typeGenArgs.Length);
-				foreach (var ga in typeGenArgs)
-					git.GenericArguments.Add(ImportAsTypeSigOrNull(ga, declaringType));
+				for (int i = 0; i < typeGenArgs.Length; i++)
+					git.GenericArguments.Add(ImportAsTypeSigOrNull(typeGenArgs[i], declaringType, null, modGenArgs?[i]));
 				result = git;
 				break;
 
@@ -474,7 +476,7 @@ namespace dnlib.DotNet {
 			if (tdr is TypeRef tr)
 				return TryResolve(tr);
 
-			if (TryToUseTypeDefs && IsThisModule(type.Module) && module.ResolveToken(type.MetadataToken) is TypeDef def)
+			if (TryToUseTypeDefs && IsThisModule(type.Module) && type.TryGetMetadataToken(out int typeToken) && module.ResolveToken(typeToken) is TypeDef def)
 				return def;
 
 			return TryResolve(CreateTypeRef(type));
@@ -506,7 +508,7 @@ namespace dnlib.DotNet {
 			var pkt = asmName.GetPublicKeyToken();
 			if (pkt is null || pkt.Length == 0)
 				pkt = null;
-			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(asmName.Name!) is AssemblyRef asmRef)
+			if (TryToUseExistingAssemblyRefs && module.GetAssemblyRef(asmName.Name) is AssemblyRef asmRef)
 				return asmRef;
 			return module.UpdateRowId(new AssemblyRefUser(asmName.Name!, asmName.Version!, PublicKeyBase.CreatePublicKeyToken(pkt), asmName.CultureInfo?.Name ?? string.Empty) {
 				ContentType = AssemblyNameInfo.GetContentType(asmName),
@@ -520,8 +522,20 @@ namespace dnlib.DotNet {
 		/// <param name="requiredModifiers">A list of all required modifiers or <c>null</c></param>
 		/// <param name="optionalModifiers">A list of all optional modifiers or <c>null</c></param>
 		/// <returns>The imported type or <c>null</c> if <paramref name="type"/> is invalid</returns>
-		public TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers) =>
-			ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null);
+		public TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers) {
+			// A .NET 8+ modified type (eg. from FieldInfo.GetModifiedFieldType()) doesn't support most members. Import
+			// the unmodified type with the modified type's custom modifiers (unless the caller passed modifiers).
+			if (type is not null && type.IsModifiedType()) {
+				var modifiedType = type;
+				type = modifiedType.UnderlyingSystemType;
+				if (IsEmpty(requiredModifiers) && IsEmpty(optionalModifiers)) {
+					requiredModifiers = modifiedType.GetRequiredCustomModifiers2();
+					optionalModifiers = modifiedType.GetOptionalCustomModifiers2();
+				}
+				return ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null, modifiedType);
+			}
+			return ImportAsTypeSigOrNull(type, requiredModifiers, optionalModifiers, null);
+		}
 
 		TypeSig? ImportAsTypeSigOrNull(Type? type, IList<Type>? requiredModifiers, IList<Type>? optionalModifiers, Type? declaringType, Type? modifiedType = null) {
 			if (type is null)
@@ -563,7 +577,7 @@ namespace dnlib.DotNet {
 
 			if (TryToUseMethodDefs && IsThisModule(methodBase.Module) &&
 				!methodBase.IsGenericMethod && (methodBase.DeclaringType is null || !methodBase.DeclaringType.IsGenericType) &&
-				module.ResolveToken(methodBase.MetadataToken) is MethodDef md) {
+				methodBase.TryGetMetadataToken(out int methodToken) && module.ResolveToken(methodToken) is MethodDef md) {
 				// In same module and method and declaring type are both non-generic, directly resolve method definition.
 				// Obfuscator may rename many methods into same name then TryResolveMethod will return inconsistent method.
 				return md;
@@ -599,7 +613,7 @@ namespace dnlib.DotNet {
 				MethodBase? origMethod;
 				// Methods created by the runtime (eg. multi-dimensional array methods) have token 0x06000000.
 				// Check it first since ResolveMethod() would throw, and exceptions are slow.
-				if (HasNilRid(methodBase.MetadataToken))
+				if (methodBase.TryGetMetadataToken(out int token) && HasNilRid(token))
 					origMethod = methodBase;
 				else {
 					try {
@@ -677,8 +691,10 @@ namespace dnlib.DotNet {
 		GenericInstMethodSig? CreateGenericInstMethodSig(MethodBase mb) {
 			var genMethodArgs = mb.GetGenericArguments();
 			var gim = new GenericInstMethodSig(CallingConvention.GenericInst, (uint)genMethodArgs.Length);
+			// Same as the method's param types: if a generic method arg is the declaring type (a generic type def), it's a
+			// generic inst instantiated with its own generic params since a sig can't have a generic type def
 			foreach (var gma in genMethodArgs)
-				gim.GenericArguments.Add(ImportAsTypeSigOrNull(gma));
+				gim.GenericArguments.Add(ImportAsTypeSigOrNull(gma, mb.DeclaringType));
 			return gim;
 		}
 
@@ -706,7 +722,7 @@ namespace dnlib.DotNet {
 
 			if (TryToUseFieldDefs && IsThisModule(fieldInfo.Module) &&
 				(fieldInfo.DeclaringType is null || !fieldInfo.DeclaringType.IsGenericType) &&
-				module.ResolveToken(fieldInfo.MetadataToken) is FieldDef fd) {
+				fieldInfo.TryGetMetadataToken(out int fieldToken) && module.ResolveToken(fieldToken) is FieldDef fd) {
 				// In same module and declaring type is non-generic, directly resolve field definition.
 				// Obfuscator may rename many fields into same name then TryResolveField will return inconsistent field.
 				return fd;
@@ -724,7 +740,7 @@ namespace dnlib.DotNet {
 
 			FieldInfo? origField;
 			// Check it first since ResolveField() would throw, and exceptions are slow
-			if (HasNilRid(fieldInfo.MetadataToken))
+			if (fieldInfo.TryGetMetadataToken(out int token) && HasNilRid(token))
 				origField = fieldInfo;
 			else {
 				try {
@@ -924,16 +940,16 @@ namespace dnlib.DotNet {
 			case ElementType.Object: result = module.CorLibTypes.Object; break;
 			case ElementType.Ptr: result = new PtrSig(ImportOrNull(type.Next)); break;
 			case ElementType.ByRef: result = new ByRefSig(ImportOrNull(type.Next)); break;
-			case ElementType.ValueType: result = CreateClassOrValueType((type as ClassOrValueTypeSig)!.TypeDefOrRef, true); break;
-			case ElementType.Class: result = CreateClassOrValueType((type as ClassOrValueTypeSig)!.TypeDefOrRef, false); break;
-			case ElementType.Var: result = new GenericVar((type as GenericVar)!.Number, gpContext.Type); break;
-			case ElementType.ValueArray: result = new ValueArraySig(ImportOrNull(type.Next), (type as ValueArraySig)!.Size); break;
-			case ElementType.FnPtr: result = new FnPtrSig(ImportOrNull((type as FnPtrSig)!.Signature)); break;
+			case ElementType.ValueType: result = CreateClassOrValueType(((ClassOrValueTypeSig)type).TypeDefOrRef, true); break;
+			case ElementType.Class: result = CreateClassOrValueType(((ClassOrValueTypeSig)type).TypeDefOrRef, false); break;
+			case ElementType.Var: result = new GenericVar(((GenericVar)type).Number, gpContext.Type); break;
+			case ElementType.ValueArray: result = new ValueArraySig(ImportOrNull(type.Next), ((ValueArraySig)type).Size); break;
+			case ElementType.FnPtr: result = new FnPtrSig(ImportOrNull(((FnPtrSig)type).Signature)); break;
 			case ElementType.SZArray: result = new SZArraySig(ImportOrNull(type.Next)); break;
-			case ElementType.MVar: result = new GenericMVar((type as GenericMVar)!.Number, gpContext.Method); break;
-			case ElementType.CModReqd: result = new CModReqdSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
-			case ElementType.CModOpt: result = new CModOptSig(ImportOrNull((type as ModifierSig)!.Modifier), ImportOrNull(type.Next)); break;
-			case ElementType.Module: result = new ModuleSig((type as ModuleSig)!.Index, ImportOrNull(type.Next)); break;
+			case ElementType.MVar: result = new GenericMVar(((GenericMVar)type).Number, gpContext.Method); break;
+			case ElementType.CModReqd: result = new CModReqdSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
+			case ElementType.CModOpt: result = new CModOptSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
+			case ElementType.Module: result = new ModuleSig(((ModuleSig)type).Index, ImportOrNull(type.Next)); break;
 			case ElementType.Sentinel: result = new SentinelSig(); break;
 			case ElementType.Pinned: result = new PinnedSig(ImportOrNull(type.Next)); break;
 

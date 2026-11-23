@@ -818,7 +818,7 @@ namespace dnlib.DotNet {
 				return;
 			}
 
-			Debug.Assert(sig is null);
+			Debug2.Assert(sig is null);
 		}
 
 		void Add(MethodBaseSig? msig) {
@@ -868,7 +868,7 @@ namespace dnlib.DotNet {
 				return;
 			}
 
-			Debug.Assert(mb is null, "Unknown method body");
+			Debug2.Assert(mb is null, "Unknown method body");
 		}
 
 		void Add(NativeMethodBody? body) {

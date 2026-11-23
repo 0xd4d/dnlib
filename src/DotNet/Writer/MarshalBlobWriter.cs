@@ -65,21 +65,30 @@ namespace dnlib.DotNet.Writer {
 			bool canWrite = true;
 			switch (type) {
 			case NativeType.FixedSysString:
-				var fixedSysString = (FixedSysStringMarshalType)marshalType;
+				// All fields are optional: if it's a MarshalType, only the native type is written.
+				// The same is true for the other native types that have their own class.
+				if (marshalType is not FixedSysStringMarshalType fixedSysString)
+					break;
 				if (fixedSysString.IsSizeValid)
 					WriteCompressedUInt32((uint)fixedSysString.Size);
 				break;
 
 			case NativeType.SafeArray:
-				var safeArray = (SafeArrayMarshalType)marshalType;
+				if (marshalType is not SafeArrayMarshalType safeArray)
+					break;
 				if (UpdateCanWrite(safeArray.IsVariantTypeValid, "VariantType", ref canWrite))
 					WriteCompressedUInt32((uint)safeArray.VariantType);
-				if (UpdateCanWrite(safeArray.IsUserDefinedSubTypeValid, "UserDefinedSubType", ref canWrite))
-					Write(safeArray.UserDefinedSubType!.AssemblyQualifiedName);
+				if (UpdateCanWrite(safeArray.IsUserDefinedSubTypeValid, "UserDefinedSubType", ref canWrite)) {
+					var subTypeName = FullNameFactory.AssemblyQualifiedName(safeArray.UserDefinedSubType!, null, null, out bool hasError);
+					if (hasError)
+						helper.Error("Marshal type: UserDefinedSubType has a null value or is too deeply nested");
+					Write(WriterUtils.ToUTF8StringKeepUnpairedSurrogates(subTypeName));
+				}
 				break;
 
 			case NativeType.FixedArray:
-				var fixedArray = (FixedArrayMarshalType)marshalType;
+				if (marshalType is not FixedArrayMarshalType fixedArray)
+					break;
 				if (UpdateCanWrite(fixedArray.IsSizeValid, "Size", ref canWrite))
 					WriteCompressedUInt32((uint)fixedArray.Size);
 				if (UpdateCanWrite(fixedArray.IsElementTypeValid, "ElementType", ref canWrite))
@@ -87,7 +96,8 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			case NativeType.Array:
-				var array = (ArrayMarshalType)marshalType;
+				if (marshalType is not ArrayMarshalType array)
+					break;
 				if (UpdateCanWrite(array.IsElementTypeValid, "ElementType", ref canWrite))
 					WriteCompressedUInt32((uint)array.ElementType);
 				if (UpdateCanWrite(array.IsParamNumberValid, "ParamNumber", ref canWrite))
@@ -99,11 +109,22 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			case NativeType.CustomMarshaler:
-				var custMarshaler = (CustomMarshalType)marshalType;
+				if (marshalType is not CustomMarshalType custMarshaler) {
+					helper.Error("Marshal type: a custom marshaler must be a CustomMarshalType");
+					break;
+				}
 				Write(custMarshaler.Guid);
 				Write(custMarshaler.NativeTypeName);
 				var cm = custMarshaler.CustomMarshaler;
-				UTF8String? cmName = cm is null ? custMarshaler.CustomMarshalerTypeName : FullNameFactory.AssemblyQualifiedName(cm, this);
+				UTF8String? cmName;
+				if (cm is null)
+					cmName = custMarshaler.CustomMarshalerTypeName;
+				else {
+					var cmFullName = FullNameFactory.AssemblyQualifiedName(cm, this, null, out bool hasError);
+					if (hasError)
+						helper.Error("Marshal type: Custom marshaler type has a null value or is too deeply nested");
+					cmName = WriterUtils.ToUTF8StringKeepUnpairedSurrogates(cmFullName);
+				}
 				Write(cmName);
 				Write(custMarshaler.Cookie);
 				break;
@@ -111,13 +132,18 @@ namespace dnlib.DotNet.Writer {
 			case NativeType.IUnknown:
 			case NativeType.IDispatch:
 			case NativeType.IntF:
-				var iface = (InterfaceMarshalType)marshalType;
+				if (marshalType is not InterfaceMarshalType iface)
+					break;
 				if (iface.IsIidParamIndexValid)
 					WriteCompressedUInt32((uint)iface.IidParamIndex);
 				break;
 
 			case NativeType.RawBlob:
-				var data = ((RawMarshalType)marshalType).Data;
+				if (marshalType is not RawMarshalType rawMarshalType) {
+					helper.Error("Marshal type: a raw blob must be a RawMarshalType");
+					break;
+				}
+				var data = rawMarshalType.Data;
 				if (data is not null)
 					writer.WriteBytes(data);
 				break;

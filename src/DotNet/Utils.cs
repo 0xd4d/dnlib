@@ -287,6 +287,22 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the UTF-16 (little endian) bytes of a string. Unlike <see cref="System.Text.Encoding.Unicode"/>, every
+		/// <see cref="char"/> is written as is, so invalid UTF-16 (eg. a lone surrogate) isn't replaced with U+FFFD.
+		/// </summary>
+		/// <param name="s">String</param>
+		/// <returns></returns>
+		internal static byte[] GetUtf16Bytes(string s) {
+			var bytes = new byte[s.Length * 2];
+			for (int i = 0; i < s.Length; i++) {
+				var c = s[i];
+				bytes[i * 2] = (byte)c;
+				bytes[i * 2 + 1] = (byte)(c >> 8);
+			}
+			return bytes;
+		}
+
+		/// <summary>
 		/// Align up
 		/// </summary>
 		/// <param name="v">Value</param>

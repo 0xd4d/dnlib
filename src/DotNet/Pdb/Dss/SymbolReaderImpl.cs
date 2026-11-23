@@ -97,7 +97,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 		byte[]? GetSourceLinkData() {
 			if (reader is ISymUnmanagedReader4 reader4) {
 				// It returns data that it owns. The data is freed once its Destroy() method is called
-				Debug.Assert(reader is ISymUnmanagedDispose);
+				Debug2.Assert(reader is ISymUnmanagedDispose);
 				// Despite its name, it seems to only return source link data, and not source server data
 				if (reader4.GetSourceServerData(out var srcLinkData, out int sizeData) == 0) {
 					if (sizeData == 0)

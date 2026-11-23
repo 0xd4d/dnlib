@@ -122,12 +122,13 @@ namespace dnlib.DotNet {
 			get {
 				if (paramDefs is null)
 					InitializeParamDefs();
-				return paramDefs!;
+				return paramDefs;
 			}
 		}
 		/// <summary/>
 		protected LazyList<ParamDef>? paramDefs;
 		/// <summary>Initializes <see cref="paramDefs"/></summary>
+		[MemberNotNull(nameof(paramDefs))]
 		protected virtual void InitializeParamDefs() =>
 			Interlocked.CompareExchange(ref paramDefs, new LazyList<ParamDef>(this), null);
 
@@ -136,12 +137,13 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParameters is null)
 					InitializeGenericParameters();
-				return genericParameters!;
+				return genericParameters;
 			}
 		}
 		/// <summary/>
 		protected LazyList<GenericParam>? genericParameters;
 		/// <summary>Initializes <see cref="genericParameters"/></summary>
+		[MemberNotNull(nameof(genericParameters))]
 		protected virtual void InitializeGenericParameters() =>
 			Interlocked.CompareExchange(ref genericParameters, new LazyList<GenericParam>(this), null);
 
@@ -150,12 +152,13 @@ namespace dnlib.DotNet {
 			get {
 				if (declSecurities is null)
 					InitializeDeclSecurities();
-				return declSecurities!;
+				return declSecurities;
 			}
 		}
 		/// <summary/>
 		protected IList<DeclSecurity>? declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
+		[MemberNotNull(nameof(declSecurities))]
 		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
 
@@ -278,12 +281,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -300,12 +304,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -316,12 +321,13 @@ namespace dnlib.DotNet {
 			get {
 				if (overrides is null)
 					InitializeOverrides();
-				return overrides!;
+				return overrides;
 			}
 		}
 		/// <summary/>
 		protected IList<MethodOverride>? overrides;
 		/// <summary>Initializes <see cref="overrides"/></summary>
+		[MemberNotNull(nameof(overrides))]
 		protected virtual void InitializeOverrides() =>
 			Interlocked.CompareExchange(ref overrides, new List<MethodOverride>(), null);
 
@@ -1194,7 +1200,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadMethodRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			rva = (RVA)row.RVA;
 			implAttributes = row.ImplFlags;
 			attributes = row.Flags;
@@ -1216,8 +1222,12 @@ namespace dnlib.DotNet {
 			MemberMDInitializer.Initialize(ImplMap);
 			MemberMDInitializer.Initialize(MethodBody);
 			MemberMDInitializer.Initialize(DeclaringType);
-			MemberMDInitializer.Initialize(CustomAttributes);
-			MemberMDInitializer.Initialize(Overrides);
+			// CustomAttributes isn't initialized: this is called by the owner's list (holding its lock) when there's more
+			// than one owner, and reading a CA can read other lists, eg. an enum's fields (recursive lock).
+			// Overrides isn't initialized: this is called by a type's Methods list (holding its lock) when
+			// the method has more than one owner, and initializing it calls TypeDef.FindMethod(), which
+			// could read the same list again (recursive lock, or infinite recursion if !THREAD_SAFE).
+			// It's initialized when it's first used, after the declaring type has been updated.
 			MemberMDInitializer.Initialize(ParamDefs);
 			MemberMDInitializer.Initialize(GenericParameters);
 			MemberMDInitializer.Initialize(DeclSecurities);

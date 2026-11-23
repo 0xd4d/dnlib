@@ -52,12 +52,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -74,12 +75,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -465,6 +467,7 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// <c>true</c> if <see cref="FieldOffset"/> is not <c>null</c>
 		/// </summary>
+		[MemberNotNullWhen(true, nameof(FieldOffset))]
 		public bool HasLayoutInfo => FieldOffset is not null;
 
 		/// <summary>
@@ -868,7 +871,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadFieldRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			attributes = row.Flags;
 			origAttributes = (FieldAttributes)attributes;
@@ -877,14 +880,15 @@ namespace dnlib.DotNet {
 		}
 
 		internal FieldDefMD InitializeAll() {
-			MemberMDInitializer.Initialize(CustomAttributes);
+			// CustomAttributes and InitialValue aren't initialized: this is called by the owner's list (holding its lock)
+			// when there's more than one owner, and reading a CA (eg. an enum's fields) or the initial value (its size can
+			// depend on the declaring type's fields) can read other lists (recursive lock).
 			MemberMDInitializer.Initialize(Attributes);
 			MemberMDInitializer.Initialize(Name);
 			MemberMDInitializer.Initialize(Signature);
 			MemberMDInitializer.Initialize(FieldOffset);
 			MemberMDInitializer.Initialize(MarshalType);
 			MemberMDInitializer.Initialize(RVA);
-			MemberMDInitializer.Initialize(InitialValue);
 			MemberMDInitializer.Initialize(ImplMap);
 			MemberMDInitializer.Initialize(Constant);
 			MemberMDInitializer.Initialize(DeclaringType);

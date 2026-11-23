@@ -108,7 +108,13 @@ namespace dnlib.PE {
 				this.dataReaderFactory = dataReaderFactory;
 				peType = ConvertImageLayout(imageLayout);
 				var reader = dataReaderFactory.CreateReader();
-				peInfo = new PEInfo(ref reader, verify);
+				try {
+					peInfo = new PEInfo(ref reader, verify);
+				}
+				catch (DataReaderException ex) {
+					// Truncated or invalid PE headers
+					throw new BadImageFormatException($"Invalid PE file: {ex.Message}", ex);
+				}
 				Initialize();
 			}
 			catch {

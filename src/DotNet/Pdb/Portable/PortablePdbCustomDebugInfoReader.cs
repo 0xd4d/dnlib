@@ -16,7 +16,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			try {
 				var cdiReader = new PortablePdbCustomDebugInfoReader(module, typeOpt, bodyOpt, gpContext, ref reader);
 				var cdi = cdiReader.Read(kind);
-				Debug.Assert(cdiReader.reader.Position == cdiReader.reader.Length);
+				Debug2.Assert(cdiReader.reader.Position == cdiReader.reader.Length);
 				return cdi;
 			}
 			catch (ArgumentException) {
@@ -84,7 +84,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				catchHandler = null;
 			else {
 				catchHandler = GetInstruction(catchHandlerOffset);
-				Debug.Assert(catchHandler is not null);
+				Debug2.Assert(catchHandler is not null);
 				if (catchHandler is null)
 					return null;
 			}
@@ -92,7 +92,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			asyncInfo.CatchHandler = catchHandler;
 			while (reader.Position < reader.Length) {
 				var yieldInstr = GetInstruction(reader.ReadUInt32());
-				Debug.Assert(yieldInstr is not null);
+				Debug2.Assert(yieldInstr is not null);
 				if (yieldInstr is null)
 					return null;
 				uint resumeOffset = reader.ReadUInt32();
@@ -106,12 +106,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 				}
 				else {
 					moveNextMethod = module.ResolveToken(moveNextToken, gpContext) as MethodDef;
-					Debug.Assert(moveNextMethod is not null);
+					Debug2.Assert(moveNextMethod is not null);
 					if (moveNextMethod is null)
 						return null;
 					resumeInstr = GetInstruction(moveNextMethod, resumeOffset);
 				}
-				Debug.Assert(resumeInstr is not null);
+				Debug2.Assert(resumeInstr is not null);
 				if (resumeInstr is null)
 					return null;
 				asyncInfo.AsyncStepInfos.Add(new PdbAsyncStepInfo(yieldInstr, moveNextMethod, resumeInstr));
@@ -120,7 +120,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 		}
 
 		PdbCustomDebugInfo ReadDefaultNamespace() {
-			var defaultNs = reader.ReadUtf8String((int)reader.BytesLeft);
+			var defaultNs = reader.ReadUtf8StringKeepUnpairedSurrogates((int)reader.BytesLeft);
 			return new PdbDefaultNamespaceCustomDebugInfo(defaultNs);
 		}
 
@@ -165,7 +165,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				else {
 					var start = GetInstruction(startOffset);
 					var end = GetInstruction(startOffset + length);
-					Debug.Assert(start is not null);
+					Debug2.Assert(start is not null);
 					if (start is null)
 						return null;
 					smScope.Scopes.Add(new StateMachineHoistedLocalScope(start, end));
@@ -178,7 +178,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var tupleListRec = new PortablePdbTupleElementNamesCustomDebugInfo();
 			while (reader.Position < reader.Length) {
 				var name = ReadUTF8Z(reader.Length);
-				Debug.Assert(name is not null);
+				Debug2.Assert(name is not null);
 				// The reader doesn't move if the name has no terminator
 				if (name is null)
 					return null;
@@ -190,24 +190,24 @@ namespace dnlib.DotNet.Pdb.Portable {
 		string? ReadUTF8Z(long recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
-			return reader.TryReadZeroTerminatedUtf8String();
+			return reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 		}
 
 		PdbCustomDebugInfo ReadCompilationMetadataReferences() {
 			var cdi = new PdbCompilationMetadataReferencesCustomDebugInfo();
 
 			while (reader.BytesLeft > 0) {
-				var name = reader.TryReadZeroTerminatedUtf8String();
-				Debug.Assert(name is not null);
+				var name = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
+				Debug2.Assert(name is not null);
 				if (name is null)
 					break;
-				var aliases = reader.TryReadZeroTerminatedUtf8String();
-				Debug.Assert(aliases is not null);
+				var aliases = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
+				Debug2.Assert(aliases is not null);
 				if (aliases is null)
 					break;
 
 				const uint RequiredBytes = 1 + 4 + 4 + 16;
-				Debug.Assert(reader.BytesLeft >= RequiredBytes);
+				Debug2.Assert(reader.BytesLeft >= RequiredBytes);
 				if (reader.BytesLeft < RequiredBytes)
 					break;
 
@@ -227,12 +227,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var cdi = new PdbCompilationOptionsCustomDebugInfo();
 
 			while (reader.BytesLeft > 0) {
-				var key = reader.TryReadZeroTerminatedUtf8String();
-				Debug.Assert(key is not null);
+				var key = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
+				Debug2.Assert(key is not null);
 				if (key is null)
 					break;
-				var value = reader.TryReadZeroTerminatedUtf8String();
-				Debug.Assert(value is not null);
+				var value = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
+				Debug2.Assert(value is not null);
 				if (value is null)
 					break;
 				cdi.Options.Add(new KeyValuePair<string, string>(key, value));

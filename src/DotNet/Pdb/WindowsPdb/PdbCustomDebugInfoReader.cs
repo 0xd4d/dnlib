@@ -57,7 +57,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			if (reader.Length < 4)
 				return;
 			int version = reader.ReadByte();
-			Debug.Assert(version == CustomDebugInfoConstants.Version);
+			Debug2.Assert(version == CustomDebugInfoConstants.Version);
 			if (version != CustomDebugInfoConstants.Version)
 				return;
 			int count = reader.ReadByte();
@@ -65,7 +65,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			while (reader.CanRead(8U)) {
 				int recVersion = reader.ReadByte();
-				Debug.Assert(recVersion == CustomDebugInfoConstants.RecordVersion);
+				Debug2.Assert(recVersion == CustomDebugInfoConstants.RecordVersion);
 				var recKind = (PdbCustomDebugInfoKind)reader.ReadByte();
 				reader.Position++;
 				int alignmentSize = reader.ReadByte();
@@ -81,12 +81,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				if (recVersion == CustomDebugInfoConstants.RecordVersion) {
 					ulong recPosEnd = (ulong)reader.Position - 8 + (uint)recSize - (uint)alignmentSize;
 					var cdi = ReadRecord(recKind, recPosEnd);
-					Debug.Assert(cdi is not null);
-					Debug.Assert(reader.Position <= recPosEnd);
+					Debug2.Assert(cdi is not null);
+					Debug2.Assert(reader.Position <= recPosEnd);
 					if (reader.Position > recPosEnd)
 						return;
 					if (cdi is not null) {
-						Debug.Assert(cdi.Kind == recKind);
+						Debug2.Assert(cdi.Kind == recKind);
 						result.Add(cdi);
 					}
 				}
@@ -235,9 +235,9 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					name = ReadUTF8Z(recPosEnd);
 					if (name is null)
 						return null;
-					Debug.Assert(localIndex >= -1);
+					Debug2.Assert(localIndex >= -1);
 					// -1 = 'const' local. Only 'const' locals have a scope
-					Debug.Assert((localIndex == -1) ^ (scopeStart == 0 && scopeEnd == 0));
+					Debug2.Assert((localIndex == -1) ^ (scopeStart == 0 && scopeEnd == 0));
 
 					if (localIndex == -1) {
 						local = null;
@@ -285,7 +285,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 					if (typeName.StartsWith(name) && typeName.Length >= name.Length + 2) {
 						int index = name.Length;
 						if (typeName[index] == '`') {
-							Debug.Assert(index + 1 < typeName.Length);
+							Debug2.Assert(index + 1 < typeName.Length);
 							bool ok = true;
 							index++;
 							while (index < typeName.Length) {
@@ -320,7 +320,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		string? ReadUTF8Z(ulong recPosEnd) {
 			if (reader.Position > recPosEnd)
 				return null;
-			return reader.TryReadZeroTerminatedUtf8String();
+			return reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
 		}
 
 		Instruction? GetInstruction(uint offset) {

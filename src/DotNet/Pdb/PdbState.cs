@@ -571,7 +571,7 @@ recursive_call:
 								constant.Value = string.Empty;
 						}
 						else
-							Debug.Assert(originalPdbFileKind == PdbFileKind.PortablePDB || originalPdbFileKind == PdbFileKind.EmbeddedPortablePDB);
+							Debug2.Assert(originalPdbFileKind == PdbFileKind.PortablePDB || originalPdbFileKind == PdbFileKind.EmbeddedPortablePDB);
 						break;
 					case ElementType.Object:
 					case ElementType.Class:
@@ -677,7 +677,7 @@ do_return:
 		}
 
 		internal void InitializeCustomDebugInfos(MDToken token, GenericParamContext gpContext, IList<PdbCustomDebugInfo> result) {
-			Debug.Assert(token.Table != Table.Method, "Methods get initialized when reading the method bodies");
+			Debug2.Assert(token.Table != Table.Method, "Methods get initialized when reading the method bodies");
 			reader?.GetCustomDebugInfos(token.ToInt32(), gpContext, result);
 		}
 

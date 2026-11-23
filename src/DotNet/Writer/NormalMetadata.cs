@@ -238,30 +238,34 @@ namespace dnlib.DotNet.Writer {
 				Error("TypeRef is null");
 				return 0;
 			}
-			if (typeRefInfos.TryGetRid(tr, out uint rid)) {
-				if (rid == 0)
-					Error("TypeRef 0x{0:X8} has an infinite ResolutionScope loop.", tr.MDToken.Raw);
+			if (typeRefInfos.TryGetRid(tr, out uint rid))
 				return rid;
-			}
-			typeRefInfos.Add(tr, 0);    // Prevent inf recursion
 
 			// Add the TypeRefs in the ResolutionScope chain without recursing, outermost first,
 			// or a long chain could overflow the stack. The rows are added in the same order
 			// as if we had recursed.
-			var scopes = GetTypeRefScopesToAdd(tr, typeRefInfos);
+			var scopes = GetTypeRefScopesToAdd(tr, typeRefInfos, out bool isLoop);
+			if (isLoop)
+				Error("TypeRef 0x{0:X8} has an infinite ResolutionScope loop.", tr.MDToken.Raw);
 			if (scopes is not null) {
 				for (int i = scopes.Count - 1; i >= 0; i--)
-					AddTypeRefRow(scopes[i]);
+					AddTypeRefRow(scopes[i], isLoop && i == scopes.Count - 1);
 			}
-			return AddTypeRefRow(tr);
+			return AddTypeRefRow(tr, isLoop && scopes is null);
 		}
 
-		uint AddTypeRefRow(TypeRef tr) {
-			var row = new RawTypeRefRow(AddResolutionScope(tr.ResolutionScope),
+		// isLoopEnd is true if its ResolutionScope closes an infinite loop, it gets an invalid ResolutionScope
+		uint AddTypeRefRow(TypeRef tr, bool isLoopEnd) {
+			uint resolutionScope = isLoopEnd ? InvalidTypeRefResolutionScope : AddResolutionScope(tr.ResolutionScope);
+			// Adding the ResolutionScope (or an enclosing TypeRef) also adds its custom attributes and they
+			// can reference this TypeRef
+			if (typeRefInfos.TryGetRid(tr, out uint rid))
+				return rid;
+			var row = new RawTypeRefRow(resolutionScope,
 						stringsHeap.Add(tr.Name),
 						stringsHeap.Add(tr.Namespace));
-			uint rid = tablesHeap.TypeRefTable.Add(row);
-			typeRefInfos.SetRid(tr, rid);
+			rid = tablesHeap.TypeRefTable.Add(row);
+			typeRefInfos.Add(tr, rid);
 			AddCustomAttributes(Table.TypeRef, rid, tr);
 			AddCustomDebugInformationList(Table.TypeRef, rid, tr);
 			return rid;

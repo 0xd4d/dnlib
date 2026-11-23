@@ -113,12 +113,13 @@ namespace dnlib.DotNet {
 			get {
 				if (declSecurities is null)
 					InitializeDeclSecurities();
-				return declSecurities!;
+				return declSecurities;
 			}
 		}
 		/// <summary/>
 		protected IList<DeclSecurity>? declSecurities;
 		/// <summary>Initializes <see cref="declSecurities"/></summary>
+		[MemberNotNull(nameof(declSecurities))]
 		protected virtual void InitializeDeclSecurities() =>
 			Interlocked.CompareExchange(ref declSecurities, new List<DeclSecurity>(), null);
 
@@ -138,12 +139,13 @@ namespace dnlib.DotNet {
 			get {
 				if (modules is null)
 					InitializeModules();
-				return modules!;
+				return modules;
 			}
 		}
 		/// <summary/>
 		protected LazyList<ModuleDef>? modules;
 		/// <summary>Initializes <see cref="modules"/></summary>
+		[MemberNotNull(nameof(modules))]
 		protected virtual void InitializeModules() =>
 			Interlocked.CompareExchange(ref modules, new LazyList<ModuleDef>(this), null);
 
@@ -154,12 +156,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -180,12 +183,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 		/// <inheritdoc/>
@@ -650,7 +654,7 @@ namespace dnlib.DotNet {
 			if (IsValidAssemblySignatureKeyAttribute(ca))
 				ca.NamedArguments.Clear();
 			else
-				ca = CreateAssemblySignatureKeyAttribute();
+				ca = CreateAssemblySignatureKeyAttribute(manifestModule);
 
 			var counterSig = StrongNameKey.CreateCounterSignatureAsString(identityPubKey, identityKey, signaturePubKey);
 			ca.ConstructorArguments[0] = new CAArgument(manifestModule.CorLibTypes.String, new UTF8String(signaturePubKey.ToString()));
@@ -681,8 +685,7 @@ namespace dnlib.DotNet {
 		ModuleDef GetManifestModuleForWrite() =>
 			ManifestModule ?? throw new InvalidOperationException("Can't write the assembly: it has no modules");
 
-		CustomAttribute CreateAssemblySignatureKeyAttribute() {
-			var manifestModule = ManifestModule!;
+		CustomAttribute CreateAssemblySignatureKeyAttribute(ModuleDef manifestModule) {
 			var owner = manifestModule.UpdateRowId(new TypeRefUser(manifestModule, "System.Reflection", "AssemblySignatureKeyAttribute", manifestModule.CorLibTypes.AssemblyRef));
 			var methodSig = MethodSig.CreateInstance(manifestModule.CorLibTypes.Void, manifestModule.CorLibTypes.String, manifestModule.CorLibTypes.String);
 			var ctor = manifestModule.UpdateRowId(new MemberRefUser(manifestModule, MethodDef.InstanceConstructorName, methodSig, owner));
@@ -1006,7 +1009,7 @@ namespace dnlib.DotNet {
 					versionRes = new Version(versionRes.Major, versionRes.Minor, versionRes.Build == -1 ? 0 : versionRes.Build, 0);
 				}
 				else if (key.Equals("Profile", StringComparison.OrdinalIgnoreCase)) {
-					if (!string.IsNullOrEmpty(value))
+					if (!String2.IsNullOrEmpty(value))
 						profileRes = value;
 				}
 			}
@@ -1066,7 +1069,7 @@ namespace dnlib.DotNet {
 			if (rid != 1)
 				modules = new LazyList<ModuleDef>(this);
 			bool b = readerModule.TablesStream.TryReadAssemblyRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			hashAlgorithm = (AssemblyHashAlgorithm)row.HashAlgId;
 			version = new Version(row.MajorVersion, row.MinorVersion, row.BuildNumber, row.RevisionNumber);
 			attributes = (int)row.Flags;

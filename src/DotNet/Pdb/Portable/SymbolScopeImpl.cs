@@ -64,20 +64,20 @@ namespace dnlib.DotNet.Pdb.Portable {
 		public override IList<PdbConstant> GetConstants(ModuleDef module, GenericParamContext gpContext) {
 			if (constantRidList.Count == 0)
 				return Array2.Empty<PdbConstant>();
-			Debug.Assert(constantsMetadata is not null);
+			Debug2.Assert(constantsMetadata is not null);
 
 			var res = new PdbConstant[constantRidList.Count];
 			int w = 0;
 			for (int i = 0; i < res.Length; i++) {
 				uint rid = constantRidList[i];
-				bool b = constantsMetadata!.TablesStream.TryReadLocalConstantRow(rid, out var row);
-				Debug.Assert(b);
+				bool b = constantsMetadata.TablesStream.TryReadLocalConstantRow(rid, out var row);
+				Debug2.Assert(b);
 				var name = constantsMetadata.StringsStream.Read(row.Name);
 				if (!constantsMetadata.BlobStream.TryCreateReader(row.Signature, out var reader))
 					continue;
 				var localConstantSigBlobReader = new LocalConstantSigBlobReader(module, ref reader, gpContext);
 				b = localConstantSigBlobReader.Read(out var type, out object? value);
-				Debug.Assert(b);
+				Debug2.Assert(b);
 				if (b) {
 					var pdbConstant = new PdbConstant(name, type, value);
 					int token = new MDToken(Table.LocalConstant, rid).ToInt32();

@@ -369,7 +369,7 @@ namespace dnlib.DotNet.Writer {
 			// Image file header
 			writer.WriteUInt16((ushort)GetMachine());
 			writer.WriteUInt16((ushort)SectionsCount);
-			Debug.Assert(SectionsCount == sections.Count, "One or more sections are empty! The PE file could be bigger than it should be. Empty sections should be removed.");
+			Debug2.Assert(SectionsCount == sections.Count, "One or more sections are empty! The PE file could be bigger than it should be. Empty sections should be removed.");
 			timeDateStampOffset = writer.Position;
 			writer.WriteUInt32(options.TimeDateStamp ?? PEHeadersOptions.CreateNewTimeDateStamp());
 			writer.WriteUInt32(options.PointerToSymbolTable ?? 0);

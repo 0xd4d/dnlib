@@ -220,6 +220,9 @@ namespace dnlib.DotNet.Writer {
 
 			for (int i = 0; i < exceptionHandlers.Count; i++) {
 				var eh = exceptionHandlers[i];
+				// Flags are 16 bits in a small exception clause
+				if ((uint)eh.HandlerType > ushort.MaxValue)
+					return true;
 				if (!FitsInSmallExceptionClause(eh.TryStart, eh.TryEnd))
 					return true;
 				if (!FitsInSmallExceptionClause(eh.HandlerStart, eh.HandlerEnd))

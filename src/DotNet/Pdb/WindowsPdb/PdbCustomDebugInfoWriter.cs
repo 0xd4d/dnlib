@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Text;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 
@@ -66,7 +65,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		void InitializeInstructionDictionary() {
-			Debug.Assert(!instructionToOffsetDictInitd);
+			Debug2.Assert(!instructionToOffsetDictInitd);
 			instructionToOffsetDict.Clear();
 			var body = method.Body;
 			if (body is null)
@@ -382,7 +381,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				return;
 			}
 
-			writer.WriteBytes(Encoding.UTF8.GetBytes(s));
+			writer.WriteBytes(WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(s));
 			writer.WriteByte(0);
 		}
 

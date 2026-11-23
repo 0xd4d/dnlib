@@ -57,6 +57,10 @@ namespace dnlib.DotNet {
 
 	static class StrongNameUtils {
 		public static byte[] ReadBytesReverse(this BinaryReader reader, int len) {
+			// ReadBytes() allocates len bytes before reading so check it first (eg. a corrupt bit length)
+			var stream = reader.BaseStream;
+			if (len < 0 || (stream.CanSeek && len > stream.Length - stream.Position))
+				throw new InvalidKeyException("Can't read more bytes");
 			var data = reader.ReadBytes(len);
 			if (data.Length != len)
 				throw new InvalidKeyException("Can't read more bytes");
@@ -259,7 +263,7 @@ namespace dnlib.DotNet {
 			get {
 				if (publicKey is null)
 					Interlocked.CompareExchange(ref publicKey, CreatePublicKey(), null);
-				return publicKey!;
+				return publicKey;
 			}
 		}
 

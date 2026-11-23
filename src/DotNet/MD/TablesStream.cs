@@ -250,6 +250,7 @@ namespace dnlib.DotNet.MD {
 
 			ulong valid = validMask;
 			var sizes = new uint[64];
+			bool hasHighByte = false;
 			for (int i = 0; i < 64; valid >>= 1, i++) {
 				uint rows = (valid & 1) == 0 ? 0 : reader.ReadUInt32();
 				// Mono ignores the high byte. The CLR uses all 32 bits when calculating column sizes
@@ -260,7 +261,23 @@ namespace dnlib.DotNet.MD {
 				if (i >= maxPresentTables)
 					rows = 0;
 				sizes[i] = rows;
+				hasHighByte |= rows > 0x00FFFFFF;
 			}
+
+			if (HasExtraData)
+				extraData = reader.ReadUInt32();
+			mdTablesPos = reader.Position;
+
+			InitializeSizes(dnTableSizes, sizes, typeSystemTableRows, forceAllBig);
+			// If the tables don't fit in the stream when all 32 bits are used, the CLR fails to load the
+			// file. Ignore the high byte like Mono (and dnlib v4.5.0 and earlier) so files that only
+			// Mono can load are also read without having to use CLRRuntimeReaderKind.Mono.
+			if (hasHighByte && !TablesFitInStream(tableInfos, sizes)) {
+				for (int i = 0; i < sizes.Length; i++)
+					sizes[i] &= 0x00FFFFFF;
+				InitializeSizes(dnTableSizes, sizes, typeSystemTableRows, forceAllBig);
+			}
+
 			tableLayoutRows = new uint[mdTables.Length];
 			for (int i = 0; i < mdTables.Length; i++) {
 				uint rows = sizes[i];
@@ -272,9 +289,11 @@ namespace dnlib.DotNet.MD {
 				mdTables[i] = new MDTable((Table)i, rows, tableInfos[i]);
 			}
 
-			if (HasExtraData)
-				extraData = reader.ReadUInt32();
+			InitializeMdTableReaders();
+			InitializeTables();
+		}
 
+		void InitializeSizes(DotNetTableSizes dnTableSizes, uint[] sizes, uint[]? typeSystemTableRows, bool forceAllBig) {
 			var debugSizes = sizes;
 			if (typeSystemTableRows is not null) {
 				debugSizes = new uint[sizes.Length];
@@ -287,10 +306,13 @@ namespace dnlib.DotNet.MD {
 			}
 
 			dnTableSizes.InitializeSizes(HasBigStrings, HasBigGUID, HasBigBlob, sizes, debugSizes, forceAllBig);
+		}
 
-			mdTablesPos = reader.Position;
-			InitializeMdTableReaders();
-			InitializeTables();
+		bool TablesFitInStream(TableInfo[] tableInfos, uint[] sizes) {
+			ulong end = mdTablesPos;
+			for (int i = 0; i < tableInfos.Length; i++)
+				end += (ulong)(uint)tableInfos[i].RowSize * sizes[i];
+			return end <= dataReader.Length;
 		}
 
 		/// <inheritdoc/>

@@ -87,8 +87,8 @@ namespace dnlib.IO {
 		/// <param name="offset">Start offset of data</param>
 		/// <param name="length">Length of data</param>
 		public DataReader(DataStream stream, uint offset, uint length) {
-			Debug.Assert(stream is not null || (offset == 0 && length == 0));
-			Debug.Assert(offset + length >= offset);
+			Debug2.Assert(stream is not null || (offset == 0 && length == 0));
+			Debug2.Assert(offset + length >= offset);
 			// The assert makes the compiler think it can be null: it's only null if a default instance is sliced
 			this.stream = stream!;
 			startOffset = offset;
@@ -99,8 +99,8 @@ namespace dnlib.IO {
 
 		[Conditional("DEBUG")]
 		readonly void VerifyState() {
-			Debug.Assert(startOffset <= currentOffset);
-			Debug.Assert(currentOffset <= endOffset);
+			Debug2.Assert(startOffset <= currentOffset);
+			Debug2.Assert(currentOffset <= endOffset);
 		}
 
 		[DoesNotReturn]
@@ -315,7 +315,7 @@ namespace dnlib.IO {
 			VerifyState();
 			const uint SIZE = 1;
 			var currentOffset = this.currentOffset;
-			Debug.Assert(currentOffset != endOffset);
+			Debug2.Assert(currentOffset != endOffset);
 			var value = stream.ReadByte(currentOffset);
 			this.currentOffset = currentOffset + SIZE;
 			VerifyState();
@@ -326,7 +326,7 @@ namespace dnlib.IO {
 			VerifyState();
 			const uint SIZE = 2;
 			var currentOffset = this.currentOffset;
-			Debug.Assert(endOffset - currentOffset >= SIZE);
+			Debug2.Assert(endOffset - currentOffset >= SIZE);
 			var value = stream.ReadUInt16(currentOffset);
 			this.currentOffset = currentOffset + SIZE;
 			VerifyState();
@@ -337,7 +337,7 @@ namespace dnlib.IO {
 			VerifyState();
 			const uint SIZE = 4;
 			var currentOffset = this.currentOffset;
-			Debug.Assert(endOffset - currentOffset >= SIZE);
+			Debug2.Assert(endOffset - currentOffset >= SIZE);
 			var value = stream.ReadUInt32(currentOffset);
 			this.currentOffset = currentOffset + SIZE;
 			VerifyState();
@@ -523,58 +523,6 @@ namespace dnlib.IO {
 			var data = new byte[length];
 			ReadBytes(data, 0, length);
 			return data;
-		}
-
-		/// <summary>
-		/// Reads a compressed <see cref="uint"/> the same way the CLR reads the length of a #Blob or #US
-		/// heap entry. It's the same as <see cref="TryReadCompressedUInt32(out uint)"/> except that the
-		/// invalid encoding 111x fails instead of being treated as 110x.
-		/// See coreclr: md/datablob.inl / DataBlob::PeekCompressedU()
-		/// </summary>
-		/// <param name="value">Uncompressed <see cref="uint"/></param>
-		/// <returns></returns>
-		internal bool TryReadCompressedUInt32Strict(out uint value) {
-			VerifyState();
-			var currentOffset = this.currentOffset;
-			var bytesLeft = endOffset - currentOffset;
-			if (bytesLeft == 0) {
-				value = 0;
-				VerifyState();
-				return false;
-			}
-
-			var stream = this.stream;
-			byte b = stream.ReadByte(currentOffset++);
-			if ((b & 0x80) == 0) {
-				value = b;
-				this.currentOffset = currentOffset;
-				VerifyState();
-				return true;
-			}
-
-			if ((b & 0xC0) == 0x80) {
-				if (bytesLeft < 2) {
-					value = 0;
-					VerifyState();
-					return false;
-				}
-				value = (uint)(((b & 0x3F) << 8) | stream.ReadByte(currentOffset++));
-				this.currentOffset = currentOffset;
-				VerifyState();
-				return true;
-			}
-
-			// 111x is an invalid encoding
-			if (bytesLeft < 4 || (b & 0xE0) != 0xC0) {
-				value = 0;
-				VerifyState();
-				return false;
-			}
-			value = (uint)(((b & 0x1F) << 24) | (stream.ReadByte(currentOffset++) << 16) |
-					(stream.ReadByte(currentOffset++) << 8) | stream.ReadByte(currentOffset++));
-			this.currentOffset = currentOffset;
-			VerifyState();
-			return true;
 		}
 
 		/// <summary>
@@ -845,6 +793,71 @@ namespace dnlib.IO {
 		/// <param name="byteCount">Number of bytes to read (not characters)</param>
 		/// <returns></returns>
 		public string ReadUtf8String(int byteCount) => ReadString(byteCount, Encoding.UTF8);
+
+		/// <summary>
+		/// Reads a UTF-8 encoded string. Unlike <see cref="ReadUtf8String(int)"/>, an unpaired surrogate that's encoded
+		/// like any other char (3 bytes, <c>ED A0..BF 80..BF</c>) is decoded to that surrogate instead of U+FFFD chars.
+		/// Roslyn (System.Reflection.Metadata) writes unpaired surrogates this way in portable PDB blob strings and
+		/// other serialized strings, and so does dnlib's writer.
+		/// </summary>
+		/// <param name="byteCount">Number of bytes to read (not characters)</param>
+		/// <returns></returns>
+		internal string ReadUtf8StringKeepUnpairedSurrogates(int byteCount) {
+			var pos = Position;
+			var s = ReadUtf8String(byteCount);
+			// Valid UTF-8 without U+FFFD is the normal case
+			if (s.IndexOf('\uFFFD') < 0)
+				return s;
+			Position = pos;
+			return DecodeUtf8KeepUnpairedSurrogates(ReadBytes(byteCount));
+		}
+
+		/// <summary>
+		/// Reads a zero-terminated UTF-8 encoded string or returns <c>null</c> if the string couldn't be read. See
+		/// <see cref="ReadUtf8StringKeepUnpairedSurrogates(int)"/> for how unpaired surrogates are decoded.
+		/// </summary>
+		/// <returns></returns>
+		internal string? TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates() {
+			var pos = Position;
+			var s = TryReadZeroTerminatedUtf8String();
+			if (s is null || s.IndexOf('\uFFFD') < 0)
+				return s;
+			var endPos = Position;
+			Position = pos;
+			var bytes = ReadBytes((int)(endPos - pos - 1));
+			Position = endPos;
+			return DecodeUtf8KeepUnpairedSurrogates(bytes);
+		}
+
+		static string DecodeUtf8KeepUnpairedSurrogates(byte[] data) {
+			StringBuilder? sb = null;
+			int start = 0;
+			for (int i = 0; i + 2 < data.Length; i++) {
+				if (!IsEncodedSurrogate(data, i))
+					continue;
+				bool isHigh = (data[i + 1] & 0xF0) == 0xA0;
+				if (isHigh && i + 5 < data.Length && IsEncodedSurrogate(data, i + 3) && (data[i + 4] & 0xF0) == 0xB0) {
+					// A surrogate pair must be encoded as 4 bytes and would be written as 4 bytes, so it's not
+					// decoded (it's invalid UTF-8)
+					i += 5;
+					continue;
+				}
+				sb ??= new StringBuilder(data.Length);
+				// 'ED' can't be a part of the previous char, so everything before it can be decoded on its own
+				sb.Append(Encoding.UTF8.GetString(data, start, i - start));
+				sb.Append((char)(0xD000 | ((data[i + 1] & 0x3F) << 6) | (data[i + 2] & 0x3F)));
+				i += 2;
+				start = i + 1;
+			}
+			if (sb is null)
+				return Encoding.UTF8.GetString(data);
+			sb.Append(Encoding.UTF8.GetString(data, start, data.Length - start));
+			return sb.ToString();
+		}
+
+		// ED A0..BF 80..BF: U+D800-U+DFFF encoded as 3 bytes
+		static bool IsEncodedSurrogate(byte[] data, int index) =>
+			data[index] == 0xED && (data[index + 1] & 0xE0) == 0xA0 && (data[index + 2] & 0xC0) == 0x80;
 
 		/// <summary>
 		/// Reads a string

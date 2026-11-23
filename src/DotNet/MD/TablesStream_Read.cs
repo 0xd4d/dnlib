@@ -1154,7 +1154,7 @@ namespace dnlib.DotNet.MD {
 			TryReadColumn24(table, rid, table.TableInfo.Columns[colIndex], out value);
 
 		internal bool TryReadColumn24(MDTable table, uint rid, ColumnInfo column, out uint value) {
-			Debug.Assert(column.Size == 2 || column.Size == 4);
+			Debug2.Assert(column.Size == 2 || column.Size == 4);
 			if (table.IsInvalidRID(rid)) {
 				value = 0;
 				return false;

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 namespace dnlib.DotNet {
@@ -295,9 +296,285 @@ namespace dnlib.DotNet {
 			frmRedir4["System.Xml.Serialization"] = new FrameworkRedirectInfo("b77a5c561934e089", "4.0.0.0");
 		}
 
+		// .NET Framework 4.5.1 and 4.5.2: only the differences from the previous table. Created when first used.
+		static class V451 {
+			internal static readonly Dictionary<string, FrameworkRedirectInfo> Table = Create();
+
+			static Dictionary<string, FrameworkRedirectInfo> Create() {
+				var d = new Dictionary<string, FrameworkRedirectInfo>(frmRedir4, StringComparer.OrdinalIgnoreCase);
+				d["System.Diagnostics.Tracing"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Runtime"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Runtime.InteropServices"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				return d;
+			}
+		}
+
+		// .NET Framework 4.6, 4.6.1, 4.6.2 and 4.7: only the differences from the previous table. Created when first used.
+		static class V46 {
+			internal static readonly Dictionary<string, FrameworkRedirectInfo> Table = Create();
+
+			static Dictionary<string, FrameworkRedirectInfo> Create() {
+				var d = new Dictionary<string, FrameworkRedirectInfo>(V451.Table, StringComparer.OrdinalIgnoreCase);
+				d["System.Collections"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Collections.Concurrent"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.ComponentModel.Annotations"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.ComponentModel.EventBasedAsync"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Diagnostics.Debug"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Diagnostics.Tracing"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.20.0");
+				d["System.Dynamic.Runtime"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Globalization"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.IO"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Linq.Expressions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Net.NetworkInformation"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Net.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Net.Requests"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Net.WebHeaderCollection"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.0.0");
+				d["System.ObjectModel"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Reflection"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Runtime"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.20.0");
+				d["System.Runtime.Extensions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Runtime.Handles"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.0.0");
+				d["System.Runtime.InteropServices"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.20.0");
+				d["System.Runtime.Serialization.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Runtime.Serialization.Xml"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.ServiceModel.Http"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Text.Encoding"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Text.Encoding.Extensions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Text.RegularExpressions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Threading"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Threading.Tasks"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Xml.ReaderWriter"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Xml.XDocument"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				d["System.Xml.XmlSerializer"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.10.0");
+				return d;
+			}
+		}
+
+		// .NET Framework 4.7.1: only the differences from the previous table. Created when first used.
+		static class V471 {
+			internal static readonly Dictionary<string, FrameworkRedirectInfo> Table = Create();
+
+			static Dictionary<string, FrameworkRedirectInfo> Create() {
+				var d = new Dictionary<string, FrameworkRedirectInfo>(V46.Table, StringComparer.OrdinalIgnoreCase);
+				d["Microsoft.Win32.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["netstandard"] = new FrameworkRedirectInfo("cc7b13ffcd2ddd51", "2.0.0.0");
+				d["System.AppContext"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Collections"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Collections.Concurrent"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Collections.NonGeneric"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.Collections.Specialized"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.ComponentModel"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.ComponentModel.EventBasedAsync"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.ComponentModel.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.ComponentModel.TypeConverter"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Console"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Data.Common"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Diagnostics.Contracts"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Diagnostics.Debug"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Diagnostics.FileVersionInfo"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Diagnostics.Process"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Diagnostics.StackTrace"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.4.0");
+				d["System.Diagnostics.TextWriterTraceListener"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Diagnostics.Tools"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Diagnostics.TraceSource"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Diagnostics.Tracing"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Drawing.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Dynamic.Runtime"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Globalization"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Globalization.Calendars"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.Globalization.Extensions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.IO"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.IO.Compression.ZipFile"] = new FrameworkRedirectInfo("b77a5c561934e089", "4.0.3.0");
+				d["System.IO.FileSystem"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.IO.FileSystem.DriveInfo"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.IO.FileSystem.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.IO.FileSystem.Watcher"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.IO.IsolatedStorage"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.IO.MemoryMappedFiles"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.IO.Pipes"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.IO.UnmanagedMemoryStream"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.Linq"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Linq.Expressions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Linq.Parallel"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Linq.Queryable"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Net.NameResolution"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Net.NetworkInformation"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Net.Ping"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Net.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Net.Requests"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Net.Security"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Net.Sockets"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Net.WebHeaderCollection"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Net.WebSockets"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Net.WebSockets.Client"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.ObjectModel"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Reflection"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Reflection.Extensions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Reflection.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Resources.Reader"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Resources.ResourceManager"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Resources.Writer"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Runtime"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Runtime.CompilerServices.VisualC"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Runtime.Extensions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Runtime.Handles"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Runtime.InteropServices"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Runtime.InteropServices.RuntimeInformation"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Runtime.Numerics"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Runtime.Serialization.Formatters"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Runtime.Serialization.Json"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Runtime.Serialization.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.3.0");
+				d["System.Runtime.Serialization.Xml"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.3.0");
+				d["System.Security.Claims"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.Security.Cryptography.Algorithms"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.2.2.0");
+				d["System.Security.Cryptography.Csp"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Security.Cryptography.Encoding"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Security.Cryptography.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Security.Cryptography.X509Certificates"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.2.0");
+				d["System.Security.Principal"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Security.SecureString"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Text.Encoding"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Text.Encoding.Extensions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Text.RegularExpressions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.1.0");
+				d["System.Threading"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Threading.Overlapped"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.Threading.Tasks"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Threading.Tasks.Parallel"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.Threading.Thread"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.2.0");
+				d["System.Threading.ThreadPool"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.12.0");
+				d["System.Threading.Timer"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.1.0");
+				d["System.ValueTuple"] = new FrameworkRedirectInfo("cc7b13ffcd2ddd51", "4.0.2.0");
+				d["System.Xml.ReaderWriter"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.1.0");
+				d["System.Xml.XDocument"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Xml.XmlDocument"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.Xml.XmlSerializer"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.11.0");
+				d["System.Xml.XPath"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				d["System.Xml.XPath.XDocument"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.0.3.0");
+				return d;
+			}
+		}
+
+		// .NET Framework 4.7.2, 4.8 and 4.8.1: only the differences from the previous table. Created when first used.
+		static class V472 {
+			internal static readonly Dictionary<string, FrameworkRedirectInfo> Table = Create();
+
+			static Dictionary<string, FrameworkRedirectInfo> Create() {
+				var d = new Dictionary<string, FrameworkRedirectInfo>(V471.Table, StringComparer.OrdinalIgnoreCase);
+				d["System.Data.Common"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.2.0.0");
+				d["System.Diagnostics.StackTrace"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.0.0");
+				d["System.Diagnostics.Tracing"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.2.0.0");
+				d["System.Globalization.Extensions"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.0.0");
+				d["System.IO.Compression"] = new FrameworkRedirectInfo("b77a5c561934e089", "4.2.0.0");
+				d["System.Net.Http"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.2.0.0");
+				d["System.Net.Sockets"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.2.0.0");
+				d["System.Runtime.Serialization.Primitives"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.2.0.0");
+				d["System.Security.Cryptography.Algorithms"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.3.0.0");
+				d["System.Security.SecureString"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.0.0");
+				d["System.Threading.Overlapped"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.0.0");
+				d["System.Xml.XPath.XDocument"] = new FrameworkRedirectInfo("b03f5f7f11d50a3a", "4.1.0.0");
+				return d;
+			}
+		}
+
+		static Dictionary<string, FrameworkRedirectInfo> GetTable(FrameworkRedirectVersion version) {
+			switch (version) {
+			case FrameworkRedirectVersion.Net20:
+			case FrameworkRedirectVersion.Net30:
+			case FrameworkRedirectVersion.Net35:
+				return frmRedir2;
+			case FrameworkRedirectVersion.Net40:
+			case FrameworkRedirectVersion.Net45:
+				return frmRedir4;
+			case FrameworkRedirectVersion.Net451:
+			case FrameworkRedirectVersion.Net452:
+				return V451.Table;
+			case FrameworkRedirectVersion.Net46:
+			case FrameworkRedirectVersion.Net461:
+			case FrameworkRedirectVersion.Net462:
+			case FrameworkRedirectVersion.Net47:
+				return V46.Table;
+			case FrameworkRedirectVersion.Net471:
+				return V471.Table;
+			case FrameworkRedirectVersion.Net472:
+			case FrameworkRedirectVersion.Net48:
+			case FrameworkRedirectVersion.Net481:
+				return V472.Table;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(version));
+			}
+		}
+
+		/// <summary>
+		/// Redirects a .NET Framework assembly from an older version to the version in .NET Framework <paramref name="version"/>
+		/// </summary>
+		/// <param name="assembly">Current assembly reference that might get updated</param>
+		/// <param name="version">The .NET Framework version, eg. the installed version or the version of the reference assemblies</param>
+		public static void ApplyFrameworkRedirect(ref IAssembly assembly, FrameworkRedirectVersion version) {
+			if (TryApplyFrameworkRedirect(assembly, GetTable(version), out var redirectedAssembly))
+				assembly = redirectedAssembly;
+		}
+
+		/// <summary>
+		/// Tries to redirect a .NET Framework assembly from an older version to the version in .NET Framework <paramref name="version"/>
+		/// </summary>
+		/// <param name="assembly">Assembly reference</param>
+		/// <param name="version">The .NET Framework version, eg. the installed version or the version of the reference assemblies</param>
+		/// <param name="redirectedAssembly">Updated with the redirected assembly if successful</param>
+		/// <returns></returns>
+		public static bool TryApplyFrameworkRedirect(IAssembly assembly, FrameworkRedirectVersion version, [NotNullWhen(true)] out IAssembly? redirectedAssembly) =>
+			TryApplyFrameworkRedirect(assembly, GetTable(version), out redirectedAssembly);
+
+		/// <summary>
+		/// Gets the .NET Framework version <paramref name="module"/> targets: the version in its assembly's
+		/// <c>System.Runtime.Versioning.TargetFrameworkAttribute</c> (rounded down to a known version) if it's a
+		/// .NET Framework assembly, else <see cref="FrameworkRedirectVersion.Net40"/> if it's a CLR 4.0 module or
+		/// <see cref="FrameworkRedirectVersion.Net20"/> if it's a CLR 2.0 module.
+		/// </summary>
+		/// <param name="module">Module</param>
+		/// <param name="version">Updated with the .NET Framework version if successful</param>
+		/// <returns></returns>
+		public static bool TryGetFrameworkRedirectVersion(ModuleDef? module, out FrameworkRedirectVersion version) {
+			version = FrameworkRedirectVersion.Net20;
+			if (module is null)
+				return false;
+			if (module.Assembly is { } asm && asm.TryGetOriginalTargetFrameworkAttribute(out var framework, out var tfmVersion, out _)) {
+				if (framework != ".NETFramework")
+					return false;
+				version = GetFrameworkRedirectVersion(tfmVersion);
+				return true;
+			}
+			if (module.IsClr40) {
+				version = FrameworkRedirectVersion.Net40;
+				return true;
+			}
+			return module.IsClr20;
+		}
+
+		// The newest known version that isn't newer than 'version'
+		static FrameworkRedirectVersion GetFrameworkRedirectVersion(Version version) {
+			int v = version.Major * 100 + version.Minor * 10 + Math.Max(0, Math.Min(9, version.Build));
+			if (v >= 481) return FrameworkRedirectVersion.Net481;
+			if (v >= 480) return FrameworkRedirectVersion.Net48;
+			if (v >= 472) return FrameworkRedirectVersion.Net472;
+			if (v >= 471) return FrameworkRedirectVersion.Net471;
+			if (v >= 470) return FrameworkRedirectVersion.Net47;
+			if (v >= 462) return FrameworkRedirectVersion.Net462;
+			if (v >= 461) return FrameworkRedirectVersion.Net461;
+			if (v >= 460) return FrameworkRedirectVersion.Net46;
+			if (v >= 452) return FrameworkRedirectVersion.Net452;
+			if (v >= 451) return FrameworkRedirectVersion.Net451;
+			if (v >= 450) return FrameworkRedirectVersion.Net45;
+			if (v >= 400) return FrameworkRedirectVersion.Net40;
+			if (v >= 350) return FrameworkRedirectVersion.Net35;
+			if (v >= 300) return FrameworkRedirectVersion.Net30;
+			return FrameworkRedirectVersion.Net20;
+		}
+
 		/// <summary>
 		/// Redirects a .NET Framework assembly from an older version to the correct version
-		/// loaded at runtime.
+		/// loaded at runtime. The .NET Framework 4.0/4.5 versions are used if <paramref name="sourceModule"/>
+		/// is a CLR 4.0 module, and the .NET Framework 2.0-3.5 versions if it's a CLR 2.0 module. Use the method
+		/// with a <see cref="FrameworkRedirectVersion"/> argument to redirect to a later version's assemblies.
 		/// </summary>
 		/// <param name="assembly">Current assembly reference that might get updated</param>
 		/// <param name="sourceModule">Module using the assembly reference</param>
@@ -308,7 +585,9 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Tries to redirect a .NET Framework assembly from an older version to the correct version
-		/// loaded at runtime.
+		/// loaded at runtime. The .NET Framework 4.0/4.5 versions are used if <paramref name="sourceModule"/>
+		/// is a CLR 4.0 module, and the .NET Framework 2.0-3.5 versions if it's a CLR 2.0 module. Use the method
+		/// with a <see cref="FrameworkRedirectVersion"/> argument to redirect to a later version's assemblies.
 		/// </summary>
 		/// <param name="assembly">Assembly reference</param>
 		/// <param name="sourceModule">Module using the assembly reference</param>
@@ -334,6 +613,8 @@ namespace dnlib.DotNet {
 		/// loaded at runtime.
 		/// </summary>
 		/// <param name="assembly">Current assembly reference that might get updated</param>
+		[Obsolete("Use " + nameof(ApplyFrameworkRedirect) + "(ref IAssembly, " + nameof(FrameworkRedirectVersion) + ") with " + nameof(FrameworkRedirectVersion) + "." + nameof(FrameworkRedirectVersion.Net20) + " or the real .NET Framework version")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static void ApplyFrameworkRedirectV2(ref IAssembly assembly) {
 			if (TryApplyFrameworkRedirect(assembly, frmRedir2, out var redirectedAssembly))
 				assembly = redirectedAssembly;
@@ -344,6 +625,8 @@ namespace dnlib.DotNet {
 		/// loaded at runtime.
 		/// </summary>
 		/// <param name="assembly">Current assembly reference that might get updated</param>
+		[Obsolete("Use " + nameof(ApplyFrameworkRedirect) + "(ref IAssembly, " + nameof(FrameworkRedirectVersion) + ") with " + nameof(FrameworkRedirectVersion) + "." + nameof(FrameworkRedirectVersion.Net40) + " or the real .NET Framework version")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static void ApplyFrameworkRedirectV4(ref IAssembly assembly) {
 			if (TryApplyFrameworkRedirect(assembly, frmRedir4, out var redirectedAssembly))
 				assembly = redirectedAssembly;
@@ -356,6 +639,8 @@ namespace dnlib.DotNet {
 		/// <param name="assembly">Assembly reference</param>
 		/// <param name="redirectedAssembly">Updated with the redirected assembly if successful</param>
 		/// <returns></returns>
+		[Obsolete("Use " + nameof(TryApplyFrameworkRedirect) + "(IAssembly, " + nameof(FrameworkRedirectVersion) + ", out IAssembly) with " + nameof(FrameworkRedirectVersion) + "." + nameof(FrameworkRedirectVersion.Net20) + " or the real .NET Framework version")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static bool TryApplyFrameworkRedirectV2(IAssembly assembly, [NotNullWhen(true)] out IAssembly? redirectedAssembly) =>
 			TryApplyFrameworkRedirect(assembly, frmRedir2, out redirectedAssembly);
 
@@ -366,6 +651,8 @@ namespace dnlib.DotNet {
 		/// <param name="assembly">Assembly reference</param>
 		/// <param name="redirectedAssembly">Updated with the redirected assembly if successful</param>
 		/// <returns></returns>
+		[Obsolete("Use " + nameof(TryApplyFrameworkRedirect) + "(IAssembly, " + nameof(FrameworkRedirectVersion) + ", out IAssembly) with " + nameof(FrameworkRedirectVersion) + "." + nameof(FrameworkRedirectVersion.Net40) + " or the real .NET Framework version")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static bool TryApplyFrameworkRedirectV4(IAssembly assembly, [NotNullWhen(true)] out IAssembly? redirectedAssembly) =>
 			TryApplyFrameworkRedirect(assembly, frmRedir4, out redirectedAssembly);
 

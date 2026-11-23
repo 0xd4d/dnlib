@@ -12,7 +12,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	static class ReflectionExtensions {
 		public static void GetTypeNamespaceAndName_TypeDefOrRef(this Type type, out string @namespace, out string name) {
-			Debug.Assert(type.IsTypeDef());
+			Debug2.Assert(type.IsTypeDef());
 			name = Unescape(type.Name) ?? string.Empty;
 			if (!type.IsNested)
 				@namespace = type.Namespace ?? string.Empty;
@@ -108,7 +108,7 @@ namespace dnlib.DotNet {
 		/// Same as .NET 8+ <c>Type.IsFunctionPointer</c>, returns <c>false</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The type</param>
-		public static bool IsFunctionPointer2(this Type? self) {
+		public static bool IsFunctionPointer2([NotNullWhen(true)] this Type? self) {
 			if (self is null)
 				return false;
 #if NET8_0_OR_GREATER
@@ -194,6 +194,50 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Checks whether <paramref name="self"/> is a .NET 8+ modified type (returned by eg. <c>FieldInfo.GetModifiedFieldType()</c>).
+		/// It has the custom modifiers but doesn't support most other members.
+		/// </summary>
+		/// <param name="self">The type</param>
+		public static bool IsModifiedType(this Type self) {
+			var modifiedType = ModifiedTypeReflection.modifiedType;
+			return modifiedType is not null && modifiedType.IsAssignableFrom(self.GetType());
+		}
+
+		/// <summary>
+		/// Checks whether <paramref name="modifiedType"/> (a .NET 8+ modified type of <paramref name="type"/> or <c>null</c>)
+		/// is a generic type instantiated with its own generic parameters, eg. the type of a field whose type is its
+		/// declaring type. It's a generic instance type in the signature, but reflection uses the generic type definition
+		/// for both of them so <paramref name="type"/> (the unmodified type) is the generic type definition.
+		/// </summary>
+		/// <param name="modifiedType">The modified type or <c>null</c></param>
+		/// <param name="type">The unmodified type</param>
+		internal static bool IsGenericInstOfOwnGenericParams([NotNullWhen(true)] this Type? modifiedType, Type type) =>
+			// A modified type is created from a signature which can't have a generic type definition (only a generic
+			// instance type), so it's a generic instance type if its unmodified type is a generic type definition. Its
+			// IsGenericTypeDefinition property can't be used: ModifiedType doesn't override it so it's always false.
+			modifiedType is not null && type.IsGenericTypeDefinition;
+
+		/// <summary>
+		/// Gets the generic arguments of <paramref name="modifiedType"/> (a .NET 8+ modified type or <c>null</c>). They
+		/// have the custom modifiers and function pointer calling conventions, eg. <c>List&lt;delegate* unmanaged[Cdecl]&lt;void&gt;[]&gt;</c>.
+		/// Returns <c>null</c> if it's <c>null</c> or if it doesn't have the same number of generic arguments as the unmodified type.
+		/// </summary>
+		/// <param name="modifiedType">The modified type or <c>null</c></param>
+		/// <param name="genericArguments">The generic arguments of the unmodified type</param>
+		internal static Type[]? GetModifiedGenericArguments(this Type? modifiedType, Type[] genericArguments) {
+			if (modifiedType is null || !modifiedType.IsGenericType)
+				return null;
+			var modifiedArgs = modifiedType.GetGenericArguments();
+			return modifiedArgs.Length == genericArguments.Length ? modifiedArgs : null;
+		}
+
+		static class ModifiedTypeReflection {
+			// The class is internal so typeof() can't be used. It's looked up in CoreLib so a user type with the same
+			// name can't match. It's null if the runtime doesn't have modified types (.NET Framework, < .NET 8).
+			public static readonly Type? modifiedType = Type.GetType("System.Reflection.ModifiedType, System.Private.CoreLib", throwOnError: false);
+		}
+
+		/// <summary>
 		/// Same as .NET 8+ <c>ParameterInfo.GetModifiedParameterType()</c>, returns <c>null</c> on older runtimes
 		/// </summary>
 		/// <param name="self">The parameter</param>
@@ -237,13 +281,24 @@ namespace dnlib.DotNet {
 		/// Checks whether <paramref name="type"/> is a function pointer or has a function pointer element type
 		/// </summary>
 		/// <param name="type">The type</param>
-		public static bool ContainsFunctionPointer(this Type? type) {
+		public static bool ContainsFunctionPointer([NotNullWhen(true)] this Type? type) {
 			if (!SupportsFunctionPointerTypes)
 				return false;
-			// Function pointers can't be generic arguments so only check element types
-			for (int i = 0; type is not null && i < 1000; i++) {
+			return ContainsFunctionPointer(type, 0);
+		}
+
+		static bool ContainsFunctionPointer([NotNullWhen(true)] Type? type, int depth) {
+			// Function pointers can't be generic arguments but eg. arrays of function pointers can
+			for (; type is not null && depth < 1000; depth++) {
 				if (type.IsFunctionPointer2())
 					return true;
+				if (type.IsGenericType && !type.IsGenericTypeDefinition) {
+					foreach (var genArg in type.GetGenericArguments()) {
+						if (ContainsFunctionPointer(genArg, depth + 1))
+							return true;
+					}
+					return false;
+				}
 				if (!type.HasElementType)
 					break;
 				type = type.GetElementType();
@@ -323,6 +378,50 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		// NativeAOT has no metadata tokens: MemberInfo.MetadataToken throws InvalidOperationException and
+		// Module.ResolveMethod()/ResolveField() throw PlatformNotSupportedException.
+		static readonly bool hasMetadataTokens = CalculateHasMetadataTokens();
+
+		static bool CalculateHasMetadataTokens() {
+			try {
+				return typeof(object).MetadataToken != 0;
+			}
+			catch (InvalidOperationException) {
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Gets the metadata token of <paramref name="member"/>. Returns <c>false</c> if the runtime has no
+		/// metadata tokens (NativeAOT).
+		/// </summary>
+		public static bool TryGetMetadataToken(this MemberInfo member, out int token) {
+			if (!hasMetadataTokens) {
+				token = 0;
+				return false;
+			}
+			token = member.MetadataToken;
+			return true;
+		}
+
+#if NET
+		/// <summary>
+		/// Gets the member in the generic type definition if the declaring type of <paramref name="member"/> is a
+		/// generic type instance, else <paramref name="member"/> is returned. Doesn't use metadata tokens.
+		/// </summary>
+		static MemberInfo GetMemberOfGenericTypeDefinition(MemberInfo member) {
+			var declType = member.DeclaringType;
+			if (!declType.IsGenericButNotGenericTypeDefinition())
+				return member;
+			try {
+				return declType.GetGenericTypeDefinition().GetMemberWithSameMetadataDefinitionAs(member);
+			}
+			catch (ArgumentException) {
+				return member;
+			}
+		}
+#endif
+
 		const string ResolveOwnTokenJustification = "The token is the member's own token and it's resolved in the member's own module. The trimmer " +
 			"keeps the definition of any member that's kept, and the tokens in a trimmed module are consistent with that module.";
 
@@ -332,6 +431,13 @@ namespace dnlib.DotNet {
 		/// </summary>
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
 		public static MethodBase ResolveMethodDefinition(this MethodBase method) {
+#if NET
+			if (!hasMetadataTokens) {
+				if (method is MethodInfo gmi && gmi.IsGenericMethod && !gmi.IsGenericMethodDefinition)
+					method = gmi.GetGenericMethodDefinition();
+				return (MethodBase)GetMemberOfGenericTypeDefinition(method);
+			}
+#endif
 			var def = method.Module.ResolveMethod(method.MetadataToken)!;
 			// The runtime can return the generic method instantiated with its own generic parameters instead of the
 			// generic method definition, eg. Base64Helper.Base64DecoderByte.DecodeWithWhiteSpaceBlockwiseWrapper<T>()
@@ -346,7 +452,59 @@ namespace dnlib.DotNet {
 		/// if its declaring type is a generic type instance
 		/// </summary>
 		[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = ResolveOwnTokenJustification)]
-		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) => field.Module.ResolveField(field.MetadataToken)!;
+		public static FieldInfo ResolveFieldDefinition(this FieldInfo field) {
+#if NET
+			if (!hasMetadataTokens)
+				return (FieldInfo)GetMemberOfGenericTypeDefinition(field);
+#endif
+			return field.Module.ResolveField(field.MetadataToken)!;
+		}
+
+		const string ResolveOwnDefinitionJustification = "The property/event is looked up in the generic type definition of its own declaring type. " +
+			"If the trimmer removed it, the original property/event is returned.";
+		const BindingFlags DeclaredMembers = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
+
+		/// <summary>
+		/// Gets the property definition of <paramref name="property"/>, eg. the property in the generic type definition
+		/// if its declaring type is a generic type instance
+		/// </summary>
+		[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = ResolveOwnDefinitionJustification)]
+		public static PropertyInfo ResolvePropertyDefinition(this PropertyInfo property) {
+			var declType = property.DeclaringType;
+			if (!declType.IsGenericButNotGenericTypeDefinition())
+				return property;
+#if NET
+			if (!hasMetadataTokens)
+				return (PropertyInfo)GetMemberOfGenericTypeDefinition(property);
+#endif
+			int token = property.MetadataToken;
+			foreach (var p in declType.GetGenericTypeDefinition().GetProperties(DeclaredMembers)) {
+				if (p.MetadataToken == token)
+					return p;
+			}
+			return property;
+		}
+
+		/// <summary>
+		/// Gets the event definition of <paramref name="evt"/>, eg. the event in the generic type definition
+		/// if its declaring type is a generic type instance
+		/// </summary>
+		[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = ResolveOwnDefinitionJustification)]
+		public static EventInfo ResolveEventDefinition(this EventInfo evt) {
+			var declType = evt.DeclaringType;
+			if (!declType.IsGenericButNotGenericTypeDefinition())
+				return evt;
+#if NET
+			if (!hasMetadataTokens)
+				return (EventInfo)GetMemberOfGenericTypeDefinition(evt);
+#endif
+			int token = evt.MetadataToken;
+			foreach (var e in declType.GetGenericTypeDefinition().GetEvents(DeclaredMembers)) {
+				if (e.MetadataToken == token)
+					return e;
+			}
+			return evt;
+		}
 
 		/// <summary>
 		/// Instantiates <paramref name="methodDef"/> (a method in a generic type definition) with the generic method
@@ -395,7 +553,7 @@ namespace dnlib.DotNet {
 		/// not a generic type definition, i.e., a TypeSpec.
 		/// </summary>
 		/// <param name="type">The type</param>
-		public static bool IsGenericButNotGenericTypeDefinition(this Type? type) =>
+		public static bool IsGenericButNotGenericTypeDefinition([NotNullWhen(true)] this Type? type) =>
 			type is not null && !type.IsGenericTypeDefinition && type.IsGenericType;
 
 		/// <summary>
@@ -403,32 +561,47 @@ namespace dnlib.DotNet {
 		/// not a generic method definition, i.e., a MethodSpec.
 		/// </summary>
 		/// <param name="mb">The method</param>
-		public static bool IsGenericButNotGenericMethodDefinition(this MethodBase? mb) =>
+		public static bool IsGenericButNotGenericMethodDefinition([NotNullWhen(true)] this MethodBase? mb) =>
 			mb is not null && !mb.IsGenericMethodDefinition && mb.IsGenericMethod;
 
 		/// <summary>
 		/// Checks whether a parameter/prop/event type should be treated as if it is really a
 		/// generic instance type and not a generic type definition. In the .NET metadata (method
 		/// sig), the parameter is a generic instance type, but the CLR treats it as if it's just
-		/// a generic type def. This seems to happen only if the parameter type is exactly the same
-		/// type as the declaring type, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>.
+		/// a generic type def. Reflection uses the generic type def for a generic instance type instantiated
+		/// with its own generic parameters, eg. a method similar to: <c>MyType&lt;!0&gt; MyType::SomeMethod()</c>,
+		/// or a method in a generic instance type that is instantiated with the type's generic parameters, eg.
+		/// <c>ConfiguredTaskAwaitable&lt;TResult&gt;(Task&lt;TResult&gt;)</c> where <c>TResult</c> is <c>Task&lt;TResult&gt;</c>'s
+		/// generic parameter. A generic type def can't be used in a signature so it's a generic instance type.
 		/// </summary>
 		/// <param name="declaringType">Declaring type of field/method/event/property</param>
 		/// <param name="t">Field/parameter/property/event type</param>
-		internal static bool MustTreatTypeAsGenericInstType(this Type? declaringType, Type? t) =>
-			declaringType is not null && declaringType.IsGenericTypeDefinition && t == declaringType;
+		internal static bool MustTreatTypeAsGenericInstType([NotNullWhen(true)] this Type? declaringType, [NotNullWhen(true)] Type? t) {
+			if (declaringType is null || t is null || !t.IsGenericTypeDefinition)
+				return false;
+			if (declaringType.IsGenericTypeDefinition)
+				return t == declaringType;
+			if (declaringType.IsGenericType) {
+				// t's generic params can only be in the sig if the declaring type is instantiated with them
+				foreach (var genArg in declaringType.GetGenericArguments()) {
+					if (genArg.IsGenericParameter && genArg.DeclaringMethod is null && genArg.DeclaringType == t)
+						return true;
+				}
+			}
+			return false;
+		}
 
 		/// <summary>
 		/// Checks whether <paramref name="type"/> is a type definition and not a type spec
 		/// (eg. pointer, generic type instantiation or generic parameter)
 		/// </summary>
 		/// <param name="type">this</param>
-		public static bool IsTypeDef(this Type? type) =>
+		public static bool IsTypeDef([NotNullWhen(true)] this Type? type) =>
 			type is not null && !type.HasElementType && !type.IsGenericParameter && (!type.IsGenericType || type.IsGenericTypeDefinition);
 
 		[return: NotNullIfNotNull(nameof(name))]
 		internal static string? Unescape(string? name) {
-			if (string.IsNullOrEmpty(name) || name!.IndexOf('\\') < 0)
+			if (String2.IsNullOrEmpty(name) || name.IndexOf('\\') < 0)
 				return name;
 			var sb = new StringBuilder(name.Length);
 			for (int i = 0; i < name.Length; i++) {

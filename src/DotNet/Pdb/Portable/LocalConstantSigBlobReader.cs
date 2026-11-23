@@ -21,7 +21,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		public bool Read(out TypeSig? type, out object? value) {
 			bool b = ReadCatch(out type, out value);
-			Debug.Assert(!b || reader.Position == reader.Length);
+			Debug2.Assert(!b || reader.Position == reader.Length);
 			return b;
 		}
 
@@ -310,7 +310,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 			if (b == 0xFF && reader.Position == reader.Length)
 				return null;
 			reader.Position--;
-			Debug.Assert((reader.BytesLeft & 1) == 0);
+			Debug2.Assert((reader.BytesLeft & 1) == 0);
 			return reader.ReadUtf16String((int)(reader.BytesLeft / 2));
 		}
 	}

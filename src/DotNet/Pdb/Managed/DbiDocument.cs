@@ -55,7 +55,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 			int sourceLen = reader.ReadInt32();
 			checkSum = reader.ReadBytes(checkSumLen);
 			sourceCode = sourceLen == 0 ? null : reader.ReadBytes(sourceLen);
-			Debug.Assert(reader.BytesLeft == 0);
+			Debug2.Assert(reader.BytesLeft == 0);
 		}
 	}
 }

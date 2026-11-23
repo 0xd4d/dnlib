@@ -114,12 +114,13 @@ namespace dnlib.DotNet {
 			get {
 				if (genericParamConstraints is null)
 					InitializeGenericParamConstraints();
-				return genericParamConstraints!;
+				return genericParamConstraints;
 			}
 		}
 		/// <summary/>
 		protected LazyList<GenericParamConstraint>? genericParamConstraints;
 		/// <summary>Initializes <see cref="genericParamConstraints"/></summary>
+		[MemberNotNull(nameof(genericParamConstraints))]
 		protected virtual void InitializeGenericParamConstraints() =>
 			Interlocked.CompareExchange(ref genericParamConstraints, new LazyList<GenericParamConstraint>(this), null);
 
@@ -130,12 +131,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -155,12 +157,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -423,7 +426,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadGenericParamRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			number = row.Number;
 			attributes = row.Flags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
@@ -438,7 +441,8 @@ namespace dnlib.DotNet {
 			MemberMDInitializer.Initialize(Flags);
 			MemberMDInitializer.Initialize(Name);
 			MemberMDInitializer.Initialize(Kind);
-			MemberMDInitializer.Initialize(CustomAttributes);
+			// CustomAttributes isn't initialized: this is called by the owner's list (holding its lock) when there's more
+			// than one owner, and reading a CA can read other lists, eg. an enum's fields (recursive lock).
 			MemberMDInitializer.Initialize(GenericParamConstraints);
 			return this;
 		}

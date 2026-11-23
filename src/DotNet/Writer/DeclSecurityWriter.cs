@@ -57,7 +57,7 @@ namespace dnlib.DotNet.Writer {
 			return WriteFormat2(secAttrs);
 		}
 
-		byte[] WriteFormat1(string xml) => Encoding.Unicode.GetBytes(xml);
+		byte[] WriteFormat1(string xml) => Utils.GetUtf16Bytes(xml);
 
 		byte[] WriteFormat2(IList<SecurityAttribute> secAttrs) {
 			var sb = new StringBuilder();
@@ -84,9 +84,11 @@ namespace dnlib.DotNet.Writer {
 				}
 				else {
 					sb.Length = 0;
-					fqn = FullNameFactory.AssemblyQualifiedName(attrType, null, sb);
+					fqn = FullNameFactory.AssemblyQualifiedName(attrType, null, sb, out bool hasError);
+					if (hasError)
+						helper.Error("SecurityAttribute attribute type has a null value or is too deeply nested");
 				}
-				Write(writer, fqn);
+				Write(writer, WriterUtils.ToUTF8StringKeepUnpairedSurrogates(fqn));
 
 				var namedArgsBlob = context is null ?
 					CustomAttributeWriter.Write(this, sa.NamedArguments) :

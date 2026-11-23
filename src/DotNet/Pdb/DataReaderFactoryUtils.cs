@@ -9,7 +9,7 @@ namespace dnlib.DotNet.Pdb {
 	static class DataReaderFactoryUtils {
 		public static DataReaderFactory? TryCreateDataReaderFactory(string filename) {
 			try {
-				if (!File.Exists(filename))
+				if (!File2.Exists(filename))
 					return null;
 				// Don't use memory mapped I/O
 				return ByteArrayDataReaderFactory.Create(File.ReadAllBytes(filename), filename);

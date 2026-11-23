@@ -58,7 +58,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#US":
 							if (usStream is null) {
-								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
+								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
 								newAllStreams.Add(usStream);
 								continue;
 							}
@@ -66,7 +66,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#Blob":
 							if (blobStream is null) {
-								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
+								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
 								newAllStreams.Add(blobStream);
 								continue;
 							}
@@ -109,7 +109,7 @@ namespace dnlib.DotNet.MD {
 					allStreams = newAllStreams;
 				}
 				else {
-					Debug.Assert(runtime == CLRRuntimeReaderKind.CLR);
+					Debug2.Assert(runtime == CLRRuntimeReaderKind.CLR);
 					foreach (var sh in mdHeader.StreamHeaders) {
 						switch (sh.Name.ToUpperInvariant()) {
 						case "#STRINGS":
@@ -122,7 +122,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#US":
 							if (usStream is null) {
-								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
+								usStream = new USStream(mdReaderFactory, metadataBaseOffset, sh);
 								allStreams.Add(usStream);
 								continue;
 							}
@@ -130,7 +130,7 @@ namespace dnlib.DotNet.MD {
 
 						case "#BLOB":
 							if (blobStream is null) {
-								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh, runtime);
+								blobStream = new BlobStream(mdReaderFactory, metadataBaseOffset, sh);
 								allStreams.Add(blobStream);
 								continue;
 							}
@@ -316,6 +316,7 @@ namespace dnlib.DotNet.MD {
 
 			var destTable = tablesStream.FieldTable;
 			var newList = new List<uint>(list.Count);
+			var seen = new HashSet<uint>();
 			for (int i = 0; i < list.Count; i++) {
 				var rid = ToFieldRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
@@ -342,7 +343,10 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newList.Add(rid);
+				// A Ptr table could map more than one list index to the same row. Only use the first one so the
+				// same instance isn't added more than once to the owner's list (eg. TypeDef.Methods).
+				if (seen.Add(rid))
+					newList.Add(rid);
 			}
 			return RidList.Create(newList);
 		}
@@ -355,6 +359,7 @@ namespace dnlib.DotNet.MD {
 
 			var destTable = tablesStream.MethodTable;
 			var newList = new List<uint>(list.Count);
+			var seen = new HashSet<uint>();
 			for (int i = 0; i < list.Count; i++) {
 				var rid = ToMethodRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
@@ -369,7 +374,10 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newList.Add(rid);
+				// A Ptr table could map more than one list index to the same row. Only use the first one so the
+				// same instance isn't added more than once to the owner's list (eg. TypeDef.Methods).
+				if (seen.Add(rid))
+					newList.Add(rid);
 			}
 			return RidList.Create(newList);
 		}
@@ -382,11 +390,15 @@ namespace dnlib.DotNet.MD {
 
 			var destTable = tablesStream.ParamTable;
 			var newList = new List<uint>(list.Count);
+			var seen = new HashSet<uint>();
 			for (int i = 0; i < list.Count; i++) {
 				var rid = ToParamRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
 					continue;
-				newList.Add(rid);
+				// A Ptr table could map more than one list index to the same row. Only use the first one so the
+				// same instance isn't added more than once to the owner's list (eg. TypeDef.Methods).
+				if (seen.Add(rid))
+					newList.Add(rid);
 			}
 			return RidList.Create(newList);
 		}
@@ -399,6 +411,7 @@ namespace dnlib.DotNet.MD {
 
 			var destTable = tablesStream.EventTable;
 			var newList = new List<uint>(list.Count);
+			var seen = new HashSet<uint>();
 			for (int i = 0; i < list.Count; i++) {
 				var rid = ToEventRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
@@ -413,7 +426,10 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newList.Add(rid);
+				// A Ptr table could map more than one list index to the same row. Only use the first one so the
+				// same instance isn't added more than once to the owner's list (eg. TypeDef.Methods).
+				if (seen.Add(rid))
+					newList.Add(rid);
 			}
 			return RidList.Create(newList);
 		}
@@ -426,6 +442,7 @@ namespace dnlib.DotNet.MD {
 
 			var destTable = tablesStream.PropertyTable;
 			var newList = new List<uint>(list.Count);
+			var seen = new HashSet<uint>();
 			for (int i = 0; i < list.Count; i++) {
 				var rid = ToPropertyRid(list[i]);
 				if (destTable.IsInvalidRID(rid))
@@ -440,7 +457,10 @@ namespace dnlib.DotNet.MD {
 					}
 				}
 				// It's a valid non-deleted rid so add it
-				newList.Add(rid);
+				// A Ptr table could map more than one list index to the same row. Only use the first one so the
+				// same instance isn't added more than once to the owner's list (eg. TypeDef.Methods).
+				if (seen.Add(rid))
+					newList.Add(rid);
 			}
 			return RidList.Create(newList);
 		}

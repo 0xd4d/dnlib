@@ -143,12 +143,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -165,12 +166,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -197,12 +199,13 @@ namespace dnlib.DotNet {
 			get {
 				if (types is null)
 					InitializeTypes();
-				return types!;
+				return types;
 			}
 		}
 		/// <summary/>
 		protected LazyList<TypeDef>? types;
 		/// <summary>Initializes <see cref="types"/></summary>
+		[MemberNotNull(nameof(types))]
 		protected virtual void InitializeTypes() =>
 			Interlocked.CompareExchange(ref types, new LazyList<TypeDef>(this), null);
 
@@ -213,12 +216,13 @@ namespace dnlib.DotNet {
 			get {
 				if (exportedTypes is null)
 					InitializeExportedTypes();
-				return exportedTypes!;
+				return exportedTypes;
 			}
 		}
 		/// <summary/>
 		protected IList<ExportedType>? exportedTypes;
 		/// <summary>Initializes <see cref="exportedTypes"/></summary>
+		[MemberNotNull(nameof(exportedTypes))]
 		protected virtual void InitializeExportedTypes() =>
 			Interlocked.CompareExchange(ref exportedTypes, new List<ExportedType>(), null);
 
@@ -331,12 +335,13 @@ namespace dnlib.DotNet {
 			get {
 				if (resources is null)
 					InitializeResources();
-				return resources!;
+				return resources;
 			}
 		}
 		/// <summary/>
 		protected ResourceCollection? resources;
 		/// <summary>Initializes <see cref="resources"/></summary>
+		[MemberNotNull(nameof(resources))]
 		protected virtual void InitializeResources() =>
 			Interlocked.CompareExchange(ref resources, new ResourceCollection(), null);
 
@@ -426,7 +431,7 @@ namespace dnlib.DotNet {
 			get {
 				if (typeDefFinder is null)
 					Interlocked.CompareExchange(ref typeDefFinder, new TypeDefFinder(Types), null);
-				return typeDefFinder!;
+				return typeDefFinder;
 			}
 		}
 
@@ -438,7 +443,7 @@ namespace dnlib.DotNet {
 			get {
 				if (context is null)
 					Interlocked.CompareExchange(ref context, new ModuleContext(), null);
-				return context!;
+				return context;
 			}
 			set => context = value ?? new ModuleContext();
 		}
@@ -1615,7 +1620,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		protected void InitializeFromRawRow() {
 			bool b = readerModule.TablesStream.TryReadModuleRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			generation = row.Generation;
 			mvid = readerModule.GuidStream.Read(row.Mvid);
 			encId = readerModule.GuidStream.Read(row.EncId);

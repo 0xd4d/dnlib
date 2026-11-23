@@ -123,12 +123,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -145,12 +146,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -169,7 +171,7 @@ namespace dnlib.DotNet {
 				if (value is null)
 					getMethods!.Clear();
 				else if (getMethods!.Count == 0)
-					getMethods!.Add(value);
+					getMethods.Add(value);
 				else
 					getMethods[0] = value;
 			}
@@ -190,7 +192,7 @@ namespace dnlib.DotNet {
 				if (value is null)
 					setMethods!.Clear();
 				else if (setMethods!.Count == 0)
-					setMethods!.Add(value);
+					setMethods.Add(value);
 				else
 					setMethods[0] = value;
 			}
@@ -225,10 +227,11 @@ namespace dnlib.DotNet {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return otherMethods!;
+				return otherMethods;
 			}
 		}
 
+		[MemberNotNull(nameof(otherMethods))]
 		void InitializePropertyMethods() {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
@@ -245,6 +248,7 @@ namespace dnlib.DotNet {
 		/// Initializes <see cref="otherMethods"/>, <see cref="getMethods"/>,
 		/// and <see cref="setMethods"/>.
 		/// </summary>
+		[MemberNotNull(nameof(otherMethods))]
 		protected virtual void InitializePropertyMethods_NoLock() {
 			getMethods = new List<MethodDef>();
 			setMethods = new List<MethodDef>();
@@ -503,7 +507,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadPropertyRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			attributes = row.PropFlags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			declaringType2 = readerModule.GetOwnerType(this);
@@ -515,7 +519,8 @@ namespace dnlib.DotNet {
 			MemberMDInitializer.Initialize(Name);
 			MemberMDInitializer.Initialize(Type);
 			MemberMDInitializer.Initialize(Constant);
-			MemberMDInitializer.Initialize(CustomAttributes);
+			// CustomAttributes isn't initialized: this is called by the owner's list (holding its lock) when there's more
+			// than one owner, and reading a CA can read other lists, eg. an enum's fields (recursive lock).
 			MemberMDInitializer.Initialize(GetMethod);
 			MemberMDInitializer.Initialize(SetMethod);
 			MemberMDInitializer.Initialize(OtherMethods);

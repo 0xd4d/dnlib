@@ -135,7 +135,11 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.ValueType:
 			case ElementType.Class:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
+				var tdr = ((TypeDefOrRefSig)typeSig).TypeDefOrRef;
+				// The CLR throws a BadImageFormatException and SignatureReader reads a null type
+				if (tdr is TypeSpec)
+					helper.Error("A ClassSig/ValueTypeSig can't have a TypeSpec, only a TypeDef or a TypeRef. Use the TypeSpec's TypeSig.");
+				Write(tdr);
 				break;
 
 			case ElementType.Var:
@@ -171,24 +175,24 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.ValueArray:
 				writer.WriteByte((byte)typeSig.ElementType);
 				Write(typeSig.Next);
-				WriteCompressedUInt32((typeSig as ValueArraySig)!.Size);
+				WriteCompressedUInt32(((ValueArraySig)typeSig).Size);
 				break;
 
 			case ElementType.FnPtr:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write((typeSig as FnPtrSig)!.Signature);
+				Write(((FnPtrSig)typeSig).Signature);
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
 				writer.WriteByte((byte)typeSig.ElementType);
-				Write((typeSig as ModifierSig)!.Modifier);
+				Write(((ModifierSig)typeSig).Modifier);
 				Write(typeSig.Next);
 				break;
 
 			case ElementType.Module:
 				writer.WriteByte((byte)typeSig.ElementType);
-				WriteCompressedUInt32((typeSig as ModuleSig)!.Index);
+				WriteCompressedUInt32(((ModuleSig)typeSig).Index);
 				Write(typeSig.Next);
 				break;
 

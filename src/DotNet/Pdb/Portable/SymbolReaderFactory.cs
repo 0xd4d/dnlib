@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				// If this fails, see the (hopefully) updated spec:
 				//		https://github.com/dotnet/runtime/blob/main/docs/design/specs/PE-COFF.md#embedded-portable-pdb-debug-directory-entry-type-17
 				bool newVersion = (uncompressedSize & 0x80000000) != 0;
-				Debug.Assert(!newVersion);
+				Debug2.Assert(!newVersion);
 				if (newVersion)
 					return null;
 				// Largest size of a byte[]

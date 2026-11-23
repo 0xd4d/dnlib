@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -80,6 +81,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="module">Owner module</param>
 		/// <param name="reader">Data of resource</param>
 		/// <returns></returns>
+		/// <exception cref="ResourceReaderException">The data is not a valid resources file</exception>
 		public static ResourceElementSet Read(ModuleDef module, DataReader reader) => Read(module, reader, null);
 
 		/// <summary>
@@ -89,6 +91,7 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
+		/// <exception cref="ResourceReaderException">The data is not a valid resources file</exception>
 		public static ResourceElementSet Read(ModuleDef module, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) =>
 			Read(new ResourceDataFactory(module), reader, createResourceDataDelegate);
 
@@ -99,8 +102,16 @@ namespace dnlib.DotNet.Resources {
 		/// <param name="reader">Data of resource</param>
 		/// <param name="createResourceDataDelegate">Call back that gets called to create a <see cref="IResourceData"/> instance. Can be null.</param>
 		/// <returns></returns>
-		public static ResourceElementSet Read(ResourceDataFactory resourceDataFactory, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) =>
-			new ResourceReader(resourceDataFactory, ref reader, createResourceDataDelegate).Read();
+		/// <exception cref="ResourceReaderException">The data is not a valid resources file</exception>
+		public static ResourceElementSet Read(ResourceDataFactory resourceDataFactory, DataReader reader, CreateResourceDataDelegate? createResourceDataDelegate) {
+			try {
+				return new ResourceReader(resourceDataFactory, ref reader, createResourceDataDelegate).Read();
+			}
+			catch (DataReaderException ex) {
+				// Truncated or invalid data, eg. an offset or length past the end of the data
+				throw new ResourceReaderException($"Invalid resources file: {ex.Message}");
+			}
+		}
 
 		ResourceElementSet Read() {
 			uint sig = reader.ReadUInt32();
@@ -158,14 +169,23 @@ namespace dnlib.DotNet.Resources {
 				infos.Add(new ResourceInfo(name, offset));
 			}
 
-			infos.Sort((a, b) => a.offset.CompareTo(b.offset));
+			// A stable sort (List<T>.Sort() isn't): resources that use the same data keep their order
+			infos = infos.OrderBy(a => a.offset).ToList();
+			// The data ends where the next data starts. Resources that use the same data have the same
+			// offset, so it's the next offset that is different.
+			var nextDataOffsets = new long[infos.Count];
+			for (int i = infos.Count - 1; i >= 0; i--) {
+				if (i == infos.Count - 1)
+					nextDataOffsets[i] = end;
+				else
+					nextDataOffsets[i] = infos[i + 1].offset != infos[i].offset ? infos[i + 1].offset : nextDataOffsets[i + 1];
+			}
 			for (int i = 0; i < infos.Count; i++) {
 				var info = infos[i];
 				var element = new ResourceElement();
 				element.Name = info.name;
 				reader.Position = (uint)info.offset;
-				long nextDataOffset = i == infos.Count - 1 ? end : infos[i + 1].offset;
-				int size = (int)(nextDataOffset - info.offset);
+				int size = (int)(nextDataOffsets[i] - info.offset);
 				element.ResourceData = resources.FormatVersion == 1
 					? ReadResourceDataV1(userTypes, resources.ReaderType, size)
 					: ReadResourceDataV2(userTypes, resources.ReaderType, size);
@@ -285,7 +305,7 @@ namespace dnlib.DotNet.Resources {
 				if (format < SerializationFormat.BinaryFormatter || format > SerializationFormat.ActivatorStream)
 					throw new ResourceReaderException($"Invalid serialization format: {format}");
 				int length = reader.Read7BitEncodedInt32();
-				Debug.Assert(length == (int)(endPos - reader.Position));
+				Debug2.Assert(length == (int)(endPos - reader.Position));
 				serializedData = reader.ReadBytes(length);
 				res = createResourceDataDelegate?.Invoke(resourceDataFactory, type, serializedData, format);
 				return res ?? resourceDataFactory.CreateSerialized(serializedData, format, type);

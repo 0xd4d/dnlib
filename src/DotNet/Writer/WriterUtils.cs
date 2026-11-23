@@ -40,6 +40,13 @@ namespace dnlib.DotNet.Writer {
 			return res;
 		}
 
+		/// <summary>
+		/// Creates a <see cref="UTF8String"/> with <see cref="GetUTF8BytesKeepUnpairedSurrogates(string)"/>. Roslyn
+		/// (System.Reflection.Metadata) writes serialized strings in blobs (custom attribute strings, type names,
+		/// marshal strings) this way. Strings in the #Strings heap are encoded with <see cref="Encoding.UTF8"/>.
+		/// </summary>
+		public static UTF8String ToUTF8StringKeepUnpairedSurrogates(string s) => new UTF8String(GetUTF8BytesKeepUnpairedSurrogates(s));
+
 		static bool HasUnpairedSurrogate(string s) {
 			for (int i = 0; i < s.Length; i++) {
 				char c = s[i];

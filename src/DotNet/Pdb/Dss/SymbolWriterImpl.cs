@@ -141,7 +141,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				Array.Copy(codeViewData, 4, guidBytes, 0, 16);
 				guid = new Guid(guidBytes);
 				comPdbWriter.GetSignatureAge(out stamp, out uint age);
-				Debug.Assert(age == pdbAge);
+				Debug2.Assert(age == pdbAge);
 				pdbAge = age;
 				return true;
 			}

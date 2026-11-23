@@ -67,6 +67,7 @@ namespace dnlib.DotNet.Emit {
 		static readonly ReflectionFieldInfo ehCatchAddrFieldInfo = new ReflectionFieldInfo("m_catchAddr");
 		static readonly ReflectionFieldInfo ehCatchClassFieldInfo = new ReflectionFieldInfo("m_catchClass");
 		static readonly ReflectionFieldInfo ehCatchEndAddrFieldInfo = new ReflectionFieldInfo("m_catchEndAddr");
+		static readonly ReflectionFieldInfo ehFilterAddrFieldInfo = new ReflectionFieldInfo("m_filterAddr");
 		static readonly ReflectionFieldInfo ehCurrentCatchFieldInfo = new ReflectionFieldInfo("m_currentCatch");
 		static readonly ReflectionFieldInfo ehTypeFieldInfo = new ReflectionFieldInfo("m_type");
 		static readonly ReflectionFieldInfo ehStartAddrFieldInfo = new ReflectionFieldInfo("m_startAddr");
@@ -91,7 +92,19 @@ namespace dnlib.DotNet.Emit {
 		readonly DynamicMethodBodyReaderOptions options;
 
 		class ReflectionFieldInfo {
-			SR.FieldInfo? fieldInfo;
+			// The instances are static and some of them are used with more than one type (eg. "m_code" is a field
+			// of DynamicResolver and of DynamicILInfo), so the field is cached together with its type. It's replaced
+			// with one write so other threads never see a field of another type.
+			sealed class CachedField {
+				public readonly Type Type;
+				public readonly SR.FieldInfo? FieldInfo;
+				public CachedField(Type type, SR.FieldInfo? fieldInfo) {
+					Type = type;
+					FieldInfo = fieldInfo;
+				}
+			}
+
+			volatile CachedField? cachedField;
 			readonly string fieldName1;
 			readonly string? fieldName2;
 
@@ -103,28 +116,27 @@ namespace dnlib.DotNet.Emit {
 			}
 
 			public object? Read(object instance) {
-				if (fieldInfo is null)
-					InitializeField(instance.GetType());
+				var fieldInfo = GetField(instance.GetType());
 				if (fieldInfo is null)
 					throw new Exception($"Couldn't find field '{fieldName1}' or '{fieldName2}'");
 
 				return fieldInfo.GetValue(instance);
 			}
 
-			public bool Exists(object instance) {
-				InitializeField(instance.GetType());
-				return fieldInfo is not null;
-			}
+			public bool Exists(object instance) => GetField(instance.GetType()) is not null;
 
 			[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Only used by DynamicMethodBodyReader which has [RequiresUnreferencedCode]")]
-			void InitializeField(Type type) {
-				if (fieldInfo is not null)
-					return;
+			SR.FieldInfo? GetField(Type type) {
+				var cached = cachedField;
+				if (cached is not null && cached.Type == type)
+					return cached.FieldInfo;
 
 				const SR.BindingFlags flags = SR.BindingFlags.Instance | SR.BindingFlags.Public | SR.BindingFlags.NonPublic;
-				fieldInfo = type.GetField(fieldName1, flags);
+				var fieldInfo = type.GetField(fieldName1, flags);
 				if (fieldInfo is null && fieldName2 is not null)
 					fieldInfo = type.GetField(fieldName2, flags);
+				cachedField = new CachedField(type, fieldInfo);
+				return fieldInfo;
 			}
 		}
 
@@ -240,6 +252,7 @@ namespace dnlib.DotNet.Emit {
 			public int[] CatchAddr = null!;
 			public Type[] CatchClass = null!;
 			public int[] CatchEndAddr = null!;
+			public int[]? FilterAddr;
 			public int CurrentCatch;
 			public int[] Type = null!;
 			public int StartAddr;
@@ -260,6 +273,7 @@ namespace dnlib.DotNet.Emit {
 					CatchAddr = (int[])ehCatchAddrFieldInfo.Read(ehInfo)!,
 					CatchClass = (Type[])ehCatchClassFieldInfo.Read(ehInfo)!,
 					CatchEndAddr = (int[])ehCatchEndAddrFieldInfo.Read(ehInfo)!,
+					FilterAddr = ehFilterAddrFieldInfo.Exists(ehInfo) ? ehFilterAddrFieldInfo.Read(ehInfo) as int[] : null,
 					CurrentCatch = (int)ehCurrentCatchFieldInfo.Read(ehInfo)!,
 					Type = (int[])ehTypeFieldInfo.Read(ehInfo)!,
 					StartAddr = (int)ehStartAddrFieldInfo.Read(ehInfo)!,
@@ -398,7 +412,9 @@ namespace dnlib.DotNet.Emit {
 						eh.HandlerType = (ExceptionHandlerType)ehInfo.Type[i];
 						eh.TryStart = tryStart;
 						eh.TryEnd = eh.IsFinally ? endFinally : tryEnd;
-						eh.FilterStart = null;  // not supported by DynamicMethod.ILGenerator
+						// .NET Framework's DynamicMethod.ILGenerator doesn't support filters, .NET does. The filter's
+						// offset is in m_filterAddr (a catch handler's class token is stored there too).
+						eh.FilterStart = eh.IsFilter && ehInfo.FilterAddr is int[] filterAddr && (uint)i < (uint)filterAddr.Length ? GetInstruction((uint)filterAddr[i]) : null;
 						eh.HandlerStart = GetInstructionOrThrow((uint)ehInfo.CatchAddr[i]);
 						eh.HandlerEnd = GetInstruction((uint)ehInfo.CatchEndAddr[i]);
 						eh.CatchType = importer.ImportAsOperandOrNull(ehInfo.CatchClass[i]);

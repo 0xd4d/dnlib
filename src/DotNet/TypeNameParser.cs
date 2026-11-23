@@ -103,7 +103,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		public static ITypeDefOrRef ParseReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
-			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper, gpContext))
+			using (var parser = new ReflectionTypeNameParser(ownerModule, RemoveNullTerminator(typeFullName), typeNameParserHelper, gpContext))
 				return parser.Parse();
 		}
 
@@ -180,7 +180,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		public static TypeSig ParseAsTypeSigReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
-			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper, gpContext))
+			using (var parser = new ReflectionTypeNameParser(ownerModule, RemoveNullTerminator(typeFullName), typeNameParserHelper, gpContext))
 				return parser.ParseAsTypeSig();
 		}
 
@@ -222,6 +222,17 @@ namespace dnlib.DotNet {
 			catch (TypeNameParserException) {
 				return null;
 			}
+		}
+
+		/// <summary>
+		/// A type name ends at the first null char: the CLR's type name parser gets a null-terminated string, so eg.
+		/// <c>Ns.Type\0xyz</c> in a custom attribute blob (or passed to <c>Type.GetType()</c>) is <c>Ns.Type</c>.
+		/// </summary>
+		static string RemoveNullTerminator(string typeFullName) {
+			if (typeFullName is null)
+				return typeFullName!;
+			int index = typeFullName.IndexOf('\0');
+			return index < 0 ? typeFullName : typeFullName.Substring(0, index);
 		}
 
 		/// <summary>
@@ -364,7 +375,10 @@ namespace dnlib.DotNet {
 
 				case ElementType.GenericInst:
 					var ginstSpec = (GenericInstSpec)tspec;
-					currentSig = new GenericInstSig(currentSig as ClassOrValueTypeSig, ginstSpec.args);
+					// Eg. "List`1&[[System.Int32]]": the generic type would be null
+					var genericType = currentSig as ClassOrValueTypeSig;
+					Verify(genericType is not null, "Generic arguments must follow a generic type");
+					currentSig = new GenericInstSig(genericType, ginstSpec.args);
 					break;
 
 				case ElementType.ByRef:
@@ -540,6 +554,9 @@ namespace dnlib.DotNet {
 	/// Parses reflection type names. Grammar http://msdn.microsoft.com/en-us/library/yfsftwz6.aspx
 	/// </summary>
 	sealed class ReflectionTypeNameParser : TypeNameParser {
+		// > 0 if we're reading a bracketed generic argument, eg. "[System.Int32, mscorlib]"
+		int bracketedTypeDepth;
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -748,7 +765,11 @@ namespace dnlib.DotNet {
 							if (peeked == ']')
 								break;
 							Verify(!needSeperators || ReadChar() == '[', "Expected '['");
+							if (needSeperators)
+								bracketedTypeDepth++;
 							ginstSpec.args.Add(ReadType(needSeperators));
+							if (needSeperators)
+								bracketedTypeDepth--;
 							SkipWhite();
 							Verify(!needSeperators || ReadChar() == ']', "Expected ']'");
 							SkipWhite();
@@ -792,19 +813,27 @@ namespace dnlib.DotNet {
 			while (true) {
 				SkipWhite();
 				int c = PeekChar();
-				if (c == -1 || c == ']')
+				if (c == -1 || (c == ']' && bracketedTypeDepth > 0))
 					break;
+				if (c == ']') {
+					// Invalid, ignore it
+					ReadChar();
+					continue;
+				}
 				if (c == ',') {
 					ReadChar();
 					continue;
 				}
 
-				string key = ReadId();
-				SkipWhite();
-				if (PeekChar() != '=')
+				// "key=value". Anything else is ignored, eg. a key with a char that can't be in a type name ('*', '+',
+				// ...): the CLR ignores unknown keys too.
+				string attribute = ReadAssemblyAttribute();
+				int equalsIndex = attribute.IndexOf('=');
+				if (equalsIndex < 0)
 					continue;
-				ReadChar();
-				string value = ReadId();
+				string key = attribute.Substring(0, equalsIndex).Trim();
+				string value = attribute.Substring(equalsIndex + 1).Trim();
+				Verify(value.Length > 0, "Expected a value");
 
 				switch (key.ToUpperInvariant()) {
 				case "VERSION":
@@ -857,6 +886,15 @@ namespace dnlib.DotNet {
 			return asmRef;
 		}
 
+		// An attribute ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'
+		string ReadAssemblyAttribute() {
+			var sb = new StringBuilder();
+			int c;
+			while ((c = GetAsmNameChar()) != -1)
+				sb.Append((char)c);
+			return sb.ToString();
+		}
+
 		string ReadAssemblyNameId() {
 			SkipWhite();
 			var sb = new StringBuilder();
@@ -877,7 +915,9 @@ namespace dnlib.DotNet {
 				ReadChar();
 				return ReadChar();
 
-			case ']':
+			// Only a bracketed generic argument's assembly name ends with ']'. It's not escaped in a
+			// top-level assembly name (the CLR doesn't support it there).
+			case ']' when bracketedTypeDepth > 0:
 			case ',':
 				return -1;
 

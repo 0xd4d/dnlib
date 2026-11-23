@@ -12,7 +12,7 @@ namespace dnlib.DotNet.Emit {
 		/// <summary>
 		/// The opcode
 		/// </summary>
-		public OpCode OpCode = null!;
+		public OpCode OpCode;
 
 		/// <summary>
 		/// The opcode operand. A branch target (<see cref="OperandType.InlineBrTarget"/>,
@@ -803,11 +803,11 @@ namespace dnlib.DotNet.Emit {
 
 	static partial class Extensions {
 		/// <summary>
-		/// Gets the opcode or <see cref="OpCodes.UNKNOWN1"/> if <paramref name="self"/> is <c>null</c>
+		/// Gets the opcode or <see cref="OpCodes.Nop"/> if <paramref name="self"/> is <c>null</c>
 		/// </summary>
 		/// <param name="self">this</param>
 		/// <returns></returns>
-		public static OpCode GetOpCode(this Instruction? self) => self?.OpCode ?? OpCodes.UNKNOWN1;
+		public static OpCode GetOpCode(this Instruction? self) => self?.OpCode ?? OpCodes.Nop;
 
 		/// <summary>
 		/// Gets the operand or <c>null</c> if <paramref name="self"/> is <c>null</c>

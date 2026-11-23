@@ -224,9 +224,26 @@ namespace dnlib.DotNet {
 		/// here, else this will be <c>null</c></param>
 		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
 		/// <paramref name="sig"/> is invalid.</returns>
-		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, out byte[]? extraData) {
+		public static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, out byte[]? extraData) =>
+			ReadTypeSig(readerModule, sig, gpContext, 0, out extraData);
+
+		/// <summary>
+		/// Reads a type signature from the #Blob stream
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="recursionDepth">Initial recursion depth. It's not 0 if this signature is read while another
+		/// signature is being read (a <c>TypeSpec</c> token in a signature), so all nested signatures share one
+		/// recursion limit.</param>
+		/// <param name="extraData">If there's any extra data after the signature, it's saved
+		/// here, else this will be <c>null</c></param>
+		/// <returns>A new <see cref="TypeSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		internal static TypeSig? ReadTypeSig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext, int recursionDepth, out byte[]? extraData) {
 			try {
 				var reader = new SignatureReader(readerModule, sig, gpContext);
+				reader.recursionCounter = new RecursionCounter(recursionDepth);
 				TypeSig? ts;
 				try {
 					ts = reader.ReadType();
@@ -677,7 +694,10 @@ namespace dnlib.DotNet {
 				break;
 
 			case ElementType.GenericInst:
-				nextType = ReadType();
+				if (IsGenericInstTypeKindIgnored())
+					nextType = new ClassSig(ReadTypeDefOrRef(false));
+				else
+					nextType = ReadType();
 				// The CLR only allows up to 0xFFFF generic arguments
 				if (!reader.TryReadCompressedUInt32(out num) || num > 0xFFFF || num > reader.BytesLeft)
 					break;
@@ -699,28 +719,28 @@ namespace dnlib.DotNet {
 					result = new ArraySig(nextType, rank);
 					break;
 				}
-				if (!reader.TryReadCompressedUInt32(out num))
-					break;
-				// The CLR doesn't compare it with the rank. Each value is at least one byte.
-				if (num > reader.BytesLeft)
-					break;
-				var sizes = new List<uint>((int)num);
-				for (i = 0; i < num; i++) {
-					if (!reader.TryReadCompressedUInt32(out uint size))
-						goto exit;
-					sizes.Add(size);
+				// The CLR only reads the rank when it loads the type, so an array at the end of a signature whose
+				// sizes or lower bounds are truncated is still an array: keep the values that could be read.
+				// It doesn't compare the number of sizes or lower bounds with the rank either.
+				var sizes = new List<uint>();
+				var lowerBounds = new List<int>();
+				bool truncated = !reader.TryReadCompressedUInt32(out num);
+				for (i = 0; !truncated && i < num; i++) {
+					if (reader.TryReadCompressedUInt32(out uint size))
+						sizes.Add(size);
+					else
+						truncated = true;
 				}
-				if (!reader.TryReadCompressedUInt32(out num))
-					break;
-				// The CLR doesn't compare it with the rank. Each value is at least one byte.
-				if (num > reader.BytesLeft)
-					break;
-				var lowerBounds = new List<int>((int)num);
-				for (i = 0; i < num; i++) {
-					if (!reader.TryReadCompressedInt32(out int size))
-						goto exit;
-					lowerBounds.Add(size);
+				truncated = truncated || !reader.TryReadCompressedUInt32(out num);
+				for (i = 0; !truncated && i < num; i++) {
+					if (reader.TryReadCompressedInt32(out int lowerBound))
+						lowerBounds.Add(lowerBound);
+					else
+						truncated = true;
 				}
+				// A value is only truncated at the end of the signature: nothing can follow the array
+				if (truncated)
+					reader.Position = reader.Length;
 				result = new ArraySig(nextType, rank, sizes, lowerBounds);
 				break;
 
@@ -760,7 +780,6 @@ namespace dnlib.DotNet {
 				result = null;
 				break;
 			}
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
@@ -911,7 +930,10 @@ exit:
 
 			case ElementType.GenericInst:
 				stack.Add(new SkipItem(SkipKind.GenericInstArgs, 0));
-				stack.Add(new SkipItem(SkipKind.Types, 1));
+				if (IsGenericInstTypeKindIgnored())
+					reader.TryReadCompressedUInt32(out _);
+				else
+					stack.Add(new SkipItem(SkipKind.Types, 1));
 				return;
 
 			case ElementType.Array:
@@ -935,6 +957,22 @@ exit:
 			default:
 				return;
 			}
+		}
+
+		/// <summary>
+		/// The generic type of a generic instance is <c>CLASS</c> or <c>VALUETYPE</c> followed by a token. The CLR
+		/// reads that byte but ignores its value (<c>SigPointer::GetGenericInstType()</c>), so any other byte followed
+		/// by a token is a generic type too. If the next byte is such a byte, it's read and <c>true</c> is returned.
+		/// </summary>
+		bool IsGenericInstTypeKindIgnored() {
+			if (reader.BytesLeft == 0)
+				return false;
+			var kind = (ElementType)reader.ReadByte();
+			if (kind is ElementType.Class or ElementType.ValueType or ElementType.Internal) {
+				reader.Position--;
+				return false;
+			}
+			return true;
 		}
 
 		void SkipInternalAddress() {
@@ -1024,8 +1062,13 @@ exit:
 		ITypeDefOrRef? ReadTypeDefOrRef(bool allowTypeSpec) {
 			if (!reader.TryReadCompressedUInt32(out uint codedToken))
 				return null;
-			if (!allowTypeSpec && CodedToken.TypeDefOrRef.Decode2(codedToken).Table == Table.TypeSpec)
-				return null;
+			if (CodedToken.TypeDefOrRef.Decode2(codedToken).Table == Table.TypeSpec) {
+				if (!allowTypeSpec)
+					return null;
+				// If the TypeSpec hasn't been read yet, its signature is read now, while this signature
+				// is being read. It continues at our recursion depth, see TypeSpecMD.Create().
+				TypeSpecMD.SetOuterSignatureDepth(recursionCounter.Counter);
+			}
 			return helper.ResolveTypeDefOrRef(codedToken, default);
 		}
 	}

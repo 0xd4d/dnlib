@@ -70,6 +70,22 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Checks whether <paramref name="fullName"/> is the full name of the attribute type. If the attribute type
+		/// is a generic instance type (eg. <c>MyAttribute`1&lt;System.Int32&gt;</c>), the full name of its generic
+		/// type (eg. <c>MyAttribute`1</c>) also matches.
+		/// </summary>
+		/// <param name="fullName">Full name of a custom attribute type</param>
+		internal bool IsType(string fullName) {
+			if (ctor is MemberRef { Class: TypeSpec { TypeSig: GenericInstSig gis } }) {
+				var genericType = gis.GenericType;
+				if (genericType is not null && fullName.EndsWith(genericType.TypeName, StringComparison.Ordinal) && genericType.FullName == fullName)
+					return true;
+				return fullName.Length > 0 && fullName[fullName.Length - 1] == '>' && TypeFullName == fullName;
+			}
+			return fullName.EndsWith(TypeName, StringComparison.Ordinal) && TypeFullName == fullName;
+		}
+
+		/// <summary>
 		/// <c>true</c> if the raw custom attribute blob hasn't been parsed
 		/// </summary>
 		[MemberNotNullWhen(true, nameof(RawData), nameof(rawData))]

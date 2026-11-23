@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				}
 				for (int i = 0; i < typeName.Length && w < maxChars; i++, w++)
 					*destBuffer++ = typeName[i];
-				Debug.Assert(w < destBufferLen);
+				Debug2.Assert(w < destBufferLen);
 				*destBuffer = 0;
 			}
 

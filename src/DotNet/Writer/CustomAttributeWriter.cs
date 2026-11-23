@@ -216,8 +216,8 @@ namespace dnlib.DotNet.Writer {
 
 		static bool VerifyType(TypeSig? type, ElementType etype) {
 			type = type.RemoveModifiers();
-			// Assume it's an enum if it's a ValueType
-			return type is not null && (etype == type.ElementType || type.ElementType == ElementType.ValueType);
+			// Assume it's an enum if it's a ValueType or a GenericInst (an enum nested in a generic type)
+			return type is not null && (etype == type.ElementType || type.ElementType == ElementType.ValueType || type.ElementType == ElementType.GenericInst);
 		}
 
 		static bool VerifyValue(object? o, ElementType etype) {
@@ -477,9 +477,9 @@ namespace dnlib.DotNet.Writer {
 
 			case ElementType.String:
 				if (VerifyTypeAndValue(value, ElementType.String, typeof(UTF8String)))
-					WriteUTF8String((UTF8String)value.Value!);
+					WriteUTF8String((UTF8String?)value.Value);
 				else if (VerifyTypeAndValue(value, ElementType.String, typeof(string)))
-					WriteUTF8String((string)value.Value!);
+					WriteString((string)value.Value!);
 				else
 					WriteUTF8String(UTF8String.Empty);
 				break;
@@ -515,7 +515,13 @@ namespace dnlib.DotNet.Writer {
 					}
 					break;
 				}
-				else if (tdr is TypeRef && TryWriteEnumUnderlyingTypeValue(value.Value)) {
+				// The CLR reads an argument whose type is any other class or interface like a System.Object argument
+				if (GetTypeDef(argType) is TypeDef classTypeDef && !classTypeDef.IsValueType && IsBoxedType(value.Type)) {
+					WriteFieldOrPropType(value.Type);
+					WriteElem(value.Type, value);
+					break;
+				}
+				if (tdr is TypeRef && TryWriteEnumUnderlyingTypeValue(value.Value)) {
 					// No error. Assume it's an enum that couldn't be resolved.
 					break;
 				}
@@ -530,13 +536,35 @@ namespace dnlib.DotNet.Writer {
 				WriteElem(value.Type, value);
 				break;
 
+			case ElementType.GenericInst:
+				if (argType is GenericInstSig) {
+					var genericTypeDef = GetTypeDef(argType);
+					if (genericTypeDef is null) {
+						// No error. Assume it's an enum (nested in a generic type) that couldn't be resolved.
+						if (TryWriteEnumUnderlyingTypeValue(value.Value))
+							break;
+					}
+					else if (genericTypeDef.IsEnum) {
+						// An enum nested in a generic type
+						WriteElem(genericTypeDef.GetEnumUnderlyingType().RemoveModifiers(), value);
+						break;
+					}
+					// The CLR also reads an argument whose type is a generic instance of a class or interface like a
+					// System.Object argument
+					else if (!genericTypeDef.IsValueType && IsBoxedType(value.Type)) {
+						WriteFieldOrPropType(value.Type);
+						WriteElem(value.Type, value);
+						break;
+					}
+				}
+				goto default;
+
 			case ElementType.End:
 			case ElementType.Void:
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.Var:
 			case ElementType.Array:
-			case ElementType.GenericInst:
 			case ElementType.TypedByRef:
 			case ElementType.ValueArray:
 			case ElementType.I:
@@ -557,6 +585,17 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			recursionCounter.Decrement();
+		}
+
+		// The type of a value that's written like a System.Object argument (the type of the boxed value): it can't be
+		// a class (except System.Type) or a generic instance (except an enum nested in a generic type), those are the
+		// types of the arguments that are boxed
+		static bool IsBoxedType(TypeSig? type) {
+			if (type is null)
+				return false;
+			if (type is GenericInstSig gis)
+				return GetTypeDef(gis) is TypeDef td ? td.IsEnum : gis.GenericType is ValueTypeSig;
+			return type.ElementType != ElementType.Class || CheckCorLibType(type, "Type");
 		}
 
 		bool TryWriteEnumUnderlyingTypeValue(object? o) {
@@ -603,12 +642,14 @@ namespace dnlib.DotNet.Writer {
 
 		/// <summary>
 		/// Converts <paramref name="type"/> to a <see cref="TypeDef"/>, possibly resolving
-		/// a <see cref="TypeRef"/>
+		/// a <see cref="TypeRef"/>. If it's a generic instance type, its generic type is used.
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if we couldn't resolve the
-		/// <see cref="TypeRef"/> or if <paramref name="type"/> is a type spec</returns>
+		/// <see cref="TypeRef"/> or if <paramref name="type"/> is some other type spec</returns>
 		static TypeDef? GetTypeDef(TypeSig? type) {
+			if (type is GenericInstSig gis)
+				type = gis.GenericType;
 			if (type is TypeDefOrRefSig tdr) {
 				var td = tdr.TypeDef;
 				if (td is not null)
@@ -706,6 +747,14 @@ namespace dnlib.DotNet.Writer {
 				}
 				break;
 
+			case ElementType.GenericInst:
+				// An enum nested in a generic type. If it couldn't be resolved, assume it's an enum.
+				if (GetTypeDef(type) is TypeDef genericTypeDef && !genericTypeDef.IsEnum)
+					helper.Error("Custom attribute type doesn't seem to be an enum.");
+				writer.WriteByte((byte)SerializationType.Enum);
+				WriteType(type);
+				break;
+
 			default:
 				helper.Error("Custom attribute: Invalid type");
 				writer.WriteByte((byte)0xFF);
@@ -722,7 +771,10 @@ namespace dnlib.DotNet.Writer {
 			}
 			else {
 				sb.Length = 0;
-				WriteUTF8String(FullNameFactory.AssemblyQualifiedName(type, helper, sb));
+				var name = FullNameFactory.AssemblyQualifiedName(type, helper, sb, out bool hasError);
+				if (hasError)
+					helper.Error("Custom attribute: Type has a null value or is too deeply nested");
+				WriteString(name);
 			}
 		}
 
@@ -744,6 +796,9 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static MethodSig? GetMethodSig(ICustomAttributeType? ctor) => ctor?.MethodSig;
+
+		// Like Roslyn, an unpaired surrogate is written like any other char, it's not replaced with U+FFFD
+		void WriteString(string s) => WriteUTF8String(WriterUtils.ToUTF8StringKeepUnpairedSurrogates(s));
 
 		void WriteUTF8String(UTF8String? s) {
 			if (s is null || s.Data is null)

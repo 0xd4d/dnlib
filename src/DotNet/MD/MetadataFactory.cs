@@ -138,7 +138,8 @@ namespace dnlib.DotNet.MD {
 				var mdHeader = new MetadataHeader(ref mdHeaderReader, runtime, verify);
 				if (verify) {
 					foreach (var sh in mdHeader.StreamHeaders) {
-						if ((ulong)(uint)mdHeader.StartOffset + sh.Offset + sh.StreamSize > mdHeaderReader.EndOffset)
+						// Same check as in MetadataHeader, see the comment there
+						if ((ulong)sh.Offset + sh.StreamSize > mdHeaderReader.EndOffset)
 							throw new BadImageFormatException("Invalid stream header");
 					}
 				}
@@ -151,6 +152,11 @@ namespace dnlib.DotNet.MD {
 				md.Initialize(null);
 
 				return md;
+			}
+			catch (DataReaderException ex) {
+				// Truncated or invalid .NET header, metadata header, stream headers or tables header
+				md?.Dispose();
+				throw new BadImageFormatException($"Invalid .NET metadata: {ex.Message}", ex);
 			}
 			catch {
 				if (md is not null)
@@ -186,6 +192,10 @@ namespace dnlib.DotNet.MD {
 				md.Initialize(mdReaderFactory);
 
 				return md;
+			}
+			catch (DataReaderException ex) {
+				md?.Dispose();
+				throw new BadImageFormatException($"Invalid .NET metadata: {ex.Message}", ex);
 			}
 			catch {
 				md?.Dispose();

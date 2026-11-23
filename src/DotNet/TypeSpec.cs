@@ -73,7 +73,7 @@ namespace dnlib.DotNet {
 
 				if (sig is TypeDefOrRefSig tdr) {
 					if (tdr.IsTypeDef || tdr.IsTypeRef)
-						return tdr.TypeDefOrRef!.DeclaringType;
+						return tdr.TypeDefOrRef.DeclaringType;
 					return null;    // If it's another TypeSpec, just stop. Don't want possible inf recursion.
 				}
 
@@ -231,12 +231,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -257,12 +258,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 		/// <inheritdoc/>
@@ -300,25 +302,50 @@ namespace dnlib.DotNet {
 		readonly uint origRid;
 		readonly GenericParamContext gpContext;
 		readonly uint signatureOffset;
+		readonly int signatureRecursionDepth;
 
 		/// <inheritdoc/>
 		public uint OrigRid => origRid;
 
 		/// <summary>
-		/// The TypeSpecs whose signatures are currently being read by this thread. A signature that
-		/// references a TypeSpec that is still being read is part of a cycle.
+		/// State of the TypeSpec signatures that are currently being read by a thread
 		/// </summary>
+		sealed class SignatureReadState {
+			/// <summary>
+			/// The TypeSpecs whose signatures are currently being read. A signature that references a
+			/// TypeSpec that is still being read is part of a cycle.
+			/// </summary>
+			public readonly List<TypeSpecMD> BeingRead = new List<TypeSpecMD>();
+
+			/// <summary>
+			/// Recursion depth of the signature reader that is resolving a TypeSpec token, see
+			/// <see cref="SetOuterSignatureDepth(int)"/>
+			/// </summary>
+			public int OuterSignatureDepth;
+		}
+
 		[ThreadStatic]
-		static List<TypeSpecMD>? signaturesBeingRead;
+		static SignatureReadState? signatureReadState;
 
 		/// <summary>
-		/// Max number of nested TypeSpec signatures that are read at the same time. Each signature can
-		/// already be nested <see cref="RecursionCounter.MAX_RECURSION_COUNT"/> levels deep so this must
-		/// be small or a chain of TypeSpecs could overflow the stack. Real files don't nest them at all.
-		/// If the limit is hit, the TypeSpec that is too deep is resolved as <c>null</c>, so with such a
+		/// Max number of nested TypeSpec signatures that are read at the same time, ie. the max length of
+		/// a chain of TypeSpecs whose signatures reference the next TypeSpec (eg. via a modopt). Real files
+		/// don't nest them at all but the runtime never resolves an unused modifier so any chain is valid.
+		/// All nested signatures share one recursion counter (<see cref="RecursionCounter.MAX_RECURSION_COUNT"/>)
+		/// so the stack usage of a chain is bounded by this limit plus one deeply nested signature
+		/// (measured on x64: about 2.5KB per nested TypeSpec + 80KB for 100 nested types).
+		/// If a limit is hit, the TypeSpec (or type) that is too deep is read as <c>null</c>, so with such a
 		/// (crafted) chain, a TypeSpec's signature depends on which TypeSpec was resolved first.
 		/// </summary>
-		const int MAX_NESTED_SIGNATURES = 4;
+		const int MAX_NESTED_SIGNATURES = 32;
+
+		/// <summary>
+		/// Called by a signature reader before it resolves a TypeSpec token. If that TypeSpec hasn't been
+		/// read yet, <see cref="Create(ModuleDefMD, uint, GenericParamContext)"/> reads its signature.
+		/// </summary>
+		/// <param name="depth">Recursion depth of the signature reader</param>
+		internal static void SetOuterSignatureDepth(int depth) =>
+			(signatureReadState ??= new SignatureReadState()).OuterSignatureDepth = depth;
 
 		/// <summary>
 		/// Creates a TypeSpec and reads its signature. Returns <c>null</c> if it can't be created
@@ -330,7 +357,8 @@ namespace dnlib.DotNet {
 		/// <param name="gpContext">Generic parameter context</param>
 		internal static TypeSpecMD? Create(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
 			// Only one thread static access since it's slower than a normal static field access
-			var list = signaturesBeingRead ??= new List<TypeSpecMD>();
+			var state = signatureReadState ??= new SignatureReadState();
+			var list = state.BeingRead;
 			int count = list.Count;
 			if (count >= MAX_NESTED_SIGNATURES)
 				return null;
@@ -340,7 +368,12 @@ namespace dnlib.DotNet {
 					return null;
 			}
 
-			var typeSpec = new TypeSpecMD(readerModule, rid, gpContext);
+			// If another TypeSpec's signature is being read, we were called by its signature reader (it
+			// has just set OuterSignatureDepth). Continue at its recursion depth so the total depth of all
+			// nested signatures is limited, not just the depth of each signature: a chain of TypeSpecs
+			// can't overflow the stack.
+			int recursionDepth = count == 0 ? 0 : state.OuterSignatureDepth;
+			var typeSpec = new TypeSpecMD(readerModule, rid, gpContext, recursionDepth);
 			// Read the signature now while this TypeSpec is in the list so any reference to it from its
 			// own signature is detected. All TypeSpecMDs are created by this method, so the signature
 			// of every TypeSpecMD is read here.
@@ -356,7 +389,7 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override TypeSig? GetTypeSigAndExtraData_NoLock(out byte[]? extraData) {
-			var sig = readerModule.ReadTypeSignature(signatureOffset, gpContext, out extraData);
+			var sig = SignatureReader.ReadTypeSig(readerModule, signatureOffset, gpContext, signatureRecursionDepth, out extraData);
 			if (sig is not null)
 				sig.Rid = origRid;
 			return sig;
@@ -384,9 +417,10 @@ namespace dnlib.DotNet {
 		/// <param name="readerModule">The module which contains this <c>TypeSpec</c> row</param>
 		/// <param name="rid">Row ID</param>
 		/// <param name="gpContext">Generic parameter context</param>
+		/// <param name="signatureRecursionDepth">Initial recursion depth when reading the signature</param>
 		/// <exception cref="ArgumentNullException">If <paramref name="readerModule"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If <paramref name="rid"/> is invalid</exception>
-		TypeSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext) {
+		TypeSpecMD(ModuleDefMD readerModule, uint rid, GenericParamContext gpContext, int signatureRecursionDepth) {
 #if DEBUG
 			if (readerModule is null)
 				throw new ArgumentNullException("readerModule");
@@ -397,8 +431,9 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
+			this.signatureRecursionDepth = signatureRecursionDepth;
 			bool b = readerModule.TablesStream.TryReadTypeSpecRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			signatureOffset = row.Signature;
 		}
 	}

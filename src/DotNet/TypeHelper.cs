@@ -214,7 +214,7 @@ namespace dnlib.DotNet {
 			case ElementType.I:
 			case ElementType.U:
 			case ElementType.Object:
-				res = ContainsGenericParameterInternal((type as TypeDefOrRefSig)!.TypeDefOrRef);
+				res = ContainsGenericParameterInternal(((TypeDefOrRefSig)type).TypeDefOrRef);
 				break;
 
 			case ElementType.Var:
@@ -223,7 +223,7 @@ namespace dnlib.DotNet {
 				break;
 
 			case ElementType.FnPtr:
-				res = ContainsGenericParameterInternal((type as FnPtrSig)!.Signature);
+				res = ContainsGenericParameterInternal(((FnPtrSig)type).Signature);
 				break;
 
 			case ElementType.GenericInst:
@@ -239,13 +239,13 @@ namespace dnlib.DotNet {
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
 			case ElementType.Module:
-				res = ContainsGenericParameterInternal((type as NonLeafSig)!.Next);
+				res = ContainsGenericParameterInternal(((NonLeafSig)type).Next);
 				break;
 
 			case ElementType.CModReqd:
 			case ElementType.CModOpt:
-				res = ContainsGenericParameterInternal((type as ModifierSig)!.Modifier) ||
-					ContainsGenericParameterInternal((type as NonLeafSig)!.Next);
+				res = ContainsGenericParameterInternal(((ModifierSig)type).Modifier) ||
+					ContainsGenericParameterInternal(((NonLeafSig)type).Next);
 				break;
 
 			case ElementType.End:

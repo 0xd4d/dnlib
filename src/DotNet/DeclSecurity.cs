@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Pdb;
@@ -47,12 +48,13 @@ namespace dnlib.DotNet {
 			get {
 				if (securityAttributes is null)
 					InitializeSecurityAttributes();
-				return securityAttributes!;
+				return securityAttributes;
 			}
 		}
 		/// <summary/>
 		protected IList<SecurityAttribute>? securityAttributes;
 		/// <summary>Initializes <see cref="securityAttributes"/></summary>
+		[MemberNotNull(nameof(securityAttributes))]
 		protected virtual void InitializeSecurityAttributes() =>
 			Interlocked.CompareExchange(ref securityAttributes, new List<SecurityAttribute>(), null);
 
@@ -63,12 +65,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customAttributes is null)
 					InitializeCustomAttributes();
-				return customAttributes!;
+				return customAttributes;
 			}
 		}
 		/// <summary/>
 		protected CustomAttributeCollection? customAttributes;
 		/// <summary>Initializes <see cref="customAttributes"/></summary>
+		[MemberNotNull(nameof(customAttributes))]
 		protected virtual void InitializeCustomAttributes() =>
 			Interlocked.CompareExchange(ref customAttributes, new CustomAttributeCollection(), null);
 
@@ -88,12 +91,13 @@ namespace dnlib.DotNet {
 			get {
 				if (customDebugInfos is null)
 					InitializeCustomDebugInfos();
-				return customDebugInfos!;
+				return customDebugInfos;
 			}
 		}
 		/// <summary/>
 		protected IList<PdbCustomDebugInfo>? customDebugInfos;
 		/// <summary>Initializes <see cref="customDebugInfos"/></summary>
+		[MemberNotNull(nameof(customDebugInfos))]
 		protected virtual void InitializeCustomDebugInfos() =>
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
@@ -215,7 +219,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadDeclSecurityRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			permissionSet = row.PermissionSet;
 			action = (SecurityAction)row.Action;
 		}

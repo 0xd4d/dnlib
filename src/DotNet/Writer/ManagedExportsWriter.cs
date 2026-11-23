@@ -191,7 +191,7 @@ namespace dnlib.DotNet.Writer {
 			uint stubSize = cpuArch.GetStubSize(stubType);
 			foreach (var method in methods) {
 				var exportInfo = method.ExportInfo;
-				Debug.Assert(exportInfo is not null);
+				Debug2.Assert(exportInfo is not null);
 				if (exportInfo is null)
 					continue;
 
@@ -299,10 +299,10 @@ namespace dnlib.DotNet.Writer {
 
 			// If this method gets updated, also update the reader (MethodExportInfoProvider)
 			static byte[] GetNameASCIIZ(string name) {
-				Debug.Assert(name is not null);
+				Debug2.Assert(name is not null);
 				int size = Encoding.UTF8.GetByteCount(name);
 				var bytes = new byte[size + 1];
-				Encoding.UTF8.GetBytes(name, 0, name!.Length, bytes, 0);
+				Encoding.UTF8.GetBytes(name, 0, name.Length, bytes, 0);
 				if (bytes[bytes.Length - 1] != 0)
 					throw new ModuleWriterException();
 				return bytes;
@@ -339,7 +339,7 @@ namespace dnlib.DotNet.Writer {
 			var writer = new DataWriter(stream);
 
 			// Write all vtables (referenced from the .text section)
-			Debug.Assert((writer.Position & 7) == 0);
+			Debug2.Assert((writer.Position & 7) == 0);
 			foreach (var vtbl in vtables) {
 				vtbl.SdataChunkOffset = (uint)writer.Position;
 				foreach (var info in vtbl.Methods) {
@@ -396,9 +396,9 @@ namespace dnlib.DotNet.Writer {
 					sortedNameMethodInfos.Add(info);
 				}
 			}
-			Debug.Assert(error || sortedOrdinalMethodInfos.Count + namedNoOrdinalMethodInfos.Count == allMethodInfos.Count);
+			Debug2.Assert(error || sortedOrdinalMethodInfos.Count + namedNoOrdinalMethodInfos.Count == allMethodInfos.Count);
 			sdataBytesInfo.MethodNameOffsets = namesBlob.GetMethodNameOffsets();
-			Debug.Assert(sortedNameMethodInfos.Count == sdataBytesInfo.MethodNameOffsets.Length);
+			Debug2.Assert(sortedNameMethodInfos.Count == sdataBytesInfo.MethodNameOffsets.Length);
 			sdataBytesInfo.moduleNameOffset = namesBlob.GetOtherNameOffset(moduleName);
 
 			sortedOrdinalMethodInfos.Sort((a, b) => a.Ordinal.CompareTo(b.Ordinal));
@@ -434,7 +434,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			// Write IMAGE_EXPORT_DIRECTORY
-			Debug.Assert((writer.Position & 3) == 0);
+			Debug2.Assert((writer.Position & 3) == 0);
 			exportDirOffset = (uint)writer.Position;
 			writer.WriteUInt32(0); // Characteristics
 			writer.WriteUInt32(timestamp);
@@ -515,7 +515,7 @@ namespace dnlib.DotNet.Writer {
 				return;
 
 			foreach (var vtbl in vtables) {
-				Debug.Assert(vtbl.Methods.Count <= ushort.MaxValue);
+				Debug2.Assert(vtbl.Methods.Count <= ushort.MaxValue);
 				writer.WriteUInt32((uint)sdataChunk.RVA + vtbl.SdataChunkOffset);
 				writer.WriteUInt16((ushort)vtbl.Methods.Count);
 				writer.WriteUInt16((ushort)vtbl.Flags);
@@ -534,7 +534,7 @@ namespace dnlib.DotNet.Writer {
 			uint expectedOffset = 0;
 			uint stubCodeOffset = cpuArch.GetStubCodeOffset(stubType);
 			uint stubSize = cpuArch.GetStubSize(stubType);
-			uint stubAlignment = cpuArch!.GetStubAlignment(stubType);
+			uint stubAlignment = cpuArch.GetStubAlignment(stubType);
 			int zeros = (int)((stubSize + stubAlignment - 1 & ~(stubAlignment - 1)) - stubSize);
 			foreach (var info in allMethodInfos) {
 				uint currentOffset = info.StubChunkOffset - stubCodeOffset;
@@ -542,7 +542,7 @@ namespace dnlib.DotNet.Writer {
 					throw new InvalidOperationException();
 				var pos = writer.Position;
 				cpuArch.WriteStub(stubType, writer, imageBase, stubsBaseRva + currentOffset, vtblBaseRva + info.ManagedVtblOffset);
-				Debug.Assert(pos + stubSize == writer.Position, "The full stub wasn't written");
+				Debug2.Assert(pos + stubSize == writer.Position, "The full stub wasn't written");
 				if (pos + stubSize != writer.Position)
 					throw new InvalidOperationException();
 				if (zeros != 0)
