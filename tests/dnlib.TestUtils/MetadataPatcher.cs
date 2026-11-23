@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using dnlib.DotNet.MD;
 using dnlib.PE;
@@ -38,6 +39,29 @@ namespace dnlib.TestUtils {
 		/// Returns the patched PE file
 		/// </summary>
 		public byte[] ToArray() => (byte[])image.Clone();
+
+		/// <summary>
+		/// Returns the number of rows of a table
+		/// </summary>
+		public uint GetRowCount(Table table) => GetTable(table).Rows;
+
+		/// <summary>
+		/// Returns the names of a table's columns, as in ECMA-335
+		/// </summary>
+		public List<string> GetColumnNames(Table table) {
+			var names = new List<string>();
+			foreach (var columnInfo in GetTable(table).Columns)
+				names.Add(columnInfo.Name);
+			return names;
+		}
+
+		/// <summary>
+		/// Returns the biggest value a column can have in this file (its size is 1, 2 or 4 bytes)
+		/// </summary>
+		public uint GetMaxCellValue(Table table, string column) {
+			GetCellOffset(table, 1, column, out int size);
+			return size == 4 ? uint.MaxValue : (1U << (size * 8)) - 1;
+		}
 
 		/// <summary>
 		/// Reads a column of a table row
