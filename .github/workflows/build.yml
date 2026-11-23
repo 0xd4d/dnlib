@@ -6,6 +6,7 @@ on:
       - '.editorconfig'
       - 'Examples/**'
       - 'src/**'
+      - 'tests/**'
       - 'build.sh'
       - 'update-banned-symbols.sh'
       - 'dnlib.sln'
@@ -52,6 +53,11 @@ jobs:
         shell: bash
         run: ./build.sh
 
+      # The .NET Framework builds (net45, net35) are tested on Windows
+      - name: Test
+        shell: bash
+        run: tests/test.sh net10.0 net10.0-nts netstandard2.0
+
       - name: Check formatting
         shell: bash
         run: |
@@ -80,7 +86,7 @@ jobs:
           if-no-files-found: error
           compression-level: 0 # .nupkg/.snupkg files are already zip files
 
-  # Make sure it builds on Windows too
+  # Make sure it builds on Windows too, and test the code that only runs on Windows or .NET Framework
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
@@ -99,6 +105,10 @@ jobs:
       - name: Build
         shell: bash
         run: ./build.sh
+
+      - name: Test
+        shell: bash
+        run: tests/test.sh net10.0 net45 net35
 
   # Publishing is kept in its own job so that no build code runs with id-token: write.
   # The packages come from build-ubuntu, but don't publish if the Windows build fails.
