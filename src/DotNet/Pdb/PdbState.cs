@@ -560,6 +560,28 @@ recursive_call:
 							if ((ulong)ticks <= (ulong)DateTime.MaxValue.Ticks)
 								constant.Value = new DateTime(ticks);
 						}
+						// An enum constant is stored like a constant of its underlying type. Only an enum in
+						// this module is checked, an enum in another assembly would have to be resolved.
+						else if (((ValueTypeSig)type).TypeDefOrRef is TypeDef enumType && enumType.IsEnum) {
+							switch (enumType.GetEnumUnderlyingType().RemovePinnedAndModifiers().GetElementType()) {
+							case ElementType.Boolean:
+								if (constant.Value is short)
+									constant.Value = (short)constant.Value != 0;
+								break;
+							case ElementType.Char:
+								if (constant.Value is ushort)
+									constant.Value = (char)(ushort)constant.Value;
+								break;
+							case ElementType.I1:
+								if (constant.Value is short)
+									constant.Value = (sbyte)(short)constant.Value;
+								break;
+							case ElementType.U1:
+								if (constant.Value is short)
+									constant.Value = (byte)(short)constant.Value;
+								break;
+							}
+						}
 						break;
 					case ElementType.String:
 						// Use the kind of the PDB that was read, PdbFileKind can be changed to write another kind
