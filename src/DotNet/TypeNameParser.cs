@@ -814,12 +814,15 @@ namespace dnlib.DotNet {
 					continue;
 				}
 
-				string key = ReadId();
-				SkipWhite();
-				if (PeekChar() != '=')
+				// "key=value". Anything else is ignored, eg. a key with a char that can't be in a type name ('*', '+',
+				// ...): the CLR ignores unknown keys too.
+				string attribute = ReadAssemblyAttribute();
+				int equalsIndex = attribute.IndexOf('=');
+				if (equalsIndex < 0)
 					continue;
-				ReadChar();
-				string value = ReadAssemblyValue();
+				string key = attribute.Substring(0, equalsIndex).Trim();
+				string value = attribute.Substring(equalsIndex + 1).Trim();
+				Verify(value.Length > 0, "Expected a value");
 
 				switch (key.ToUpperInvariant()) {
 				case "VERSION":
@@ -872,16 +875,13 @@ namespace dnlib.DotNet {
 			return asmRef;
 		}
 
-		// A value ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'
-		string ReadAssemblyValue() {
-			SkipWhite();
+		// An attribute ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'
+		string ReadAssemblyAttribute() {
 			var sb = new StringBuilder();
 			int c;
 			while ((c = GetAsmNameChar()) != -1)
 				sb.Append((char)c);
-			var value = sb.ToString().Trim();
-			Verify(value.Length > 0, "Expected a value");
-			return value;
+			return sb.ToString();
 		}
 
 		string ReadAssemblyNameId() {
