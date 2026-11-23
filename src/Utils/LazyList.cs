@@ -222,8 +222,17 @@ namespace dnlib.Utils {
 
 		void Set_NoLock(int index, TValue value) {
 			if (listener is not null) {
-				listener.OnRemove(index, list[index].GetValue_NoLock(index));
-				listener.OnAdd(index, value);
+				var oldValue = list[index].GetValue_NoLock(index);
+				if (oldValue == value) {
+					listener.OnRemove(index, oldValue);
+					listener.OnAdd(index, value);
+				}
+				else {
+					// OnAdd() throws if the new value can't be added (eg. it already has an owner), so call
+					// it first: the old value is still in the list if it throws and must keep its owner.
+					listener.OnAdd(index, value);
+					listener.OnRemove(index, oldValue);
+				}
 			}
 			list[index].SetValue_NoLock(index, value);
 			id++;
