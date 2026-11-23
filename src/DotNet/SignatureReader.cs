@@ -719,28 +719,28 @@ namespace dnlib.DotNet {
 					result = new ArraySig(nextType, rank);
 					break;
 				}
-				if (!reader.TryReadCompressedUInt32(out num))
-					break;
-				// The CLR doesn't compare it with the rank. Each value is at least one byte.
-				if (num > reader.BytesLeft)
-					break;
-				var sizes = new List<uint>((int)num);
-				for (i = 0; i < num; i++) {
-					if (!reader.TryReadCompressedUInt32(out uint size))
-						goto exit;
-					sizes.Add(size);
+				// The CLR only reads the rank when it loads the type, so an array at the end of a signature whose
+				// sizes or lower bounds are truncated is still an array: keep the values that could be read.
+				// It doesn't compare the number of sizes or lower bounds with the rank either.
+				var sizes = new List<uint>();
+				var lowerBounds = new List<int>();
+				bool truncated = !reader.TryReadCompressedUInt32(out num);
+				for (i = 0; !truncated && i < num; i++) {
+					if (reader.TryReadCompressedUInt32(out uint size))
+						sizes.Add(size);
+					else
+						truncated = true;
 				}
-				if (!reader.TryReadCompressedUInt32(out num))
-					break;
-				// The CLR doesn't compare it with the rank. Each value is at least one byte.
-				if (num > reader.BytesLeft)
-					break;
-				var lowerBounds = new List<int>((int)num);
-				for (i = 0; i < num; i++) {
-					if (!reader.TryReadCompressedInt32(out int size))
-						goto exit;
-					lowerBounds.Add(size);
+				truncated = truncated || !reader.TryReadCompressedUInt32(out num);
+				for (i = 0; !truncated && i < num; i++) {
+					if (reader.TryReadCompressedInt32(out int lowerBound))
+						lowerBounds.Add(lowerBound);
+					else
+						truncated = true;
 				}
+				// A value is only truncated at the end of the signature: nothing can follow the array
+				if (truncated)
+					reader.Position = reader.Length;
 				result = new ArraySig(nextType, rank, sizes, lowerBounds);
 				break;
 
