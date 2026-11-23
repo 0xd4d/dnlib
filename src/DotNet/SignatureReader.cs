@@ -780,7 +780,6 @@ namespace dnlib.DotNet {
 				result = null;
 				break;
 			}
-exit:
 			recursionCounter.Decrement();
 			return result;
 		}
