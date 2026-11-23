@@ -42,7 +42,7 @@ namespace dnlib.DotNet {
 
 			for (int i = Count - 1; i >= 0; i--) {
 				var ca = this[i];
-				if (ca is not null && fullName.EndsWith(ca.TypeName, StringComparison.Ordinal) && ca.TypeFullName == fullName)
+				if (ca is not null && ca.IsType(fullName))
 					RemoveAt(i);
 			}
 		}
@@ -57,7 +57,7 @@ namespace dnlib.DotNet {
 				return null;
 
 			foreach (var ca in this) {
-				if (ca is not null && fullName.EndsWith(ca.TypeName, StringComparison.Ordinal) && ca.TypeFullName == fullName)
+				if (ca is not null && ca.IsType(fullName))
 					return ca;
 			}
 
@@ -74,7 +74,7 @@ namespace dnlib.DotNet {
 				yield break;
 
 			foreach (var ca in this) {
-				if (ca is not null && fullName.EndsWith(ca.TypeName, StringComparison.Ordinal) && ca.TypeFullName == fullName)
+				if (ca is not null && ca.IsType(fullName))
 					yield return ca;
 			}
 		}
