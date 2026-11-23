@@ -24,6 +24,13 @@ namespace dnlib.Tests.Fixtures {
 			}));
 
 		/// <summary>
+		/// <c>Sources/Exports.il</c>: a DLL that isn't IL only. It has an exported method, a vtable fixup and
+		/// a field with data in the PE file.
+		/// </summary>
+		public static CompiledAssembly Exports => exports.Value;
+		static readonly Lazy<CompiledAssembly> exports = new Lazy<CompiledAssembly>(() => IlAssembler.Assemble(ReadSource("Exports.il")));
+
+		/// <summary>
 		/// Returns the text of a file in the <c>Sources</c> directory
 		/// </summary>
 		public static string ReadSource(string fileName) {
