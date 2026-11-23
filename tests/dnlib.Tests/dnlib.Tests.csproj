@@ -7,6 +7,13 @@
     <RootNamespace>dnlib.Tests</RootNamespace>
   </PropertyGroup>
 
+  <!-- Fixtures/Sources has the source code of test assemblies. The tests compile them, they're not part of this
+       assembly. -->
+  <ItemGroup>
+    <Compile Remove="Fixtures\Sources\**" />
+    <EmbeddedResource Include="Fixtures\Sources\**" LogicalName="Fixtures/Sources/%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\dnlib.TestUtils\dnlib.TestUtils.csproj" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
