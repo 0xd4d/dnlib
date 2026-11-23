@@ -123,7 +123,23 @@ namespace dnlib.DotNet {
 		public string FullName => FullNameFactory.FullName(this, false, null, null, null, null);
 
 		/// <inheritdoc/>
-		public string ReflectionFullName => FullNameFactory.FullName(this, true, null, null, null, null);
+		public string ReflectionFullName => IsOrIsMadeOfGenericParameter(this) ? string.Empty : FullNameFactory.FullName(this, true, null, null, null, null);
+
+		/// <summary>
+		/// Returns <c>true</c> if it's a generic parameter (eg. <c>T</c>), or an array, pointer or by-ref type of one
+		/// (eg. <c>T[]</c>). <see cref="System.Type.FullName"/> is <c>null</c> for such a type, and
+		/// <see cref="ReflectionFullName"/> is an empty string.
+		/// </summary>
+		internal static bool IsOrIsMadeOfGenericParameter(TypeSig? type) {
+			for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && type is not null; i++) {
+				if (type is GenericSig)
+					return true;
+				if (!(type is NonLeafSig))
+					return false;
+				type = type.Next;
+			}
+			return false;
+		}
 
 		/// <inheritdoc/>
 		public string AssemblyQualifiedName => FullNameFactory.AssemblyQualifiedName(this, null, null);

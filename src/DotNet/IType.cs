@@ -34,7 +34,9 @@ namespace dnlib.DotNet {
 		string ReflectionNamespace { get; }
 
 		/// <summary>
-		/// Returns the reflection name of this type. See also <see cref="AssemblyQualifiedName"/>.
+		/// Returns the reflection full name of this type. It's an empty string if it's a generic parameter or an
+		/// array, pointer or by-ref type of one (<see cref="System.Type.FullName"/> is <c>null</c> then).
+		/// See also <see cref="AssemblyQualifiedName"/>.
 		/// </summary>
 		string ReflectionFullName { get; }
 

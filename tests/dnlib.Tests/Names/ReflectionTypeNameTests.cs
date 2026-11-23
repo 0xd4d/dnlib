@@ -106,7 +106,7 @@ namespace dnlib.Tests.Names {
 
 		// System.Type.Name of a generic parameter is its name, Type.Namespace is the namespace of the type that
 		// declares it (or that declares its method) and Type.FullName is null. dnlib only knows the name and the
-		// namespace if the signature has an owner. ReflectionFullName is never null, it's the name.
+		// namespace if the signature has an owner. ReflectionFullName is never null, it's an empty string.
 		[Fact]
 		public void ReflectionNamesOfGenericParameters() {
 			var module = CreateModule();
@@ -122,17 +122,23 @@ namespace dnlib.Tests.Names {
 			var typeParameter = new GenericVar(0, inner);
 			Assert.Equal("TType", typeParameter.ReflectionName);
 			Assert.Equal("Ns", typeParameter.ReflectionNamespace);
-			Assert.Equal("TType", typeParameter.ReflectionFullName);
+			Assert.Equal(string.Empty, typeParameter.ReflectionFullName);
+			Assert.Equal(string.Empty, new TypeSpecUser(typeParameter).ReflectionFullName);
+			Assert.Equal(string.Empty, new SZArraySig(typeParameter).ReflectionFullName);
+			Assert.Equal(string.Empty, new PtrSig(new ByRefSig(typeParameter)).ReflectionFullName);
+			// FullName is dnlib's own name and has no such rule
+			Assert.Equal("TType", typeParameter.FullName);
 			Assert.Equal("Ns", new SZArraySig(typeParameter).ReflectionNamespace);
 
 			var methodParameter = new GenericMVar(0, method);
 			Assert.Equal("TMethod", methodParameter.ReflectionName);
 			Assert.Equal("Ns", methodParameter.ReflectionNamespace);
-			Assert.Equal("TMethod", methodParameter.ReflectionFullName);
+			Assert.Equal(string.Empty, methodParameter.ReflectionFullName);
 
 			var withoutOwner = new GenericVar(1);
 			Assert.Equal("!1", withoutOwner.ReflectionName);
 			Assert.Equal(string.Empty, withoutOwner.ReflectionNamespace);
+			Assert.Equal(string.Empty, withoutOwner.ReflectionFullName);
 			Assert.Equal("!!0", new GenericMVar(0).ReflectionName);
 		}
 
@@ -144,6 +150,8 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("U", typeParameter.Name);
 			Assert.Equal(typeof(Outer<>).Namespace, typeParameter.Namespace);
 			Assert.Null(typeParameter.FullName);
+			Assert.Null(typeParameter.MakeArrayType().FullName);
+			Assert.Null(typeParameter.MakePointerType().FullName);
 
 			var methodParameter = typeof(Array).GetMethod("Empty")!.GetGenericArguments()[0];
 			Assert.Equal("System", methodParameter.Namespace);
