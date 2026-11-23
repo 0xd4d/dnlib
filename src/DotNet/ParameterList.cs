@@ -108,8 +108,8 @@ namespace dnlib.DotNet {
 			methodSigIndexBase = -1;
 			hiddenThisParameter = new Parameter(this, 0, Parameter.HIDDEN_THIS_METHOD_SIG_INDEX);
 			returnParameter = new Parameter(this, -1, Parameter.RETURN_TYPE_METHOD_SIG_INDEX);
-			UpdateThisParameterType(declaringType);
-			UpdateParameterTypes();
+			UpdateThisParameterType_NoLock(declaringType);
+			UpdateParameterTypes_NoLock();
 		}
 
 		/// <summary>
@@ -120,58 +120,69 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-				if (methodDeclaringType is null)
-					hiddenThisParameter.Type = null;
-				else {
-					bool isValueType = methodDeclaringType.IsValueType;
-					ClassOrValueTypeSig instSig;
-					if (isValueType)
-						instSig = new ValueTypeSig(methodDeclaringType);
-					else
-						instSig = new ClassSig(methodDeclaringType);
-					TypeSig thisTypeSig;
-					if (methodDeclaringType.HasGenericParameters) {
-						int gpCount = methodDeclaringType.GenericParameters.Count;
-						var genArgs = new List<TypeSig?>(gpCount);
-						for (int i = 0; i < gpCount; i++)
-							genArgs.Add(new GenericVar(i, methodDeclaringType));
-						thisTypeSig = new GenericInstSig(instSig, genArgs);
-					}
-					else
-						thisTypeSig = instSig;
-					hiddenThisParameter.Type = isValueType ? new ByRefSig(thisTypeSig) : thisTypeSig;
-				}
+				UpdateThisParameterType_NoLock(methodDeclaringType);
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
 #endif
 		}
 
+		void UpdateThisParameterType_NoLock(TypeDef? methodDeclaringType) {
+			if (methodDeclaringType is null)
+				hiddenThisParameter.Type = null;
+			else {
+				bool isValueType = methodDeclaringType.IsValueType;
+				ClassOrValueTypeSig instSig;
+				if (isValueType)
+					instSig = new ValueTypeSig(methodDeclaringType);
+				else
+					instSig = new ClassSig(methodDeclaringType);
+				TypeSig thisTypeSig;
+				if (methodDeclaringType.HasGenericParameters) {
+					int gpCount = methodDeclaringType.GenericParameters.Count;
+					var genArgs = new List<TypeSig?>(gpCount);
+					for (int i = 0; i < gpCount; i++)
+						genArgs.Add(new GenericVar(i, methodDeclaringType));
+					thisTypeSig = new GenericInstSig(instSig, genArgs);
+				}
+				else
+					thisTypeSig = instSig;
+				hiddenThisParameter.Type = isValueType ? new ByRefSig(thisTypeSig) : thisTypeSig;
+			}
+		}
+
 		/// <summary>
-		/// Should be called when the method sig has changed
+		/// Should be called when the method sig has changed. It also updates the type of the hidden 'this'
+		/// parameter, so call it too when the declaring type's generic parameters have changed or when the
+		/// declaring type has changed from a class to a value type or vice versa.
 		/// </summary>
 		public void UpdateParameterTypes() {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-				var sig = method.MethodSig;
-				if (sig is null) {
-					methodSigIndexBase = -1;
-					parameters.Clear();
-					return;
-				}
-				if (UpdateThisParameter_NoLock(sig))
-					parameters.Clear();
-				returnParameter.Type = sig.RetType;
-				ResizeParameters_NoLock(sig.Params.Count + methodSigIndexBase);
-				if (methodSigIndexBase > 0)
-					parameters[0] = hiddenThisParameter;
-				for (int i = 0; i < sig.Params.Count; i++)
-					parameters[i + methodSigIndexBase].Type = sig.Params[i];
+				UpdateThisParameterType_NoLock(method.DeclaringType);
+				UpdateParameterTypes_NoLock();
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
 #endif
+		}
+
+		void UpdateParameterTypes_NoLock() {
+			var sig = method.MethodSig;
+			if (sig is null) {
+				methodSigIndexBase = -1;
+				parameters.Clear();
+				return;
+			}
+			if (UpdateThisParameter_NoLock(sig))
+				parameters.Clear();
+			returnParameter.Type = sig.RetType;
+			ResizeParameters_NoLock(sig.Params.Count + methodSigIndexBase);
+			if (methodSigIndexBase > 0)
+				parameters[0] = hiddenThisParameter;
+			for (int i = 0; i < sig.Params.Count; i++)
+				parameters[i + methodSigIndexBase].Type = sig.Params[i];
 		}
 
 		bool UpdateThisParameter_NoLock(MethodSig methodSig) {
