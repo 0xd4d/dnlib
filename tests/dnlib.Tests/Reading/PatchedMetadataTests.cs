@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
 using dnlib.TestUtils;
@@ -119,6 +120,77 @@ namespace dnlib.Tests.Reading {
 
 				Assert.Equal(new byte[] { 0x34, 0x12 }, type.FindField("EnumField")!.InitialValue);
 				Assert.Equal(new byte[] { 0x78, 0x56, 0x34, 0x12 }, type.FindField("IntField")!.InitialValue);
+			}
+		}
+
+		const string PropertiesSource = @"
+public class First { public int FirstProperty { get; set; } }
+public class Second { public int SecondProperty { get; set; } }
+";
+
+		static string[] GetPropertyNames(ModuleDef module, string typeName) =>
+			module.Find(typeName, isReflectionName: true)!.Properties.Select(a => a.Name.String).ToArray();
+
+		// A PropertyMap row has a type and the first row of its properties. Its properties end where the
+		// properties of the next PropertyMap row start.
+		[Fact]
+		public void ValidPropertyMapIsRead() {
+			var image = CSharpCompiler.Compile(PropertiesSource).Image;
+			var patcher = new MetadataPatcher(image);
+			Assert.Equal(1U, patcher.GetCell(Table.PropertyMap, 1, "PropertyList"));
+			Assert.Equal(2U, patcher.GetCell(Table.PropertyMap, 2, "PropertyList"));
+
+			using (var module = ModuleDefMD.Load(image)) {
+				Assert.Equal(new[] { "FirstProperty" }, GetPropertyNames(module, "First"));
+				Assert.Equal(new[] { "SecondProperty" }, GetPropertyNames(module, "Second"));
+			}
+		}
+
+		// Fixed in d4173a88: the CLR reads a property list (and an event list) that starts at row 0 as if it
+		// started at row 1. Mono doesn't, the type has no properties then.
+		[Fact]
+		public void PropertyListThatStartsAtRowZeroStartsAtRowOneLikeInTheClr() {
+			var image = new MetadataPatcher(CSharpCompiler.Compile(PropertiesSource).Image).SetCell(Table.PropertyMap, 1, "PropertyList", 0).ToArray();
+
+			using (var module = ModuleDefMD.Load(image))
+				Assert.Equal(new[] { "FirstProperty" }, GetPropertyNames(module, "First"));
+
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions { Runtime = CLRRuntimeReaderKind.Mono })) {
+				Assert.Empty(GetPropertyNames(module, "First"));
+				Assert.Equal(new[] { "SecondProperty" }, GetPropertyNames(module, "Second"));
+			}
+		}
+
+		// Fixed in a5b4b0bb: Mono ignores the highest byte of a table's row count. The CLR doesn't, but it
+		// then doesn't load the file since the tables don't fit in the metadata. dnlib reads what Mono reads.
+		[Fact]
+		public void HighByteOfARowCountIsIgnoredIfTheTablesDoNotFit() {
+			var validImage = CSharpCompiler.Compile(PropertiesSource).Image;
+			var patcher = new MetadataPatcher(validImage);
+			uint rowCount = patcher.GetRowCount(Table.TypeDef);
+			var image = patcher.SetRowCount(Table.TypeDef, rowCount | 0xFF000000).ToArray();
+
+			using (var module = ModuleDefMD.Load(image)) {
+				Assert.Equal(rowCount, module.TablesStream.TypeDefTable.Rows);
+				Assert.Equal(new[] { "FirstProperty" }, GetPropertyNames(module, "First"));
+				Assert.Equal(new[] { "SecondProperty" }, GetPropertyNames(module, "Second"));
+			}
+		}
+
+		// Fixed in fd386ee8: Mono doesn't check the size of a stream, the CLR doesn't load such a file. The
+		// stream is read up to the end of the file.
+		[Fact]
+		public void StreamThatEndsAfterTheEndOfTheFileIsRead() {
+			var validImage = CSharpCompiler.Compile(PropertiesSource).Image;
+			var patcher = new MetadataPatcher(validImage);
+			uint sizeUpToTheEndOfTheFile = (uint)(validImage.Length - patcher.GetStreamFileOffset("#Blob"));
+			var image = patcher.SetStreamSize("#Blob", sizeUpToTheEndOfTheFile + 16).ToArray();
+
+			using (var module = ModuleDefMD.Load(image)) {
+				Assert.Equal(sizeUpToTheEndOfTheFile, module.BlobStream.StreamLength);
+				// The signatures are in the #Blob stream
+				var property = module.Find("First", isReflectionName: true)!.Properties.Single();
+				Assert.Equal(ElementType.I4, property.PropertySig!.RetType!.ElementType);
 			}
 		}
 	}

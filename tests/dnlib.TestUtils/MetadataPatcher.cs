@@ -157,6 +157,40 @@ namespace dnlib.TestUtils {
 			throw new ArgumentException($"There's no metadata stream called {name}");
 		}
 
+		/// <summary>
+		/// Returns the offset in the file of a metadata stream's data
+		/// </summary>
+		/// <param name="name">Name of the stream, eg. <c>#Blob</c>. If several streams have this name, it's the first one.</param>
+		public long GetStreamFileOffset(string name) {
+			foreach (var header in metadata.MetadataHeader.StreamHeaders) {
+				if (header.Name == name)
+					return (long)metadata.MetadataHeader.StartOffset + header.Offset;
+			}
+			throw new ArgumentException($"There's no metadata stream called {name}");
+		}
+
+		/// <summary>
+		/// Changes the number of rows of a table in the header of the tables stream. The rows aren't changed
+		/// or moved. The table must have rows.
+		/// </summary>
+		/// <param name="table">The table</param>
+		/// <param name="rowCount">New number of rows</param>
+		public MetadataPatcher SetRowCount(Table table, uint rowCount) {
+			var tablesStream = metadata.TablesStream;
+			if (GetTable(table).Rows == 0)
+				throw new ArgumentException($"{table} has no rows, so the header has no row count for it");
+			// The header is 24 bytes (the last 16 are two bit masks: the tables that have rows, the sorted
+			// tables), followed by a uint32 row count for every table that has rows
+			const int rowCountsOffset = 24;
+			int index = 0;
+			for (int i = 0; i < (int)table; i++) {
+				if ((tablesStream.ValidMask & (1UL << i)) != 0)
+					index++;
+			}
+			long offset = (long)tablesStream.StartOffset + rowCountsOffset + index * 4;
+			return SetBytes(offset, (byte)rowCount, (byte)(rowCount >> 8), (byte)(rowCount >> 16), (byte)(rowCount >> 24));
+		}
+
 		MDTable GetTable(Table table) =>
 			metadata.TablesStream.Get(table) ?? throw new ArgumentException($"Unknown table {table}");
 
