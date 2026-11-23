@@ -465,6 +465,15 @@ namespace dnlib.DotNet {
 				result = ReadEnumValue(null);
 				break;
 
+			// The CLR also reads an argument whose type is a generic instance of a class or interface like a
+			// System.Object argument (a generic value type can't be an argument type)
+			case (SerializationType)ElementType.GenericInst:
+				if (argType is GenericInstSig gis && GetTypeDef(gis.GenericType) is TypeDef genericTypeDef && !genericTypeDef.IsValueType) {
+					result = ReadValue(SerializationType.TaggedObject, argType, out realArgType);
+					break;
+				}
+				throw new CABlobParserException("Invalid element type");
+
 			case SerializationType.Type:
 				realArgType = argType;
 				result = ReadType(true);

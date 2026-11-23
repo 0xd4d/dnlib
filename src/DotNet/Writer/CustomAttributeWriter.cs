@@ -516,10 +516,7 @@ namespace dnlib.DotNet.Writer {
 					break;
 				}
 				// The CLR reads an argument whose type is any other class or interface like a System.Object argument
-				if (GetTypeDef(argType) is TypeDef classTypeDef && !classTypeDef.IsValueType) {
-					// The value's type is the boxed type, it can't be a class except System.Type
-					if (value.Type is null || (value.Type.ElementType == ElementType.Class && !CheckCorLibType(value.Type, "Type")))
-						goto default;
+				if (GetTypeDef(argType) is TypeDef classTypeDef && !classTypeDef.IsValueType && IsBoxedType(value.Type)) {
 					WriteFieldOrPropType(value.Type);
 					WriteElem(value.Type, value);
 					break;
@@ -539,13 +536,22 @@ namespace dnlib.DotNet.Writer {
 				WriteElem(value.Type, value);
 				break;
 
+			case ElementType.GenericInst:
+				// The CLR also reads an argument whose type is a generic instance of a class or interface like a
+				// System.Object argument
+				if (argType is GenericInstSig gis && GetTypeDef(gis.GenericType) is TypeDef genericTypeDef && !genericTypeDef.IsValueType && IsBoxedType(value.Type)) {
+					WriteFieldOrPropType(value.Type);
+					WriteElem(value.Type, value);
+					break;
+				}
+				goto default;
+
 			case ElementType.End:
 			case ElementType.Void:
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.Var:
 			case ElementType.Array:
-			case ElementType.GenericInst:
 			case ElementType.TypedByRef:
 			case ElementType.ValueArray:
 			case ElementType.I:
@@ -567,6 +573,11 @@ namespace dnlib.DotNet.Writer {
 
 			recursionCounter.Decrement();
 		}
+
+		// The type of a value that's written like a System.Object argument (the type of the boxed value): it can't be
+		// a class (except System.Type) or a generic instance, those are the types of the arguments that are boxed
+		static bool IsBoxedType(TypeSig? type) =>
+			type is not null && type.ElementType != ElementType.GenericInst && (type.ElementType != ElementType.Class || CheckCorLibType(type, "Type"));
 
 		bool TryWriteEnumUnderlyingTypeValue(object? o) {
 			if (o is null)
