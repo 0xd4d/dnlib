@@ -1753,12 +1753,13 @@ namespace dnlib.DotNet {
 			if (!TablesStream.TryReadManifestResourceRow(rid, out var row))
 				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
 
-			if (!CodedToken.Implementation.Decode(row.Implementation, out MDToken token))
-				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
-
 			var mr = ResolveManifestResource(rid);
 			if (mr is null)
 				return new EmbeddedResource(UTF8String.Empty, Array2.Empty<byte>(), 0) { Rid = rid };
+
+			// The CLR decodes an Implementation with an invalid tag as a nil File token, ie. it's an embedded resource
+			if (!CodedToken.Implementation.Decode(row.Implementation, out MDToken token))
+				token = new MDToken(Table.File, 0);
 
 			if (token.Rid == 0) {
 				if (TryCreateResourceStream(mr.Offset, out var dataReaderFactory, out uint resourceOffset, out uint resourceLength))
