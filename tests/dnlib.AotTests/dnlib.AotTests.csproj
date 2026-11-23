@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A program that uses dnlib and is compiled to native code (NativeAOT) or trimmed. See ../test-aot.sh.
+       xunit can't run in such a program, so it has its own small list of checks (Program.cs). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Warnings from the trimmer and the native compiler about dnlib's code must fail the build. By default
+         there's only one warning per assembly (IL2104), this shows each warning. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Set by ../test-aot.sh -->
+  <PropertyGroup Condition=" '$(DNLIB_AOT_TEST_MODE)' == 'aot' ">
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(DNLIB_AOT_TEST_MODE)' == 'trimmed' ">
+    <PublishTrimmed>true</PublishTrimmed>
+    <SelfContained>true</SelfContained>
+    <TrimMode>full</TrimMode>
+  </PropertyGroup>
+
+  <!-- Building the Windows program on another OS: the native compiler supports it, but the SDK only allows it
+       if these are set, and a linker called 'link' must be on the PATH (see ../test-aot.sh) -->
+  <PropertyGroup Condition=" '$(DNLIB_AOT_TEST_CROSS_WINDOWS)' == 'true' ">
+    <IlcUseEnvironmentalTools>true</IlcUseEnvironmentalTools>
+    <DisableUnsupportedError>true</DisableUnsupportedError>
+    <!-- lld-link doesn't know the linker option that embeds source link info -->
+    <EnableSourceLink>false</EnableSourceLink>
+  </PropertyGroup>
+
+</Project>
