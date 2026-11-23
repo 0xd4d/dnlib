@@ -216,8 +216,8 @@ namespace dnlib.DotNet.Writer {
 
 		static bool VerifyType(TypeSig? type, ElementType etype) {
 			type = type.RemoveModifiers();
-			// Assume it's an enum if it's a ValueType
-			return type is not null && (etype == type.ElementType || type.ElementType == ElementType.ValueType);
+			// Assume it's an enum if it's a ValueType or a GenericInst (an enum nested in a generic type)
+			return type is not null && (etype == type.ElementType || type.ElementType == ElementType.ValueType || type.ElementType == ElementType.GenericInst);
 		}
 
 		static bool VerifyValue(object? o, ElementType etype) {
@@ -537,12 +537,25 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			case ElementType.GenericInst:
-				// The CLR also reads an argument whose type is a generic instance of a class or interface like a
-				// System.Object argument
-				if (argType is GenericInstSig gis && GetTypeDef(gis.GenericType) is TypeDef genericTypeDef && !genericTypeDef.IsValueType && IsBoxedType(value.Type)) {
-					WriteFieldOrPropType(value.Type);
-					WriteElem(value.Type, value);
-					break;
+				if (argType is GenericInstSig) {
+					var genericTypeDef = GetTypeDef(argType);
+					if (genericTypeDef is null) {
+						// No error. Assume it's an enum (nested in a generic type) that couldn't be resolved.
+						if (TryWriteEnumUnderlyingTypeValue(value.Value))
+							break;
+					}
+					else if (genericTypeDef.IsEnum) {
+						// An enum nested in a generic type
+						WriteElem(genericTypeDef.GetEnumUnderlyingType().RemoveModifiers(), value);
+						break;
+					}
+					// The CLR also reads an argument whose type is a generic instance of a class or interface like a
+					// System.Object argument
+					else if (!genericTypeDef.IsValueType && IsBoxedType(value.Type)) {
+						WriteFieldOrPropType(value.Type);
+						WriteElem(value.Type, value);
+						break;
+					}
 				}
 				goto default;
 
@@ -575,9 +588,15 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		// The type of a value that's written like a System.Object argument (the type of the boxed value): it can't be
-		// a class (except System.Type) or a generic instance, those are the types of the arguments that are boxed
-		static bool IsBoxedType(TypeSig? type) =>
-			type is not null && type.ElementType != ElementType.GenericInst && (type.ElementType != ElementType.Class || CheckCorLibType(type, "Type"));
+		// a class (except System.Type) or a generic instance (except an enum nested in a generic type), those are the
+		// types of the arguments that are boxed
+		static bool IsBoxedType(TypeSig? type) {
+			if (type is null)
+				return false;
+			if (type is GenericInstSig gis)
+				return GetTypeDef(gis) is TypeDef td ? td.IsEnum : gis.GenericType is ValueTypeSig;
+			return type.ElementType != ElementType.Class || CheckCorLibType(type, "Type");
+		}
 
 		bool TryWriteEnumUnderlyingTypeValue(object? o) {
 			if (o is null)
@@ -623,12 +642,14 @@ namespace dnlib.DotNet.Writer {
 
 		/// <summary>
 		/// Converts <paramref name="type"/> to a <see cref="TypeDef"/>, possibly resolving
-		/// a <see cref="TypeRef"/>
+		/// a <see cref="TypeRef"/>. If it's a generic instance type, its generic type is used.
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if we couldn't resolve the
-		/// <see cref="TypeRef"/> or if <paramref name="type"/> is a type spec</returns>
+		/// <see cref="TypeRef"/> or if <paramref name="type"/> is some other type spec</returns>
 		static TypeDef? GetTypeDef(TypeSig? type) {
+			if (type is GenericInstSig gis)
+				type = gis.GenericType;
 			if (type is TypeDefOrRefSig tdr) {
 				var td = tdr.TypeDef;
 				if (td is not null)
@@ -724,6 +745,14 @@ namespace dnlib.DotNet.Writer {
 					writer.WriteByte((byte)SerializationType.Enum);
 					WriteType(tdr);
 				}
+				break;
+
+			case ElementType.GenericInst:
+				// An enum nested in a generic type. If it couldn't be resolved, assume it's an enum.
+				if (GetTypeDef(type) is TypeDef genericTypeDef && !genericTypeDef.IsEnum)
+					helper.Error("Custom attribute type doesn't seem to be an enum.");
+				writer.WriteByte((byte)SerializationType.Enum);
+				WriteType(type);
 				break;
 
 			default:

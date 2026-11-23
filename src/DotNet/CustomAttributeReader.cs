@@ -465,12 +465,21 @@ namespace dnlib.DotNet {
 				result = ReadEnumValue(null);
 				break;
 
-			// The CLR also reads an argument whose type is a generic instance of a class or interface like a
-			// System.Object argument (a generic value type can't be an argument type)
 			case (SerializationType)ElementType.GenericInst:
-				if (argType is GenericInstSig gis && GetTypeDef(gis.GenericType) is TypeDef genericTypeDef && !genericTypeDef.IsValueType) {
-					result = ReadValue(SerializationType.TaggedObject, argType, out realArgType);
-					break;
+				if (argType is GenericInstSig) {
+					var genericTypeDef = GetTypeDef(argType);
+					// An enum nested in a generic type, or assume it's one if it couldn't be resolved
+					if (genericTypeDef is null || genericTypeDef.IsEnum) {
+						realArgType = argType;
+						result = ReadEnumValue(GetEnumUnderlyingType(argType));
+						break;
+					}
+					// The CLR also reads an argument whose type is a generic instance of a class or interface like a
+					// System.Object argument
+					if (!genericTypeDef.IsValueType) {
+						result = ReadValue(SerializationType.TaggedObject, argType, out realArgType);
+						break;
+					}
 				}
 				throw new CABlobParserException("Invalid element type");
 
@@ -537,12 +546,14 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Converts <paramref name="type"/> to a <see cref="TypeDef"/>, possibly resolving
-		/// a <see cref="TypeRef"/>
+		/// a <see cref="TypeRef"/>. If it's a generic instance type, its generic type is used.
 		/// </summary>
 		/// <param name="type">The type</param>
 		/// <returns>A <see cref="TypeDef"/> or <c>null</c> if we couldn't resolve the
-		/// <see cref="TypeRef"/> or if <paramref name="type"/> is a type spec</returns>
+		/// <see cref="TypeRef"/> or if <paramref name="type"/> is some other type spec</returns>
 		static TypeDef? GetTypeDef(TypeSig? type) {
+			if (type is GenericInstSig gis)
+				type = gis.GenericType;
 			if (type is TypeDefOrRefSig tdr) {
 				var td = tdr.TypeDef;
 				if (td is not null)
