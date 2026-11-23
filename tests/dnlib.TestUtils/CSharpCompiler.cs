@@ -29,6 +29,11 @@ namespace dnlib.TestUtils {
 		/// A portable PDB that's stored in the PE file
 		/// </summary>
 		Embedded,
+
+		/// <summary>
+		/// A Windows PDB in its own file. The compiler can only create it on Windows.
+		/// </summary>
+		Windows,
 	}
 
 	/// <summary>
@@ -90,6 +95,10 @@ namespace dnlib.TestUtils {
 				break;
 			case PdbKind.Embedded:
 				emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
+				break;
+			case PdbKind.Windows:
+				pdbStream = new MemoryStream();
+				emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Pdb);
 				break;
 			}
 

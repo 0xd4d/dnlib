@@ -24,6 +24,18 @@ namespace dnlib.Tests.Fixtures {
 			}));
 
 		/// <summary>
+		/// <c>Sources/Features.cs</c> compiled with a Windows PDB. Only works on Windows.
+		/// The code is the same as in <see cref="Features"/>.
+		/// </summary>
+		public static CompiledAssembly FeaturesWithWindowsPdb => featuresWithWindowsPdb.Value;
+		static readonly Lazy<CompiledAssembly> featuresWithWindowsPdb = new Lazy<CompiledAssembly>(() =>
+			CSharpCompiler.Compile(ReadSource("Features.cs"), new CSharpCompilerOptions {
+				AssemblyName = "Features",
+				OutputKind = OutputKind.ConsoleApplication,
+				PdbKind = PdbKind.Windows,
+			}));
+
+		/// <summary>
 		/// <c>Sources/Exports.il</c>: a DLL that isn't IL only. It has an exported method, a vtable fixup and
 		/// a field with data in the PE file.
 		/// </summary>

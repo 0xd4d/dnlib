@@ -12,6 +12,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
+    <!-- Native library (Windows only) that reads and writes Windows PDB files. The C# compiler needs it to
+         create a Windows PDB, and dnlib's COM PDB reader and Windows PDB writer use it. -->
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
     <!-- ilasm is a native program. It's only downloaded, the tests start it (see IlAssembler). -->
     <PackageDownload Include="runtime.$(IlasmRid).Microsoft.NETCore.ILAsm" Version="[$(IlasmVersion)]" />
     <AssemblyMetadata Include="IlasmPath" Value="$(NuGetPackageRoot)runtime.$(IlasmRid.ToLowerInvariant()).microsoft.netcore.ilasm/$(IlasmVersion)/runtimes/$(IlasmRid)/native/$(IlasmExe)" />
