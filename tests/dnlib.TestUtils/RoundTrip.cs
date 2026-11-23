@@ -51,6 +51,34 @@ namespace dnlib.TestUtils {
 		}
 
 		/// <summary>
+		/// Writes the module with <see cref="NativeModuleWriter"/>, which keeps the original PE file (headers,
+		/// sections, native code) and adds the new metadata and method bodies. It's the writer for files that
+		/// aren't IL only, eg. C++/CLI assemblies and the precompiled (ReadyToRun) assemblies of .NET.
+		/// The tokens of the methods and the max stack values must stay the same.
+		/// </summary>
+		/// <param name="image">A PE file</param>
+		/// <param name="optimizeImageSize"><c>true</c> to reuse the locations of the old metadata and method bodies
+		/// if the new ones fit</param>
+		/// <returns>The written file</returns>
+		public static byte[] CheckWithNativeWriter(byte[] image, bool optimizeImageSize) {
+			using (var original = ModuleDefMD.Load(image)) {
+				var stream = new MemoryStream();
+				var writerOptions = new NativeModuleWriterOptions(original, optimizeImageSize);
+				// The tokens are preserved by default
+				writerOptions.MetadataOptions.Flags |= MetadataFlags.KeepOldMaxStack;
+				original.NativeWrite(stream, writerOptions);
+				var writtenImage = stream.ToArray();
+				using (var written = ModuleDefMD.Load(writtenImage)) {
+					ModuleComparer.AssertEqual(original, written, new ModuleDumpOptions { MaxStack = true });
+					// Native code can use the tokens of methods, so they're always preserved. The other tokens
+					// are only preserved if the new metadata must fit in the location of the old metadata.
+					AssertSameTokens(original, written, onlyMethods: !optimizeImageSize);
+				}
+				return writtenImage;
+			}
+		}
+
+		/// <summary>
 		/// Reads a module and its portable PDB, writes both and reads them again. The debug info (documents,
 		/// sequence points, scopes, locals, constants, imports, custom debug info) must be the same too.
 		/// </summary>
@@ -115,17 +143,19 @@ namespace dnlib.TestUtils {
 		}
 
 		// ModuleComparer already checked that the two modules have the same types and members in the same order
-		static void AssertSameTokens(ModuleDef expected, ModuleDef actual) {
+		static void AssertSameTokens(ModuleDef expected, ModuleDef actual, bool onlyMethods = false) {
 			using (var expectedTypes = expected.GetTypes().GetEnumerator())
 			using (var actualTypes = actual.GetTypes().GetEnumerator()) {
 				while (expectedTypes.MoveNext() && actualTypes.MoveNext()) {
 					var expectedType = expectedTypes.Current;
 					var actualType = actualTypes.Current;
+					for (int i = 0; i < expectedType.Methods.Count; i++)
+						AssertSameToken(expectedType.Methods[i], actualType.Methods[i]);
+					if (onlyMethods)
+						continue;
 					AssertSameToken(expectedType, actualType);
 					for (int i = 0; i < expectedType.Fields.Count; i++)
 						AssertSameToken(expectedType.Fields[i], actualType.Fields[i]);
-					for (int i = 0; i < expectedType.Methods.Count; i++)
-						AssertSameToken(expectedType.Methods[i], actualType.Methods[i]);
 					for (int i = 0; i < expectedType.Properties.Count; i++)
 						AssertSameToken(expectedType.Properties[i], actualType.Properties[i]);
 					for (int i = 0; i < expectedType.Events.Count; i++)

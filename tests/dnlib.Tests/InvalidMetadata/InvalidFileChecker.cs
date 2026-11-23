@@ -125,6 +125,16 @@ namespace dnlib.Tests.InvalidMetadata {
 				catch (Exception ex) {
 					throw new InvalidOperationException($"Writing the module threw {ex.GetType().Name} ({description})", ex);
 				}
+
+				// NativeModuleWriter also uses the PE headers and sections of the original file
+				try {
+					module.NativeWrite(new MemoryStream(), new NativeModuleWriterOptions(module, optimizeImageSize: true));
+				}
+				catch (ModuleWriterException) {
+				}
+				catch (Exception ex) {
+					throw new InvalidOperationException($"Writing the module with NativeModuleWriter threw {ex.GetType().Name} ({description})", ex);
+				}
 				return dumpLength;
 			}
 		}

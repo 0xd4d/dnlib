@@ -28,5 +28,35 @@ namespace dnlib.Tests.RoundTrips {
 		[Theory, MemberData(nameof(AllFiles)), Trait(TestCategories.Name, TestCategories.Slow)]
 		public void EveryAssemblySurvivesAWriteWithPreservedMetadata(string file) =>
 			RoundTrip.CheckWithPreservedMetadata(File.ReadAllBytes(file));
+
+		// On .NET, most of the runtime's assemblies are precompiled (ReadyToRun): they have native code and
+		// more sections than a file with only IL code, and the sections aren't where NativeModuleWriter expected
+		// them (fixed in a02c5e08 and 0942f106: 67 of the 172 assemblies of .NET 10 couldn't be written).
+		[Theory, MemberData(nameof(SampleFiles))]
+		public void SampleSurvivesANativeWrite(string file) {
+			RoundTrip.CheckWithNativeWriter(File.ReadAllBytes(file), optimizeImageSize: false);
+			RoundTrip.CheckWithNativeWriter(File.ReadAllBytes(file), optimizeImageSize: true);
+		}
+
+		[Theory, MemberData(nameof(AllFiles)), Trait(TestCategories.Name, TestCategories.Slow)]
+		public void EveryAssemblySurvivesANativeWrite(string file) {
+			RoundTrip.CheckWithNativeWriter(File.ReadAllBytes(file), optimizeImageSize: false);
+			RoundTrip.CheckWithNativeWriter(File.ReadAllBytes(file), optimizeImageSize: true);
+		}
+
+#if NET
+		// The tests above only test what they say if the files have native code
+		[Fact]
+		public void SomeSamplesHaveNativeCode() {
+			int filesWithNativeCode = 0;
+			foreach (var file in FrameworkCorpus.GetSampleFiles()) {
+				using (var module = dnlib.DotNet.ModuleDefMD.Load(file)) {
+					if (!module.IsILOnly)
+						filesWithNativeCode++;
+				}
+			}
+			Assert.True(filesWithNativeCode > 0);
+		}
+#endif
 	}
 }

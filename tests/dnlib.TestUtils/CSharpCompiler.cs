@@ -48,6 +48,12 @@ namespace dnlib.TestUtils {
 		public Platform Platform { get; set; } = Platform.AnyCpu;
 
 		/// <summary>
+		/// <c>true</c> to add the Win32 resources that the command line compiler adds by default: the version
+		/// info, and the default manifest if it's an EXE
+		/// </summary>
+		public bool Win32Resources { get; set; }
+
+		/// <summary>
 		/// Embedded resources: name and content
 		/// </summary>
 		public Dictionary<string, byte[]> Resources { get; } = new Dictionary<string, byte[]>();
@@ -113,7 +119,11 @@ namespace dnlib.TestUtils {
 				resources.Add(new ResourceDescription(resource.Key, () => new MemoryStream(content), isPublic: true));
 			}
 
-			var result = compilation.Emit(imageStream, pdbStream, manifestResources: resources, options: emitOptions);
+			Stream? win32Resources = null;
+			if (options.Win32Resources)
+				win32Resources = compilation.CreateDefaultWin32Resources(versionResource: true, noManifest: false, manifestContents: null, iconInIcoFormat: null);
+
+			var result = compilation.Emit(imageStream, pdbStream, win32Resources: win32Resources, manifestResources: resources, options: emitOptions);
 			if (!result.Success) {
 				var errors = result.Diagnostics.Where(a => a.Severity == DiagnosticSeverity.Error).Select(a => a.ToString());
 				throw new InvalidOperationException("The test's C# code doesn't compile:" + Environment.NewLine + string.Join(Environment.NewLine, errors));

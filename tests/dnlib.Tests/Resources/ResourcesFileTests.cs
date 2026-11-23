@@ -249,5 +249,82 @@ namespace dnlib.Tests.Resources {
 				}
 			}
 		}
+
+		const string UserTypeName = "MyNamespace.MyType, MyAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+
+		// Writes resources whose values are objects of a type that isn't built in (a "user type"). The data
+		// is what a serializer wrote, dnlib doesn't read it.
+		static byte[] WriteUserTypeResources(params (string name, byte[] data)[] resources) {
+			var module = CreateModule();
+			var factory = new ResourceDataFactory(module);
+			var type = factory.CreateUserResourceType(UserTypeName);
+			var set = ResourceElementSet.CreateForResourceReader(module);
+			foreach (var resource in resources)
+				set.Add(new ResourceElement(resource.name, factory.CreateSerialized(resource.data, SerializationFormat.BinaryFormatter, type)));
+
+			var stream = new MemoryStream();
+			ResourceWriter.Write(module, stream, set);
+			return stream.ToArray();
+		}
+
+		[Fact]
+		public void UserTypeResourcesAreReadAsTheirData() {
+			var file = WriteUserTypeResources(("first", new byte[] { 1, 2, 3 }), ("second", new byte[] { 4, 5 }));
+
+			var resources = ReadWithDnlib(file);
+
+			var first = Assert.IsType<BinaryResourceData>(resources["first"]);
+			Assert.Equal(new byte[] { 1, 2, 3 }, first.Data);
+			Assert.Equal(UserTypeName, first.TypeName);
+			Assert.Equal(new byte[] { 4, 5 }, Assert.IsType<BinaryResourceData>(resources["second"]).Data);
+		}
+
+		// Fixed in e63ec99d: the factory returned the same type twice, and the writer wrote it twice
+		[Fact]
+		public void UserTypeIsCreatedOnce() {
+			var factory = new ResourceDataFactory(CreateModule());
+
+			var type = factory.CreateUserResourceType(UserTypeName);
+
+			Assert.Same(type, factory.CreateUserResourceType(UserTypeName));
+			Assert.Equal(1, factory.Count);
+			Assert.Same(type, Assert.Single(factory.GetSortedTypes()));
+			Assert.Equal(ResourceTypeCode.UserTypes, type.Code);
+			Assert.Equal(ResourceTypeCode.UserTypes + 1, factory.CreateUserResourceType("Other.Type, MyAssembly").Code);
+		}
+
+		// The file stores for every resource its name (UTF-16) followed by the offset of its data (4 bytes).
+		// Returns where that offset is in the file.
+		static int FindDataOffsetField(byte[] file, string resourceName) {
+			var nameBytes = System.Text.Encoding.Unicode.GetBytes(resourceName);
+			for (int i = 0; i + nameBytes.Length <= file.Length; i++) {
+				if (file.Skip(i).Take(nameBytes.Length).SequenceEqual(nameBytes))
+					return i + nameBytes.Length;
+			}
+			throw new InvalidOperationException("The file has no resource with the name " + resourceName);
+		}
+
+		// Fixed in 4eec887c and 5c599f17: the size of a user type's data isn't stored, it's what's between its
+		// offset and the next resource's offset. If two resources had the same offset, that was 0 bytes for one
+		// of them, and the whole file was rejected.
+		[Fact]
+		public void TwoUserTypeResourcesCanUseTheSameData() {
+			var file = WriteUserTypeResources(("first", new byte[] { 1, 2, 3 }), ("second", new byte[] { 4, 5 }), ("third", new byte[] { 6 }));
+			int firstOffsetField = FindDataOffsetField(file, "first");
+			int secondOffsetField = FindDataOffsetField(file, "second");
+			Assert.NotEqual(BitConverter.ToInt32(file, firstOffsetField), BitConverter.ToInt32(file, secondOffsetField));
+			// "second" now uses the data of "first"
+			Array.Copy(file, firstOffsetField, file, secondOffsetField, 4);
+
+			var resources = ReadWithDnlib(file);
+
+			Assert.Equal(3, resources.Count);
+			var first = Assert.IsType<BinaryResourceData>(resources["first"]).Data;
+			var second = Assert.IsType<BinaryResourceData>(resources["second"]).Data;
+			Assert.Equal(first, second);
+			// The data ends where the next resource's data starts. Nothing uses the old data of "second"
+			// anymore, so it can be part of it.
+			Assert.Equal(new byte[] { 1, 2, 3 }, first.Take(3));
+		}
 	}
 }

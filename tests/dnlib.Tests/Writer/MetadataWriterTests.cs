@@ -109,5 +109,80 @@ namespace dnlib.Tests.Writer {
 			using (var module = ModuleDefMD.Load(stream.ToArray()))
 				Assert.NotNull(CreatedModule.GetType(module).FindField("Field"));
 		}
+
+		// A type that has no name: an array of nothing
+		static TypeSig CreateTypeWithoutAName() => new SZArraySig(null);
+
+		// Fixed in b060c3b5: a type is stored as its name in a custom attribute. A type without a name was
+		// written as "<<<NULL>>>" and the writer didn't report it.
+		[Fact]
+		public void TypeWithoutANameInACustomAttributeIsAnError() {
+			var created = new CreatedModule();
+			var corLibTypes = created.Module.CorLibTypes;
+			var systemType = new ClassSig(corLibTypes.GetTypeRef("System", "Type"));
+			var attributeType = corLibTypes.GetTypeRef("System", "SomeAttribute");
+			var constructor = new MemberRefUser(created.Module, ".ctor", MethodSig.CreateInstance(corLibTypes.Void, systemType), attributeType);
+			var attribute = new CustomAttribute(constructor);
+			attribute.ConstructorArguments.Add(new CAArgument(systemType, CreateTypeWithoutAName()));
+			created.Type.CustomAttributes.Add(attribute);
+
+			var exception = Assert.Throws<ModuleWriterException>(() => created.Write());
+			Assert.Contains("null value", exception.Message);
+		}
+
+		// Fixed in b060c3b5
+		[Fact]
+		public void CustomMarshalerWithoutANameIsAnError() {
+			var created = new CreatedModule();
+			var field = created.AddField("Field", created.Module.CorLibTypes.Object);
+			field.MarshalType = new CustomMarshalType {
+				Guid = string.Empty,
+				NativeTypeName = string.Empty,
+				CustomMarshaler = new TypeSpecUser(CreateTypeWithoutAName()),
+				Cookie = string.Empty,
+			};
+
+			var exception = Assert.Throws<ModuleWriterException>(() => created.Write());
+			Assert.Contains("null value", exception.Message);
+		}
+
+		// Fixed in 70e70fac: the writer adds a TypeRef's scope (the AssemblyRef) and the scope's custom attributes
+		// before the TypeRef. If such an attribute's type is the TypeRef, it's a loop, and the writer failed with
+		// 'TypeRef has an infinite ResolutionScope loop'.
+		[Fact]
+		public void AssemblyRefCanHaveACustomAttributeWhoseTypeIsInThatAssembly() {
+			var created = new CreatedModule();
+			var library = new AssemblyRefUser("Library", new System.Version(1, 0, 0, 0));
+			var attributeType = new TypeRefUser(created.Module, "Library", "MarkerAttribute", library);
+			var constructor = new MemberRefUser(created.Module, ".ctor", MethodSig.CreateInstance(created.Module.CorLibTypes.Void), attributeType);
+			library.CustomAttributes.Add(new CustomAttribute(constructor));
+			// The field's type is the first thing the writer sees that uses the TypeRef
+			created.AddField("Field", new ClassSig(attributeType));
+
+			using (var module = created.WriteAndRead()) {
+				var writtenLibrary = module.GetAssemblyRefs().Single(a => a.Name == "Library");
+				var attribute = Assert.Single(writtenLibrary.CustomAttributes);
+				Assert.Equal("Library.MarkerAttribute", attribute.TypeFullName);
+				Assert.Same(writtenLibrary, attribute.AttributeType!.Scope);
+			}
+		}
+
+		// The same with a nested type: the enclosing TypeRef has an attribute whose type is its nested type
+		[Fact]
+		public void TypeRefCanHaveACustomAttributeWhoseTypeIsNestedInIt() {
+			var created = new CreatedModule();
+			var library = new AssemblyRefUser("Library", new System.Version(1, 0, 0, 0));
+			var outerType = new TypeRefUser(created.Module, "Library", "Outer", library);
+			var attributeType = new TypeRefUser(created.Module, string.Empty, "MarkerAttribute", outerType);
+			var constructor = new MemberRefUser(created.Module, ".ctor", MethodSig.CreateInstance(created.Module.CorLibTypes.Void), attributeType);
+			outerType.CustomAttributes.Add(new CustomAttribute(constructor));
+			created.AddField("Field", new ClassSig(attributeType));
+
+			using (var module = created.WriteAndRead()) {
+				var writtenOuterType = module.GetTypeRefs().Single(a => a.Name == "Outer");
+				var attribute = Assert.Single(writtenOuterType.CustomAttributes);
+				Assert.Equal("Library.Outer/MarkerAttribute", attribute.TypeFullName);
+			}
+		}
 	}
 }

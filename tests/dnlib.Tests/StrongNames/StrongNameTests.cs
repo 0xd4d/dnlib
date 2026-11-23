@@ -151,5 +151,58 @@ namespace dnlib.Tests.StrongNames {
 		[Fact]
 		public void PublicKeyWithoutDataIsRejected() =>
 			Assert.Throws<ArgumentNullException>(() => new StrongNamePublicKey(new PublicKey((byte[]?)null)));
+
+		// Writes an assembly with the delay sign option: it gets the public key and room for the signature,
+		// and someone who has the private key signs it later
+		static byte[] WriteDelaySigned(Action<ModuleWriterOptions> changeOptions, ILogger? logger = null) {
+			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(Source).Image)) {
+				var options = new ModuleWriterOptions(module) { DelaySign = true, Logger = logger };
+				changeOptions(options);
+				var stream = new MemoryStream();
+				module.Write(stream, options);
+				return stream.ToArray();
+			}
+		}
+
+		static StrongNamePublicKey CreatePublicKey() => new StrongNamePublicKey(new StrongNameKey(keyPair).PublicKey);
+
+		[Fact]
+		public void DelaySignedAssemblyHasThePublicKeyAndRoomForTheSignature() {
+			var written = WriteDelaySigned(options => options.StrongNamePublicKey = CreatePublicKey());
+
+			using (var module = ModuleDefMD.Load(written)) {
+				Assert.Equal(new StrongNameKey(keyPair).PublicKey, module.Assembly!.PublicKey.Data);
+				Assert.True(module.Assembly.HasPublicKey);
+				Assert.Equal((ComImageFlags)0, module.Cor20HeaderFlags & ComImageFlags.StrongNameSigned);
+				// A 1024-bit key has a signature of 128 bytes
+				Assert.Equal(128U, module.Metadata.ImageCor20Header.StrongNameSignature.Size);
+			}
+			Assert.False(StrongNameVerifier.IsValid(written));
+		}
+
+		// Fixed in 1c9eec70: these were only checked by Debug.Assert()
+		[Fact]
+		public void DelaySigningWithoutAPublicKeyIsAnError() =>
+			Assert.Throws<ModuleWriterException>(() => WriteDelaySigned(options => { }));
+
+		[Fact]
+		public void DelaySigningWithAKeyPairIsAnError() =>
+			Assert.Throws<ModuleWriterException>(() => WriteDelaySigned(options => {
+				options.StrongNamePublicKey = CreatePublicKey();
+				options.StrongNameKey = new StrongNameKey(keyPair);
+			}));
+
+		// Fixed in 1c9eec70: the file got a signature, but the header said it has none
+		[Fact]
+		public void AssemblyIsSignedIfDelaySigningWithAKeyPairIsNotStoppedByTheLogger() {
+			var written = WriteDelaySigned(options => {
+				options.StrongNamePublicKey = CreatePublicKey();
+				options.StrongNameKey = new StrongNameKey(keyPair);
+			}, DummyLogger.NoThrowInstance);
+
+			Assert.True(StrongNameVerifier.IsValid(written));
+			using (var module = ModuleDefMD.Load(written))
+				Assert.Equal(ComImageFlags.StrongNameSigned, module.Cor20HeaderFlags & ComImageFlags.StrongNameSigned);
+		}
 	}
 }
