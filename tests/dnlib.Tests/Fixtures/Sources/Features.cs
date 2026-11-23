@@ -13,6 +13,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
+// Type forwarders are rows in the ExportedType table. Dictionary<,> has nested types, which get rows too.
+[assembly: TypeForwardedTo(typeof(Dictionary<,>))]
+[assembly: TypeForwardedTo(typeof(Action))]
 [assembly: Features.Everything("assembly", Number = 1)]
 [module: Features.Everything("module")]
 
@@ -143,6 +146,12 @@ namespace Features {
 		public override double Area => side * side;
 		public override string Describe(string prefix = "The ") => base.Describe(prefix) + "!";
 		public void Touch() => OnChanged();
+	}
+
+	// Using a field of a generic type instance needs a reference to the field (a MemberRef with a field signature)
+	public class Box<T> {
+		public T Value;
+		public static T Shared;
 	}
 
 	public sealed class Key : IComparable<Key> {
@@ -390,6 +399,10 @@ namespace Features {
 			Check(Shape.Kind == "shape" && Shape.Created.Year == 2000, "constants and static fields");
 			var attributes = typeof(Shape).GetCustomAttributes(typeof(EverythingAttribute), false);
 			Check(attributes.Length == 4, "custom attributes");
+
+			var box = new Box<int> { Value = 3 };
+			Box<string>.Shared = "shared";
+			Check(box.Value == 3 && Box<string>.Shared.Length == 6, "fields of generic types");
 
 			if (GenericAttributeUser.IsSupported)
 				Check(GenericAttributeUser.CountAttributes() == 8, "generic custom attributes");
