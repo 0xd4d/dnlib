@@ -174,13 +174,18 @@ namespace dnlib.DotNet {
 				}
 			}
 
-			string asmName;
-			return asm is not null &&
-				UTF8String.IsNullOrEmpty(asm.Culture) &&
-				((asmName = UTF8String.ToSystemStringOrEmpty(asm.Name)).Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
-				asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ||
-				// This name could change but since CoreCLR is used a lot, it's worth supporting
-				asmName.Equals("System.Private.CoreLib", StringComparison.OrdinalIgnoreCase) ||
+			if (asm is null)
+				return false;
+			var asmName = UTF8String.ToSystemStringOrEmpty(asm.Name);
+			// The CLR finds its core library by name only: a reference to it with a culture is still a reference to
+			// the core library (mscorlib on .NET Framework, System.Private.CoreLib on .NET). A reference to one of
+			// the others isn't found if it has a culture.
+			// System.Private.CoreLib could change but since CoreCLR is used a lot, it's worth supporting.
+			if (asmName.Equals("mscorlib", StringComparison.OrdinalIgnoreCase) ||
+				asmName.Equals("System.Private.CoreLib", StringComparison.OrdinalIgnoreCase))
+				return true;
+			return UTF8String.IsNullOrEmpty(asm.Culture) &&
+				(asmName.Equals("System.Runtime", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("netstandard", StringComparison.OrdinalIgnoreCase) ||
 				asmName.Equals("corefx", StringComparison.OrdinalIgnoreCase));
 		}
