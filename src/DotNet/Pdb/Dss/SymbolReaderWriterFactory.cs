@@ -313,7 +313,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return null;
 			FileStream? pdbStream = null;
 			try {
-				if (File.Exists(pdbFileName))
+				if (File2.Exists(pdbFileName))
 					File.Delete(pdbFileName);
 				pdbStream = File.Create(pdbFileName);
 				return new SymbolWriterImpl(writer, pdbFileName, pdbStream, options, ownsStream: true);

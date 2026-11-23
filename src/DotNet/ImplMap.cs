@@ -299,7 +299,7 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			bool b = readerModule.TablesStream.TryReadImplMapRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			attributes = row.MappingFlags;
 			name = readerModule.StringsStream.ReadNoNull(row.ImportName);
 			module = readerModule.ResolveModuleRef(row.ImportScope);

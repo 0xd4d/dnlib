@@ -641,7 +641,7 @@ namespace dnlib.DotNet.Writer {
 			if (reusedChunks.Count > 0 || methodBodies.HasReusedMethods) {
 				var pos = writer.Position;
 				foreach (var info in reusedChunks) {
-					Debug.Assert(info.Chunk.RVA == info.RVA);
+					Debug2.Assert(info.Chunk.RVA == info.RVA);
 					if (info.Chunk.RVA != info.RVA)
 						throw new InvalidOperationException();
 					writer.Position = destStreamBaseOffset + (uint)info.Chunk.FileOffset;

@@ -984,7 +984,7 @@ namespace dnlib.DotNet.Writer {
 				break;
 
 			case DebugMetadataKind.Standalone:
-				Debug.Assert(!isStandaloneDebugMetadata);
+				Debug2.Assert(!isStandaloneDebugMetadata);
 				//TODO: Refactor this into a smaller class
 				debugMetadata = new NormalMetadata(module, constants, methodBodies, netResources, options, DebugMetadataKind.None, true);
 				break;
@@ -1556,7 +1556,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void Create() {
-			Debug.Assert(!isStandaloneDebugMetadata);
+			Debug2.Assert(!isStandaloneDebugMetadata);
 			Initialize();
 			allTypeDefs = GetAllTypeDefs();
 			OnMetadataEvent(Writer.MetadataEvent.AllocateTypeDefRids);
@@ -2042,7 +2042,7 @@ namespace dnlib.DotNet.Writer {
 		/// Writes all method bodies
 		/// </summary>
 		void WriteMethodBodies() {
-			Debug.Assert(!isStandaloneDebugMetadata);
+			Debug2.Assert(!isStandaloneDebugMetadata);
 			if (NoMethodBodies)
 				return;
 			int numMethods = NumberOfMethods;
@@ -2857,7 +2857,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="field">The field</param>
 		protected void AddFieldRVA(FieldDef field) {
-			Debug.Assert(!isStandaloneDebugMetadata);
+			Debug2.Assert(!isStandaloneDebugMetadata);
 			if (NoFieldData)
 				return;
 			if (field.RVA != 0 && KeepFieldRVA) {
@@ -3136,7 +3136,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddResource(Resource resource) {
-			Debug.Assert(!NoDotNetResources);
+			Debug2.Assert(!NoDotNetResources);
 			if (resource is EmbeddedResource er) {
 				AddEmbeddedResource(er);
 				return;
@@ -3159,8 +3159,8 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddEmbeddedResource(EmbeddedResource er) {
-			Debug.Assert(!isStandaloneDebugMetadata);
-			Debug.Assert(!NoDotNetResources);
+			Debug2.Assert(!isStandaloneDebugMetadata);
+			Debug2.Assert(!NoDotNetResources);
 			if (er is null) {
 				Error("EmbeddedResource is null");
 				return 0;
@@ -3180,7 +3180,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddAssemblyLinkedResource(AssemblyLinkedResource alr) {
-			Debug.Assert(!NoDotNetResources);
+			Debug2.Assert(!NoDotNetResources);
 			if (alr is null) {
 				Error("AssemblyLinkedResource is null");
 				return 0;
@@ -3199,7 +3199,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddLinkedResource(LinkedResource lr) {
-			Debug.Assert(!NoDotNetResources);
+			Debug2.Assert(!NoDotNetResources);
 			if (lr is null) {
 				Error("LinkedResource is null");
 				return 0;
@@ -3397,7 +3397,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformationList(MethodDef method, uint rid, uint localVarSigToken) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 			if (debugMetadata is null)
 				return;
 			var serializerMethodContext = AllocSerializerMethodContext();
@@ -3409,7 +3409,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddMethodDebugInformation(MethodDef method, uint rid, uint localVarSigToken) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 			var body = method.Body;
 			if (body is null)
 				return;
@@ -3499,7 +3499,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			var seqPointsBlob = outStream.ToArray();
-			var row = new RawMethodDebugInformationRow(singleDoc is null ? 0 : AddPdbDocument(singleDoc), debugMetadata!.blobHeap.Add(seqPointsBlob));
+			var row = new RawMethodDebugInformationRow(singleDoc is null ? 0 : AddPdbDocument(singleDoc), debugMetadata.blobHeap.Add(seqPointsBlob));
 			debugMetadata.tablesHeap.MethodDebugInformationTable[rid] = row;
 			Free(ref bwctx);
 		}
@@ -3519,7 +3519,7 @@ namespace dnlib.DotNet.Writer {
 			startColumn = seqPoint.StartColumn;
 			endLine = seqPoint.EndLine;
 			endColumn = seqPoint.EndColumn;
-			Debug.Assert(startLine != SequencePointConstants.HIDDEN_LINE);
+			Debug2.Assert(startLine != SequencePointConstants.HIDDEN_LINE);
 
 			if ((uint)startLine > MaxLine || (uint)endLine > MaxLine || endLine == SequencePointConstants.HIDDEN_LINE ||
 				(uint)startColumn > MaxColumn || (uint)endColumn > MaxColumn ||
@@ -3589,7 +3589,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="rid">New owner rid</param>
 		/// <param name="hcdi">Onwer</param>
 		protected void AddCustomDebugInformationList(Table table, uint rid, IHasCustomDebugInformation hcdi) {
-			Debug.Assert(table != Table.Method);
+			Debug2.Assert(table != Table.Method);
 			if (debugMetadata is null)
 				return;
 			var cdis = hcdi.CustomDebugInfos;
@@ -3604,7 +3604,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformationList(Table table, uint rid, IList<PdbCustomDebugInfo> cdis) {
-			Debug.Assert(table != Table.Method);
+			Debug2.Assert(table != Table.Method);
 			if (debugMetadata is null)
 				return;
 			if (cdis.Count == 0)
@@ -3616,8 +3616,8 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformationCore(SerializerMethodContext serializerMethodContext, Table table, uint rid, IList<PdbCustomDebugInfo> cdis) {
-			Debug.Assert(debugMetadata is not null);
-			Debug.Assert(cdis.Count != 0);
+			Debug2.Assert(debugMetadata is not null);
+			Debug2.Assert(cdis.Count != 0);
 
 			var token = new MDToken(table, rid);
 			if (!CodedToken.HasCustomDebugInformation.Encode(token, out uint encodedToken)) {
@@ -3637,7 +3637,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddCustomDebugInformation(SerializerMethodContext serializerMethodContext, uint token, uint encodedToken, PdbCustomDebugInfo cdi) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 
 			switch (cdi.Kind) {
 			case PdbCustomDebugInfoKind.UsingGroups:
@@ -3686,25 +3686,25 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddStateMachineMethod(PdbCustomDebugInfo cdi, uint moveNextMethodToken, MethodDef? kickoffMethod) {
-			Debug.Assert(new MDToken(moveNextMethodToken).Table == Table.Method);
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(new MDToken(moveNextMethodToken).Table == Table.Method);
+			Debug2.Assert(debugMetadata is not null);
 			if (kickoffMethod is null) {
 				Error("KickoffMethod is null");
 				return;
 			}
 			var row = new RawStateMachineMethodRow(new MDToken(moveNextMethodToken).Rid, GetRid(kickoffMethod));
-			debugMetadata!.stateMachineMethodInfos.Add(cdi, row);
+			debugMetadata.stateMachineMethodInfos.Add(cdi, row);
 		}
 
 		void AddCustomDebugInformationCore(SerializerMethodContext serializerMethodContext, uint encodedToken, PdbCustomDebugInfo cdi, Guid cdiGuid) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 
 			var bwctx = AllocBinaryWriterContext();
 			var cdiBlob = PortablePdbCustomDebugInfoWriter.Write(this, serializerMethodContext, this, cdi, bwctx);
-			Debug.Assert(cdiGuid != Guid.Empty);
+			Debug2.Assert(cdiGuid != Guid.Empty);
 			Free(ref bwctx);
 			var row = new RawCustomDebugInformationRow(encodedToken,
-						debugMetadata!.guidHeap.Add(cdiGuid),
+						debugMetadata.guidHeap.Add(cdiGuid),
 						debugMetadata.blobHeap.Add(cdiBlob));
 			debugMetadata.customDebugInfos.Add(cdi, row);
 		}
@@ -3725,12 +3725,12 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddPdbDocument(PdbDocument? doc) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 			if (doc is null) {
 				Error("PdbDocument is null");
 				return 0;
 			}
-			if (debugMetadata!.pdbDocumentInfos.TryGetRid(doc, out uint rid))
+			if (debugMetadata.pdbDocumentInfos.TryGetRid(doc, out uint rid))
 				return rid;
 			// Like Roslyn, a missing GUID is index 0 (the reader returns Guid.Empty) instead of an all-zero GUID
 			var row = new RawDocumentRow(GetDocumentNameBlobOffset(doc.Url),
@@ -3746,7 +3746,7 @@ namespace dnlib.DotNet.Writer {
 		uint AddDebugGuid(Guid guid) => guid == Guid.Empty ? 0 : debugMetadata!.guidHeap.Add(guid);
 
 		uint GetDocumentNameBlobOffset(string? name) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 			if (name is null) {
 				Error("Document name is null");
 				name = string.Empty;
@@ -3764,11 +3764,11 @@ namespace dnlib.DotNet.Writer {
 			writer.WriteByte((byte)separator);
 			for (int i = 0; i < parts.Length; i++) {
 				var part = parts[i];
-				uint partOffset = debugMetadata!.blobHeap.Add(WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(part));
+				uint partOffset = debugMetadata.blobHeap.Add(WriterUtils.GetUTF8BytesKeepUnpairedSurrogates(part));
 				writer.WriteCompressedUInt32(partOffset);
 			}
 
-			var res = debugMetadata!.blobHeap.Add(outStream.ToArray());
+			var res = debugMetadata.blobHeap.Add(outStream.ToArray());
 			Free(ref bwctx);
 			return res;
 		}
@@ -3785,10 +3785,10 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		uint AddImportScope(PdbImportScope? scope) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 			if (scope is null)
 				return 0;
-			if (debugMetadata!.importScopeInfos.TryGetRid(scope, out uint rid)) {
+			if (debugMetadata.importScopeInfos.TryGetRid(scope, out uint rid)) {
 				if (rid == 0)
 					Error("PdbImportScope has an infinite Parent loop");
 				return rid;
@@ -3834,7 +3834,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddLocalVariable(PdbLocal? local, CilBody? body) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 			if (local is null) {
 				Error("PDB local is null");
 				return;
@@ -3843,7 +3843,7 @@ namespace dnlib.DotNet.Writer {
 				Error(errorMessage, local.Name);
 				return;
 			}
-			var row = new RawLocalVariableRow((ushort)local.Attributes, (ushort)local.Index, debugMetadata!.stringsHeap.Add(local.Name));
+			var row = new RawLocalVariableRow((ushort)local.Attributes, (ushort)local.Index, debugMetadata.stringsHeap.Add(local.Name));
 			uint rid = debugMetadata.tablesHeap.LocalVariableTable.Create(row);
 			debugMetadata.localVariableInfos.Add(local, rid);
 			AddCustomDebugInformationList(Table.LocalVariable, rid, local.CustomDebugInfos);
@@ -3875,7 +3875,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		void AddLocalConstant(PdbConstant constant) {
-			Debug.Assert(debugMetadata is not null);
+			Debug2.Assert(debugMetadata is not null);
 			if (constant is null) {
 				Error("PDB constant is null");
 				return;
@@ -3898,7 +3898,7 @@ namespace dnlib.DotNet.Writer {
 			var signature = outStream.ToArray();
 			Free(ref bwctx);
 
-			var row = new RawLocalConstantRow(debugMetadata!.stringsHeap.Add(constant.Name), debugMetadata.blobHeap.Add(signature));
+			var row = new RawLocalConstantRow(debugMetadata.stringsHeap.Add(constant.Name), debugMetadata.blobHeap.Add(signature));
 			uint rid = debugMetadata.tablesHeap.LocalConstantTable.Create(row);
 			debugMetadata.localConstantInfos.Add(constant, rid);
 			AddCustomDebugInformationList(Table.LocalConstant, rid, constant.CustomDebugInfos);
@@ -4028,7 +4028,7 @@ namespace dnlib.DotNet.Writer {
 
 		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) {
 			// The caller should've called SetOffset() so we know our final size
-			Debug.Assert(length != 0);
+			Debug2.Assert(length != 0);
 			if (length == 0)
 				throw new InvalidOperationException();
 			return length <= origSize;
@@ -4075,7 +4075,7 @@ namespace dnlib.DotNet.Writer {
 				offset = OffsetUtils.Add(offset, len);
 				rva = OffsetUtils.Add(rva, len);
 			}
-			Debug.Assert(initAll || length == rva - this.rva);
+			Debug2.Assert(initAll || length == rva - this.rva);
 			if (!(initAll || length == rva - this.rva))
 				throw new InvalidOperationException();
 			length = rva - this.rva;

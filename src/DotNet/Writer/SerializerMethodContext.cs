@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Writer {
 
 		public uint GetOffset(Instruction? instr) {
 			if (!dictInitd) {
-				Debug.Assert(body is not null);
+				Debug2.Assert(body is not null);
 				if (body is null)
 					return 0;
 				InitializeDict();
@@ -47,10 +47,10 @@ namespace dnlib.DotNet.Writer {
 		public bool IsSameMethod(MethodDef? method) => this.method == method;
 
 		void InitializeDict() {
-			Debug.Assert(body is not null);
-			Debug.Assert(toOffset.Count == 0);
+			Debug2.Assert(body is not null);
+			Debug2.Assert(toOffset.Count == 0);
 			uint offset = 0;
-			var instrs = body!.Instructions;
+			var instrs = body.Instructions;
 			for (int i = 0; i < instrs.Count; i++) {
 				var instr = instrs[i];
 				toOffset[instr] = offset;

@@ -110,7 +110,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 					}
 					reader.Position += 4;// typeIndex or 0
 					name = ReadUnicodeString(ref reader, end);
-					Debug.Assert(name is not null);
+					Debug2.Assert(name is not null);
 					if (name is null)
 						break;
 					var data = reader.ReadBytes((int)(end - reader.Position));

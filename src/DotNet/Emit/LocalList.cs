@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using dnlib.Utils;
@@ -192,9 +193,9 @@ namespace dnlib.DotNet.Emit {
 		/// <inheritdoc/>
 		public override string ToString() {
 			var n = name;
-			if (string.IsNullOrEmpty(n))
+			if (String2.IsNullOrEmpty(n))
 				return $"V_{Index}";
-			return n!;
+			return n;
 		}
 	}
 }

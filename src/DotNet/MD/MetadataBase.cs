@@ -125,7 +125,7 @@ namespace dnlib.DotNet.MD {
 
 			void InitializeKeys(MDTable mdTable, int keyColIndex) {
 				var keyColumn = mdTable.TableInfo.Columns[keyColIndex];
-				Debug.Assert(keyColumn.Size == 2 || keyColumn.Size == 4);
+				Debug2.Assert(keyColumn.Size == 2 || keyColumn.Size == 4);
 				rows = new RowInfo[mdTable.Rows + 1];
 				if (mdTable.Rows == 0)
 					return;
@@ -238,16 +238,16 @@ namespace dnlib.DotNet.MD {
 			mdReaderFactoryToDisposeLater = mdReaderFactory;
 			uint metadataBaseOffset;
 			if (peImage is not null) {
-				Debug.Assert(mdReaderFactory is null);
-				Debug.Assert(cor20Header is not null);
-				metadataBaseOffset = (uint)peImage.ToFileOffset(cor20Header!.Metadata.VirtualAddress);
+				Debug2.Assert(mdReaderFactory is null);
+				Debug2.Assert(cor20Header is not null);
+				metadataBaseOffset = (uint)peImage.ToFileOffset(cor20Header.Metadata.VirtualAddress);
 				mdReaderFactory = peImage.DataReaderFactory;
 			}
 			else {
-				Debug.Assert(mdReaderFactory is not null);
+				Debug2.Assert(mdReaderFactory is not null);
 				metadataBaseOffset = 0;
 			}
-			InitializeInternal(mdReaderFactory!, metadataBaseOffset);
+			InitializeInternal(mdReaderFactory, metadataBaseOffset);
 
 			if (tablesStream is null)
 				throw new BadImageFormatException("Missing MD stream");

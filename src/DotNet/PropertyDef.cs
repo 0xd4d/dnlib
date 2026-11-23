@@ -507,7 +507,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadPropertyRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			attributes = row.PropFlags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			declaringType2 = readerModule.GetOwnerType(this);

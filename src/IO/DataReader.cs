@@ -87,8 +87,8 @@ namespace dnlib.IO {
 		/// <param name="offset">Start offset of data</param>
 		/// <param name="length">Length of data</param>
 		public DataReader(DataStream stream, uint offset, uint length) {
-			Debug.Assert(stream is not null || (offset == 0 && length == 0));
-			Debug.Assert(offset + length >= offset);
+			Debug2.Assert(stream is not null || (offset == 0 && length == 0));
+			Debug2.Assert(offset + length >= offset);
 			// The assert makes the compiler think it can be null: it's only null if a default instance is sliced
 			this.stream = stream!;
 			startOffset = offset;
@@ -99,8 +99,8 @@ namespace dnlib.IO {
 
 		[Conditional("DEBUG")]
 		readonly void VerifyState() {
-			Debug.Assert(startOffset <= currentOffset);
-			Debug.Assert(currentOffset <= endOffset);
+			Debug2.Assert(startOffset <= currentOffset);
+			Debug2.Assert(currentOffset <= endOffset);
 		}
 
 		[DoesNotReturn]
@@ -315,7 +315,7 @@ namespace dnlib.IO {
 			VerifyState();
 			const uint SIZE = 1;
 			var currentOffset = this.currentOffset;
-			Debug.Assert(currentOffset != endOffset);
+			Debug2.Assert(currentOffset != endOffset);
 			var value = stream.ReadByte(currentOffset);
 			this.currentOffset = currentOffset + SIZE;
 			VerifyState();
@@ -326,7 +326,7 @@ namespace dnlib.IO {
 			VerifyState();
 			const uint SIZE = 2;
 			var currentOffset = this.currentOffset;
-			Debug.Assert(endOffset - currentOffset >= SIZE);
+			Debug2.Assert(endOffset - currentOffset >= SIZE);
 			var value = stream.ReadUInt16(currentOffset);
 			this.currentOffset = currentOffset + SIZE;
 			VerifyState();
@@ -337,7 +337,7 @@ namespace dnlib.IO {
 			VerifyState();
 			const uint SIZE = 4;
 			var currentOffset = this.currentOffset;
-			Debug.Assert(endOffset - currentOffset >= SIZE);
+			Debug2.Assert(endOffset - currentOffset >= SIZE);
 			var value = stream.ReadUInt32(currentOffset);
 			this.currentOffset = currentOffset + SIZE;
 			VerifyState();

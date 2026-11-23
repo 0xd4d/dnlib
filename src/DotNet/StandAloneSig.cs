@@ -178,7 +178,7 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
 			bool b = readerModule.TablesStream.TryReadStandAloneSigRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			signature = readerModule.ReadSignature(row.Signature, gpContext);
 		}
 

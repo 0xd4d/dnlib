@@ -2608,7 +2608,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadTypeDefRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			extendsCodedToken = row.Extends;
 			attributes = (int)row.Flags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);

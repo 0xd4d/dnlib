@@ -536,7 +536,7 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public override string ToString() {
 			var name = Name;
-			if (string.IsNullOrEmpty(name)) {
+			if (String2.IsNullOrEmpty(name)) {
 				if (IsReturnTypeParameter)
 					return "RET_PARAM";
 				return $"A_{paramIndex}";

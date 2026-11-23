@@ -192,7 +192,7 @@ namespace dnlib.DotNet.Writer {
 
 		internal void WriteReusedMethodBodies(DataWriter writer, long destStreamBaseOffset) {
 			foreach (var info in reusedMethods) {
-				Debug.Assert(info.MethodBody.RVA == info.RVA);
+				Debug2.Assert(info.MethodBody.RVA == info.RVA);
 				if (info.MethodBody.RVA != info.RVA)
 					throw new InvalidOperationException();
 				writer.Position = destStreamBaseOffset + (uint)info.MethodBody.FileOffset;

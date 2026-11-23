@@ -166,7 +166,7 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
 			bool b = readerModule.TablesStream.TryReadGenericParamConstraintRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			constraint = readerModule.ResolveTypeDefOrRef(row.Constraint, gpContext);
 			owner = readerModule.GetOwner(this);
 		}

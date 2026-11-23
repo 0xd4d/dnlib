@@ -303,7 +303,7 @@ namespace dnlib.DotNet.Resources {
 			var newFullName = fullName;
 
 			string? assemblyName = GetRealAssemblyName(asmRef);
-			if (!string.IsNullOrEmpty(assemblyName))
+			if (!String2.IsNullOrEmpty(assemblyName))
 				newFullName = $"{tr.ReflectionFullName}, {assemblyName}";
 
 			return newFullName;

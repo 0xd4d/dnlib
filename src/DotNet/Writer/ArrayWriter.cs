@@ -63,7 +63,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public void WriteInt32(int value) {
-			Debug.Assert(this.position + 4 <= data.Length);
+			Debug2.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
 				*(int*)(p + position) = value;
@@ -75,7 +75,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public void WriteUInt32(uint value) {
-			Debug.Assert(this.position + 4 <= data.Length);
+			Debug2.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
 				*(uint*)(p + position) = value;
@@ -87,7 +87,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public void WriteInt64(long value) {
-			Debug.Assert(this.position + 8 <= data.Length);
+			Debug2.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
 				*(long*)(p + position) = value;
@@ -99,7 +99,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public void WriteUInt64(ulong value) {
-			Debug.Assert(this.position + 8 <= data.Length);
+			Debug2.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
 				*(ulong*)(p + position) = value;
@@ -111,7 +111,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public void WriteSingle(float value) {
-			Debug.Assert(this.position + 4 <= data.Length);
+			Debug2.Assert(this.position + 4 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
 				*(float*)(p + position) = value;
@@ -123,7 +123,7 @@ namespace dnlib.DotNet.Writer {
 		/// </summary>
 		/// <param name="value">Value</param>
 		public void WriteDouble(double value) {
-			Debug.Assert(this.position + 8 <= data.Length);
+			Debug2.Assert(this.position + 8 <= data.Length);
 			var position = this.position;
 			fixed (byte* p = data)
 				*(double*)(p + position) = value;

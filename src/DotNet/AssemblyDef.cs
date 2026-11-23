@@ -1009,7 +1009,7 @@ namespace dnlib.DotNet {
 					versionRes = new Version(versionRes.Major, versionRes.Minor, versionRes.Build == -1 ? 0 : versionRes.Build, 0);
 				}
 				else if (key.Equals("Profile", StringComparison.OrdinalIgnoreCase)) {
-					if (!string.IsNullOrEmpty(value))
+					if (!String2.IsNullOrEmpty(value))
 						profileRes = value;
 				}
 			}
@@ -1069,7 +1069,7 @@ namespace dnlib.DotNet {
 			if (rid != 1)
 				modules = new LazyList<ModuleDef>(this);
 			bool b = readerModule.TablesStream.TryReadAssemblyRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			hashAlgorithm = (AssemblyHashAlgorithm)row.HashAlgId;
 			version = new Version(row.MajorVersion, row.MinorVersion, row.BuildNumber, row.RevisionNumber);
 			attributes = (int)row.Flags;

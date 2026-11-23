@@ -716,17 +716,17 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static bool IsSameFile(string? mappedFileName, string fileName) {
-			if (string.IsNullOrEmpty(mappedFileName) || string.IsNullOrEmpty(fileName))
+			if (String2.IsNullOrEmpty(mappedFileName) || String2.IsNullOrEmpty(fileName))
 				return false;
 			try {
 				fileName = GetFullPathOfFile(fileName);
 				// If it doesn't exist, it's not truncated (eg. the mapped file was deleted or renamed)
-				if (!File.Exists(fileName))
+				if (!File2.Exists(fileName))
 					return false;
 				// If the names only differ in case, it's the same file if the file system is case insensitive,
 				// or it's another file in a case sensitive file system. Assume it's the same file since the
 				// other case requires two files whose names only differ in case.
-				return StringComparer.OrdinalIgnoreCase.Equals(GetFullPathOfFile(mappedFileName!), fileName);
+				return StringComparer.OrdinalIgnoreCase.Equals(GetFullPathOfFile(mappedFileName), fileName);
 			}
 			catch (Exception ex) when (ex is IOException || ex is ArgumentException || ex is UnauthorizedAccessException || ex is NotSupportedException || ex is System.Security.SecurityException) {
 				return false;
@@ -750,7 +750,7 @@ namespace dnlib.DotNet.Writer {
 		}
 
 		static void DeleteFileNoThrow(string? fileName) {
-			if (string.IsNullOrEmpty(fileName))
+			if (String2.IsNullOrEmpty(fileName))
 				return;
 			try {
 				File.Delete(fileName);
@@ -1047,7 +1047,7 @@ namespace dnlib.DotNet.Writer {
 		/// <param name="imageLength">Length of the PE file</param>
 		/// <param name="timeDateStampOffsets">Stream offsets (not relative to the start of the PE file) of all PE timestamps</param>
 		internal void WriteDeterministicTimeDateStamp(DataWriter writer, long imageLength, List<long> timeDateStampOffsets) {
-			Debug.Assert(isDeterministic);
+			Debug2.Assert(isDeterministic);
 			var pos = writer.Position;
 			foreach (var offset in timeDateStampOffsets) {
 				writer.Position = offset;
@@ -1139,7 +1139,7 @@ namespace dnlib.DotNet.Writer {
 							GetDefaultPdbFileName()!);
 			}
 
-			if (!string.IsNullOrEmpty(TheOptions.PdbFileName))
+			if (!String2.IsNullOrEmpty(TheOptions.PdbFileName))
 				pdbFilename = TheOptions.PdbFileName;
 			else
 				pdbFilename = GetDefaultPdbFileName();
@@ -1178,7 +1178,7 @@ namespace dnlib.DotNet.Writer {
 
 		string? TryGetDefaultPdbFileName() {
 			var destFileName = GetStreamName(userDestStream ?? destStream) ?? GetModuleName(Module);
-			if (string.IsNullOrEmpty(destFileName))
+			if (String2.IsNullOrEmpty(destFileName))
 				return null;
 			return Path.ChangeExtension(destFileName, "pdb");
 		}
@@ -1254,7 +1254,7 @@ namespace dnlib.DotNet.Writer {
 				}
 				pdbIdWriter.WriteBytes(pdbGuid.ToByteArray());
 				pdbIdWriter.WriteUInt32(codeViewTimestamp);
-				Debug.Assert(pdbIdWriter.Position == pdbId.Length);
+				Debug2.Assert(pdbIdWriter.Position == pdbId.Length);
 				pdbStream.Position = pdbBaseOffset + pdbIdOffset;
 				pdbStream.Write(pdbId, 0, pdbId.Length);
 				pdbStream.Position = pdbBaseOffset + pdbLength;
@@ -1284,8 +1284,8 @@ namespace dnlib.DotNet.Writer {
 					AddReproduciblePdbDebugDirectoryEntry();
 
 				if (isEmbeddedPortablePdb) {
-					Debug.Assert(embeddedMemoryStream is not null);
-					debugDirectory.Add(CreateEmbeddedPortablePdbBlob(embeddedMemoryStream!),
+					Debug2.Assert(embeddedMemoryStream is not null);
+					debugDirectory.Add(CreateEmbeddedPortablePdbBlob(embeddedMemoryStream),
 						type: ImageDebugType.EmbeddedPortablePdb,
 						majorVersion: PortablePdbConstants.FormatVersion,
 						minorVersion: PortablePdbConstants.EmbeddedVersion,
@@ -1333,7 +1333,7 @@ namespace dnlib.DotNet.Writer {
 			}
 
 			string? pdbFilename;
-			if (!string.IsNullOrEmpty(TheOptions.PdbFileName))
+			if (!String2.IsNullOrEmpty(TheOptions.PdbFileName))
 				pdbFilename = TheOptions.PdbFileName;
 			else
 				pdbFilename = GetDefaultPdbFileName();

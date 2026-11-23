@@ -167,7 +167,7 @@ namespace dnlib.DotNet.Pdb.Dss {
 				return Array2.Empty<byte>();
 			var buffer = new byte[bufSize];
 			hr = unc.GetSignature((uint)buffer.Length, out bufSize, buffer);
-			Debug.Assert(hr == 0);
+			Debug2.Assert(hr == 0);
 			if (hr != 0)
 				return Array2.Empty<byte>();
 			return buffer;

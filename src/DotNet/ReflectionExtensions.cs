@@ -12,7 +12,7 @@ namespace dnlib.DotNet {
 	/// </summary>
 	static class ReflectionExtensions {
 		public static void GetTypeNamespaceAndName_TypeDefOrRef(this Type type, out string @namespace, out string name) {
-			Debug.Assert(type.IsTypeDef());
+			Debug2.Assert(type.IsTypeDef());
 			name = Unescape(type.Name) ?? string.Empty;
 			if (!type.IsNested)
 				@namespace = type.Namespace ?? string.Empty;
@@ -601,7 +601,7 @@ namespace dnlib.DotNet {
 
 		[return: NotNullIfNotNull(nameof(name))]
 		internal static string? Unescape(string? name) {
-			if (string.IsNullOrEmpty(name) || name!.IndexOf('\\') < 0)
+			if (String2.IsNullOrEmpty(name) || name.IndexOf('\\') < 0)
 				return name;
 			var sb = new StringBuilder(name.Length);
 			for (int i = 0; i < name.Length; i++) {

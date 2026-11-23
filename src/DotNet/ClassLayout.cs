@@ -91,7 +91,7 @@ namespace dnlib.DotNet {
 			origRid = rid;
 			this.rid = rid;
 			bool b = readerModule.TablesStream.TryReadClassLayoutRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			classSize = row.ClassSize;
 			packingSize = row.PackingSize;
 		}

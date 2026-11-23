@@ -457,7 +457,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadAssemblyRefRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			version = new Version(row.MajorVersion, row.MinorVersion, row.BuildNumber, row.RevisionNumber);
 			attributes = (int)row.Flags;
 			var pkData = readerModule.BlobStream.Read(row.PublicKeyOrToken);

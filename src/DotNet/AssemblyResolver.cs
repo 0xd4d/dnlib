@@ -97,7 +97,7 @@ namespace dnlib.DotNet {
 			}
 			else {
 				var windir = Environment.GetEnvironmentVariable("WINDIR");
-				if (!string.IsNullOrEmpty(windir)) {
+				if (!String2.IsNullOrEmpty(windir)) {
 					string path;
 
 					// .NET Framework 1.x and 2.x
@@ -131,7 +131,7 @@ namespace dnlib.DotNet {
 			yield return GetCurrentMonoPrefix();
 
 			var prefixes = Environment.GetEnvironmentVariable("MONO_GAC_PREFIX");
-			if (!string.IsNullOrEmpty(prefixes)) {
+			if (!String2.IsNullOrEmpty(prefixes)) {
 				foreach (var tmp in prefixes.Split(Path.PathSeparator)) {
 					var prefix = tmp.Trim();
 					if (prefix != string.Empty)
@@ -578,7 +578,7 @@ namespace dnlib.DotNet {
 							// Invalid path chars
 							yield break;
 						}
-						if (File.Exists(fullPath))
+						if (File2.Exists(fullPath))
 							yield return fullPath;
 					}
 				}
@@ -626,8 +626,8 @@ namespace dnlib.DotNet {
 					// Invalid path chars
 					path = null;
 				}
-				if (File.Exists(path))
-					yield return path!;
+				if (File2.Exists(path))
+					yield return path;
 			}
 			else {
 				if (UseGAC) {
@@ -680,7 +680,7 @@ namespace dnlib.DotNet {
 						// Invalid path chars
 						break;
 					}
-					if (File.Exists(file))
+					if (File2.Exists(file))
 						yield return file;
 				}
 			}
@@ -706,7 +706,7 @@ namespace dnlib.DotNet {
 					}
 					baseDir = Path.Combine(baseDir, $"{gacInfo.Prefix}{verString}_{cultureString}_{pktString}");
 					var pathName = Path.Combine(baseDir, asmSimpleName + ".dll");
-					if (File.Exists(pathName))
+					if (File2.Exists(pathName))
 						yield return pathName;
 				}
 			}
@@ -737,7 +737,7 @@ namespace dnlib.DotNet {
 					}
 					foreach (var dir in GetDirs(baseDir)) {
 						var pathName = Path.Combine(dir, asmSimpleName + ".dll");
-						if (File.Exists(pathName))
+						if (File2.Exists(pathName))
 							yield return pathName;
 					}
 				}
@@ -775,7 +775,7 @@ namespace dnlib.DotNet {
 							// Invalid path chars
 							yield break;
 						}
-						if (File.Exists(path2))
+						if (File2.Exists(path2))
 							yield return path2;
 					}
 				}
@@ -829,7 +829,7 @@ namespace dnlib.DotNet {
 					if (directoryInfo is not null) {
 						baseDir = directoryInfo.FullName;
 						var configName = imageName + ".config";
-						if (File.Exists(configName))
+						if (File2.Exists(configName))
 							return GetPrivatePaths(baseDir, configName);
 					}
 				}
@@ -856,7 +856,7 @@ namespace dnlib.DotNet {
 						if (probingElem is null)
 							continue;
 						var privatePath = probingElem.GetAttribute("privatePath");
-						if (string.IsNullOrEmpty(privatePath))
+						if (String2.IsNullOrEmpty(privatePath))
 							continue;
 						foreach (var tmp2 in privatePath.Split(';')) {
 							var path = tmp2.Trim();

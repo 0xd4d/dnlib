@@ -110,7 +110,7 @@ namespace dnlib.DotNet {
 
 		// See coreclr's IsTypeDefEquivalent()
 		static bool CheckEquivalent(TypeDef? td) {
-			Debug.Assert(td is not null);
+			Debug2.Assert(td is not null);
 
 			for (int i = 0; td is not null && i < 1000; i++) {
 				if (td.IsWindowsRuntime)

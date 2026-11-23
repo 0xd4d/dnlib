@@ -118,7 +118,7 @@ namespace dnlib.DotNet.Writer {
 
 		/// <inheritdoc/>
 		public void SetOffset(FileOffset offset, RVA rva) {
-			Debug.Assert(this.rva == 0);
+			Debug2.Assert(this.rva == 0);
 			this.offset = offset;
 			this.rva = rva;
 			if (HasExtraSections) {

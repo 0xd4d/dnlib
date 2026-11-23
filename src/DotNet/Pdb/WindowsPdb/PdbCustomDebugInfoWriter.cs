@@ -65,7 +65,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 		}
 
 		void InitializeInstructionDictionary() {
-			Debug.Assert(!instructionToOffsetDictInitd);
+			Debug2.Assert(!instructionToOffsetDictInitd);
 			instructionToOffsetDict.Clear();
 			var body = method.Body;
 			if (body is null)

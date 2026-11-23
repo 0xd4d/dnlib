@@ -239,7 +239,7 @@ namespace dnlib.DotNet {
 			if (addr != IntPtr.Zero && addr != new IntPtr(-1))
 				return Load(addr, options, imageLayout);
 			var location = mod.FullyQualifiedName;
-			if (string.IsNullOrEmpty(location) || location[0] == '<')
+			if (String2.IsNullOrEmpty(location) || location[0] == '<')
 				throw new InvalidOperationException($"Module {mod} has no HINSTANCE");
 			return Load(location, options);
 		}
@@ -399,8 +399,8 @@ namespace dnlib.DotNet {
 		SymbolReader? CreateSymbolReader(ModuleCreationOptions options) {
 			if (options.PdbFileOrData is not null) {
 				var pdbFileName = options.PdbFileOrData as string;
-				if (!string.IsNullOrEmpty(pdbFileName)) {
-					var symReader = SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbFileName!);
+				if (!String2.IsNullOrEmpty(pdbFileName)) {
+					var symReader = SymbolReaderFactory.Create(options.PdbOptions, metadata, pdbFileName);
 					if (symReader is not null)
 						return symReader;
 				}
@@ -1718,7 +1718,7 @@ namespace dnlib.DotNet {
 				pathName = Path.Combine(baseDir, name);
 				if (pathName != Path.GetFullPath(pathName))
 					return null;
-				if (!File.Exists(pathName))
+				if (!File2.Exists(pathName))
 					return null;
 			}
 			catch {
@@ -1734,7 +1734,7 @@ namespace dnlib.DotNet {
 		/// <returns>Base directory or <c>null</c> if unknown or if an error occurred</returns>
 		string? GetBaseDirectoryOfImage() {
 			var imageFileName = Location;
-			if (string.IsNullOrEmpty(imageFileName))
+			if (String2.IsNullOrEmpty(imageFileName))
 				return null;
 			try {
 				return Path.GetDirectoryName(imageFileName);

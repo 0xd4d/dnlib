@@ -109,7 +109,7 @@ namespace dnlib.DotNet.MD {
 					allStreams = newAllStreams;
 				}
 				else {
-					Debug.Assert(runtime == CLRRuntimeReaderKind.CLR);
+					Debug2.Assert(runtime == CLRRuntimeReaderKind.CLR);
 					foreach (var sh in mdHeader.StreamHeaders) {
 						switch (sh.Name.ToUpperInvariant()) {
 						case "#STRINGS":

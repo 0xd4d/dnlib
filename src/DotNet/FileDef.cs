@@ -209,7 +209,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadFileRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			attributes = (int)row.Flags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			hashValue = readerModule.BlobStream.Read(row.HashValue);

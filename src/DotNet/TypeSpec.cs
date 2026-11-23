@@ -433,7 +433,7 @@ namespace dnlib.DotNet {
 			this.gpContext = gpContext;
 			this.signatureRecursionDepth = signatureRecursionDepth;
 			bool b = readerModule.TablesStream.TryReadTypeSpecRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			signatureOffset = row.Signature;
 		}
 	}

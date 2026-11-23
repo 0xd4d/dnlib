@@ -90,7 +90,7 @@ namespace dnlib.DotNet.MD {
 			};
 
 		internal uint Unsafe_Read24(ref DataReader reader) {
-			Debug.Assert(size == 2 || size == 4);
+			Debug2.Assert(size == 2 || size == 4);
 			return size == 2 ? reader.Unsafe_ReadUInt16() : reader.Unsafe_ReadUInt32();
 		}
 
@@ -109,7 +109,7 @@ namespace dnlib.DotNet.MD {
 		}
 
 		internal void Write24(DataWriter writer, uint value) {
-			Debug.Assert(size == 2 || size == 4);
+			Debug2.Assert(size == 2 || size == 4);
 			if (size == 2)
 				writer.WriteUInt16((ushort)value);
 			else

@@ -1200,7 +1200,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadMethodRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			rva = (RVA)row.RVA;
 			implAttributes = row.ImplFlags;
 			attributes = row.Flags;

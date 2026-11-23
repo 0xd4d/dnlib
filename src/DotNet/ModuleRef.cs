@@ -204,7 +204,7 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			module = readerModule;
 			bool b = readerModule.TablesStream.TryReadModuleRefRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 		}
 	}

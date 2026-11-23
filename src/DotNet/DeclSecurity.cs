@@ -219,7 +219,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadDeclSecurityRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			permissionSet = row.PermissionSet;
 			action = (SecurityAction)row.Action;
 		}

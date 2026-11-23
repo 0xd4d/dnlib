@@ -26,7 +26,7 @@ namespace dnlib.DotNet.Writer {
 			public StringsOffsetInfo(UTF8String value, uint stringsId) {
 				Value = value;
 				StringsId = stringsId;
-				Debug.Assert((stringsId & STRINGS_ID_FLAG) != 0);
+				Debug2.Assert((stringsId & STRINGS_ID_FLAG) != 0);
 			}
 			public readonly UTF8String Value;
 			public readonly uint StringsId;
@@ -146,8 +146,8 @@ namespace dnlib.DotNet.Writer {
 			if (nulIndex >= 0)
 				return Add(RemoveNul(s, nulIndex));
 			info = new StringsOffsetInfo(s, stringsId++);
-			Debug.Assert(!toStringsOffsetInfo.ContainsKey(s));
-			Debug.Assert(!offsetIdToInfo.ContainsKey(info.StringsId));
+			Debug2.Assert(!toStringsOffsetInfo.ContainsKey(s));
+			Debug2.Assert(!offsetIdToInfo.ContainsKey(info.StringsId));
 			toStringsOffsetInfo[s] = info;
 			offsetIdToInfo[info.StringsId] = info;
 			stringsOffsetInfos.Add(info);
@@ -166,7 +166,7 @@ namespace dnlib.DotNet.Writer {
 			if ((offsetId & STRINGS_ID_FLAG) == 0)
 				return offsetId;
 			if (offsetIdToInfo.TryGetValue(offsetId, out var info)) {
-				Debug.Assert(info.StringsOffset != 0);
+				Debug2.Assert(info.StringsOffset != 0);
 				return info.StringsOffset;
 			}
 			throw new ArgumentOutOfRangeException(nameof(offsetId));

@@ -871,7 +871,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadFieldRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			attributes = row.Flags;
 			origAttributes = (FieldAttributes)attributes;

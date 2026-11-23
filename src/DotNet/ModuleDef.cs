@@ -1620,7 +1620,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		protected void InitializeFromRawRow() {
 			bool b = readerModule.TablesStream.TryReadModuleRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			generation = row.Generation;
 			mvid = readerModule.GuidStream.Read(row.Mvid);
 			encId = readerModule.GuidStream.Read(row.EncId);

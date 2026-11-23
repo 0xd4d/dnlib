@@ -230,7 +230,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadManifestResourceRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			offset = row.Offset;
 			attributes = (int)row.Flags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);

@@ -426,7 +426,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadGenericParamRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			number = row.Number;
 			attributes = row.Flags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);

@@ -119,7 +119,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				if (import is not null)
 					result.Add(import);
 			}
-			Debug.Assert(reader.Position == reader.Length);
+			Debug2.Assert(reader.Position == reader.Length);
 		}
 
 		/// <summary>
@@ -182,17 +182,17 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 		ITypeDefOrRef? TryReadType(uint codedToken) {
 			bool b = CodedToken.TypeDefOrRef.Decode(codedToken, out uint token);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			if (!b)
 				return null;
 			var type = module.ResolveToken(token) as ITypeDefOrRef;
-			Debug.Assert(type is not null);
+			Debug2.Assert(type is not null);
 			return type;
 		}
 
 		AssemblyRef? TryReadAssemblyRef(uint rid) {
 			var asmRef = module.ResolveToken(0x23000000 + rid) as AssemblyRef;
-			Debug.Assert(asmRef is not null);
+			Debug2.Assert(asmRef is not null);
 			return asmRef;
 		}
 

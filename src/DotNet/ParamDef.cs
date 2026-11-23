@@ -409,7 +409,7 @@ namespace dnlib.DotNet {
 			this.rid = rid;
 			this.readerModule = readerModule;
 			bool b = readerModule.TablesStream.TryReadParamRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			attributes = row.Flags;
 			sequence = row.Sequence;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);

@@ -20,14 +20,14 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 			if (asyncCatchHandlerILOffset is not null) {
 				asyncMethod.CatchHandlerInstruction = GetInstruction(body, asyncCatchHandlerILOffset.Value);
-				Debug.Assert(asyncMethod.CatchHandlerInstruction is not null);
+				Debug2.Assert(asyncMethod.CatchHandlerInstruction is not null);
 			}
 
 			int count = asyncStepInfos.Count;
 			for (int i = 0; i < count; i++) {
 				var rawInfo = asyncStepInfos[i];
 				var yieldInstruction = GetInstruction(body, rawInfo.YieldOffset);
-				Debug.Assert(yieldInstruction is not null);
+				Debug2.Assert(yieldInstruction is not null);
 				if (yieldInstruction is null)
 					continue;
 				MethodDef? breakpointMethod;
@@ -38,16 +38,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				}
 				else {
 					var breakpointMethodToken = new MDToken(rawInfo.BreakpointMethod);
-					Debug.Assert(breakpointMethodToken.Table == Table.Method);
+					Debug2.Assert(breakpointMethodToken.Table == Table.Method);
 					if (breakpointMethodToken.Table != Table.Method)
 						continue;
 					breakpointMethod = module.ResolveToken(breakpointMethodToken) as MethodDef;
-					Debug.Assert(breakpointMethod is not null);
+					Debug2.Assert(breakpointMethod is not null);
 					if (breakpointMethod is null)
 						continue;
 					breakpointInstruction = GetInstruction(breakpointMethod.Body, rawInfo.BreakpointOffset);
 				}
-				Debug.Assert(breakpointInstruction is not null);
+				Debug2.Assert(breakpointInstruction is not null);
 				if (breakpointInstruction is null)
 					continue;
 

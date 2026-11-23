@@ -423,7 +423,7 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			module = readerModule;
 			bool b = readerModule.TablesStream.TryReadTypeRefRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			@namespace = readerModule.StringsStream.ReadNoNull(row.Namespace);
 			resolutionScopeCodedToken = row.ResolutionScope;

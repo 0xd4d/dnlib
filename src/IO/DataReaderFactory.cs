@@ -40,7 +40,7 @@ namespace dnlib.IO {
 		static void Throw_CreateReader_2(int offset, int length) {
 			if (offset < 0)
 				throw new ArgumentOutOfRangeException(nameof(offset));
-			Debug.Assert(length < 0);
+			Debug2.Assert(length < 0);
 			throw new ArgumentOutOfRangeException(nameof(length));
 		}
 

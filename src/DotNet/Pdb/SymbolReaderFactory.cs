@@ -27,9 +27,9 @@ namespace dnlib.DotNet.Pdb {
 			string fileToCheck;
 			try {
 				fileToCheck = assemblyFileName == string.Empty ? pdbFilename : Path.Combine(Path.GetDirectoryName(assemblyFileName)!, pdbFilename);
-				if (!File.Exists(fileToCheck)) {
+				if (!File2.Exists(fileToCheck)) {
 					var ext = Path.GetExtension(pdbFilename);
-					if (string.IsNullOrEmpty(ext))
+					if (String2.IsNullOrEmpty(ext))
 						ext = "pdb";
 					fileToCheck = Path.ChangeExtension(assemblyFileName, ext);
 				}

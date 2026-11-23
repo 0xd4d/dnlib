@@ -305,7 +305,7 @@ namespace dnlib.DotNet.Resources {
 				if (format < SerializationFormat.BinaryFormatter || format > SerializationFormat.ActivatorStream)
 					throw new ResourceReaderException($"Invalid serialization format: {format}");
 				int length = reader.Read7BitEncodedInt32();
-				Debug.Assert(length == (int)(endPos - reader.Position));
+				Debug2.Assert(length == (int)(endPos - reader.Position));
 				serializedData = reader.ReadBytes(length);
 				res = createResourceDataDelegate?.Invoke(resourceDataFactory, type, serializedData, format);
 				return res ?? resourceDataFactory.CreateSerialized(serializedData, format, type);

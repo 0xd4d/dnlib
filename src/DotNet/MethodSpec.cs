@@ -276,7 +276,7 @@ namespace dnlib.DotNet {
 			this.readerModule = readerModule;
 			this.gpContext = gpContext;
 			bool b = readerModule.TablesStream.TryReadMethodSpecRow(origRid, out var row);
-			Debug.Assert(b);
+			Debug2.Assert(b);
 			method = readerModule.ResolveMethodDefOrRef(row.Method, gpContext);
 			instantiation = readerModule.ReadSignature(row.Instantiation, gpContext);
 		}

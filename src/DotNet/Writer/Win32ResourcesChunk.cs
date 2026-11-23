@@ -246,7 +246,7 @@ namespace dnlib.DotNet.Writer {
 		const uint RESOURCE_DATA_ALIGNMENT = 4;
 
 		bool IReuseChunk.CanReuse(RVA origRva, uint origSize) {
-			Debug.Assert(rva != 0);
+			Debug2.Assert(rva != 0);
 			if (rva == 0)
 				throw new InvalidOperationException();
 			return length <= origSize;
