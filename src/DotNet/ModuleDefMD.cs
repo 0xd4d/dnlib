@@ -33,31 +33,31 @@ namespace dnlib.DotNet {
 
 		StrongBox<RidList>? moduleRidList;
 
-		SimpleLazyList<ModuleDefMD2> listModuleDefMD = null!;
-		SimpleLazyList<TypeRefMD> listTypeRefMD = null!;
-		SimpleLazyList<TypeDefMD> listTypeDefMD = null!;
-		SimpleLazyList<FieldDefMD> listFieldDefMD = null!;
-		SimpleLazyList<MethodDefMD> listMethodDefMD = null!;
-		SimpleLazyList<ParamDefMD> listParamDefMD = null!;
-		SimpleLazyList2<InterfaceImplMD> listInterfaceImplMD = null!;
-		SimpleLazyList2<MemberRefMD> listMemberRefMD = null!;
-		SimpleLazyList<ConstantMD> listConstantMD = null!;
-		SimpleLazyList<DeclSecurityMD> listDeclSecurityMD = null!;
-		SimpleLazyList<ClassLayoutMD> listClassLayoutMD = null!;
-		SimpleLazyList2<StandAloneSigMD> listStandAloneSigMD = null!;
-		SimpleLazyList<EventDefMD> listEventDefMD = null!;
-		SimpleLazyList<PropertyDefMD> listPropertyDefMD = null!;
-		SimpleLazyList<ModuleRefMD> listModuleRefMD = null!;
-		SimpleLazyList2<TypeSpecMD> listTypeSpecMD = null!;
-		SimpleLazyList<ImplMapMD> listImplMapMD = null!;
-		SimpleLazyList<AssemblyDefMD> listAssemblyDefMD = null!;
-		SimpleLazyList<AssemblyRefMD> listAssemblyRefMD = null!;
-		SimpleLazyList<FileDefMD> listFileDefMD = null!;
-		SimpleLazyList<ExportedTypeMD> listExportedTypeMD = null!;
-		SimpleLazyList<ManifestResourceMD> listManifestResourceMD = null!;
-		SimpleLazyList<GenericParamMD> listGenericParamMD = null!;
-		SimpleLazyList2<MethodSpecMD> listMethodSpecMD = null!;
-		SimpleLazyList2<GenericParamConstraintMD> listGenericParamConstraintMD = null!;
+		SimpleLazyList<ModuleDefMD2> listModuleDefMD;
+		SimpleLazyList<TypeRefMD> listTypeRefMD;
+		SimpleLazyList<TypeDefMD> listTypeDefMD;
+		SimpleLazyList<FieldDefMD> listFieldDefMD;
+		SimpleLazyList<MethodDefMD> listMethodDefMD;
+		SimpleLazyList<ParamDefMD> listParamDefMD;
+		SimpleLazyList2<InterfaceImplMD> listInterfaceImplMD;
+		SimpleLazyList2<MemberRefMD> listMemberRefMD;
+		SimpleLazyList<ConstantMD> listConstantMD;
+		SimpleLazyList<DeclSecurityMD> listDeclSecurityMD;
+		SimpleLazyList<ClassLayoutMD> listClassLayoutMD;
+		SimpleLazyList2<StandAloneSigMD> listStandAloneSigMD;
+		SimpleLazyList<EventDefMD> listEventDefMD;
+		SimpleLazyList<PropertyDefMD> listPropertyDefMD;
+		SimpleLazyList<ModuleRefMD> listModuleRefMD;
+		SimpleLazyList2<TypeSpecMD> listTypeSpecMD;
+		SimpleLazyList<ImplMapMD> listImplMapMD;
+		SimpleLazyList<AssemblyDefMD> listAssemblyDefMD;
+		SimpleLazyList<AssemblyRefMD> listAssemblyRefMD;
+		SimpleLazyList<FileDefMD> listFileDefMD;
+		SimpleLazyList<ExportedTypeMD> listExportedTypeMD;
+		SimpleLazyList<ManifestResourceMD> listManifestResourceMD;
+		SimpleLazyList<GenericParamMD> listGenericParamMD;
+		SimpleLazyList2<MethodSpecMD> listMethodSpecMD;
+		SimpleLazyList2<GenericParamConstraintMD> listGenericParamConstraintMD;
 
 		/// <summary>
 		/// Gets/sets the method decrypter
@@ -374,7 +374,40 @@ namespace dnlib.DotNet {
 			this.metadata = metadata;
 			context = options.Context;
 			methodBodyReaderOptions = options.MethodBodyReaderOptions;
-			Initialize();
+
+			var ts = metadata.TablesStream;
+
+			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == 1 ? this : new ModuleDefMD2(this, rid2));
+			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.TypeRefTable.Rows, rid2 => new TypeRefMD(this, rid2));
+			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.TypeDefTable.Rows, rid2 => new TypeDefMD(this, rid2));
+			listFieldDefMD = new SimpleLazyList<FieldDefMD>(ts.FieldTable.Rows, rid2 => new FieldDefMD(this, rid2));
+			listMethodDefMD = new SimpleLazyList<MethodDefMD>(ts.MethodTable.Rows, rid2 => new MethodDefMD(this, rid2));
+			listParamDefMD = new SimpleLazyList<ParamDefMD>(ts.ParamTable.Rows, rid2 => new ParamDefMD(this, rid2));
+			listInterfaceImplMD = new SimpleLazyList2<InterfaceImplMD>(ts.InterfaceImplTable.Rows, (rid2, gpContext) => new InterfaceImplMD(this, rid2, gpContext));
+			listMemberRefMD = new SimpleLazyList2<MemberRefMD>(ts.MemberRefTable.Rows, (rid2, gpContext) => new MemberRefMD(this, rid2, gpContext));
+			listConstantMD = new SimpleLazyList<ConstantMD>(ts.ConstantTable.Rows, rid2 => new ConstantMD(this, rid2));
+			listDeclSecurityMD = new SimpleLazyList<DeclSecurityMD>(ts.DeclSecurityTable.Rows, rid2 => new DeclSecurityMD(this, rid2));
+			listClassLayoutMD = new SimpleLazyList<ClassLayoutMD>(ts.ClassLayoutTable.Rows, rid2 => new ClassLayoutMD(this, rid2));
+			listStandAloneSigMD = new SimpleLazyList2<StandAloneSigMD>(ts.StandAloneSigTable.Rows, (rid2, gpContext) => new StandAloneSigMD(this, rid2, gpContext));
+			listEventDefMD = new SimpleLazyList<EventDefMD>(ts.EventTable.Rows, rid2 => new EventDefMD(this, rid2));
+			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.PropertyTable.Rows, rid2 => new PropertyDefMD(this, rid2));
+			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.ModuleRefTable.Rows, rid2 => new ModuleRefMD(this, rid2));
+			listTypeSpecMD = new SimpleLazyList2<TypeSpecMD>(ts.TypeSpecTable.Rows, (rid2, gpContext) => TypeSpecMD.Create(this, rid2, gpContext));
+			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.ImplMapTable.Rows, rid2 => new ImplMapMD(this, rid2));
+			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.AssemblyTable.Rows, rid2 => new AssemblyDefMD(this, rid2));
+			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.FileTable.Rows, rid2 => new FileDefMD(this, rid2));
+			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.AssemblyRefTable.Rows, rid2 => new AssemblyRefMD(this, rid2));
+			listExportedTypeMD = new SimpleLazyList<ExportedTypeMD>(ts.ExportedTypeTable.Rows, rid2 => new ExportedTypeMD(this, rid2));
+			listManifestResourceMD = new SimpleLazyList<ManifestResourceMD>(ts.ManifestResourceTable.Rows, rid2 => new ManifestResourceMD(this, rid2));
+			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.GenericParamTable.Rows, rid2 => new GenericParamMD(this, rid2));
+			listMethodSpecMD = new SimpleLazyList2<MethodSpecMD>(ts.MethodSpecTable.Rows, (rid2, gpContext) => new MethodSpecMD(this, rid2, gpContext));
+			listGenericParamConstraintMD = new SimpleLazyList2<GenericParamConstraintMD>(ts.GenericParamConstraintTable.Rows, (rid2, gpContext) => new GenericParamConstraintMD(this, rid2, gpContext));
+
+			for (int i = 0; i < 64; i++) {
+				var tbl = TablesStream.Get((Table)i);
+				lastUsedRids[i] = tbl is null ? 0 : (int)tbl.Rows;
+			}
+
 			InitializeFromRawRow();
 			location = metadata.PEImage.Filename ?? string.Empty;
 
@@ -520,41 +553,6 @@ namespace dnlib.DotNet {
 				Subsystem.WindowsCui => ModuleKind.Console,
 				_ => ModuleKind.Windows,
 			};
-		}
-
-		void Initialize() {
-			var ts = metadata.TablesStream;
-
-			listModuleDefMD = new SimpleLazyList<ModuleDefMD2>(ts.ModuleTable.Rows, rid2 => rid2 == 1 ? this : new ModuleDefMD2(this, rid2));
-			listTypeRefMD = new SimpleLazyList<TypeRefMD>(ts.TypeRefTable.Rows, rid2 => new TypeRefMD(this, rid2));
-			listTypeDefMD = new SimpleLazyList<TypeDefMD>(ts.TypeDefTable.Rows, rid2 => new TypeDefMD(this, rid2));
-			listFieldDefMD = new SimpleLazyList<FieldDefMD>(ts.FieldTable.Rows, rid2 => new FieldDefMD(this, rid2));
-			listMethodDefMD = new SimpleLazyList<MethodDefMD>(ts.MethodTable.Rows, rid2 => new MethodDefMD(this, rid2));
-			listParamDefMD = new SimpleLazyList<ParamDefMD>(ts.ParamTable.Rows, rid2 => new ParamDefMD(this, rid2));
-			listInterfaceImplMD = new SimpleLazyList2<InterfaceImplMD>(ts.InterfaceImplTable.Rows, (rid2, gpContext) => new InterfaceImplMD(this, rid2, gpContext));
-			listMemberRefMD = new SimpleLazyList2<MemberRefMD>(ts.MemberRefTable.Rows, (rid2, gpContext) => new MemberRefMD(this, rid2, gpContext));
-			listConstantMD = new SimpleLazyList<ConstantMD>(ts.ConstantTable.Rows, rid2 => new ConstantMD(this, rid2));
-			listDeclSecurityMD = new SimpleLazyList<DeclSecurityMD>(ts.DeclSecurityTable.Rows, rid2 => new DeclSecurityMD(this, rid2));
-			listClassLayoutMD = new SimpleLazyList<ClassLayoutMD>(ts.ClassLayoutTable.Rows, rid2 => new ClassLayoutMD(this, rid2));
-			listStandAloneSigMD = new SimpleLazyList2<StandAloneSigMD>(ts.StandAloneSigTable.Rows, (rid2, gpContext) => new StandAloneSigMD(this, rid2, gpContext));
-			listEventDefMD = new SimpleLazyList<EventDefMD>(ts.EventTable.Rows, rid2 => new EventDefMD(this, rid2));
-			listPropertyDefMD = new SimpleLazyList<PropertyDefMD>(ts.PropertyTable.Rows, rid2 => new PropertyDefMD(this, rid2));
-			listModuleRefMD = new SimpleLazyList<ModuleRefMD>(ts.ModuleRefTable.Rows, rid2 => new ModuleRefMD(this, rid2));
-			listTypeSpecMD = new SimpleLazyList2<TypeSpecMD>(ts.TypeSpecTable.Rows, (rid2, gpContext) => TypeSpecMD.Create(this, rid2, gpContext));
-			listImplMapMD = new SimpleLazyList<ImplMapMD>(ts.ImplMapTable.Rows, rid2 => new ImplMapMD(this, rid2));
-			listAssemblyDefMD = new SimpleLazyList<AssemblyDefMD>(ts.AssemblyTable.Rows, rid2 => new AssemblyDefMD(this, rid2));
-			listFileDefMD = new SimpleLazyList<FileDefMD>(ts.FileTable.Rows, rid2 => new FileDefMD(this, rid2));
-			listAssemblyRefMD = new SimpleLazyList<AssemblyRefMD>(ts.AssemblyRefTable.Rows, rid2 => new AssemblyRefMD(this, rid2));
-			listExportedTypeMD = new SimpleLazyList<ExportedTypeMD>(ts.ExportedTypeTable.Rows, rid2 => new ExportedTypeMD(this, rid2));
-			listManifestResourceMD = new SimpleLazyList<ManifestResourceMD>(ts.ManifestResourceTable.Rows, rid2 => new ManifestResourceMD(this, rid2));
-			listGenericParamMD = new SimpleLazyList<GenericParamMD>(ts.GenericParamTable.Rows, rid2 => new GenericParamMD(this, rid2));
-			listMethodSpecMD = new SimpleLazyList2<MethodSpecMD>(ts.MethodSpecTable.Rows, (rid2, gpContext) => new MethodSpecMD(this, rid2, gpContext));
-			listGenericParamConstraintMD = new SimpleLazyList2<GenericParamConstraintMD>(ts.GenericParamConstraintTable.Rows, (rid2, gpContext) => new GenericParamConstraintMD(this, rid2, gpContext));
-
-			for (int i = 0; i < 64; i++) {
-				var tbl = TablesStream.Get((Table)i);
-				lastUsedRids[i] = tbl is null ? 0 : (int)tbl.Rows;
-			}
 		}
 
 		static readonly Dictionary<string, int> preferredCorLibs = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {
