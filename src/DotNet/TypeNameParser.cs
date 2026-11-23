@@ -103,7 +103,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="ITypeDefOrRef"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		public static ITypeDefOrRef ParseReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
-			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper, gpContext))
+			using (var parser = new ReflectionTypeNameParser(ownerModule, RemoveNullTerminator(typeFullName), typeNameParserHelper, gpContext))
 				return parser.Parse();
 		}
 
@@ -180,7 +180,7 @@ namespace dnlib.DotNet {
 		/// <returns>A new <see cref="TypeSig"/> instance</returns>
 		/// <exception cref="TypeNameParserException">If parsing failed</exception>
 		public static TypeSig ParseAsTypeSigReflectionOrThrow(ModuleDef ownerModule, string typeFullName, IAssemblyRefFinder? typeNameParserHelper, GenericParamContext gpContext) {
-			using (var parser = new ReflectionTypeNameParser(ownerModule, typeFullName, typeNameParserHelper, gpContext))
+			using (var parser = new ReflectionTypeNameParser(ownerModule, RemoveNullTerminator(typeFullName), typeNameParserHelper, gpContext))
 				return parser.ParseAsTypeSig();
 		}
 
@@ -222,6 +222,17 @@ namespace dnlib.DotNet {
 			catch (TypeNameParserException) {
 				return null;
 			}
+		}
+
+		/// <summary>
+		/// A type name ends at the first null char: the CLR's type name parser gets a null-terminated string, so eg.
+		/// <c>Ns.Type\0xyz</c> in a custom attribute blob (or passed to <c>Type.GetType()</c>) is <c>Ns.Type</c>.
+		/// </summary>
+		static string RemoveNullTerminator(string typeFullName) {
+			if (typeFullName is null)
+				return typeFullName!;
+			int index = typeFullName.IndexOf('\0');
+			return index < 0 ? typeFullName : typeFullName.Substring(0, index);
 		}
 
 		/// <summary>
