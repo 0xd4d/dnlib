@@ -3910,7 +3910,7 @@ exit:;
 					var ara = (ArraySig)a;
 					result = ara.Rank == b.GetArrayRank() &&
 						(IsFnPtrElementType(b) ?
-								(a = a!.Next.RemoveModifiers()) is not null && a.ElementType == ElementType.FnPtr :
+								(a = ara.Next.RemoveModifiers()) is not null && a.ElementType == ElementType.FnPtr :
 								Equals(a.Next, b.GetElementType(), declaringType, null, modifiedB?.GetElementType()));
 				}
 				break;
