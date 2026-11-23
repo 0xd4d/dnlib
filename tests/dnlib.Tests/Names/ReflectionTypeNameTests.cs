@@ -92,20 +92,98 @@ namespace dnlib.Tests.Names {
 		public void ReflectionNameIsTypeName(Type type) =>
 			Assert.Equal(type.Name, Import(type).ReflectionName);
 
+		// Type.Namespace of a nested type is the namespace of its outermost declaring type, and null if there's
+		// no namespace. dnlib returns an empty string then.
 		[Theory, MemberData(nameof(Types))]
-		public void ReflectionNamespaceIsTypeNamespaceExceptForNestedTypes(Type type) {
-			// Type.Namespace of a nested type is the namespace of its outermost declaring type. dnlib returns
-			// the namespace that's stored in the nested type's own metadata row, which is empty.
-			var expected = IsNested(type) ? "" : type.Namespace;
-
-			Assert.Equal(expected, Import(type).ReflectionNamespace);
+		public void ReflectionNamespaceIsTypeNamespace(Type type) {
+			// The namespace of an array, pointer or reference type is the namespace of the type it's made of.
+			// Mono returns null for an array of a nested type, so ask that type.
+			var elementType = type;
+			while (elementType.HasElementType)
+				elementType = elementType.GetElementType()!;
+			Assert.Equal(elementType.Namespace ?? string.Empty, Import(type).ReflectionNamespace);
 		}
 
-		// true if the type, or the type an array/pointer/reference type is made of, is a nested type
-		static bool IsNested(Type type) {
-			while (type.HasElementType)
-				type = type.GetElementType()!;
-			return type.IsNested;
+		// System.Type.Name of a generic parameter is its name, Type.Namespace is the namespace of the type that
+		// declares it (or that declares its method) and Type.FullName is null. dnlib only knows the name and the
+		// namespace if the signature has an owner. ReflectionFullName is never null, it's the name.
+		[Fact]
+		public void ReflectionNamesOfGenericParameters() {
+			var module = CreateModule();
+			var outer = new TypeDefUser("Ns", "Outer");
+			var inner = new TypeDefUser("Inner`1");
+			inner.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "TType"));
+			var method = new MethodDefUser("Method", MethodSig.CreateStaticGeneric(1, module.CorLibTypes.Void));
+			method.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "TMethod"));
+			module.Types.Add(outer);
+			outer.NestedTypes.Add(inner);
+			inner.Methods.Add(method);
+
+			var typeParameter = new GenericVar(0, inner);
+			Assert.Equal("TType", typeParameter.ReflectionName);
+			Assert.Equal("Ns", typeParameter.ReflectionNamespace);
+			Assert.Equal("TType", typeParameter.ReflectionFullName);
+			Assert.Equal("Ns", new SZArraySig(typeParameter).ReflectionNamespace);
+
+			var methodParameter = new GenericMVar(0, method);
+			Assert.Equal("TMethod", methodParameter.ReflectionName);
+			Assert.Equal("Ns", methodParameter.ReflectionNamespace);
+			Assert.Equal("TMethod", methodParameter.ReflectionFullName);
+
+			var withoutOwner = new GenericVar(1);
+			Assert.Equal("!1", withoutOwner.ReflectionName);
+			Assert.Equal(string.Empty, withoutOwner.ReflectionNamespace);
+			Assert.Equal("!!0", new GenericMVar(0).ReflectionName);
+		}
+
+		// The same as above, compared with reflection
+		[Fact]
+		public void ReflectionNamespaceOfAGenericParameterIsTypeNamespace() {
+			Assert.SkipWhen(Type.GetType("Mono.Runtime") is not null, "Mono's Type.Namespace of a generic parameter is null");
+			var typeParameter = typeof(Outer<>.Inner<>).GetGenericArguments()[1];
+			Assert.Equal("U", typeParameter.Name);
+			Assert.Equal(typeof(Outer<>).Namespace, typeParameter.Namespace);
+			Assert.Null(typeParameter.FullName);
+
+			var methodParameter = typeof(Array).GetMethod("Empty")!.GetGenericArguments()[0];
+			Assert.Equal("System", methodParameter.Namespace);
+		}
+
+		// The namespace in the metadata row of a nested type is empty, and that's what Namespace returns
+		[Fact]
+		public void NamespaceOfANestedTypeIsEmpty() {
+			var nested = Import(typeof(Outer<int>.Inner<string>.Innermost));
+
+			Assert.Equal(string.Empty, nested.Namespace);
+			Assert.Equal(typeof(Outer<>).Namespace, nested.ReflectionNamespace);
+		}
+
+		[Fact]
+		public void ReflectionNamespaceOfANestedTypeDefTypeRefAndExportedType() {
+			var module = CreateModule();
+			var outerDef = new TypeDefUser("Ns", "Outer");
+			var innerDef = new TypeDefUser("Inner");
+			var innermostDef = new TypeDefUser("Innermost");
+			module.Types.Add(outerDef);
+			outerDef.NestedTypes.Add(innerDef);
+			innerDef.NestedTypes.Add(innermostDef);
+			Assert.Equal("Ns", innermostDef.ReflectionNamespace);
+			Assert.Equal("Ns", outerDef.ReflectionNamespace);
+			Assert.Equal(string.Empty, innermostDef.Namespace);
+
+			var outerRef = new TypeRefUser(module, "Ns", "Outer", module.CorLibTypes.AssemblyRef);
+			var innerRef = new TypeRefUser(module, string.Empty, "Inner", outerRef);
+			var innermostRef = new TypeRefUser(module, string.Empty, "Innermost", innerRef);
+			Assert.Equal("Ns", innermostRef.ReflectionNamespace);
+			Assert.Equal("Ns", outerRef.ReflectionNamespace);
+			Assert.Equal(string.Empty, innermostRef.Namespace);
+
+			var outerExported = new ExportedTypeUser(module, 0, "Ns", "Outer", TypeAttributes.Public, module.CorLibTypes.AssemblyRef);
+			var innerExported = new ExportedTypeUser(module, 0, string.Empty, "Inner", TypeAttributes.NestedPublic, outerExported);
+			var innermostExported = new ExportedTypeUser(module, 0, string.Empty, "Innermost", TypeAttributes.NestedPublic, innerExported);
+			Assert.Equal("Ns", innermostExported.ReflectionNamespace);
+			Assert.Equal("Ns", outerExported.ReflectionNamespace);
+			Assert.Equal(string.Empty, innermostExported.Namespace);
 		}
 
 		[Theory, MemberData(nameof(Types))]

@@ -1193,6 +1193,11 @@ namespace dnlib.DotNet {
 				AppendNullValue();
 				return;
 			}
+			// Like System.Type.Namespace, a nested type's namespace is the namespace of its outermost declaring type
+			if (isReflection) {
+				for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && typeRef.ResolutionScope is TypeRef declaringType; i++)
+					typeRef = declaringType;
+			}
 			AddNamespace(typeRef.Namespace, onlyNamespace);
 		}
 
@@ -1250,6 +1255,11 @@ namespace dnlib.DotNet {
 			if (typeDef is null) {
 				AppendNullValue();
 				return;
+			}
+			// Like System.Type.Namespace, a nested type's namespace is the namespace of its outermost declaring type
+			if (isReflection) {
+				for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && typeDef.DeclaringType is TypeDef declaringType; i++)
+					typeDef = declaringType;
 			}
 			AddNamespace(typeDef.Namespace, onlyNamespace);
 		}
@@ -1524,6 +1534,14 @@ namespace dnlib.DotNet {
 
 			case ElementType.Var:
 			case ElementType.MVar:
+				if (isReflection && (flags & TYPESIG_ONLY_NAMESPACE) != 0) {
+					// Like System.Type.Namespace, a generic parameter's namespace is the namespace of the type that
+					// declares it, or that declares its method. It's only known if the signature has an owner.
+					var gs = (GenericSig)typeSig;
+					var ownerType = gs.OwnerType ?? gs.OwnerMethod?.DeclaringType;
+					if (ownerType is not null)
+						CreateNamespace(ownerType, true);
+				}
 				if (createName) {
 					var gs = (GenericSig)typeSig;
 					var gp = gs.GenericParam;
@@ -1603,6 +1621,11 @@ namespace dnlib.DotNet {
 			if (exportedType is null) {
 				AppendNullValue();
 				return;
+			}
+			// Like System.Type.Namespace, a nested type's namespace is the namespace of its outermost declaring type
+			if (isReflection) {
+				for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && exportedType.Implementation is ExportedType declaringType; i++)
+					exportedType = declaringType;
 			}
 			AddNamespace(exportedType.TypeNamespace, onlyNamespace);
 		}
