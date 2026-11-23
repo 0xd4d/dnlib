@@ -48,13 +48,13 @@ case "$(uname -s)" in
 	MINGW*|MSYS*|CYGWIN*) is_windows=true ;;
 esac
 
-# run_leg <name> <test target framework> <msbuild properties...>
+# run_leg <name> <test target framework> <output directory in bin/Release> <msbuild properties...>
+# The output directory is set in Directory.Build.props: every variant of dnlib has its own.
 run_leg() {
-	local name=$1 tfm=$2
-	shift 2
+	local name=$1 tfm=$2 out=dnlib.Tests/bin/$configuration/$3
+	shift 3
 	echo "=== $name"
 	dotnet build "$project" -v:m -nologo -c "$configuration" -f "$tfm" -warnaserror "$@"
-	local out=dnlib.Tests/bin/$configuration/$tfm
 	if [ "$tfm" = net10.0 ]; then
 		dotnet "$out/dnlib.Tests.dll" "${test_args[@]}"
 	elif $is_windows; then
@@ -81,11 +81,11 @@ run_leg() {
 
 for leg in "${legs[@]}"; do
 	case "$leg" in
-		net10.0)        run_leg "$leg" net10.0 ;;
-		net10.0-nts)    run_leg "$leg" net10.0 -p:DnlibThreadSafe=false ;;
-		netstandard2.0) run_leg "$leg" net10.0 -p:DnlibTfm=netstandard2.0 ;;
-		net45)          run_leg "$leg" net48 ;;
-		net35)          run_leg "$leg" net48 -p:DnlibTfm=net35 ;;
+		net10.0)        run_leg "$leg" net10.0 net10.0 ;;
+		net10.0-nts)    run_leg "$leg" net10.0 dnlib-nts/net10.0 -p:DnlibThreadSafe=false ;;
+		netstandard2.0) run_leg "$leg" net10.0 dnlib-netstandard2.0/net10.0 -p:DnlibTfm=netstandard2.0 ;;
+		net45)          run_leg "$leg" net48 net48 ;;
+		net35)          run_leg "$leg" net48 dnlib-net35/net48 -p:DnlibTfm=net35 ;;
 		*) echo "Unknown leg: $leg" >&2; exit 1 ;;
 	esac
 done

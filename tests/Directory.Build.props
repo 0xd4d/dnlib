@@ -21,6 +21,18 @@
     <DnlibExpectedTfm Condition=" '$(DnlibExpectedTfm)' == '' ">$(TargetFramework)</DnlibExpectedTfm>
   </PropertyGroup>
 
+  <!-- Every variant gets its own output directories. With a shared directory, a build can keep the dnlib.dll of
+       the variant that was built before: the files of two variants can have the same size and time, and then
+       the build thinks the file is up to date. -->
+  <PropertyGroup>
+    <DnlibVariant>$(DnlibTfm)</DnlibVariant>
+    <DnlibVariant Condition=" '$(DnlibThreadSafe)' == 'false' ">$(DnlibVariant)nts</DnlibVariant>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(DnlibVariant)' != '' ">
+    <OutputPath>bin\$(Configuration)\dnlib-$(DnlibVariant)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\dnlib-$(DnlibVariant)\</IntermediateOutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Needed to build for .NET Framework on Linux/macOS -->
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
