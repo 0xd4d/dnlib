@@ -7,7 +7,7 @@ using System.Text;
 
 namespace dnlib.TestUtils {
 	/// <summary>
-	/// Reads the names of the functions a PE file exports (its export directory), without dnlib:
+	/// Reads the names and ordinals of the functions a PE file exports (its export directory), without dnlib:
 	/// the PE headers are read by System.Reflection.Metadata's <see cref="PEReader"/>.
 	/// </summary>
 	public static class PEExports {
@@ -40,6 +40,44 @@ namespace dnlib.TestUtils {
 				}
 			}
 			return names;
+		}
+
+		/// <summary>
+		/// Returns the ordinal (number) of every exported function and its name, or <c>null</c> if the function
+		/// is only exported by ordinal
+		/// </summary>
+		public static SortedDictionary<int, string?> GetFunctions(byte[] image) {
+			var functions = new SortedDictionary<int, string?>();
+			var names = GetNames(image);
+			using (var peReader = new PEReader(ImmutableArray.Create(image))) {
+				var directory = peReader.PEHeaders.PEHeader!.ExportTableDirectory;
+				if (directory.Size == 0)
+					return functions;
+
+				// IMAGE_EXPORT_DIRECTORY: Base (the ordinal of the first function) is at offset 16, then
+				// NumberOfFunctions, NumberOfNames, AddressOfFunctions, AddressOfNames, AddressOfNameOrdinals
+				var exportDirectory = peReader.GetSectionData(directory.RelativeVirtualAddress).GetReader();
+				exportDirectory.Offset = 16;
+				int ordinalBase = exportDirectory.ReadInt32();
+				int numberOfFunctions = exportDirectory.ReadInt32();
+				int numberOfNames = exportDirectory.ReadInt32();
+				int addressOfFunctions = exportDirectory.ReadInt32();
+				exportDirectory.Offset = 36;
+				int addressOfNameOrdinals = exportDirectory.ReadInt32();
+
+				// A function's ordinal is Base + its index in the function array. An unused index has address 0.
+				var functionRvas = peReader.GetSectionData(addressOfFunctions).GetReader();
+				for (int i = 0; i < numberOfFunctions; i++) {
+					if (functionRvas.ReadInt32() != 0)
+						functions.Add(ordinalBase + i, null);
+				}
+
+				// For every name: the index of its function in the function array
+				var functionIndexes = peReader.GetSectionData(addressOfNameOrdinals).GetReader();
+				for (int i = 0; i < numberOfNames; i++)
+					functions[ordinalBase + functionIndexes.ReadUInt16()] = names[i];
+			}
+			return functions;
 		}
 	}
 }
