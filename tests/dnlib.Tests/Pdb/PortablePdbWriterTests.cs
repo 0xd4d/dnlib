@@ -233,6 +233,62 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		const string EnumLibrarySource = @"
+public enum SmallEnum : byte { Zero, One, Two, Three }
+public enum SignedEnum : sbyte { MinusTwo = -2 }
+public enum BoolEnum : byte { }
+public enum CharEnum : ushort { }
+";
+
+		// The enums above. C# has no bool and char enums, but IL has: their underlying types are changed.
+		static ModuleDefMD LoadEnumLibrary() {
+			var module = ModuleDefMD.Load(CSharpCompiler.Compile(EnumLibrarySource, new CSharpCompilerOptions { AssemblyName = "EnumLibrary" }).Image);
+			SetUnderlyingType(module, "BoolEnum", module.CorLibTypes.Boolean);
+			SetUnderlyingType(module, "CharEnum", module.CorLibTypes.Char);
+			return module;
+		}
+
+		static void SetUnderlyingType(ModuleDef module, string enumName, TypeSig underlyingType) {
+			// The type of an enum's only instance field
+			var valueField = module.Find(enumName, isReflectionName: true)!.Fields.Single(a => !a.IsStatic);
+			valueField.FieldSig!.Type = underlyingType;
+		}
+
+		// An assembly resolver that only knows one assembly
+		sealed class OneAssemblyResolver : IAssemblyResolver {
+			readonly AssemblyDef assembly;
+			public OneAssemblyResolver(AssemblyDef assembly) => this.assembly = assembly;
+			public AssemblyDef? Resolve(IAssembly? assembly, ModuleDef? sourceModule) =>
+				assembly?.Name == this.assembly.Name ? this.assembly : null;
+		}
+
+		// A Windows PDB stores a Boolean, Char, SByte or Byte constant as a 16-bit number, and that's what the
+		// constant's value is if dnlib can't know that its type is an enum: the enum is in another assembly, and
+		// no other assemblies are read when a PDB is read. The portable PDB writer knows the enum's underlying
+		// type if it finds the assembly. The compiler writes the underlying type, the value and the enum type.
+		[Theory]
+		[InlineData("SmallEnum", (short)3, new byte[] { (byte)ElementType.U1, 3 })]
+		[InlineData("SignedEnum", (short)-2, new byte[] { (byte)ElementType.I1, 0xFE })]
+		[InlineData("BoolEnum", (short)1, new byte[] { (byte)ElementType.Boolean, 1 })]
+		[InlineData("CharEnum", (ushort)'x', new byte[] { (byte)ElementType.Char, (byte)'x', 0 })]
+		public void EnumConstantWithA16BitValueIsWrittenAsItsUnderlyingType(string enumName, object valueInWindowsPdb, byte[] expectedStart) {
+			using (var library = LoadEnumLibrary()) {
+				var written = ChangeAndWrite(module => {
+					module.Context = new ModuleContext(new OneAssemblyResolver(library.Assembly!));
+					module.Context.Resolver = new Resolver(module.Context.AssemblyResolver);
+					var enumType = new TypeRefUser(module, string.Empty, enumName, library.Assembly!.ToAssemblyRef());
+					DebugInfoSource.GetRootScope(module, "Sum").Constants.Add(new PdbConstant("EnumConstant", new ValueTypeSig(enumType), valueInWindowsPdb));
+				});
+
+				using (var pdb = OpenWithSrm(written.Pdb!)) {
+					var signature = GetConstantSignature(pdb.GetMetadataReader(), "EnumConstant");
+					Assert.Equal(expectedStart, signature.Take(expectedStart.Length));
+					// The rest is the compressed token of the enum type
+					Assert.Equal(expectedStart.Length + 1, signature.Length);
+				}
+			}
+		}
+
 		// Fixed in 5ea0663e: the LocalScope rows of a method are sorted by where they start and by their length.
 		// A reader puts a scope into the scope before it if it has the same range, but the writer didn't keep
 		// such scopes in their order: the locals and constants of a scope moved to another scope.
@@ -318,25 +374,6 @@ namespace dnlib.Tests.Pdb {
 			Assert.Equal(stream.Length, stream.Position);
 		}
 
-		// A stream that can only be written to, like a pipe
-		sealed class WriteOnlyStream : Stream {
-			public readonly MemoryStream Written = new MemoryStream();
-
-			public override bool CanRead => false;
-			public override bool CanSeek => false;
-			public override bool CanWrite => true;
-			public override long Length => throw new NotSupportedException();
-			public override long Position {
-				get => throw new NotSupportedException();
-				set => throw new NotSupportedException();
-			}
-			public override void Flush() { }
-			public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-			public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-			public override void SetLength(long value) => throw new NotSupportedException();
-			public override void Write(byte[] buffer, int offset, int count) => Written.Write(buffer, offset, count);
-		}
-
 		// Fixed in d99579cd: the writer threw
 		[Fact]
 		public void PdbCanBeWrittenToAStreamThatCanNotSeek() {
@@ -345,7 +382,7 @@ namespace dnlib.Tests.Pdb {
 
 			ChangeAndWrite(module => { }, options => options.PdbStream = stream);
 
-			Assert.Equal(expected.Pdb, stream.Written.ToArray());
+			Assert.Equal(expected.Pdb, stream.GetWrittenData());
 		}
 
 		// The PDB's ID is in the PE file, and a checksum of the PDB too if the original file had one. dnlib
