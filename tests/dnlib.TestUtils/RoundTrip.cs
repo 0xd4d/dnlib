@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.IO;
 using dnlib.DotNet;
 using dnlib.DotNet.Writer;
@@ -60,21 +61,34 @@ namespace dnlib.TestUtils {
 		/// <returns>The written files</returns>
 		public static CompiledAssembly CheckWithPortablePdb(byte[] image, byte[] pdb, bool preserveMetadata) {
 			using (var original = LoadWithPdb(image, pdb)) {
-				var writerOptions = new ModuleWriterOptions(original);
-				if (preserveMetadata)
-					writerOptions.MetadataOptions.Flags |= MetadataFlags.PreserveAll | MetadataFlags.KeepOldMaxStack;
-				var pdbStream = new MemoryStream();
-				writerOptions.WritePdb = true;
-				writerOptions.PdbStream = pdbStream;
-				// The name that's stored in the PE file's debug directory. Nothing is written to this file.
-				writerOptions.PdbFileName = "written.pdb";
-
-				var writtenImage = Write(original, writerOptions);
-				var writtenPdb = pdbStream.ToArray();
-				using (var written = LoadWithPdb(writtenImage, writtenPdb))
-					ModuleComparer.AssertEqual(original, written, new ModuleDumpOptions { Pdb = true, MaxStack = preserveMetadata });
-				return new CompiledAssembly(writtenImage, writtenPdb);
+				var written = WriteWithPortablePdb(original, preserveMetadata);
+				using (var writtenModule = LoadWithPdb(written.Image, written.Pdb!))
+					ModuleComparer.AssertEqual(original, writtenModule, new ModuleDumpOptions { Pdb = true, MaxStack = preserveMetadata });
+				return written;
 			}
+		}
+
+		/// <summary>
+		/// Writes a module and a portable PDB file with its debug info
+		/// </summary>
+		/// <param name="module">The module</param>
+		/// <param name="preserveMetadata"><c>true</c> to write with <see cref="MetadataFlags.PreserveAll"/> and
+		/// <see cref="MetadataFlags.KeepOldMaxStack"/>, <c>false</c> to let the writer create new metadata</param>
+		/// <param name="changeOptions">Changes the writer options before the module is written, can be <c>null</c></param>
+		/// <returns>The written files</returns>
+		public static CompiledAssembly WriteWithPortablePdb(ModuleDef module, bool preserveMetadata = false, Action<ModuleWriterOptions>? changeOptions = null) {
+			var writerOptions = new ModuleWriterOptions(module);
+			if (preserveMetadata)
+				writerOptions.MetadataOptions.Flags |= MetadataFlags.PreserveAll | MetadataFlags.KeepOldMaxStack;
+			var pdbStream = new MemoryStream();
+			writerOptions.WritePdb = true;
+			writerOptions.PdbStream = pdbStream;
+			// The name that's stored in the PE file's debug directory. Nothing is written to this file.
+			writerOptions.PdbFileName = "written.pdb";
+			changeOptions?.Invoke(writerOptions);
+
+			var writtenImage = Write(module, writerOptions);
+			return new CompiledAssembly(writtenImage, pdbStream.ToArray());
 		}
 
 		/// <summary>
