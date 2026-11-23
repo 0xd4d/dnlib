@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Builds and runs the tests against one or more builds of dnlib.
 #
-# usage: tests/test.sh [leg...]
+# usage: tests/test.sh [--slow] [leg...]
+#
+# --slow also runs the slow tests (trait Category=Slow), eg. the tests that use every assembly of the runtime.
 #
 # Legs (default: all of them):
 #   net10.0          dnlib's net10.0 build
@@ -19,7 +21,13 @@ project=dnlib.Tests/dnlib.Tests.csproj
 
 legs=()
 test_args=()
+slow=false
 while [ $# -gt 0 ]; do
+	if [ "$1" = "--slow" ]; then
+		slow=true
+		shift
+		continue
+	fi
 	if [ "$1" = "--" ]; then
 		shift
 		test_args=("$@")
@@ -28,6 +36,9 @@ while [ $# -gt 0 ]; do
 	legs+=("$1")
 	shift
 done
+if ! $slow; then
+	test_args=(-trait- "Category=Slow" "${test_args[@]}")
+fi
 if [ ${#legs[@]} -eq 0 ]; then
 	legs=(net10.0 net10.0-nts netstandard2.0 net45 net35)
 fi
