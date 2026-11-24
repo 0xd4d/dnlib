@@ -203,5 +203,77 @@ public class MarkerAttribute<T> : Attribute { }
 				Assert.Equal(2, module.Assembly.CustomAttributes.Count(a => a.TypeFullName.Contains("Marker") || a.TypeFullName.Contains("TargetFramework")));
 			}
 		}
+
+		// An assembly with [assembly: TargetFramework("...")]. It's written and read again: the "original"
+		// attribute is the one in the file, not one that was added later.
+		static AssemblyDef CreateAssemblyWithTargetFramework(string frameworkName) {
+			var assembly = CreateAssembly("WithTargetFramework");
+			var module = assembly.ManifestModule!;
+			var attributeType = new TypeRefUser(module, "System.Runtime.Versioning", "TargetFrameworkAttribute", module.CorLibTypes.AssemblyRef);
+			var constructor = new MemberRefUser(module, ".ctor", MethodSig.CreateInstance(module.CorLibTypes.Void, module.CorLibTypes.String), attributeType);
+			var attribute = new CustomAttribute(constructor);
+			attribute.ConstructorArguments.Add(new CAArgument(module.CorLibTypes.String, new UTF8String(frameworkName)));
+			assembly.CustomAttributes.Add(attribute);
+			Assert.False(assembly.TryGetOriginalTargetFrameworkAttribute(out _, out _, out _));
+			var stream = new MemoryStream();
+			module.Write(stream);
+			return AssemblyDef.Load(stream.ToArray());
+		}
+
+		// The name is "framework,Version=v1.2[.3][,Profile=name]" (what the runtime parses). The version has
+		// three numbers, the fourth is always 0.
+		[Theory]
+		[InlineData(".NETCoreApp,Version=v8.0", ".NETCoreApp", "8.0.0.0", null)]
+		[InlineData(".NETFramework,Version=v4.6.1,Profile=Client", ".NETFramework", "4.6.1.0", "Client")]
+		[InlineData(".NETStandard,Version=2.0", ".NETStandard", "2.0.0.0", null)]
+		[InlineData(" .NETFramework , Version = v4.0 , Profile = ", ".NETFramework", "4.0.0.0", null)]
+		[InlineData(".NETFramework,Version=v1.2.3.4", ".NETFramework", "1.2.3.0", null)]
+		[InlineData(".NETFramework,Profile=Client,Version=V3.5", ".NETFramework", "3.5.0.0", "Client")]
+		public void TargetFrameworkNames(string frameworkName, string expectedFramework, string expectedVersion, string? expectedProfile) {
+			var assembly = CreateAssemblyWithTargetFramework(frameworkName);
+
+			Assert.True(assembly.TryGetOriginalTargetFrameworkAttribute(out var framework, out var version, out var profile));
+
+			Assert.Equal(expectedFramework, framework);
+			Assert.Equal(new Version(expectedVersion), version);
+			Assert.Equal(expectedProfile, profile);
+		}
+
+		[Theory]
+		[InlineData("")]
+		[InlineData(".NETFramework")]
+		[InlineData(",Version=v4.0")]
+		[InlineData(".NETFramework,Version=vNext")]
+		[InlineData(".NETFramework,Version=v4")]
+		[InlineData(".NETFramework,Version")]
+		[InlineData(".NETFramework,Profile=Client")]
+		[InlineData(".NETFramework,Version=v4.0,Profile=Client,Extra=1")]
+		public void InvalidTargetFrameworkNames(string frameworkName) =>
+			Assert.False(CreateAssemblyWithTargetFramework(frameworkName).TryGetOriginalTargetFrameworkAttribute(out _, out _, out _));
+
+		// The same assembly from a file on disk, and from memory where the file is mapped like the loader does
+		[Fact]
+		public void LoadFromAFileName() {
+			using (var directory = new TempDirectory()) {
+				var fileName = directory.GetPath("Library.dll");
+				File.WriteAllBytes(fileName, libraryImage.Value);
+
+				var assembly = AssemblyDef.Load(fileName);
+				try {
+					Assert.Equal("Library", assembly.Name);
+					Assert.Equal(fileName, assembly.ManifestModule!.Location);
+				}
+				finally {
+					assembly.ManifestModule!.Dispose();
+				}
+
+				var netModuleFileName = directory.GetPath("Module.netmodule");
+				File.WriteAllBytes(netModuleFileName, CSharpCompiler.Compile("public class C { }", new CSharpCompilerOptions { OutputKind = Microsoft.CodeAnalysis.OutputKind.NetModule }).Image);
+				Assert.Throws<BadImageFormatException>(() => AssemblyDef.Load(netModuleFileName));
+				// The file isn't kept open after the failed load
+				File.Delete(netModuleFileName);
+				Assert.False(File.Exists(netModuleFileName));
+			}
+		}
 	}
 }
