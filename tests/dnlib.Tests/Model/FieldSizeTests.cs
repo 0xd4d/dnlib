@@ -93,10 +93,18 @@ public unsafe class Fields {
 			using (var module = ModuleDefMD.Load(image)) {
 				var sizeOf = loaded.Assembly.GetType("Fields")!.GetMethod("SizeOf")!;
 				int count = 0;
+				bool isDotNet = typeof(object).Assembly.GetName().Name == "System.Private.CoreLib";
 				foreach (var field in module.Find("Fields", isReflectionName: true)!.Fields) {
 					int expected = (int)sizeOf.Invoke(null, new object[] { field.Name.String })!;
 					if (expected < 0)
 						continue;
+					// .NET Framework gives a struct in an automatic layout struct 4 bytes (sizeof is 4 there), .NET
+					// doesn't (2). dnlib returns the size of the field in it.
+					if (field.Name == "WrapperOfWrapper" && !isDotNet) {
+						Assert.Equal(2U, field.GetFieldSize());
+						count++;
+						continue;
+					}
 					Assert.True(field.GetFieldSize(out uint size), field.Name);
 					Assert.True((uint)expected == size, $"{field.Name}: sizeof is {expected}, GetFieldSize() returns {size}");
 					Assert.Equal(size, field.GetFieldSize());
