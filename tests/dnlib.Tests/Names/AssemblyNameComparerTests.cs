@@ -75,6 +75,37 @@ namespace dnlib.Tests.Names {
 			Assert.Equal(0, comparer.GetHashCode(null));
 		}
 
+		// The culture is compared without case too, like the CLR does when it binds an assembly
+		// (AssemblyName::Equals() in the runtime's binder/assemblyname.cpp), and "neutral" in any case is no culture
+		[Theory]
+		[InlineData("de", "DE")]
+		[InlineData("en-US", "en-us")]
+		[InlineData("", "Neutral")]
+		[InlineData("neutral", "NEUTRAL")]
+		public void CultureIsComparedWithoutCase(string culture, string sameCulture) {
+			var comparer = AssemblyNameComparer.CompareAll;
+			var assembly = Create(culture: culture);
+			var same = Create(culture: sameCulture);
+
+			Assert.True(comparer.Equals(assembly, same));
+			Assert.Equal(0, comparer.CompareTo(assembly, same));
+			Assert.Equal(comparer.GetHashCode(assembly), comparer.GetHashCode(same));
+			// Reflection changes a culture name to its normal form: the case of what was written doesn't matter
+			if (culture.Length != 0 && !culture.Equals("neutral", StringComparison.OrdinalIgnoreCase)) {
+				Assert.Equal(new System.Reflection.AssemblyName("Lib, Culture=" + culture).CultureName,
+					new System.Reflection.AssemblyName("Lib, Culture=" + sameCulture).CultureName);
+			}
+		}
+
+		[Fact]
+		public void OtherCultureIsAnotherAssembly() {
+			var comparer = AssemblyNameComparer.CompareAll;
+
+			Assert.False(comparer.Equals(Create(culture: "de"), Create(culture: "de-AT")));
+			Assert.False(comparer.Equals(Create(culture: "de"), Create(culture: "")));
+			Assert.False(comparer.Equals(Create(culture: "de"), Create(culture: "neutral")));
+		}
+
 		// A public key is the same as its token
 		[Fact]
 		public void PublicKeyEqualsItsToken() {
