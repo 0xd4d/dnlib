@@ -15,9 +15,9 @@ using SystemResourceReader = System.Resources.ResourceReader;
 namespace dnlib.Tests.Resources {
 	/// <summary>
 	/// .NET Framework 1.x wrote version 1 of the .resources file format. It has no type codes: the file has a
-	/// list of type names, and every value starts with the index of its type in that list. Nothing writes this
-	/// version anymore (dnlib doesn't either) but .NET still reads it, so the tests create such a file byte by
-	/// byte and .NET's own reader checks that it's a valid file.
+	/// list of type names, and every value starts with the index of its type in that list. No compiler writes
+	/// this version anymore but .NET still reads it, so the tests create such a file byte by byte and .NET's own
+	/// reader checks that it's a valid file. dnlib also writes this version: a file that was read keeps it.
 	/// </summary>
 	public class ResourcesFileVersion1Tests {
 		const string CoreLibrary = ", mscorlib, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
@@ -208,6 +208,73 @@ namespace dnlib.Tests.Resources {
 
 			var exception = Assert.Throws<ResourceReaderException>(() => ReadWithDnlib(file));
 			Assert.Contains("Invalid resource version", exception.Message);
+		}
+
+		static Dictionary<string, object?> ReadWithDotNet(byte[] file) {
+			var read = new Dictionary<string, object?>();
+			using (var reader = new SystemResourceReader(new MemoryStream(file))) {
+				foreach (DictionaryEntry entry in reader)
+					read.Add((string)entry.Key, entry.Value);
+			}
+			return read;
+		}
+
+		// The version number of a .resources file: it's after the two type names of the header
+		static int GetFormatVersion(byte[] file) => ReadWithDnlib(file).FormatVersion;
+
+		[Fact]
+		public void FileThatWasReadIsWrittenAsVersion1Again() {
+			var module = new ModuleDefUser("Test.dll");
+			var set = ResourceReader.Read(module, ByteArrayDataReaderFactory.CreateReader(CreateVersion1File(values)));
+			var stream = new MemoryStream();
+
+			ResourceWriter.Write(module, stream, set);
+
+			var written = stream.ToArray();
+			Assert.Equal(1, GetFormatVersion(written));
+			Assert.Equal(values.OrderBy(a => a.Key), ReadWithDotNet(written).OrderBy(a => a.Key));
+			var readAgain = ReadWithDnlib(written).ResourceElements.ToDictionary(a => a.Name, a => Assert.IsType<BuiltInResourceData>(a.ResourceData).Data);
+			Assert.Equal(values.OrderBy(a => a.Key), readAgain.OrderBy(a => a.Key));
+		}
+
+		[Fact]
+		public void NewVersion1FileCanBeCreated() {
+			var module = new ModuleDefUser("Test.dll");
+			var factory = new ResourceDataFactory(module);
+			var set = ResourceElementSet.CreateForResourceReader(new Version(1, 0, 5000, 0), formatVersion: 1);
+			set.Add(new ResourceElement("Text", factory.Create("abc")));
+			set.Add(new ResourceElement("Number", factory.Create(123)));
+			set.Add(new ResourceElement("Nothing", factory.CreateNull()));
+			var stream = new MemoryStream();
+
+			ResourceWriter.Write(module, stream, set);
+
+			var written = stream.ToArray();
+			Assert.Equal(1, GetFormatVersion(written));
+			var read = ReadWithDotNet(written);
+			Assert.Equal("abc", read["Text"]);
+			Assert.Equal(123, read["Number"]);
+			Assert.Null(read["Nothing"]);
+		}
+
+		// Version 1 has no Boolean and Char values (a reader would need a serializer for them)
+		[Fact]
+		public void TypeThatVersion1DoesNotHaveCanNotBeWritten() {
+			var module = new ModuleDefUser("Test.dll");
+			var set = ResourceElementSet.CreateForResourceReader(new Version(1, 0, 5000, 0), formatVersion: 1);
+			set.Add(new ResourceElement("Flag", new ResourceDataFactory(module).Create(true)));
+
+			var exception = Assert.Throws<NotSupportedException>(() => ResourceWriter.Write(module, new MemoryStream(), set));
+
+			Assert.Contains("Boolean", exception.Message);
+		}
+
+		[Theory, InlineData(0), InlineData(3)]
+		public void OtherVersionsCanNotBeWritten(int formatVersion) {
+			var module = new ModuleDefUser("Test.dll");
+			var set = ResourceElementSet.CreateForResourceReader(new Version(4, 0, 0, 0), formatVersion);
+
+			Assert.Throws<ArgumentException>(() => ResourceWriter.Write(module, new MemoryStream(), set));
 		}
 	}
 }
