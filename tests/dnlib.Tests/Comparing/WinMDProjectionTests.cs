@@ -158,5 +158,53 @@ namespace dnlib.Tests.Comparing {
 			Assert.Equal(new SigComparer(options).GetHashCode(closeRef), new SigComparer(options).GetHashCode(disposeRef));
 			Assert.False(new SigComparer(options | SigComparerOptions.DontProjectWinMDRefs).Equals(closeRef, disposeRef));
 		}
+
+		// A module that references System.Runtime 4.0.10.0 and 4.0.20.0, a Windows Runtime assembly that's also
+		// called System.Runtime, and System.Runtime with another public key
+		static byte[] CreateImageWithReferencesToTheContractAssembly() {
+			var created = new ModuleDefUser("Test.dll");
+			new AssemblyDefUser("Test", new Version(1, 0, 0, 0)).Modules.Add(created);
+			var contractKey = new PublicKeyToken("b03f5f7f11d50a3a");
+			var references = new[] {
+				new AssemblyRefUser("System.Runtime", new Version(4, 0, 10, 0), contractKey),
+				new AssemblyRefUser("System.Runtime", new Version(4, 0, 20, 0), contractKey),
+				new AssemblyRefUser("System.Runtime", new Version(4, 9, 0, 0), contractKey) { ContentType = AssemblyAttributes.ContentType_WindowsRuntime },
+				new AssemblyRefUser("System.Runtime", new Version(4, 8, 0, 0), new PublicKeyToken("0123456789abcdef")),
+				new AssemblyRefUser("System.Runtime", new Version(6, 0, 0, 0), contractKey),
+			};
+			var type = new TypeDefUser("Ns", "Type", created.CorLibTypes.Object.TypeDefOrRef);
+			created.Types.Add(type);
+			for (int i = 0; i < references.Length; i++)
+				type.Fields.Add(new FieldDefUser("field" + i, new FieldSig(new ClassSig(new TypeRefUser(created, "Ns", "Type" + i, references[i])))));
+			var stream = new System.IO.MemoryStream();
+			created.Write(stream);
+			return stream.ToArray();
+		}
+
+		// The reference to the .NET assembly of a projected type gets the version that the module already uses
+		// for that assembly: the highest one, but not a version above 5 (that's not a version of the contract
+		// assemblies), a Windows Runtime assembly or an assembly with another public key
+		[Fact]
+		public void ProjectedAssemblyHasTheVersionOfTheModulesReferenceToIt() {
+			using (var read = ModuleDefMD.Load(CreateImageWithReferencesToTheContractAssembly())) {
+				var uri = new TypeRefUser(read, "Windows.Foundation", "Uri", WindowsRuntimeAssembly());
+
+				var projected = WinMDHelpers.ToCLR(read, uri)!;
+
+				Assert.Equal("System.Runtime", projected.DefinitionAssembly!.Name);
+				Assert.Equal(new Version(4, 0, 20, 0), projected.DefinitionAssembly.Version);
+			}
+		}
+
+		// If the module's core library is mscorlib, its version is used (.NET Framework 2.0 - 4.x)
+		[Fact]
+		public void ProjectedAssemblyHasTheVersionOfMscorlib() {
+			var oldModule = new ModuleDefUser("Old.dll", null, new AssemblyRefUser("mscorlib", new Version(2, 0, 0, 0), new PublicKeyToken("b77a5c561934e089")));
+			var uri = new TypeRefUser(oldModule, "Windows.Foundation", "Uri", WindowsRuntimeAssembly());
+
+			Assert.Equal(new Version(2, 0, 0, 0), WinMDHelpers.ToCLR(oldModule, uri)!.DefinitionAssembly!.Version);
+			// No module: the default version
+			Assert.Equal(new Version(4, 0, 0, 0), WinMDHelpers.ToCLR(null, uri)!.DefinitionAssembly!.Version);
+		}
 	}
 }
