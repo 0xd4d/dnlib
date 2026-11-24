@@ -21,6 +21,7 @@ public class Base<T> {
 	public Base() { }
 	public Base(T value) { }
 	public void Method(T value) { }
+	public unsafe void Shapes(T[] a, T[,] b, System.Collections.Generic.List<T> c, ref T d, delegate*<T, T[]> e, System.Func<T[], T> f) { }
 	public virtual void Virtual() { }
 	public static void Static() { }
 }
@@ -76,6 +77,35 @@ public struct Struct {
 			Assert.Same(expected, mostDerived.FindMethodCheckBaseType("Method", MethodSig.CreateInstance(CorLib.Void, CorLib.Int32)));
 			Assert.Null(derived.FindMethodCheckBaseType("Method", MethodSig.CreateInstance(CorLib.Void, new GenericVar(0))));
 			Assert.Null(derived.FindMethodCheckBaseType("Method", MethodSig.CreateInstance(CorLib.Void, CorLib.String)));
+		}
+
+		// T can be anywhere in a signature: in arrays, generic instances, by reference types and function pointers.
+		// Shapes(T[], T[,], List<T>, ref T, delegate*<T, T[]>, Func<T[], T>) is found with int in every place.
+		[Fact]
+		public void GenericArgumentIsUsedInEveryPartOfASignature() {
+			var expected = baseType.FindMethod("Shapes")!;
+			var original = expected.MethodSig!.Params;
+
+			// The same signature with another type instead of T
+			MethodSig CreateSignature(TypeSig t) {
+				var array = (ArraySig)original[1]!;
+				var list = ((GenericInstSig)original[2]!).GenericType;
+				var functionPointer = ((FnPtrSig)original[4]!).MethodSig!;
+				var func = ((GenericInstSig)original[5]!).GenericType;
+				return MethodSig.CreateInstance(CorLib.Void,
+					new SZArraySig(t),
+					new ArraySig(t, array.Rank, array.Sizes, array.LowerBounds),
+					new GenericInstSig(list, t),
+					new ByRefSig(t),
+					new FnPtrSig(new MethodSig(functionPointer.CallingConvention, 0, new SZArraySig(t), t)),
+					new GenericInstSig(func, new SZArraySig(t), t));
+			}
+
+			// The signature that the test creates is the method's own signature if nothing is replaced
+			Assert.Same(expected, baseType.FindMethod("Shapes", CreateSignature(new GenericVar(0))));
+			Assert.Same(expected, mostDerived.FindMethodCheckBaseType("Shapes", CreateSignature(CorLib.Int32)));
+			Assert.Null(mostDerived.FindMethodCheckBaseType("Shapes", CreateSignature(new GenericVar(0))));
+			Assert.Null(mostDerived.FindMethodCheckBaseType("Shapes", CreateSignature(CorLib.String)));
 		}
 
 		[Fact]
