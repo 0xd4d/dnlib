@@ -284,5 +284,44 @@ namespace dnlib.Tests.Pdb {
 				}
 			}
 		}
+
+		static readonly System.Lazy<CompiledAssembly> vbWithWindowsPdb = new System.Lazy<CompiledAssembly>(() =>
+			VisualBasicCompiler.Compile(Fixtures.Fixtures.ReadSource("VbFeatures.vb"), new VisualBasicCompilerOptions {
+				AssemblyName = "VbFeatures",
+				OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication,
+				PdbKind = PdbKind.Windows,
+			}));
+
+		// Fixed in aac496e7: only Visual Basic has Date constants. The managed reader ignored them.
+		[Theory]
+		[InlineData(PdbReaderOptions.None)]
+		[InlineData(PdbReaderOptions.MicrosoftComReader)]
+		public void VisualBasicDateAndDecimalConstantsAreRead(PdbReaderOptions readerOptions) {
+			SkipUnlessWindows();
+			using (var module = Load(vbWithWindowsPdb.Value, readerOptions)) {
+				Assert.Equal(PdbFileKind.WindowsPDB, module.PdbState!.PdbFileKind);
+				Assert.Equal(PdbDocumentConstants.LanguageVisualBasic, module.PdbState.Documents.Single().Language);
+				var rootScope = module.Find("VbFeatures.Helpers", isReflectionName: true)!.FindMethod("Constants")!.Body!.PdbMethod!.Scope!;
+				var constants = GetScopes(rootScope).SelectMany(a => a.Constants).ToDictionary(a => a.Name!, a => a.Value);
+
+				Assert.Equal(new System.DateTime(2007, 5, 6, 8, 9, 10), constants["Day"]);
+				Assert.Equal(12.5m, constants["Price"]);
+				Assert.Equal("title", constants["Title"]);
+			}
+		}
+
+		[Fact]
+		public void VisualBasicWindowsPdbCanBeWrittenAsAPortablePdb() {
+			SkipUnlessWindows();
+			using (var original = Load(vbWithWindowsPdb.Value)) {
+				var expected = GetSourceLevelDebugInfo(original);
+
+				var written = Write(original, PdbFileKind.PortablePDB, DummyLogger.NoThrowInstance);
+
+				using (var reloaded = Load(written))
+					Assert.Equal(expected, GetSourceLevelDebugInfo(reloaded));
+				Assert.Equal(0, AssemblyRunner.RunEntryPoint(written.Image));
+			}
+		}
 	}
 }

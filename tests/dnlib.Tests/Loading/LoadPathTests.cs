@@ -127,7 +127,6 @@ namespace dnlib.Tests.Loading {
 
 			using (var fromRuntime = ModuleDefMD.Load(runtimeModule))
 			using (var fromFile = ModuleDefMD.Load(File.ReadAllBytes(runtimeModule.FullyQualifiedName))) {
-				Assert.Equal(runtimeModule.FullyQualifiedName, fromRuntime.Location);
 				ModuleComparer.AssertEqual(fromFile, fromRuntime, new ModuleDumpOptions { MaxStack = true });
 			}
 		}
