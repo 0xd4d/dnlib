@@ -77,6 +77,27 @@ namespace dnlib.Tests.Reading {
 				Assert.Equal(0, AssemblyRunner.RunEntryPoint(image));
 		}
 
+		// Mono ignores the bits: it always does a binary search. dnlib can read a file like Mono does, and finds
+		// the same rows if the table is in fact sorted.
+		[Theory, MemberData(nameof(SortedTables))]
+		public void TableThatIsNotMarkedAsSortedIsReadLikeMonoReadsIt(Table table) {
+			var image = ClearSortedBit(UncompressedImage, table);
+
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions { Runtime = CLRRuntimeReaderKind.Mono }))
+			using (var original = ModuleDefMD.Load(ValidImage, new ModuleCreationOptions { Runtime = CLRRuntimeReaderKind.Mono }))
+				ModuleComparer.AssertEqual(original, module);
+		}
+
+		// A binary search in a table that isn't sorted doesn't find every row: the module isn't the same, but
+		// reading everything works
+		[Theory, MemberData(nameof(TablesWhoseRowsCanBeMoved))]
+		public void TableWithItsRowsInTheOppositeOrderCanBeReadLikeMonoReadsIt(Table table) {
+			var image = CreateImageWithReversedTable(table);
+
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions { Runtime = CLRRuntimeReaderKind.Mono }))
+				Assert.NotEmpty(ModuleDumper.Dump(module));
+		}
+
 		// The lines of a module's dump in alphabetical order
 		static string[] GetSortedDumpLines(ModuleDef module) {
 			var lines = ModuleDumper.Dump(module).Split('\n');
