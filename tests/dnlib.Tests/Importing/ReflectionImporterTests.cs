@@ -30,6 +30,7 @@ namespace dnlib.Tests.Importing {
 			public T Value = default!;
 			public Generic<T>? Self;
 			public volatile int Counter;
+			public volatile Generic<T>? VolatileSelf;
 			public T Echo(T value) => value;
 			public TResult Convert<TResult>(T value) where TResult : new() => new TResult();
 			public static Generic<T> Create() => new Generic<T>();
@@ -225,6 +226,17 @@ namespace dnlib.Tests.Importing {
 			var signature = Assert.IsType<FnPtrSig>(array.Next).MethodSig!;
 			Assert.Equal(new[] { "System.Int32" }, signature.Params.Select(a => a!.FullName));
 		}
+
+		// Fixed in efdc8f31: same as DeclaringTypeInASignatureOfItsOwnMemberIsAGenericInstance, for a type with
+		// a custom modifier
+		[Fact]
+		public void DeclaringTypeWithAModifierInASignatureOfItsOwnMemberIsAGenericInstance() {
+			var imported = CreateImporter().Import(typeof(Generic<>).GetField("VolatileSelf")!);
+
+			var modifier = Assert.IsType<CModReqdSig>(imported.FieldSig!.Type);
+			var fieldType = Assert.IsType<GenericInstSig>(modifier.Next);
+			Assert.Equal(ElementType.Var, Assert.Single(fieldType.GenericArguments)!.ElementType);
+		}
 #endif
 
 		// A module with a method that's outside of all classes (C# can't create one)
@@ -235,6 +247,15 @@ namespace dnlib.Tests.Importing {
 			globalMethod.Body.Instructions.Add(OpCodes.Ldc_I4_5.ToInstruction());
 			globalMethod.Body.Instructions.Add(OpCodes.Ret.ToInstruction());
 			created.Module.GlobalType!.Methods.Add(globalMethod);
+
+			// static T GenericGlobalMethod<T>(T value) => value;
+			var typeParameter = new GenericMVar(0);
+			var genericMethod = new MethodDefUser("GenericGlobalMethod", MethodSig.CreateStaticGeneric(1, typeParameter, typeParameter), MethodImplAttributes.IL, MethodAttributes.Public | MethodAttributes.Static);
+			genericMethod.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
+			genericMethod.Body = new CilBody();
+			genericMethod.Body.Instructions.Add(OpCodes.Ldarg_0.ToInstruction());
+			genericMethod.Body.Instructions.Add(OpCodes.Ret.ToInstruction());
+			created.Module.GlobalType!.Methods.Add(genericMethod);
 			return created.Write();
 		}
 
@@ -259,6 +280,27 @@ namespace dnlib.Tests.Importing {
 				Assert.Equal("GlobalMethod", imported.Name);
 				var moduleRef = Assert.IsAssignableFrom<ModuleRef>(imported.Class);
 				Assert.Equal("Created.dll", moduleRef.Name);
+			}
+		}
+
+		// Fixed in 60e384cc: an instantiated generic method has no declaring type either, which wasn't expected
+		[Fact]
+		public void InstantiatedGenericGlobalMethodIsAMethodSpecOfAReferenceThroughItsModule() {
+			SkipOnMono();
+			using (var loaded = new LoadedAssembly(CreateImageWithGlobalMethod())) {
+				var reflectionMethod = loaded.Assembly.ManifestModule.GetMethod("GenericGlobalMethod")!.MakeGenericMethod(typeof(string));
+				Assert.Equal("text", reflectionMethod.Invoke(null, new object[] { "text" }));
+				var otherModule = new ModuleDefUser("Other.netmodule");
+				new AssemblyDefUser("Created").Modules.Add(otherModule);
+
+				var imported = Assert.IsAssignableFrom<MethodSpec>(new Importer(otherModule).Import(reflectionMethod));
+
+				var genericMethod = Assert.IsAssignableFrom<MemberRef>(imported.Method);
+				Assert.Equal("GenericGlobalMethod", genericMethod.Name);
+				Assert.Equal("Created.dll", Assert.IsAssignableFrom<ModuleRef>(genericMethod.Class).Name);
+				Assert.Equal(new[] { "System.String" }, imported.GenericInstMethodSig!.GenericArguments.Select(a => a!.FullName));
+
+				Assert.Throws<ImportException>(() => CreateImporter().Import(reflectionMethod));
 			}
 		}
 

@@ -209,6 +209,66 @@ namespace dnlib.Tests.Comparing {
 				Assert.Equal(comparer.GetHashCode(globalProperty), comparer.GetHashCode(otherProperty));
 		}
 
+		// Fixed in 9ebf15de: the global type and a reference to it were equal but had different hash codes, so
+		// a dictionary with this comparer (eg. the cache of TypeDefFinder) didn't find the global type
+		[Fact]
+		public void GlobalTypeAndAReferenceToItHaveTheSameHashCodeWithTypeRefCanReferenceGlobalType() {
+			var module = CreateModule("A");
+			var globalType = module.GlobalType!;
+			var globalTypeRef = CreateTypeRef(CreateModule("B"), "", "<Module>", "A");
+			var comparer = new SigComparer(SigComparerOptions.TypeRefCanReferenceGlobalType);
+
+			Assert.True(comparer.Equals(globalType, globalTypeRef));
+			Assert.Equal(comparer.GetHashCode(globalType), comparer.GetHashCode(globalTypeRef));
+
+			var types = new Dictionary<IType, string>(new TypeEqualityComparer(SigComparerOptions.TypeRefCanReferenceGlobalType)) {
+				[globalType] = "found",
+			};
+			Assert.True(types.ContainsKey(globalTypeRef));
+		}
+
+		// 8bd4a5f0 made a null name equal to an empty name (the hash codes were equal, Equals() was false).
+		// Since then the types store null as an empty name, so there's no null name to compare anymore.
+		[Fact]
+		public void NullNamespaceEqualsAnEmptyNamespace() {
+			var module = CreateModule("A");
+			var noNamespace = new TypeRefUser(module, null, "Type", module.Assembly!.ToAssemblyRef());
+			var emptyNamespace = new TypeRefUser(module, "", "Type", module.Assembly!.ToAssemblyRef());
+			Assert.Equal(UTF8String.Empty, noNamespace.Namespace);
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(noNamespace, emptyNamespace));
+			Assert.True(comparer.Equals(emptyNamespace, noNamespace));
+			Assert.Equal(comparer.GetHashCode(noNamespace), comparer.GetHashCode(emptyNamespace));
+			Assert.True(new SigComparer(SigComparerOptions.CaseInsensitiveAll).Equals(noNamespace, emptyNamespace));
+		}
+
+		class GenericOwner<T> {
+			public static void Method<TFirst, TSecond>(TFirst first, TSecond second, T third) { }
+		}
+
+		class Caller {
+			public static void Call<TA, TB>() => GenericOwner<TA>.Method<TB, TA>(default!, default!, default!);
+		}
+
+		// Fixed in d5b88e2a: the call in Caller.Call() is to GenericOwner<!!0>::Method<!!1, !!0>. Its !!0 in the
+		// declaring type is the caller's TA. The hash code used the method's generic arguments for the
+		// declaring type too (GenericOwner<!!1>), Equals() didn't.
+		[Fact]
+		public void MethodSpecWhoseDeclaringTypeUsesTheCallersGenericParameterHasTheHashCodeOfTheReflectionMethod() {
+			var callerArguments = typeof(Caller).GetMethod(nameof(Caller.Call))!.GetGenericArguments();
+			var reflectionMethod = typeof(GenericOwner<>).MakeGenericType(callerArguments[0]).GetMethod("Method")!
+				.MakeGenericMethod(callerArguments[1], callerArguments[0]);
+			using (var module = ModuleDefMD.Load(typeof(SigComparerTests).Module)) {
+				var methodSpec = Assert.IsAssignableFrom<MethodSpec>(new Importer(module).Import(reflectionMethod));
+				Assert.Equal("System.Void dnlib.Tests.Comparing.SigComparerTests/GenericOwner`1<!!0>::Method<!!1,!!0>(!!1,!!0,!!0)", methodSpec.FullName);
+				var comparer = new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
+
+				Assert.True(comparer.Equals(methodSpec, reflectionMethod));
+				Assert.Equal(comparer.GetHashCode(reflectionMethod), comparer.GetHashCode(methodSpec));
+			}
+		}
+
 		// Fixed in fb5145e0: the reference of a call to a vararg method can have the method itself as its parent
 		[Fact]
 		public void MemberRefWhoseParentIsTheMethodEqualsTheMethod() {
