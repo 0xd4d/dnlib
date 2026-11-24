@@ -169,6 +169,16 @@ namespace dnlib.Tests.Names {
 		public void GenericArgumentsThatDoNotFollowAGenericTypeAreInvalid(string name) =>
 			Assert.Null(Parse(name));
 
+		// Names that look wrong but are names: a space is a character of a name, and a name in brackets is a
+		// generic argument that's in the same assembly
+		[Fact]
+		public void UnusualNamesThatAreValid() {
+			Assert.Equal("Ns.T extra", Parse("Ns.T extra")!.FullName);
+			var instance = Assert.IsType<GenericInstSig>(Parse("Ns.T[x]"));
+			Assert.Equal("Ns.T<x>", instance.FullName);
+			Assert.Equal("x", Assert.Single(instance.GenericArguments)!.TypeName);
+		}
+
 		[Theory]
 		[InlineData("")]
 		[InlineData(",")]
@@ -176,6 +186,28 @@ namespace dnlib.Tests.Names {
 		[InlineData("Ns.G`1[[")]
 		[InlineData("Ns.G`1[[Ns.A, AsmA")]
 		[InlineData("+")]
+		[InlineData("!")]
+		[InlineData("!x")]
+		[InlineData("!!")]
+		[InlineData("!!x")]
+		[InlineData("!99999999999")]
+		[InlineData("!!4294967296")]
+		[InlineData("Ns.T[*")]
+		[InlineData("Ns.T[,")]
+		[InlineData("Ns.T[1..")]
+		[InlineData("Ns.T[1..2")]
+		[InlineData("Ns.T[1...")]
+		[InlineData("Ns.T[0..0x10]")]
+		[InlineData("Ns.T[-2147483649..0]")]
+		[InlineData("Ns.T[0..536870912]")]
+		[InlineData("Ns.G`1[[Ns.A, AsmA]")]
+		[InlineData("Ns.G`1[[Ns.A, AsmA],")]
+		[InlineData("Ns.G`1[[Ns.A, AsmA],[")]
+		[InlineData("Ns.G`1[Ns.A,")]
+		[InlineData("Ns.T, ")]
+		[InlineData("Ns.T,")]
+		[InlineData("Ns.T+")]
+		[InlineData("Ns.T&&x")]
 		public void InvalidNameReturnsNull(string name) =>
 			Assert.Null(Parse(name));
 
