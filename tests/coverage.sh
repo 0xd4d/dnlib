@@ -36,12 +36,19 @@ if [ ${#legs[@]} -eq 0 ]; then
 	legs=(net10.0)
 fi
 
+# The full path of this bash: on Windows, dotnet-coverage would start the "bash" of the Windows Subsystem for
+# Linux (C:\Windows\System32\bash.exe) and not Git Bash
+bash_path=$BASH
+if command -v cygpath >/dev/null; then
+	bash_path=$(cygpath -m "$BASH")
+fi
+
 rm -rf coverage
 mkdir coverage
 for leg in "${legs[@]}"; do
 	# The test process is started by test.sh, dotnet-coverage also collects from child processes
 	dotnet-coverage collect --output-format cobertura --output "coverage/$leg.cobertura.xml" \
-		"bash ./test.sh ${options[*]} $leg"
+		"$bash_path" ./test.sh ${options[@]+"${options[@]}"} "$leg"
 done
 
 # On Windows (Git Bash), Python needs the Windows form of the path (pwd -W), and python3 can be missing
