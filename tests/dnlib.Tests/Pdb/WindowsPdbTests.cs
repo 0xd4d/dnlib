@@ -305,6 +305,32 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// The PE file can have a checksum of the PDB file (a debug directory entry). dnlib doesn't write one
+		// for a Windows PDB, also if the options ask for it (a TODO in ModuleWriterBase).
+		[Fact]
+		public void NoPdbChecksumIsWrittenForAWindowsPdb() {
+			SkipUnlessWindows();
+			using (var module = Load(Windows)) {
+				var options = new ModuleWriterOptions(module) { WritePdb = true, PdbStream = new MemoryStream(), PdbFileName = "written.pdb" };
+				options.PdbOptions |= PdbWriterOptions.Deterministic | PdbWriterOptions.PdbChecksum;
+				var image = new MemoryStream();
+				module.Write(image, options);
+
+				using (var peImage = new dnlib.PE.PEImage(image.ToArray())) {
+					Assert.Contains(peImage.ImageDebugDirectories, a => a.Type == dnlib.PE.ImageDebugType.CodeView);
+					Assert.DoesNotContain(peImage.ImageDebugDirectories, a => a.Type == dnlib.PE.ImageDebugType.PdbChecksum);
+				}
+				// The reader has nothing to validate, so the PDB is accepted
+				var creationOptions = new ModuleCreationOptions {
+					PdbFileOrData = ((MemoryStream)options.PdbStream).ToArray(),
+					PdbOptions = PdbReaderOptions.ValidatePdbChecksum,
+					TryToLoadPdbFromDisk = false,
+				};
+				using (var written = ModuleDefMD.Load(image.ToArray(), creationOptions))
+					Assert.NotNull(written.PdbState);
+			}
+		}
+
 		// The source file and the line of every sequence point, in the order of the instructions
 		static List<string> GetSequencePointDocuments(ModuleDef module) =>
 			module.GetTypes().SelectMany(a => a.Methods).Where(a => a.Body is not null)

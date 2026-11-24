@@ -431,11 +431,58 @@ public enum CharEnum : ushort { }
 			using (var module = ModuleDefMD.Load(written.Image, options))
 				Assert.NotNull(module.PdbState);
 
-			var changedPdb = (byte[])written.Pdb!.Clone();
-			changedPdb[changedPdb.Length - 1] ^= 1;
-			options.PdbFileOrData = changedPdb;
+			options.PdbFileOrData = ChangeTheNameOfTheSourceFile(written.Pdb!);
 			using (var module = ModuleDefMD.Load(written.Image, options))
 				Assert.Null(module.PdbState);
+		}
+
+		// Returns a copy of the PDB with another first letter in the name of the source file (DebugInfo.cs).
+		// It's still a PDB that can be read.
+		static byte[] ChangeTheNameOfTheSourceFile(byte[] pdb) {
+			var changedPdb = (byte[])pdb.Clone();
+			var name = System.Text.Encoding.UTF8.GetBytes("DebugInfo");
+			int index = Enumerable.Range(0, pdb.Length - name.Length).First(i => name.Select((b, j) => pdb[i + j] == b).All(a => a));
+			changedPdb[index] = (byte)'X';
+			return changedPdb;
+		}
+
+		[Theory]
+		[InlineData(ChecksumAlgorithm.SHA256, "SHA256", 32)]
+		[InlineData(ChecksumAlgorithm.SHA384, "SHA384", 48)]
+		[InlineData(ChecksumAlgorithm.SHA512, "SHA512", 64)]
+		public void PdbChecksumAlgorithmOfTheOptionsIsUsed(ChecksumAlgorithm algorithm, string expectedName, int expectedSize) {
+			var written = ChangeAndWrite(module => { }, options => {
+				options.PdbOptions |= PdbWriterOptions.PdbChecksum;
+				options.PdbChecksumAlgorithm = algorithm;
+			});
+
+			// The entry is the name of the algorithm, a zero byte and the checksum
+			using (var peImage = new dnlib.PE.PEImage(written.Image)) {
+				var entry = Assert.Single(peImage.ImageDebugDirectories, a => a.Type == dnlib.PE.ImageDebugType.PdbChecksum);
+				var data = peImage.CreateReader(entry.AddressOfRawData, entry.SizeOfData).ToArray();
+				Assert.Equal(expectedName, System.Text.Encoding.ASCII.GetString(data, 0, expectedName.Length));
+				Assert.Equal(0, data[expectedName.Length]);
+				Assert.Equal(expectedName.Length + 1 + expectedSize, data.Length);
+			}
+			var options = new ModuleCreationOptions { PdbFileOrData = written.Pdb, PdbOptions = PdbReaderOptions.ValidatePdbChecksum, TryToLoadPdbFromDisk = false };
+			using (var module = ModuleDefMD.Load(written.Image, options))
+				Assert.NotNull(module.PdbState);
+		}
+
+		// The checksum is only checked if the reader is asked to
+		[Fact]
+		public void ChangedPdbIsOnlyRejectedIfTheChecksumIsValidated() {
+			var written = ChangeAndWrite(module => { }, options => options.PdbOptions |= PdbWriterOptions.PdbChecksum);
+
+			bool IsLoadedWithAChangedPdb(PdbReaderOptions pdbOptions) {
+				var changedPdb = ChangeTheNameOfTheSourceFile(written.Pdb!);
+				var options = new ModuleCreationOptions { PdbFileOrData = changedPdb, PdbOptions = pdbOptions, TryToLoadPdbFromDisk = false };
+				using (var module = ModuleDefMD.Load(written.Image, options))
+					return module.PdbState is not null;
+			}
+
+			Assert.False(IsLoadedWithAChangedPdb(PdbReaderOptions.ValidatePdbChecksum));
+			Assert.True(IsLoadedWithAChangedPdb(PdbReaderOptions.None));
 		}
 	}
 }
