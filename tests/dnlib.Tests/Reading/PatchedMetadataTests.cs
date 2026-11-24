@@ -193,5 +193,43 @@ public class Second { public int SecondProperty { get; set; } }
 				Assert.Equal(ElementType.I4, property.PropertySig!.RetType!.ElementType);
 			}
 		}
+
+		const string ExplicitImplementationSource = @"
+public interface IInterface { void Method(); }
+public class First : IInterface { void IInterface.Method() { } }
+public class Second { public void Other() { } }
+public class Third { public void Another() { } }
+";
+
+		// A TypeDef row has the first row of its methods, they end where the methods of the next type start.
+		// Fixed in 04040886: if the lists aren't in order, a method is in the list of two types. Reading the
+		// list of the second type moves the method to it. That also read which methods it overrides (the
+		// MethodImpl rows of its type) while the list was locked and the method still had its old type. It
+		// could read the same list again (an exception, or a stack overflow without THREAD_SAFE); in this
+		// file it only returned the overrides of the old type.
+		[Fact]
+		public void MethodWithAnOverrideThatIsInTheMethodListOfTwoTypesIsRead() {
+			var patcher = new MetadataPatcher(CSharpCompiler.Compile(ExplicitImplementationSource).Image);
+			uint implementation = patcher.FindRow(Table.Method, "Name", "IInterface.Method");
+			uint first = patcher.FindRow(Table.TypeDef, "Name", "First");
+			uint third = patcher.FindRow(Table.TypeDef, "Name", "Third");
+			Assert.Equal(implementation, patcher.GetCell(Table.TypeDef, first, "MethodList"));
+			Assert.Equal(patcher.GetRowCount(Table.TypeDef), third);
+			// The methods of the last type now start at the implementation, which is still a method of First
+			var image = patcher.SetCell(Table.TypeDef, third, "MethodList", implementation).ToArray();
+
+			using (var module = ModuleDefMD.Load(image)) {
+				var firstType = module.Find("First", isReflectionName: true)!;
+				var thirdType = module.Find("Third", isReflectionName: true)!;
+				Assert.Contains(firstType.Methods, a => a.Name == "IInterface.Method");
+
+				// The method moves to the type whose list is read last
+				var method = Assert.Single(thirdType.Methods, a => a.Name == "IInterface.Method");
+				Assert.Same(thirdType, method.DeclaringType);
+				Assert.DoesNotContain(method, firstType.Methods);
+				// The MethodImpl row is a row of First
+				Assert.Empty(method.Overrides);
+			}
+		}
 	}
 }
