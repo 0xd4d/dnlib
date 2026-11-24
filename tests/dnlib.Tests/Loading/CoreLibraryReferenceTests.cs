@@ -85,6 +85,25 @@ namespace dnlib.Tests.Loading {
 			}
 		}
 
+		// An assembly "corefx" with the public key token of the .NET contract assemblies is a core library too
+		// if there's no other one. With another token, it's just some library.
+		[Fact]
+		public void CorefxIsTheCoreLibraryIfThereIsNoOtherOne() {
+			using (var module = CreateModule(MDHeaderRuntimeVersion.MS_CLR_40,
+					Reference("SomeLibrary", "1.0.0.0", frameworkToken), Reference("corefx", "4.0.0.0", contractsToken))) {
+				Assert.Equal("corefx 4.0.0.0", GetCoreLibrary(module));
+				// It's the row of the file
+				Assert.Equal(new MDToken(Table.AssemblyRef, 2), module.CorLibTypes.AssemblyRef.MDToken);
+			}
+			using (var module = CreateModule(MDHeaderRuntimeVersion.MS_CLR_40, Reference("corefx", "4.0.0.0", frameworkToken)))
+				Assert.Equal("mscorlib 4.0.0.0", GetCoreLibrary(module));
+			using (var module = CreateModule(MDHeaderRuntimeVersion.MS_CLR_40, new AssemblyRefUser("corefx", new Version(4, 0, 0, 0))))
+				Assert.Equal("mscorlib 4.0.0.0", GetCoreLibrary(module));
+			using (var module = CreateModule(MDHeaderRuntimeVersion.MS_CLR_40,
+					Reference("corefx", "4.0.0.0", contractsToken), Reference("mscorlib", "2.0.0.0", frameworkToken)))
+				Assert.Equal("mscorlib 2.0.0.0", GetCoreLibrary(module));
+		}
+
 		// The core library itself has no reference to a core library
 		[Fact]
 		public void ModuleThatDefinesSystemObjectIsItsOwnCoreLibrary() {
