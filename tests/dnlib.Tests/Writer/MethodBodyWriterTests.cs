@@ -1,5 +1,9 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
@@ -204,6 +208,60 @@ namespace dnlib.Tests.Writer {
 			created.AddMethod("M", OpCodes.Br.ToInstruction(OpCodes.Nop.ToInstruction()), OpCodes.Ret.ToInstruction());
 
 			Assert.Throws<ModuleWriterException>(() => created.Write());
+		}
+
+		// The instructions of a method that can't be written: the operand isn't what the instruction needs
+		static Instruction[] CreateInvalidInstructions(ModuleDef module, string what) {
+			var ret = OpCodes.Ret.ToInstruction();
+			var pop = OpCodes.Pop.ToInstruction();
+			// A local that isn't a local of the method, with any index
+			Local LocalWithIndex(int index) => new Local(module.CorLibTypes.Int32, null, index);
+			switch (what) {
+			case "ldc.i4 with a string": return new[] { new Instruction(OpCodes.Ldc_I4, "text"), pop, ret };
+			case "ldc.i8 with an int": return new[] { new Instruction(OpCodes.Ldc_I8, 5), pop, ret };
+			case "ldc.r4 with a double": return new[] { new Instruction(OpCodes.Ldc_R4, 1.5), pop, ret };
+			case "ldc.r8 with a float": return new[] { new Instruction(OpCodes.Ldc_R8, 1.5f), pop, ret };
+			case "ldloc with a number": return new[] { new Instruction(OpCodes.Ldloc, 0), pop, ret };
+			case "ldloc.s with a number": return new[] { new Instruction(OpCodes.Ldloc_S, (byte)0), pop, ret };
+			case "ldloc.s with local 256": return new[] { new Instruction(OpCodes.Ldloc_S, LocalWithIndex(256)), pop, ret };
+			case "ldloc with local 65536": return new[] { new Instruction(OpCodes.Ldloc, LocalWithIndex(65536)), pop, ret };
+			case "switch with one instruction": return new[] { OpCodes.Ldc_I4_0.ToInstruction(), new Instruction(OpCodes.Switch, ret), ret };
+			case "branch without a target": return new[] { new Instruction(OpCodes.Br, null), ret };
+			case "short branch to an instruction that is 200 bytes away": {
+				var instructions = new List<Instruction> { new Instruction(OpCodes.Br_S, ret) };
+				instructions.AddRange(Enumerable.Range(0, 200).Select(a => OpCodes.Nop.ToInstruction()));
+				instructions.Add(ret);
+				return instructions.ToArray();
+			}
+			default: throw new ArgumentException(what);
+			}
+		}
+
+		[Theory]
+		[InlineData("ldc.i4 with a string", "Operand is not an Int32")]
+		[InlineData("ldc.i8 with an int", "Operand is not an Int64")]
+		[InlineData("ldc.r4 with a double", "Operand is not a Single")]
+		[InlineData("ldc.r8 with a float", "Operand is not a Double")]
+		[InlineData("ldloc with a number", "Operand is not a local/arg")]
+		[InlineData("ldloc.s with a number", "Operand is not a local/arg")]
+		[InlineData("ldloc.s with local 256", "Local/arg index doesn't fit in a Byte")]
+		[InlineData("ldloc with local 65536", "Local/arg index doesn't fit in a UInt16")]
+		[InlineData("switch with one instruction", "switch operand is not a list of instructions")]
+		// The first error is that the size of the stack can't be calculated
+		[InlineData("branch without a target", "Error calculating max stack value")]
+		[InlineData("short branch to an instruction that is 200 bytes away", "Target instruction is too far away for a short branch")]
+		public void InstructionWithAnOperandItCanNotHaveIsAnError(string what, string expectedError) {
+			var created = new CreatedModule();
+			created.AddMethod("M", CreateInvalidInstructions(created.Module, what));
+
+			var exception = Assert.Throws<ModuleWriterException>(() => created.Write());
+			Assert.Contains(expectedError, exception.Message);
+
+			// With a logger that doesn't throw, the method is written with some other operand
+			var stream = new MemoryStream();
+			created.Module.Write(stream, new ModuleWriterOptions(created.Module) { Logger = DummyLogger.NoThrowInstance });
+			using (var module = ModuleDefMD.Load(stream.ToArray()))
+				Assert.Equal(Code.Ret, CreatedModule.GetType(module).FindMethod("M")!.Body!.Instructions.Last().OpCode.Code);
 		}
 	}
 }
