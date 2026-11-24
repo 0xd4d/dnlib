@@ -96,7 +96,15 @@ namespace dnlib.Tests.Emit {
 			Assert.Same(method.Body.Variables[0], instructions.Single(a => a.OpCode == OpCodes.Ldloca_S).Operand);
 		}
 
+		// The ILGenerator of a DynamicMethod can't create a filter on .NET Framework (NotSupportedException)
+#if NET
+		static readonly bool hasFilter = true;
+#else
+		static readonly bool hasFilter = false;
+#endif
+
 		// try { throw } filter { ... } handler { ... } / try { } catch (Exception) { } / try { } finally { }
+		// Without a filter, the first handler is catch (InvalidOperationException).
 		static Func<int, int> CreateMethodWithExceptionHandlers() {
 			var dynamicMethod = new DynamicMethod("Handlers", typeof(int), new[] { typeof(int) });
 			var il = dynamicMethod.GetILGenerator();
@@ -112,13 +120,17 @@ namespace dnlib.Tests.Emit {
 			il.Emit(ReflectionOpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(Type.EmptyTypes)!);
 			il.Emit(ReflectionOpCodes.Throw);
 			il.MarkLabel(noThrow);
-			// The filter handles the exception if the argument is 1 (it always is when there's an exception)
-			il.BeginExceptFilterBlock();
-			il.Emit(ReflectionOpCodes.Pop);
-			il.Emit(ReflectionOpCodes.Ldarg_0);
-			il.Emit(ReflectionOpCodes.Ldc_I4_1);
-			il.Emit(ReflectionOpCodes.Ceq);
-			il.BeginCatchBlock(null);
+			if (hasFilter) {
+				// The filter handles the exception if the argument is 1 (it always is when there's an exception)
+				il.BeginExceptFilterBlock();
+				il.Emit(ReflectionOpCodes.Pop);
+				il.Emit(ReflectionOpCodes.Ldarg_0);
+				il.Emit(ReflectionOpCodes.Ldc_I4_1);
+				il.Emit(ReflectionOpCodes.Ceq);
+				il.BeginCatchBlock(null);
+			}
+			else
+				il.BeginCatchBlock(typeof(InvalidOperationException));
 			il.Emit(ReflectionOpCodes.Pop);
 			il.Emit(ReflectionOpCodes.Ldc_I4, 100);
 			il.Emit(ReflectionOpCodes.Stloc, result);
@@ -146,16 +158,21 @@ namespace dnlib.Tests.Emit {
 			var method = Read(handlers);
 			var body = method.Body!;
 
-			Assert.Equal(new[] { ExceptionHandlerType.Filter, ExceptionHandlerType.Catch, ExceptionHandlerType.Finally }, body.ExceptionHandlers.Select(a => a.HandlerType));
+			var firstHandlerType = hasFilter ? ExceptionHandlerType.Filter : ExceptionHandlerType.Catch;
+			Assert.Equal(new[] { firstHandlerType, ExceptionHandlerType.Catch, ExceptionHandlerType.Finally }, body.ExceptionHandlers.Select(a => a.HandlerType));
 			var filter = body.ExceptionHandlers[0];
 			var catchHandler = body.ExceptionHandlers[1];
 			var finallyHandler = body.ExceptionHandlers[2];
 			Assert.Equal("System.Exception", catchHandler.CatchType!.FullName);
-			// Fixed in c58fd04b: the filter's start wasn't read. The filter is between the try block and its handler.
-			Assert.NotNull(filter.FilterStart);
-			Assert.Same(filter.TryEnd, filter.FilterStart);
-			Assert.Equal(Code.Pop, filter.FilterStart.OpCode.Code);
-			Assert.Equal(Code.Endfilter, body.Instructions[body.Instructions.IndexOf(filter.HandlerStart!) - 1].OpCode.Code);
+			if (hasFilter) {
+				// Fixed in c58fd04b: the filter's start wasn't read. The filter is between the try block and its handler.
+				Assert.NotNull(filter.FilterStart);
+				Assert.Same(filter.TryEnd, filter.FilterStart);
+				Assert.Equal(Code.Pop, filter.FilterStart.OpCode.Code);
+				Assert.Equal(Code.Endfilter, body.Instructions[body.Instructions.IndexOf(filter.HandlerStart!) - 1].OpCode.Code);
+			}
+			else
+				Assert.Equal("System.InvalidOperationException", filter.CatchType!.FullName);
 			// The 3 try blocks start at the same instruction, and each one contains the one before it
 			Assert.Same(body.Instructions[0], filter.TryStart);
 			Assert.Same(filter.TryStart, catchHandler.TryStart);
