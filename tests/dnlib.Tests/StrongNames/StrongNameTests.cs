@@ -276,6 +276,37 @@ namespace dnlib.Tests.StrongNames {
 			Assert.False(StrongNameVerifier.IsValid(signed));
 		}
 
+		// An assembly that already has the attribute (it was signed with a migrated key before) gets one attribute
+		// with the new key, not a second one
+		[Fact]
+		public void SigningAgainWithAnotherMigratedKeyReplacesTheAttribute() {
+			var identityKey = new StrongNameKey(keyPair);
+			var identityPublicKey = new StrongNamePublicKey(identityKey.PublicKey);
+
+			byte[] Sign(byte[] image, StrongNameKey signatureKey) {
+				using (var module = ModuleDefMD.Load(image)) {
+					var options = new ModuleWriterOptions(module);
+					options.InitializeEnhancedStrongNameSigning(module, signatureKey, new StrongNamePublicKey(signatureKey.PublicKey), identityKey, identityPublicKey);
+					var stream = new MemoryStream();
+					module.Write(stream, options);
+					return stream.ToArray();
+				}
+			}
+			var firstKey = new StrongNameKey(CreateKeyPair(2048)).WithHashAlgorithm(AssemblyHashAlgorithm.SHA_256);
+			var secondKey = new StrongNameKey(CreateKeyPair(2048)).WithHashAlgorithm(AssemblyHashAlgorithm.SHA_256);
+
+			var signedTwice = Sign(Sign(CSharpCompiler.Compile(Source).Image, firstKey), secondKey);
+
+			using (var module = ModuleDefMD.Load(signedTwice)) {
+				var attribute = Assert.Single(module.Assembly!.CustomAttributes, a => a.TypeFullName == "System.Reflection.AssemblySignatureKeyAttribute");
+				Assert.Equal(secondKey.PublicKey, HexToBytes(attribute.ConstructorArguments[0].Value!.ToString()!));
+				Assert.Empty(attribute.NamedArguments);
+				Assert.Equal(identityKey.PublicKey, module.Assembly.PublicKey.Data);
+			}
+			Assert.True(StrongNameVerifier.IsValid(signedTwice, secondKey.PublicKey));
+			Assert.False(StrongNameVerifier.IsValid(signedTwice, firstKey.PublicKey));
+		}
+
 		// Fixed in 0e863900: a hash algorithm that has no name (eg. None) threw
 		[Fact]
 		public void CounterSignatureUsesSha1IfTheHashAlgorithmHasNoName() {
