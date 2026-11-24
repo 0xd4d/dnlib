@@ -8,6 +8,7 @@ The input files are Cobertura XML files written by dotnet-coverage (see coverage
 some builds of dnlib.
 """
 import argparse
+import os
 import sys
 import collections
 import xml.etree.ElementTree as ET
@@ -19,14 +20,21 @@ def read_line_hits(source_directory, cobertura_files):
     (eg. the build tools).
     """
     source_directory = source_directory.replace("\\", "/").rstrip("/") + "/"
+    # A build on GitHub Actions (ContinuousIntegrationBuild) stores the path of the repository as "/_/". Other
+    # programs in the report (eg. msbuild) were built like that too, so the file must exist in dnlib.
+    mapped_directory = "/_/" + os.path.basename(source_directory.rstrip("/")) + "/"
     hits = collections.defaultdict(dict)
     for cobertura_file in cobertura_files:
         for _, element in ET.iterparse(cobertura_file, events=("end",)):
             if element.tag != "class":
                 continue
             path = (element.get("filename") or "").replace("\\", "/")
+            source_file = None
             if path.startswith(source_directory):
                 source_file = path[len(source_directory):]
+            elif path.startswith(mapped_directory) and os.path.isfile(source_directory + path[len(mapped_directory):]):
+                source_file = path[len(mapped_directory):]
+            if source_file is not None:
                 lines = hits[source_file]
                 for line in element.iter("line"):
                     number = int(line.get("number"))
@@ -74,8 +82,8 @@ def main():
 
     print("\nfiles with the most uncovered lines:")
     rows = sorted(((len(lines) - sum(lines.values()), len(lines), source_file) for source_file, lines in hits.items()), reverse=True)
-    for uncovered, total, source_file in rows[:args.files]:
-        print(f"  {uncovered:5} of {total:5} uncovered ({100 * (total - uncovered) / max(total, 1):5.1f}% covered)  {source_file}")
+    for uncovered, file_lines, source_file in rows[:args.files]:
+        print(f"  {uncovered:5} of {file_lines:5} uncovered ({100 * (file_lines - uncovered) / max(file_lines, 1):5.1f}% covered)  {source_file}")
 
     percent = 100 * covered / max(total, 1)
     if percent < args.minimum:
