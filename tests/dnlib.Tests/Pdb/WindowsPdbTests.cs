@@ -627,14 +627,19 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
-		// A C# program can use the Visual Basic runtime: that doesn't make it a Visual Basic program
+		// A C# program can use the Visual Basic runtime: that doesn't make it a Visual Basic program. The test
+		// creates its own assembly with the runtime's name, so it doesn't matter which runtime the tests run on.
 		[Fact]
 		public void CSharpCodeThatReferencesTheVisualBasicRuntimeHasTheScopesOfThePortablePdb() {
 			SkipUnlessWindows();
+			var runtimeWithAnotherVersion = CSharpCompiler.Compile(@"
+[assembly: System.Reflection.AssemblyVersion(""99.0.0.0"")]
+namespace NotTheRealRuntime { public static class Text { public static int Len(string text) { return text.Length; } } }",
+				new CSharpCompilerOptions { AssemblyName = "Microsoft.VisualBasic" });
 			const string source = @"
 public class Program {
 	public static int Main() {
-		int result = Microsoft.VisualBasic.Strings.Len(""abc"") - 3;
+		int result = NotTheRealRuntime.Text.Len(""abc"") - 3;
 		for (int i = 0; i < 3; i++) {
 			int twice = i * 2;
 			result += twice - twice;
@@ -642,12 +647,17 @@ public class Program {
 		return result;
 	}
 }";
-			var withPortablePdb = CSharpCompiler.Compile(source, new CSharpCompilerOptions { OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication, PdbKind = PdbKind.Portable, Optimize = false });
-			var withWindowsPdb = CSharpCompiler.Compile(source, new CSharpCompilerOptions { OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication, PdbKind = PdbKind.Windows, Optimize = false });
+			CompiledAssembly Compile(PdbKind pdbKind) {
+				var options = new CSharpCompilerOptions { OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication, PdbKind = pdbKind, Optimize = false };
+				options.References.Add(runtimeWithAnotherVersion.Image);
+				return CSharpCompiler.Compile(source, options);
+			}
+			var withPortablePdb = Compile(PdbKind.Portable);
+			var withWindowsPdb = Compile(PdbKind.Windows);
 
 			using (var portable = Load(withPortablePdb))
 			using (var windows = Load(withWindowsPdb)) {
-				Assert.Contains(windows.GetAssemblyRefs(), a => a.Name.String.StartsWith("Microsoft.VisualBasic", System.StringComparison.Ordinal));
+				Assert.Contains(windows.GetAssemblyRefs(), a => a.Name == "Microsoft.VisualBasic");
 				var expected = GetSourceLevelDebugInfo(portable);
 				Assert.Contains("local 2 twice", expected);
 				Assert.Equal(expected, GetSourceLevelDebugInfo(windows));
