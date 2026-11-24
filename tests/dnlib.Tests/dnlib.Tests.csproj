@@ -14,6 +14,11 @@
     <EmbeddedResource Include="Fixtures\Sources\**" LogicalName="Fixtures/Sources/%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <!-- The example programs of the repository are compiled into the tests and run by Examples/ExampleTests.cs -->
+  <ItemGroup>
+    <Compile Include="..\..\Examples\Example*.cs" Link="Examples\Sources\%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <!-- The public API of every dnlib build as text, see Api/PublicApiTests.cs -->
   <ItemGroup>
     <EmbeddedResource Include="Api\Baselines\*.txt" LogicalName="Api/Baselines/%(Filename)%(Extension)" />
