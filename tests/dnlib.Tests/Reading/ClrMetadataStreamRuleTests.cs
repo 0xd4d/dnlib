@@ -57,9 +57,13 @@ public static class Marker {
 		static readonly byte[] baseImageWithGenerics = CreateBaseImage(Source + "public class Generic<T> { }");
 		static readonly uint markerRid = GetMarkerRid();
 
-		static byte[] CreateBaseImage(string source) {
+		static byte[] CreateBaseImage(string source, bool bigColumns = false) {
 			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(source).Image)) {
 				var options = new ModuleWriterOptions(module);
+				if (bigColumns) {
+					options.MetadataOptions.TablesHeapOptions.UseENC = true;
+					options.MetadataOptions.TablesHeapOptions.ForceBigColumns = true;
+				}
 				options.MetadataOptions.CustomHeaps.Add(new PaddingHeap());
 				var stream = new MemoryStream();
 				module.Write(stream, options);
@@ -152,6 +156,10 @@ public static class Marker {
 			catch (FileLoadException) {
 				return "rejected";
 			}
+			catch (System.Security.SecurityException) {
+				// "Invalid assembly public key": what it read as the public key isn't one
+				return "rejected";
+			}
 		}
 
 		// What the test changes in the metadata
@@ -211,6 +219,13 @@ public static class Marker {
 			case "#Schema after the tables stream, decoys with lower case names first":
 				streams.InsertRange(0, CreateDecoys(block, name => name.ToLowerInvariant()));
 				streams.Add(new MetadataBlockStream("#Schema", new byte[4]));
+				break;
+			case "#Schema and #JTD after the tables stream":
+				streams.Add(new MetadataBlockStream("#Schema", new byte[4]));
+				streams.Add(new MetadataBlockStream("#JTD", new byte[4]));
+				break;
+			case "#jtd":
+				streams.Add(new MetadataBlockStream("#jtd", new byte[4]));
 				break;
 			case "#Schema before the tables stream":
 				streams.Insert(0, new MetadataBlockStream("#Schema", new byte[4]));
@@ -447,6 +462,28 @@ public static class Marker {
 			}
 		}
 
+		// A #JTD stream says that every column that can have 2 or 4 bytes has 4 bytes. The CLR only looks for
+		// it when it reads uncompressed metadata (#-, or #~ with a #Schema stream after it), and the case of
+		// its name doesn't matter. The tables of this file have such columns: without the stream, the file
+		// can't be read. (With the stream and normal tables it can't be read either, see the cases above.)
+		[Theory]
+		[InlineData("#-", "#JTD", "RRRR", "RRRR")]
+		[InlineData("#-", "#jtd", "RRRR", "RRRR")]
+		[InlineData("#~", "#Schema #JTD", "RRRR", "RRRR")]
+		[InlineData("#~", "#JTD #Schema", "RRRR", "RRRR")]
+		[InlineData("#-", "", "????", "rejected")]
+		[InlineData("#~", "#JTD", "????", "rejected")]
+		[InlineData("#~", "", "????", "rejected")]
+		public void TablesWithBigColumnsNeedAJtdStream(string tablesName, string otherStreams, string expectedDnlib, string expectedRuntime) {
+			var block = new MetadataBlock(CreateBaseImage(Source, bigColumns: true)).RemoveStream("#Pad");
+			Assert.Equal("#-", block.Streams.Single(a => a.Name == "#-" || a.Name == "#~").Name);
+			block.GetStream("#-").Name = tablesName;
+			foreach (var name in otherStreams.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+				block.Streams.Add(new MetadataBlockStream(name, new byte[4]));
+
+			AssertRead(block.Write(), expectedDnlib, expectedRuntime);
+		}
+
 		[Fact]
 		public void ExtraDataOfTheTablesHeaderIsRead() {
 			using (var module = ModuleDefMD.Load(CreateImageWithAnotherHeader("extra data after the row counts"))) {
@@ -492,6 +529,7 @@ public static class Marker {
 		[InlineData("#Schema after the tables stream, decoys last", "RRRR", "RRRR")]
 		[InlineData("#Schema after the tables stream, decoys first", "DDDD", "DDDD")]
 		[InlineData("#Schema after the tables stream, decoys with lower case names first", "DDDD", "DDDD")]
+		[InlineData("#Schema and #JTD after the tables stream", "????", "rejected")]
 		[InlineData("#Schema before the tables stream", "RRRR", "rejected")]
 		[InlineData("#schema after the tables stream, decoys first", "RRRR", "RRRR")]
 		[InlineData("heaps with upper case names", "???R", "rejected")]
@@ -512,6 +550,8 @@ public static class Marker {
 		[InlineData("two tables streams", "RRRR", "rejected")]
 		[InlineData("#Schema after the tables stream, decoys first", "DDDD", "DDDD")]
 		[InlineData("#Schema before the tables stream", "RRRR", "rejected")]
+		[InlineData("#JTD", "????", "rejected")]
+		[InlineData("#jtd", "????", "rejected")]
 		public void UncompressedMetadata(string change, string expectedDnlib, string expectedRuntime) =>
 			AssertRead(CreateUncompressedImage(change), expectedDnlib, expectedRuntime);
 	}
