@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using dnlib.DotNet;
 using dnlib.DotNet.Pdb;
+using dnlib.DotNet.Pdb.Symbols;
 using dnlib.DotNet.Writer;
 using dnlib.TestUtils;
 using dnlib.TestUtils.Dumping;
@@ -41,11 +42,12 @@ namespace dnlib.Tests.Pdb {
 		// The debug info that a Windows PDB and a portable PDB of the same code store in the same way: where each
 		// statement is in the source code, and the names of the local variables and constants in each scope.
 		// Imports and custom debug info are stored in other ways and aren't in this text.
-		static string GetSourceLevelDebugInfo(ModuleDef module) {
+		// isIncluded: if it's not null, only the methods that it returns true for are in the text
+		static string GetSourceLevelDebugInfo(ModuleDef module, System.Func<MethodDef, bool>? isIncluded = null) {
 			var text = new StringBuilder();
 			foreach (var method in module.GetTypes().SelectMany(a => a.Methods)) {
 				var body = method.Body;
-				if (body is null)
+				if (body is null || (isIncluded is not null && !isIncluded(method)))
 					continue;
 				text.AppendLine(method.FullName);
 				var indexes = new Dictionary<dnlib.DotNet.Emit.Instruction, int>();
@@ -527,6 +529,131 @@ namespace dnlib.Tests.Pdb {
 				Assert.Equal(new System.DateTime(2007, 5, 6, 8, 9, 10), constants["Day"]);
 				Assert.Equal(12.5m, constants["Price"]);
 				Assert.Equal("title", constants["Title"]);
+			}
+		}
+
+		static readonly System.Lazy<CompiledAssembly> vbWithPortablePdb = new System.Lazy<CompiledAssembly>(() =>
+			VisualBasicCompiler.Compile(Fixtures.Fixtures.ReadSource("VbFeatures.vb"), new VisualBasicCompilerOptions {
+				AssemblyName = "VbFeatures",
+				OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication,
+				PdbKind = PdbKind.Portable,
+			}));
+
+		// The locals of a Visual Basic iterator method are fields of a class that the compiler creates. A Windows
+		// PDB has them as locals with a special name ($VB$ResumableLocal_...) in a scope of that class's MoveNext
+		// method, a portable PDB stores them in another way.
+		static bool IsNotAnIteratorClassMethod(MethodDef method) => !method.DeclaringType!.Name.String.StartsWith("VB$StateMachine");
+
+		// In a Windows PDB that the Visual Basic compiler writes, a scope ends at its last instruction. In every
+		// other PDB (C#, or a portable PDB), it ends at the first instruction after the scope. dnlib's scopes
+		// always end at the first instruction after the scope: the same code has the same scopes with both kinds
+		// of PDB files.
+		[Fact]
+		public void VisualBasicWindowsPdbHasTheScopesOfThePortablePdb() {
+			SkipUnlessWindows();
+			using (var portable = Load(vbWithPortablePdb.Value))
+			using (var windows = Load(vbWithWindowsPdb.Value)) {
+				Assert.Equal(PdbFileKind.WindowsPDB, windows.PdbState!.PdbFileKind);
+				var expected = GetSourceLevelDebugInfo(portable, IsNotAnIteratorClassMethod);
+				Assert.Contains("scope #", expected);
+				Assert.Equal(expected, GetSourceLevelDebugInfo(windows, IsNotAnIteratorClassMethod));
+			}
+		}
+
+		// The scopes of every method as they are in the PDB file: the IL offsets where they start and end
+		static string GetScopeOffsetsInThePdbFile(CompiledAssembly assembly) {
+			var text = new StringBuilder();
+			using (var module = ModuleDefMD.Load(assembly.Image))
+			using (var reader = SymbolReaderFactory.Create(PdbReaderOptions.None, module.Metadata, assembly.Pdb!)!) {
+				reader.Initialize(module);
+				foreach (var method in module.GetTypes().SelectMany(a => a.Methods)) {
+					if (reader.GetMethod(method, 1)?.RootScope is not SymbolScope rootScope)
+						continue;
+					text.Append(method.FullName + ":");
+					var scopes = new Stack<SymbolScope>();
+					scopes.Push(rootScope);
+					while (scopes.Count != 0) {
+						var scope = scopes.Pop();
+						text.Append($" {scope.StartOffset}-{scope.EndOffset}");
+						foreach (var child in scope.Children.Reverse())
+							scopes.Push(child);
+					}
+					text.AppendLine();
+				}
+			}
+			return text.ToString();
+		}
+
+		// The scopes of a method (eg. "Features.Code::Locals") that don't start at its first instruction, as they
+		// are in the PDB file
+		static string[] GetInnerScopes(CompiledAssembly assembly, string method) {
+			var line = GetScopeOffsetsInThePdbFile(assembly).Split('\n').Single(a => a.Contains(" " + method + "(")).Trim();
+			var scopes = line.Substring(line.LastIndexOf("):") + 2).Trim().Split(' ');
+			return scopes.Where(a => !a.StartsWith("0-")).ToArray();
+		}
+
+		// What the tests above are about: in the Windows PDB, the scopes inside a method end one byte earlier
+		// than in the portable PDB if the compiler is Visual Basic's, and at the same offset if it's C#'s
+		[Fact]
+		public void CompilersWriteTheEndOfAScopeInDifferentWays() {
+			SkipUnlessWindows();
+			string OneLess(string scope) {
+				var offsets = scope.Split('-');
+				return offsets[0] + "-" + (int.Parse(offsets[1]) - 1);
+			}
+
+			var visualBasicScopes = GetInnerScopes(vbWithPortablePdb.Value, "VbFeatures.Program::Main");
+			Assert.NotEmpty(visualBasicScopes);
+			Assert.Equal(visualBasicScopes.Select(OneLess), GetInnerScopes(vbWithWindowsPdb.Value, "VbFeatures.Program::Main"));
+
+			var csharpScopes = GetInnerScopes(Portable, "Features.Code::Locals");
+			Assert.NotEmpty(csharpScopes);
+			Assert.Equal(csharpScopes, GetInnerScopes(Windows, "Features.Code::Locals"));
+		}
+
+		// dnlib writes them like the compiler did. It knows the compiler from the language of the source files
+		// in the PDB (the Visual Basic test input has no reference to the Visual Basic runtime).
+		[Theory, InlineData(true), InlineData(false)]
+		public void ScopesAreWrittenLikeTheCompilerWroteThem(bool visualBasic) {
+			SkipUnlessWindows();
+			var compiled = visualBasic ? vbWithWindowsPdb.Value : Windows;
+			using (var module = Load(compiled)) {
+				if (visualBasic)
+					Assert.DoesNotContain(module.GetAssemblyRefs(), a => a.Name.String.StartsWith("Microsoft.VisualBasic", System.StringComparison.Ordinal));
+
+				var written = Write(module, PdbFileKind.WindowsPDB);
+
+				Assert.Equal(GetScopeOffsetsInThePdbFile(compiled), GetScopeOffsetsInThePdbFile(written));
+			}
+		}
+
+		// A C# program can use the Visual Basic runtime: that doesn't make it a Visual Basic program
+		[Fact]
+		public void CSharpCodeThatReferencesTheVisualBasicRuntimeHasTheScopesOfThePortablePdb() {
+			SkipUnlessWindows();
+			const string source = @"
+public class Program {
+	public static int Main() {
+		int result = Microsoft.VisualBasic.Strings.Len(""abc"") - 3;
+		for (int i = 0; i < 3; i++) {
+			int twice = i * 2;
+			result += twice - twice;
+		}
+		return result;
+	}
+}";
+			var withPortablePdb = CSharpCompiler.Compile(source, new CSharpCompilerOptions { OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication, PdbKind = PdbKind.Portable, Optimize = false });
+			var withWindowsPdb = CSharpCompiler.Compile(source, new CSharpCompilerOptions { OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication, PdbKind = PdbKind.Windows, Optimize = false });
+
+			using (var portable = Load(withPortablePdb))
+			using (var windows = Load(withWindowsPdb)) {
+				Assert.Contains(windows.GetAssemblyRefs(), a => a.Name.String.StartsWith("Microsoft.VisualBasic", System.StringComparison.Ordinal));
+				var expected = GetSourceLevelDebugInfo(portable);
+				Assert.Contains("local 2 twice", expected);
+				Assert.Equal(expected, GetSourceLevelDebugInfo(windows));
+
+				var written = Write(windows, PdbFileKind.WindowsPDB);
+				Assert.Equal(GetScopeOffsetsInThePdbFile(withWindowsPdb), GetScopeOffsetsInThePdbFile(written));
 			}
 		}
 
