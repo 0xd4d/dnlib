@@ -242,8 +242,9 @@ namespace dnlib.DotNet {
 
 			int hash = 0;
 
+			// The name is compared without case
 			if (CompareName)
-				hash += UTF8String.GetHashCode(a.Name);
+				hash += StringComparer.OrdinalIgnoreCase.GetHashCode(UTF8String.ToSystemStringOrEmpty(a.Name));
 			if (CompareVersion)
 				hash += Utils.CreateVersionWithNoUndefinedValues(a.Version).GetHashCode();
 			if (ComparePublicKeyToken)
