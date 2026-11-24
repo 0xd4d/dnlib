@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System.Collections.Generic;
 using System.Linq;
 using dnlib.DotNet.MD;
 
@@ -271,6 +272,9 @@ namespace dnlib.DotNet.Writer {
 			return rid;
 		}
 
+		// TypeSpecs that were added again while their signatures were being written
+		HashSet<TypeSpec>? reenteredTypeSpecs;
+
 		/// <inheritdoc/>
 		protected override uint AddTypeSpec(TypeSpec? ts) {
 			if (ts is null) {
@@ -278,12 +282,22 @@ namespace dnlib.DotNet.Writer {
 				return 0;
 			}
 			if (typeSpecInfos.TryGetRid(ts, out uint rid)) {
-				if (rid == 0)
+				if (rid != 0)
+					return rid;
+				// Its signature is being written. It's not a loop if we got here through a custom attribute
+				// of a type in its signature: try to add it now, its caller will use the same rid.
+				reenteredTypeSpecs ??= new HashSet<TypeSpec>();
+				if (!reenteredTypeSpecs.Add(ts)) {
 					Error("TypeSpec 0x{0:X8} has an infinite TypeSig loop.", ts.MDToken.Raw);
-				return rid;
+					return 0;
+				}
 			}
-			typeSpecInfos.Add(ts, 0);   // Prevent inf recursion
+			else
+				typeSpecInfos.Add(ts, 0);   // Prevent inf recursion
 			var row = new RawTypeSpecRow(GetSignature(ts.TypeSig, ts.ExtraData));
+			// Writing the signature can recursively add this TypeSpec through a custom attribute.
+			if (typeSpecInfos.TryGetRid(ts, out rid) && rid != 0)
+				return rid;
 			rid = tablesHeap.TypeSpecTable.Add(row);
 			typeSpecInfos.SetRid(ts, rid);
 			AddCustomAttributes(Table.TypeSpec, rid, ts);

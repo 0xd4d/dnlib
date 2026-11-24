@@ -711,6 +711,10 @@ namespace dnlib.DotNet.MD {
 					continue;
 				if (nestedRidsDict.ContainsKey(row.NestedClass))
 					continue;
+				// If the table isn't sorted, the CLR's binary search doesn't find all rows and those
+				// types aren't nested types. They'd be in no list at all if they were added here.
+				if (GetNestedClassRid(row.NestedClass) == 0)
+					continue;
 				nestedRidsDict[row.NestedClass] = true;
 				nestedRids.Add(row.NestedClass);
 			}
