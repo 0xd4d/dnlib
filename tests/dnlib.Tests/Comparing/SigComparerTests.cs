@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using dnlib.DotNet;
 using Xunit;
 
@@ -528,6 +529,79 @@ namespace dnlib.Tests.Comparing {
 			// A normal type isn't the module
 			var typeMember = new MemberRefUser(module, "M", signature, AddType(module, "Ns", "Type"));
 			Assert.False(comparer.Equals(typeMember, throughModule));
+		}
+
+		// A field of the test class, for the reflection overloads
+		public int SampleField;
+		public int SampleProperty { get; set; }
+		public event EventHandler? SampleEvent;
+		void RaiseSampleEvent() => SampleEvent?.Invoke(this, EventArgs.Empty);
+
+		// An object of every type that an Equals() method of SigComparer has a parameter of
+		static object[] CreateSamples() {
+			var module = CreateModule("A");
+			var int32 = module.CorLibTypes.Int32;
+			var typeRef = new TypeRefUser(module, "Ns", "Type", module);
+			var methodSig = MethodSig.CreateStatic(module.CorLibTypes.Void);
+			var genericMethodRef = new MemberRefUser(module, "Generic", MethodSig.CreateStaticGeneric(1, module.CorLibTypes.Void), typeRef);
+			return new object[] {
+				new TypeDefUser("Ns", "Type"), typeRef, new TypeSpecUser(new SZArraySig(int32)), int32,
+				new ExportedTypeUser(module, 0, "Ns", "Type", dnlib.DotNet.TypeAttributes.Public, new AssemblyRefUser("Other")),
+				new MethodDefUser("Method", methodSig), new FieldDefUser("Field", new FieldSig(int32)),
+				new MemberRefUser(module, "Method", methodSig, typeRef), new MethodSpecUser(genericMethodRef, new GenericInstMethodSig(int32)),
+				new PropertyDefUser("Property", PropertySig.CreateStatic(int32)), new EventDefUser("Event", typeRef),
+				methodSig, new FieldSig(int32), PropertySig.CreateStatic(int32), new LocalSig(int32), new GenericInstMethodSig(int32),
+				new List<TypeSig?> { int32 },
+				typeof(SigComparerTests), typeof(SigComparerTests).GetMethod(nameof(CreateSamples), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!,
+				typeof(SigComparerTests).GetField(nameof(SampleField))!, typeof(SigComparerTests).GetProperty(nameof(SampleProperty))!,
+				typeof(SigComparerTests).GetEvent(nameof(SampleEvent))!,
+			};
+		}
+
+		// SigComparer has more than 70 Equals() methods, one for every pair of things that can be compared. For each of
+		// them: null equals null, and nothing else equals null.
+		[Fact]
+		public void NullIsOnlyEqualToNullInEveryEqualsMethod() {
+			var samples = CreateSamples();
+			var equalsMethods = typeof(SigComparer).GetMethods().Where(a => a.Name == "Equals" && a.GetParameters().Length == 2 && a.ReturnType == typeof(bool)).ToList();
+			Assert.True(equalsMethods.Count >= 70, $"Only {equalsMethods.Count} Equals() methods were found");
+
+			foreach (var equals in equalsMethods) {
+				var parameters = equals.GetParameters();
+				// object.Equals(object, object) is a static method. A null Type isn't "nothing": see the next test.
+				if (equals.IsStatic || parameters.Any(a => a.ParameterType == typeof(Type)))
+					continue;
+				var first = samples.FirstOrDefault(a => parameters[0].ParameterType.IsInstanceOfType(a));
+				var second = samples.FirstOrDefault(a => parameters[1].ParameterType.IsInstanceOfType(a));
+				Assert.True(first is not null && second is not null, $"The test has no sample for {equals}");
+				// A new comparer every time: it's a struct, and Invoke() would change a copy
+				bool Equals(object? a, object? b) => (bool)equals.Invoke(new SigComparer(), new[] { a, b })!;
+
+				Assert.True(Equals(null, null), equals.ToString());
+				Assert.False(Equals(first, null), equals.ToString());
+				Assert.False(Equals(null, second), equals.ToString());
+			}
+		}
+
+		// Reflection has no type for the global methods and fields of a module: their DeclaringType is null. So a
+		// null Type is the global type (<Module>) when it's compared with a dnlib type.
+		[Fact]
+		public void NullReflectionTypeIsTheGlobalType() {
+			var module = CreateModule("A");
+			var globalType = module.GlobalType!;
+			var otherType = new TypeDefUser("Ns", "Type");
+			module.Types.Add(otherType);
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(globalType, (Type?)null));
+			Assert.True(comparer.Equals((Type?)null, globalType));
+			Assert.True(comparer.Equals((IType)globalType, (Type?)null));
+			Assert.False(comparer.Equals(otherType, (Type?)null));
+			Assert.False(comparer.Equals((IType)otherType, (Type?)null));
+			// No dnlib type isn't the global type
+			Assert.False(comparer.Equals((TypeDef?)null, (Type?)null));
+			Assert.False(comparer.Equals((IType?)null, (Type?)null));
+			Assert.False(comparer.Equals((TypeDef?)null, typeof(string)));
 		}
 	}
 }
