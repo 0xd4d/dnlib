@@ -79,6 +79,28 @@ namespace dnlib.Tests.Writer {
 				created.Type.DeclSecurities.Add(declSecurity);
 				break;
 			}
+			case "property whose getter is in no type": {
+				var property = new PropertyDefUser("Property", PropertySig.CreateStatic(Types.Int32));
+				property.GetMethod = new MethodDefUser("get_Property", MethodSig.CreateStatic(Types.Int32));
+				created.Type.Properties.Add(property);
+				break;
+			}
+			case "type references that are nested in each other": {
+				// More than a few of them: the writer then finds the loop with a hash set
+				var first = new TypeRefUser(module, "Ns", "Nested0");
+				TypeRef last = first;
+				for (int i = 1; i < 20; i++)
+					last = new TypeRefUser(module, "Ns", "Nested" + i, last);
+				first.ResolutionScope = last;
+				created.AddField("Field", new ClassSig(first));
+				break;
+			}
+			case "type reference that is nested in itself": {
+				var typeRef = new TypeRefUser(module, "Ns", "Nested");
+				typeRef.ResolutionScope = typeRef;
+				created.AddField("Field", new ClassSig(typeRef));
+				break;
+			}
 			default:
 				throw new ArgumentException(what);
 			}
@@ -98,6 +120,9 @@ namespace dnlib.Tests.Writer {
 		[InlineData("raw marshal blob without its data", "a raw blob must be a RawMarshalType")]
 		[InlineData("safe array with a type name but no variant type", "is valid even though a previous field was invalid")]
 		[InlineData("security attribute without a type", "SecurityAttribute attribute type is null")]
+		[InlineData("property whose getter is in no type", "is not defined in this module")]
+		[InlineData("type references that are nested in each other", "infinite ResolutionScope loop")]
+		[InlineData("type reference that is nested in itself", "infinite ResolutionScope loop")]
 		public void ModuleThatCanNotBeWrittenAsItIsIsAnError(string what, string expectedError) {
 			MakeInvalid(what);
 
