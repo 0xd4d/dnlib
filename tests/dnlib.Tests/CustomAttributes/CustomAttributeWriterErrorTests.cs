@@ -128,6 +128,37 @@ namespace dnlib.Tests.CustomAttributes {
 			AssertIsAWriterError(attribute, "value is not an enum");
 		}
 
+		// The parameter is a System.Type, the argument says it's an int
+		[Fact]
+		public void TypeParameterWithAnArgumentOfAnotherType() {
+			var attribute = new CustomAttribute(CreateConstructor(SystemType));
+			attribute.ConstructorArguments.Add(new CAArgument(Types.Int32, 5));
+
+			AssertIsAWriterError(attribute, "value type is not System.Type");
+		}
+
+		// A named argument has the type of its field or property in the attribute's bytes: only the types that
+		// an argument can have are allowed there
+		[Fact]
+		public void NamedArgumentOfAStructThatIsNotAnEnum() {
+			var structType = new TypeDefUser("Ns", "Struct", Types.GetTypeRef("System", "ValueType"));
+			created.Module.Types.Add(structType);
+			var structSig = new ValueTypeSig(structType);
+			var attribute = new CustomAttribute(CreateConstructor());
+			attribute.NamedArguments.Add(new CANamedArgument(isField: true, structSig, "Field", new CAArgument(structSig, 5)));
+
+			AssertIsAWriterError(attribute, "doesn't seem to be an enum");
+		}
+
+		[Fact]
+		public void NamedArgumentOfAPointerType() {
+			var pointer = new PtrSig(Types.Int32);
+			var attribute = new CustomAttribute(CreateConstructor());
+			attribute.NamedArguments.Add(new CANamedArgument(isField: false, pointer, "Property", new CAArgument(pointer, 5)));
+
+			AssertIsAWriterError(attribute, "Custom attribute: Invalid type");
+		}
+
 		[Fact]
 		public void ArgumentOfAPointerType() {
 			var pointer = new PtrSig(Types.Int32);
