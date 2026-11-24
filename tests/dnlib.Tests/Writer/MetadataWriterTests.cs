@@ -184,5 +184,38 @@ namespace dnlib.Tests.Writer {
 				Assert.Equal("Library.Outer/MarkerAttribute", attribute.TypeFullName);
 			}
 		}
+
+		// A resource is in the file (embedded), in another file of the assembly, or in another assembly
+		[Fact]
+		public void ResourcesInOtherFilesAndAssembliesAreWritten() {
+			var created = new CreatedModule();
+			var library = new AssemblyRefUser("ResourceLibrary", new System.Version(1, 0, 0, 0));
+			var file = new FileDefUser("resources.bin", FileAttributes.ContainsNoMetadata, new byte[] { 1, 2, 3 });
+			created.Module.Resources.Add(new EmbeddedResource("Embedded", new byte[] { 4, 5, 6 }, ManifestResourceAttributes.Private));
+			created.Module.Resources.Add(new AssemblyLinkedResource("InAnotherAssembly", library, ManifestResourceAttributes.Public));
+			created.Module.Resources.Add(new LinkedResource("InAFile", file, ManifestResourceAttributes.Public));
+
+			using (var module = created.WriteAndRead()) {
+				Assert.Equal(3, module.Resources.Count);
+				var embedded = Assert.IsAssignableFrom<EmbeddedResource>(module.Resources.Find("Embedded"));
+				Assert.Equal(new byte[] { 4, 5, 6 }, embedded.CreateReader().ToArray());
+				Assert.True(embedded.IsPrivate);
+				var inAssembly = Assert.IsAssignableFrom<AssemblyLinkedResource>(module.Resources.Find("InAnotherAssembly"));
+				Assert.Equal("ResourceLibrary", inAssembly.Assembly.Name);
+				Assert.True(inAssembly.IsPublic);
+				var inFile = Assert.IsAssignableFrom<LinkedResource>(module.Resources.Find("InAFile"));
+				Assert.Equal("resources.bin", inFile.FileName);
+				Assert.Equal(new byte[] { 1, 2, 3 }, inFile.Hash);
+				Assert.False(inFile.File.ContainsMetadata);
+
+				Assert.Equal(ResourceType.Embedded, embedded.ResourceType);
+				Assert.Equal(ResourceType.AssemblyLinked, inAssembly.ResourceType);
+				Assert.Equal(ResourceType.Linked, inFile.ResourceType);
+				Assert.Equal(1, module.Resources.IndexOfAssemblyLinkedResource("InAnotherAssembly"));
+				Assert.Equal(2, module.Resources.IndexOfLinkedResource("InAFile"));
+				Assert.Same(inFile, module.Resources.FindLinkedResource("InAFile"));
+				Assert.Null(module.Resources.FindEmbeddedResource("InAFile"));
+			}
+		}
 	}
 }
