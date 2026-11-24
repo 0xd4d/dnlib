@@ -131,6 +131,26 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// The debug build of DebugInfoSource has custom debug info that a release build doesn't have: the
+		// edit-and-continue maps, and the dynamic flags and the tuple element names of local variables
+		[Theory]
+		[InlineData(PdbReaderOptions.None)]
+		[InlineData(PdbReaderOptions.MicrosoftComReader)]
+		public void WindowsPdbOfADebugBuildSurvivesAWrite(PdbReaderOptions readerOptions) {
+			SkipUnlessWindows();
+			using (var original = Load(DebugInfoSource.CompiledWithWindowsPdb, readerOptions)) {
+				var kinds = PortablePdbReaderTests.GetMethodCustomDebugInfoKinds(original);
+				Assert.Contains(PdbCustomDebugInfoKind.DynamicLocals, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.TupleElementNames, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueLocalSlotMap, kinds);
+
+				var written = Write(original, PdbFileKind.WindowsPDB);
+
+				using (var reloaded = Load(written, readerOptions))
+					ModuleComparer.AssertEqual(original, reloaded, new ModuleDumpOptions { Pdb = true });
+			}
+		}
+
 		// Each format has custom debug info that the other one can't store (eg. the info about iterator methods
 		// only exists in portable PDBs). The writer reports it as an error, which throws unless the logger
 		// ignores errors. The rest is converted.
