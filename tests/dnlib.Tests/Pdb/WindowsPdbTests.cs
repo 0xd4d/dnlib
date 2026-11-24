@@ -305,30 +305,78 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
-		// The PE file can have a checksum of the PDB file (a debug directory entry). dnlib doesn't write one
-		// for a Windows PDB, also if the options ask for it (a TODO in ModuleWriterBase).
-		[Fact]
-		public void NoPdbChecksumIsWrittenForAWindowsPdb() {
-			SkipUnlessWindows();
+		// Writes the Windows fixture with a Windows PDB and the options, returns the files
+		static CompiledAssembly WriteWithPdbOptions(PdbWriterOptions pdbOptions, ChecksumAlgorithm algorithm = ChecksumAlgorithm.SHA256) {
 			using (var module = Load(Windows)) {
-				var options = new ModuleWriterOptions(module) { WritePdb = true, PdbStream = new MemoryStream(), PdbFileName = "written.pdb" };
-				options.PdbOptions |= PdbWriterOptions.Deterministic | PdbWriterOptions.PdbChecksum;
+				var options = new ModuleWriterOptions(module) {
+					WritePdb = true,
+					PdbStream = new MemoryStream(),
+					PdbFileName = "written.pdb",
+					PdbChecksumAlgorithm = algorithm,
+				};
+				// The fixture has no PDB checksum, so the options that were copied from it don't ask for one
+				options.PdbOptions = pdbOptions;
 				var image = new MemoryStream();
 				module.Write(image, options);
-
-				using (var peImage = new dnlib.PE.PEImage(image.ToArray())) {
-					Assert.Contains(peImage.ImageDebugDirectories, a => a.Type == dnlib.PE.ImageDebugType.CodeView);
-					Assert.DoesNotContain(peImage.ImageDebugDirectories, a => a.Type == dnlib.PE.ImageDebugType.PdbChecksum);
-				}
-				// The reader has nothing to validate, so the PDB is accepted
-				var creationOptions = new ModuleCreationOptions {
-					PdbFileOrData = ((MemoryStream)options.PdbStream).ToArray(),
-					PdbOptions = PdbReaderOptions.ValidatePdbChecksum,
-					TryToLoadPdbFromDisk = false,
-				};
-				using (var written = ModuleDefMD.Load(image.ToArray(), creationOptions))
-					Assert.NotNull(written.PdbState);
+				return new CompiledAssembly(image.ToArray(), ((MemoryStream)options.PdbStream).ToArray());
 			}
+		}
+
+		static bool IsPdbLoaded(byte[] image, byte[] pdb, PdbReaderOptions options) {
+			var creationOptions = new ModuleCreationOptions { PdbFileOrData = pdb, PdbOptions = options, TryToLoadPdbFromDisk = false };
+			using (var module = ModuleDefMD.Load(image, creationOptions))
+				return module.PdbState is not null;
+		}
+
+		// The PE file can have a checksum of the PDB file (a debug directory entry): a hash of the whole PDB
+		// file, with the GUID and the timestamp of the PDB counted as zeros. The native PDB writer can't
+		// calculate it, dnlib does. A reader checks it if it's asked to.
+		[Theory]
+		[InlineData(ChecksumAlgorithm.SHA256, PdbWriterOptions.Deterministic, PdbReaderOptions.None)]
+		[InlineData(ChecksumAlgorithm.SHA384, PdbWriterOptions.Deterministic, PdbReaderOptions.None)]
+		[InlineData(ChecksumAlgorithm.SHA512, PdbWriterOptions.Deterministic, PdbReaderOptions.MicrosoftComReader)]
+		[InlineData(ChecksumAlgorithm.SHA256, PdbWriterOptions.None, PdbReaderOptions.None)]
+		public void ChecksumOfAWindowsPdbIsWrittenAndValidated(ChecksumAlgorithm algorithm, PdbWriterOptions otherOptions, PdbReaderOptions readerOptions) {
+			SkipUnlessWindows();
+			var written = WriteWithPdbOptions(otherOptions | PdbWriterOptions.PdbChecksum, algorithm);
+
+			// The entries are in the order of a file that the compiler wrote with a portable PDB
+			using (var peImage = new dnlib.PE.PEImage(written.Image)) {
+				var types = peImage.ImageDebugDirectories.Select(a => a.Type).ToList();
+				Assert.Equal(dnlib.PE.ImageDebugType.CodeView, types[0]);
+				Assert.Equal(dnlib.PE.ImageDebugType.PdbChecksum, types[1]);
+				Assert.Equal((otherOptions & PdbWriterOptions.Deterministic) != 0, types.Contains(dnlib.PE.ImageDebugType.Reproducible));
+			}
+
+			Assert.True(IsPdbLoaded(written.Image, written.Pdb!, readerOptions | PdbReaderOptions.ValidatePdbChecksum));
+			// The last byte of the file is in a page that the readers don't need
+			var changedPdb = (byte[])written.Pdb!.Clone();
+			changedPdb[changedPdb.Length - 1] ^= 1;
+			Assert.False(IsPdbLoaded(written.Image, changedPdb, readerOptions | PdbReaderOptions.ValidatePdbChecksum));
+			// Without the option, the checksum isn't looked at
+			Assert.True(IsPdbLoaded(written.Image, changedPdb, readerOptions));
+		}
+
+		[Fact]
+		public void NoPdbChecksumIsWrittenForAWindowsPdbWithoutTheOption() {
+			SkipUnlessWindows();
+			var written = WriteWithPdbOptions(PdbWriterOptions.Deterministic);
+
+			using (var peImage = new dnlib.PE.PEImage(written.Image))
+				Assert.DoesNotContain(peImage.ImageDebugDirectories, a => a.Type == dnlib.PE.ImageDebugType.PdbChecksum);
+			// The reader has nothing to validate, so the PDB is accepted
+			Assert.True(IsPdbLoaded(written.Image, written.Pdb!, PdbReaderOptions.ValidatePdbChecksum));
+		}
+
+		// Two writes of the same module give the same PDB and the same checksum
+		[Fact]
+		public void DeterministicWindowsPdbHasTheSameChecksumEveryTime() {
+			SkipUnlessWindows();
+			var first = WriteWithPdbOptions(PdbWriterOptions.Deterministic | PdbWriterOptions.PdbChecksum);
+			var second = WriteWithPdbOptions(PdbWriterOptions.Deterministic | PdbWriterOptions.PdbChecksum);
+
+			Assert.Equal(first.Pdb, second.Pdb);
+			Assert.Equal(first.Image, second.Image);
 		}
 
 		// The source file and the line of every sequence point, in the order of the instructions
