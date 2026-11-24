@@ -89,6 +89,20 @@ namespace dnlib.Tests.Reading {
 				Assert.Equal(0, AssemblyRunner.RunEntryPoint(image));
 		}
 
+		// dnlib can read a file like Mono does (for files that only Mono loads). Mono finds the streams in
+		// another way, the result is the same for a valid file.
+		[Fact]
+		public void MonoReaderReadsTheSameModule() {
+			var monoOptions = new ModuleCreationOptions(CLRRuntimeReaderKind.Mono);
+			using (var original = ModuleDefMD.Load(ValidImage))
+			using (var uncompressed = ModuleDefMD.Load(CreateUncompressedImage(), monoOptions))
+			using (var withJtdStream = ModuleDefMD.Load(CreateImageWithJtdStream(), monoOptions)) {
+				Assert.False(uncompressed.Metadata.IsCompressed);
+				ModuleComparer.AssertEqual(original, uncompressed, new ModuleDumpOptions { MaxStack = true });
+				ModuleComparer.AssertEqual(original, withJtdStream, new ModuleDumpOptions { MaxStack = true });
+			}
+		}
+
 		// Fixed in 8092684a: the CLR reads the 4 bytes of an offset in the #Blob heap but only uses the low 16
 		// bits if the heap is small. Mono uses all bits.
 		[Fact]

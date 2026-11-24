@@ -113,6 +113,58 @@ namespace dnlib.Tests.Resolving {
 			}
 		}
 
+		// A .NET Framework application can list sub directories with its assemblies in its config file
+		// (App.exe.config, <probing privatePath="...">). Only directories below the application are used.
+		[Fact]
+		public void AssemblyIsFoundInAPrivatePathOfTheConfigFile() {
+			var libraryFile = WriteLibrary(Path.Combine("app", "lib"), LibraryName, "1.0.0.0");
+			WriteLibrary("outside", LibraryName + "Outside", "1.0.0.0");
+			WriteLibrary(Path.Combine("app", "not-listed"), LibraryName + "NotListed", "1.0.0.0");
+			var appFile = WriteLibrary("app", "DnlibTestApp", "1.0.0.0");
+			File.WriteAllText(appFile + ".config", @"<?xml version=""1.0""?>
+<configuration>
+  <runtime>
+    <assemblyBinding xmlns=""urn:schemas-microsoft-com:asm.v1"">
+      <probing privatePath=""missing; lib ;..\outside"" />
+    </assemblyBinding>
+  </runtime>
+</configuration>");
+			var resolver = CreateResolver();
+			try {
+				using (var app = ModuleDefMD.Load(appFile, resolver.DefaultModuleContext)) {
+					var assembly = resolver.Resolve(CreateReference(LibraryName, "1.0.0.0"), app);
+
+					Assert.NotNull(assembly);
+					Assert.Equal(libraryFile, assembly.ManifestModule!.Location);
+					Assert.Null(resolver.Resolve(CreateReference(LibraryName + "Outside", "1.0.0.0"), app));
+					Assert.Null(resolver.Resolve(CreateReference(LibraryName + "NotListed", "1.0.0.0"), app));
+				}
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+		}
+
+		// The directory of the application is still used if the config file can't be read
+		[Fact]
+		public void ConfigFileThatIsNotXmlIsIgnored() {
+			var libraryFile = WriteLibrary("app", LibraryName, "1.0.0.0");
+			var appFile = WriteLibrary("app", "DnlibTestApp", "1.0.0.0");
+			File.WriteAllText(appFile + ".config", "<configuration><not closed>");
+			var resolver = CreateResolver();
+			try {
+				using (var app = ModuleDefMD.Load(appFile, resolver.DefaultModuleContext)) {
+					var assembly = resolver.Resolve(CreateReference(LibraryName, "1.0.0.0"), app);
+
+					Assert.NotNull(assembly);
+					Assert.Equal(libraryFile, assembly.ManifestModule!.Location);
+				}
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+		}
+
 		// By default, another version of the assembly is good enough
 		[Fact]
 		public void AnotherVersionIsUsedUnlessAnExactMatchIsRequired() {
