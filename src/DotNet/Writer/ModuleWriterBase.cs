@@ -1465,8 +1465,15 @@ namespace dnlib.DotNet.Writer {
 			var nextProgress = eventToProgress[(int)nextEvt];
 			var progress = baseProgress + (nextProgress - baseProgress) * subProgress;
 			progress = Math.Min(1, Math.Max(0, progress));
+			// The progress of the metadata writer is mapped to a range of this writer's progress, and the two
+			// tables aren't exactly the same: never report less than what was already reported
+			if (evt == ModuleWriterEvent.Begin)
+				lastProgress = 0;
+			progress = Math.Max(progress, lastProgress);
+			lastProgress = progress;
 			TheOptions.RaiseEvent(this, new ModuleWriterProgressEventArgs(this, progress));
 		}
+		double lastProgress;
 
 		ILogger GetLogger() => TheOptions.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 
