@@ -204,5 +204,90 @@ namespace dnlib.Tests.StrongNames {
 			using (var module = ModuleDefMD.Load(written))
 				Assert.Equal(ComImageFlags.StrongNameSigned, module.Cor20HeaderFlags & ComImageFlags.StrongNameSigned);
 		}
+
+		static byte[] HexToBytes(string hex) {
+			var bytes = new byte[hex.Length / 2];
+			for (int i = 0; i < bytes.Length; i++)
+				bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+			return bytes;
+		}
+
+		// "Enhanced strong naming" (.NET Framework 4.5): the key's hash algorithm is SHA-256 or more
+		[Theory]
+		[InlineData(AssemblyHashAlgorithm.SHA_256)]
+		[InlineData(AssemblyHashAlgorithm.SHA_384)]
+		[InlineData(AssemblyHashAlgorithm.SHA_512)]
+		public void AssemblySignedWithAnotherHashAlgorithmHasAValidSignature(AssemblyHashAlgorithm hashAlgorithm) {
+			var signatureKey = new StrongNameKey(keyPair).WithHashAlgorithm(hashAlgorithm);
+			var signaturePublicKey = new StrongNamePublicKey(signatureKey.PublicKey);
+			Assert.Equal(hashAlgorithm, signaturePublicKey.HashAlgorithm);
+
+			byte[] signed;
+			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(Source).Image)) {
+				var options = new ModuleWriterOptions(module);
+				options.InitializeEnhancedStrongNameSigning(module, signatureKey, signaturePublicKey);
+				var stream = new MemoryStream();
+				module.Write(stream, options);
+				signed = stream.ToArray();
+			}
+
+			Assert.True(StrongNameVerifier.IsValid(signed));
+			using (var module = ModuleDefMD.Load(signed)) {
+				Assert.Equal(signatureKey.PublicKey, module.Assembly!.PublicKey.Data);
+				Assert.Equal(hashAlgorithm, new StrongNamePublicKey(module.Assembly.PublicKey).HashAlgorithm);
+			}
+			signed[signed.Length / 2] ^= 1;
+			Assert.False(StrongNameVerifier.IsValid(signed));
+		}
+
+		// "Key migration": the assembly keeps the public key of its old key (the identity key), but the file is
+		// signed with a new key. An AssemblySignatureKeyAttribute has the new key's public key and a counter
+		// signature: the new public key signed with the old key.
+		[Fact]
+		public void AssemblySignedWithAMigratedKeyHasTheAttributeAndValidSignatures() {
+			var identityKey = new StrongNameKey(keyPair);
+			var identityPublicKey = new StrongNamePublicKey(identityKey.PublicKey);
+			var signatureKey = new StrongNameKey(CreateKeyPair(2048)).WithHashAlgorithm(AssemblyHashAlgorithm.SHA_256);
+			var signaturePublicKey = new StrongNamePublicKey(signatureKey.PublicKey);
+
+			byte[] signed;
+			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(Source).Image)) {
+				var options = new ModuleWriterOptions(module);
+				options.InitializeEnhancedStrongNameSigning(module, signatureKey, signaturePublicKey, identityKey, identityPublicKey);
+				var stream = new MemoryStream();
+				module.Write(stream, options);
+				signed = stream.ToArray();
+			}
+
+			using (var module = ModuleDefMD.Load(signed)) {
+				Assert.Equal(identityKey.PublicKey, module.Assembly!.PublicKey.Data);
+				var attribute = module.Assembly.CustomAttributes.Find("System.Reflection.AssemblySignatureKeyAttribute");
+				Assert.NotNull(attribute);
+				var publicKeyInAttribute = HexToBytes(attribute.ConstructorArguments[0].Value!.ToString()!);
+				var counterSignature = HexToBytes(attribute.ConstructorArguments[1].Value!.ToString()!);
+				Assert.Equal(signatureKey.PublicKey, publicKeyInAttribute);
+				Assert.True(StrongNameVerifier.IsValidCounterSignature(identityKey.PublicKey, publicKeyInAttribute, counterSignature));
+				// Fixed in 0e863900: the counter signature can be created if the identity key's hash algorithm
+				// has no name (SHA-1 is used, like for the file's signature)
+				Assert.Equal(counterSignature, StrongNameKey.CreateCounterSignature(identityPublicKey, identityKey, signaturePublicKey));
+			}
+			// The file is signed with the new key, not with the identity key
+			Assert.True(StrongNameVerifier.IsValid(signed, signatureKey.PublicKey));
+			Assert.False(StrongNameVerifier.IsValid(signed));
+		}
+
+		// Fixed in 0e863900: a hash algorithm that has no name (eg. None) threw
+		[Fact]
+		public void CounterSignatureUsesSha1IfTheHashAlgorithmHasNoName() {
+			var identityKey = new StrongNameKey(keyPair);
+			var signaturePublicKey = new StrongNamePublicKey(new StrongNameKey(CreateKeyPair()).PublicKey);
+			var sha1Identity = new StrongNamePublicKey(identityKey.PublicKey);
+			var unnamedIdentity = new StrongNamePublicKey(sha1Identity.Modulus, sha1Identity.PublicExponent, AssemblyHashAlgorithm.None);
+
+			var counterSignature = StrongNameKey.CreateCounterSignature(unnamedIdentity, identityKey, signaturePublicKey);
+
+			Assert.Equal(StrongNameKey.CreateCounterSignature(sha1Identity, identityKey, signaturePublicKey), counterSignature);
+			Assert.True(StrongNameVerifier.IsValidCounterSignature(identityKey.PublicKey, signaturePublicKey.CreatePublicKey(), counterSignature));
+		}
 	}
 }

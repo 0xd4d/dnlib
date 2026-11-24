@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.TestUtils;
 using Xunit;
@@ -162,6 +163,45 @@ namespace Ns {
 			var written = AssemblyDef.Load(stream.ToArray());
 			Assert.Equal(new byte[] { 1, 2, 3, 4 }, written.PublicKey.Data);
 			Assert.Equal(assembly.PublicKeyToken!.ToString(), written.PublicKeyToken!.ToString());
+		}
+
+		// An assembly resolver that needs the target framework of the module that has the reference, like
+		// AssemblyResolver with UseTargetFrameworkForFrameworkRedirect
+		sealed class TargetFrameworkReadingResolver : IAssemblyResolver {
+			public int ResolveCalls;
+
+			public AssemblyDef? Resolve(IAssembly? assembly, ModuleDef? sourceModule) {
+				ResolveCalls++;
+				sourceModule?.Assembly?.TryGetOriginalTargetFrameworkAttribute(out _, out _, out _);
+				return null;
+			}
+		}
+
+		// Fixed in a606e38c: the attributes of the assembly are read to find the TargetFrameworkAttribute.
+		// Reading a generic attribute resolved its type with the assembly resolver, which asked for the target
+		// framework again, and so on until the stack overflowed.
+		[Fact]
+		public void TargetFrameworkIsFoundWithoutResolvingTheTypesOfOtherAttributes() {
+			const string source = @"
+using System;
+using System.Runtime.Versioning;
+
+[assembly: Marker<Uri>]
+[assembly: TargetFramework("".NETFramework,Version=v4.8"")]
+
+public class MarkerAttribute<T> : Attribute { }
+";
+			var resolver = new TargetFrameworkReadingResolver();
+			var context = new ModuleContext(resolver);
+			context.Resolver = new Resolver(resolver);
+			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(source).Image, context)) {
+				Assert.True(module.Assembly!.TryGetOriginalTargetFrameworkAttribute(out var framework, out var version, out _));
+
+				Assert.Equal(".NETFramework", framework);
+				Assert.Equal(new Version(4, 8, 0, 0), version);
+				Assert.Equal(0, resolver.ResolveCalls);
+				Assert.Equal(2, module.Assembly.CustomAttributes.Count(a => a.TypeFullName.Contains("Marker") || a.TypeFullName.Contains("TargetFramework")));
+			}
 		}
 	}
 }
