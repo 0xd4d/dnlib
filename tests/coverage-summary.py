@@ -8,6 +8,7 @@ The input files are Cobertura XML files written by dotnet-coverage (see coverage
 some builds of dnlib.
 """
 import argparse
+import sys
 import collections
 import xml.etree.ElementTree as ET
 
@@ -51,6 +52,7 @@ def get_group(source_file):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--files", type=int, default=30, help="number of files to list (default: 30)")
+    parser.add_argument("--minimum", type=float, default=0, help="fail if less than this percentage of all lines is covered")
     parser.add_argument("source_directory", help="full path of dnlib's src directory")
     parser.add_argument("cobertura_files", nargs="+")
     args = parser.parse_args()
@@ -75,6 +77,12 @@ def main():
     for uncovered, total, source_file in rows[:args.files]:
         print(f"  {uncovered:5} of {total:5} uncovered ({100 * (total - uncovered) / max(total, 1):5.1f}% covered)  {source_file}")
 
+    percent = 100 * covered / max(total, 1)
+    if percent < args.minimum:
+        print(f"\nerror: {percent:.1f}% of the lines are covered, the minimum is {args.minimum}%", file=sys.stderr)
+        return 1
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
