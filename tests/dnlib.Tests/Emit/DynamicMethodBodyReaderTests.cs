@@ -368,5 +368,25 @@ namespace dnlib.Tests.Emit {
 			Assert.Same(body.Instructions[2], handler.HandlerStart);
 			Assert.Same(body.Instructions[4], handler.HandlerEnd);
 		}
+
+		// Fixed in e19fba56: the reader gets the code from private fields of two runtime classes, one for methods
+		// created with ILGenerator and one for DynamicILInfo. Both have fields with the same names (eg. m_code),
+		// and the reader kept the field of the class it saw first: reading a method of the other kind threw.
+		[Fact]
+		public void BothKindsOfDynamicMethodsAreReadInAnyOrder() {
+			// Mono can't create a method with DynamicILInfo
+			SkipOnMono();
+			var dynamicMethod = new DynamicMethod("Seven", typeof(int), Type.EmptyTypes);
+			var il = dynamicMethod.GetILGenerator();
+			il.Emit(ReflectionOpCodes.Ldc_I4_7);
+			il.Emit(ReflectionOpCodes.Ret);
+			var fromILGenerator = (Func<int>)dynamicMethod.CreateDelegate(typeof(Func<int>));
+			var fromBytes = CreateMethodFromBytes(fatExceptionHandlers: false);
+
+			for (int i = 0; i < 2; i++) {
+				Assert.Equal(new[] { Code.Ldc_I4_7, Code.Ret }, GetCodes(Read(fromILGenerator)));
+				Assert.Equal(new[] { Code.Nop, Code.Leave_S, Code.Pop, Code.Leave_S, Code.Ldc_I4_5, Code.Ret }, GetCodes(Read(fromBytes)));
+			}
+		}
 	}
 }
