@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using dnlib.DotNet;
 using dnlib.TestUtils;
 using Xunit;
@@ -44,6 +45,8 @@ namespace Interop {{
 		readonly ModuleDefMD first;
 		readonly ModuleDefMD second;
 		readonly ModuleDefMD different;
+		// Modules that a test created
+		readonly List<ModuleDefMD> otherModules = new List<ModuleDefMD>();
 
 		public TypeEquivalenceTests() {
 			first = Compile("First", "int");
@@ -55,6 +58,8 @@ namespace Interop {{
 			ModuleDefMD.Load(CSharpCompiler.Compile(string.Format(SourceFormat, memberType), new CSharpCompilerOptions { AssemblyName = assemblyName }).Image);
 
 		public void Dispose() {
+			foreach (var module in otherModules)
+				module.Dispose();
 			first.Dispose();
 			second.Dispose();
 			different.Dispose();
@@ -98,6 +103,70 @@ namespace Interop {{
 		public void TypesWithOtherMembersAreNotEqual(string typeName) {
 			Assert.False(AreEqual(Find(first, typeName), Find(different, typeName)));
 			Assert.False(AreEqual(Find(different, typeName), Find(first, typeName)));
+		}
+
+		// The source with 'int' in a new assembly with its own name: the tests change the types, and two types
+		// with the same name in assemblies with the same name are the same type without any type equivalence
+		ModuleDefMD CompileAnother() {
+			var module = Compile("Other" + otherModules.Count, "int");
+			otherModules.Add(module);
+			return module;
+		}
+
+		// Structs must also have the same layout: the CLR's CompareTypeLayout()
+		[Fact]
+		public void StructsWithAnotherLayoutAreNotEqual() {
+			var point = Find(first, "Point");
+			TypeDef OtherPoint(Action<TypeDef> change) {
+				var type = Find(CompileAnother(), "Point");
+				change(type);
+				return type;
+			}
+
+			Assert.True(AreEqual(point, OtherPoint(type => { })));
+			Assert.False(AreEqual(point, OtherPoint(type => type.ClassLayout = new ClassLayoutUser(4, 0))));
+			Assert.False(AreEqual(point, OtherPoint(type => type.ClassLayout = new ClassLayoutUser(0, 64))));
+			// No layout info is the same as a packing size and a size of 0
+			Assert.True(AreEqual(point, OtherPoint(type => type.ClassLayout = new ClassLayoutUser(0, 0))));
+			Assert.False(AreEqual(point, OtherPoint(type => type.Attributes |= TypeAttributes.UnicodeClass)));
+			Assert.False(AreEqual(point, OtherPoint(type => type.Layout = TypeAttributes.ExplicitLayout)));
+			Assert.False(AreEqual(OtherPoint(type => type.Layout = TypeAttributes.ExplicitLayout), point));
+			// The CLR's layout is its own choice: such structs are never equivalent
+			Assert.False(AreEqual(OtherPoint(type => type.Layout = TypeAttributes.AutoLayout), OtherPoint(type => type.Layout = TypeAttributes.AutoLayout)));
+		}
+
+		[Fact]
+		public void StructsWithExplicitLayoutMustHaveTheSameFieldOffsets() {
+			TypeDef PointWithOffsets(uint? x, uint? y) {
+				var type = Find(CompileAnother(), "Point");
+				type.Layout = TypeAttributes.ExplicitLayout;
+				type.FindField("X")!.FieldOffset = x;
+				type.FindField("Y")!.FieldOffset = y;
+				return type;
+			}
+
+			Assert.True(AreEqual(PointWithOffsets(0, 4), PointWithOffsets(0, 4)));
+			Assert.False(AreEqual(PointWithOffsets(0, 4), PointWithOffsets(0, 8)));
+			Assert.False(AreEqual(PointWithOffsets(0, 4), PointWithOffsets(4, 4)));
+			// A field without an offset: the CLR would compare whatever is in its memory
+			Assert.False(AreEqual(PointWithOffsets(0, null), PointWithOffsets(0, null)));
+		}
+
+		[Fact]
+		public void FieldsOfStructsMustBeMarshaledInTheSameWay() {
+			TypeDef PointWithMarshalType(MarshalType? marshalType) {
+				var type = Find(CompileAnother(), "Point");
+				type.FindField("Y")!.MarshalType = marshalType;
+				return type;
+			}
+
+			Assert.True(AreEqual(PointWithMarshalType(new MarshalType(NativeType.I4)), PointWithMarshalType(new MarshalType(NativeType.I4))));
+			Assert.False(AreEqual(PointWithMarshalType(new MarshalType(NativeType.I4)), PointWithMarshalType(new MarshalType(NativeType.U4))));
+			Assert.False(AreEqual(PointWithMarshalType(new MarshalType(NativeType.I4)), PointWithMarshalType(null)));
+			Assert.False(AreEqual(PointWithMarshalType(null), PointWithMarshalType(new MarshalType(NativeType.I4))));
+			// The same kind with other values
+			Assert.False(AreEqual(PointWithMarshalType(new FixedArrayMarshalType(4)), PointWithMarshalType(new FixedArrayMarshalType(8))));
+			Assert.True(AreEqual(PointWithMarshalType(new FixedArrayMarshalType(4)), PointWithMarshalType(new FixedArrayMarshalType(4))));
 		}
 
 		[Fact]
