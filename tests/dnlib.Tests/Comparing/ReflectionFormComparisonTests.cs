@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using dnlib.DotNet;
 using Xunit;
 
@@ -139,6 +140,47 @@ namespace dnlib.Tests.Comparing {
 			Assert.True(comparer.Equals(inAnotherType, typeof(Uri).GetMethod("ToString", Type.EmptyTypes)));
 			Assert.False(new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType).Equals(inAnotherType, typeof(Uri).GetMethod("ToString", Type.EmptyTypes)));
 			Assert.True(new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType).Equals(toString, typeof(Uri).GetMethod("ToString", Type.EmptyTypes)));
+		}
+
+		// A method can be a MethodDef, a MemberRef or a MethodSpec (a generic method with type arguments). The
+		// methods that take any IMethod or IField find out what they got. The option also compares the types
+		// that the members are in.
+		[Fact]
+		public void EveryFormOfAMemberEqualsTheReflectionMemberOfTheSameType() {
+			var comparer = new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
+			var isFile = typeof(Uri).GetMethod("get_IsFile")!;
+			var schemeDelimiter = typeof(Uri).GetField("SchemeDelimiter")!;
+			// T Interlocked.Exchange<T>(ref T, T), called with a string
+			var exchange = typeof(System.Threading.Interlocked).GetMethods().Single(a => a.Name == "Exchange" && a.IsGenericMethodDefinition).MakeGenericMethod(typeof(string));
+
+			using (var uriModule = ModuleDefMD.Load(typeof(Uri).Module)) {
+				var uriDef = uriModule.Find(typeof(Uri).FullName!, isReflectionName: true)!;
+				IMethod isFileDef = uriDef.FindMethod("get_IsFile")!;
+				IMethod isFileRef = new MemberRefUser(module, "get_IsFile", MethodSig.CreateInstance(module.CorLibTypes.Boolean), CreateTypeRef(typeof(Uri)));
+				IMethod isFileRefInAnotherType = new MemberRefUser(module, "get_IsFile", MethodSig.CreateInstance(module.CorLibTypes.Boolean), CreateTypeRef(typeof(Version)));
+				IField fieldDef = uriDef.FindField("SchemeDelimiter")!;
+				IField fieldRefInAnotherType = new MemberRefUser(module, "SchemeDelimiter", new FieldSig(module.CorLibTypes.String), CreateTypeRef(typeof(Version)));
+				var genericParameter = new GenericMVar(0);
+				var exchangeRef = new MemberRefUser(module, "Exchange", MethodSig.CreateStaticGeneric(1, genericParameter, new ByRefSig(genericParameter), genericParameter), CreateTypeRef(typeof(System.Threading.Interlocked)));
+				IMethod exchangeSpec = new MethodSpecUser(exchangeRef, new GenericInstMethodSig(module.CorLibTypes.String));
+				IMethod exchangeSpecWithInt = new MethodSpecUser(exchangeRef, new GenericInstMethodSig(module.CorLibTypes.Int32));
+
+				Assert.True(comparer.Equals(isFileDef, isFile));
+				Assert.True(comparer.Equals(isFile, isFileDef));
+				Assert.True(comparer.Equals(isFileRef, isFile));
+				Assert.True(comparer.Equals(exchangeSpec, exchange));
+				Assert.True(comparer.Equals(exchange, exchangeSpec));
+				Assert.True(comparer.Equals(fieldDef, schemeDelimiter));
+				Assert.True(comparer.Equals(schemeDelimiter, fieldDef));
+
+				Assert.False(comparer.Equals(isFileRefInAnotherType, isFile));
+				Assert.False(comparer.Equals(isFileDef, typeof(Uri).GetMethod("get_IsUnc")));
+				Assert.False(comparer.Equals(exchangeSpecWithInt, exchange));
+				Assert.False(comparer.Equals(exchangeSpec, isFile));
+				Assert.False(comparer.Equals(isFileDef, exchange));
+				Assert.False(comparer.Equals(fieldRefInAnotherType, schemeDelimiter));
+				Assert.False(comparer.Equals(fieldDef, typeof(Uri).GetField("UriSchemeFile")));
+			}
 		}
 
 		[Fact]

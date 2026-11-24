@@ -165,6 +165,34 @@ public class Twin {
 			Assert.False(comparer.Equals(changed, new EventDefUser("Other", Types.GetTypeRef("System", "EventHandler"))));
 		}
 
+		// Equals(IMemberRef, IMemberRef) and GetHashCode(IMemberRef) take any type or member and find out what it is
+		[Fact]
+		public void AnyKindOfMemberCanBeComparedAsAnIMemberRef() {
+			var comparer = new SigComparer();
+			// A member, and the same member in another form or another instance
+			var pairs = new IMemberRef[][] {
+				new IMemberRef[] { members, membersRef },
+				new IMemberRef[] { members.FindField("Field")!, CreateFieldRef("Field", Types.Int32) },
+				new IMemberRef[] { MethodWithString, CreateMethodRef("Method", MethodSig.CreateInstance(Types.Int32, Types.String)) },
+				new IMemberRef[] { members.FindProperty("Property")!, new PropertyDefUser("Property", PropertySig.CreateInstance(Types.Int32)) },
+				new IMemberRef[] { members.FindEvent("Changed")!, new EventDefUser("Changed", Types.GetTypeRef("System", "EventHandler")) },
+			};
+
+			foreach (var pair in pairs) {
+				Assert.True(comparer.Equals(pair[0], pair[1]), pair[0].GetType().Name);
+				Assert.True(comparer.Equals(pair[1], pair[0]), pair[0].GetType().Name);
+				Assert.Equal(comparer.GetHashCode(pair[0]), comparer.GetHashCode(pair[1]));
+				// It's not a member of another kind
+				foreach (var otherPair in pairs) {
+					if (otherPair != pair)
+						Assert.False(comparer.Equals(pair[0], otherPair[1]), $"{pair[0].GetType().Name} and {otherPair[1].GetType().Name}");
+				}
+			}
+			Assert.True(comparer.Equals((IMemberRef?)null, (IMemberRef?)null));
+			Assert.False(comparer.Equals(pairs[0][0], (IMemberRef?)null));
+			Assert.Equal(0, comparer.GetHashCode((IMemberRef?)null));
+		}
+
 		[Fact]
 		public void NullIsOnlyEqualToNull() {
 			var comparer = new SigComparer();

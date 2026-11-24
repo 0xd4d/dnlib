@@ -444,6 +444,26 @@ namespace dnlib.Tests.Comparing {
 			Assert.False(comparer.Equals(array, new ArraySig(module.CorLibTypes.Int32, 3U, new uint[] { 3, 4 }, new[] { 0, 1 })));
 		}
 
+		// Two element types that only the runtime itself uses: a fixed size array of values, and a type in
+		// another module of the assembly. dnlib reads them, so it compares them too.
+		[Fact]
+		public void ValueArraysAndModuleTypesAreComparedByTheirNumberAndType() {
+			var module = CreateModule("A");
+			var int32 = module.CorLibTypes.Int32;
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(new ValueArraySig(int32, 4), new ValueArraySig(int32, 4)));
+			Assert.Equal(comparer.GetHashCode(new ValueArraySig(int32, 4)), comparer.GetHashCode(new ValueArraySig(int32, 4)));
+			Assert.False(comparer.Equals(new ValueArraySig(int32, 4), new ValueArraySig(int32, 5)));
+			Assert.False(comparer.Equals(new ValueArraySig(int32, 4), new ValueArraySig(module.CorLibTypes.String, 4)));
+
+			Assert.True(comparer.Equals(new ModuleSig(1, int32), new ModuleSig(1, int32)));
+			Assert.Equal(comparer.GetHashCode(new ModuleSig(1, int32)), comparer.GetHashCode(new ModuleSig(1, int32)));
+			Assert.False(comparer.Equals(new ModuleSig(1, int32), new ModuleSig(2, int32)));
+			Assert.False(comparer.Equals(new ModuleSig(1, int32), new ModuleSig(1, module.CorLibTypes.String)));
+			Assert.False(comparer.Equals((TypeSig)new ModuleSig(4, int32), new ValueArraySig(int32, 4)));
+		}
+
 		// There's a limit on how deeply the comparer follows nested types. Past it, types aren't equal: no
 		// stack overflow.
 		[Fact]

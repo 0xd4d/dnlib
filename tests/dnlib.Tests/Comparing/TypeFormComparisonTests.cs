@@ -90,11 +90,19 @@ namespace Ns {
 			Assert.Equal(expected, comparer.Equals(a.Spec, b.Exported));
 			Assert.Equal(expected, comparer.Equals(a.Sig, b.Spec));
 			Assert.Equal(expected, comparer.Equals(a.Spec, b.Sig));
-			// The methods that take any form
-			Assert.Equal(expected, comparer.Equals((IType)a.Def, (IType)b.Exported));
-			Assert.Equal(expected, comparer.Equals((IType)a.Sig, (IType)b.Ref));
-			Assert.Equal(expected, comparer.Equals((ITypeDefOrRef)a.Spec, (ITypeDefOrRef)b.Def));
-			Assert.Equal(expected, comparer.Equals((IMemberRef)a.Ref, (IMemberRef)b.Def));
+			// The methods that take any form find out which forms they got: every pair again
+			var formsOfA = new IType[] { a.Def, a.Ref, a.Exported, a.Sig, a.Spec };
+			var formsOfB = new IType[] { b.Def, b.Ref, b.Exported, b.Sig, b.Spec };
+			foreach (var formOfA in formsOfA) {
+				foreach (var formOfB in formsOfB) {
+					Assert.True(expected == comparer.Equals(formOfA, formOfB), $"{formOfA.GetType().Name} and {formOfB.GetType().Name}");
+					// Only a TypeDef, a TypeRef and a TypeSpec are an ITypeDefOrRef, and a TypeSig isn't an IMemberRef
+					if (formOfA is ITypeDefOrRef typeDefOrRefA && formOfB is ITypeDefOrRef typeDefOrRefB)
+						Assert.True(expected == comparer.Equals(typeDefOrRefA, typeDefOrRefB), $"{formOfA.GetType().Name} and {formOfB.GetType().Name}");
+					if (formOfA is IMemberRef memberRefA && formOfB is IMemberRef memberRefB)
+						Assert.True(expected == comparer.Equals(memberRefA, memberRefB), $"{formOfA.GetType().Name} and {formOfB.GetType().Name}");
+				}
+			}
 		}
 
 		static void AssertSameHashCodes(TypeForms forms) {
