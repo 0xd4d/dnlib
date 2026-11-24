@@ -115,5 +115,22 @@ namespace dnlib.Tests.Loading {
 					ModuleComparer.AssertEqual(expected, module);
 			}
 		}
+
+		// A module that was created with the API can have members without a signature, a custom attribute
+		// without a constructor, lists with missing parts, ...: LoadEverything() skips what isn't there
+		[Fact]
+		public void ModuleWithMissingPartsIsLoaded() {
+			var module = dnlib.Tests.Model.ModuleWithMissingParts.Create();
+			var type = module.Find("Ns.Type", isReflectionName: true)!;
+
+			module.LoadEverything();
+
+			// Nothing was changed
+			Assert.Equal(2, type.Fields.Count);
+			Assert.Equal(3, type.Methods.Count);
+			Assert.Equal(2, type.CustomAttributes.Count);
+			Assert.Equal(3, module.Resources.Count);
+			Assert.Null(type.FindMethod("NoSignature")!.Signature);
+		}
 	}
 }

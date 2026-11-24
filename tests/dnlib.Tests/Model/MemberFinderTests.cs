@@ -88,6 +88,28 @@ namespace dnlib.Tests.Model {
 			}
 		}
 
+		// Members without a signature, attributes without a constructor, instructions without an operand:
+		// what's there is found, what isn't there is skipped
+		[Fact]
+		public void ModuleWithMissingPartsIsSearched() {
+			var incomplete = ModuleWithMissingParts.Create();
+			var type = incomplete.Find("Ns.Type", isReflectionName: true)!;
+
+			var found = new MemberFinder().FindAll(incomplete);
+
+			Assert.Contains(type, found.TypeDefs.Keys);
+			Assert.Equal(type.Fields.Count, found.FieldDefs.Count);
+			Assert.Equal(type.Methods.Count, found.MethodDefs.Count);
+			Assert.Contains(type.Properties[0], found.PropertyDefs.Keys);
+			Assert.Contains(type.Events[0], found.EventDefs.Keys);
+			Assert.Contains(type.GenericParameters[0], found.GenericParams.Keys);
+			Assert.Equal(2, found.CustomAttributes.Count);
+			Assert.Equal(2, found.ExportedTypes.Count);
+			// The constructor of the attribute that has one, and its class
+			Assert.Equal(".ctor", Assert.Single(found.MemberRefs.Keys).Name);
+			Assert.Contains(found.TypeRefs.Keys, a => a.FullName == "Ns.Attr");
+		}
+
 		[Fact]
 		public void NothingIsFoundInAnEmptyModule() {
 			var emptyModule = new ModuleDefUser("Empty.dll");

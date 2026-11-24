@@ -138,5 +138,37 @@ namespace dnlib.Tests.Writer {
 				Assert.Equal(created.Type.Methods.Count, type.Methods.Count);
 			}
 		}
+
+		// A module where almost everything is missing: the writer reports the errors, and with a logger
+		// that doesn't throw it still writes a file that dnlib reads
+		[Fact]
+		public void ModuleWithManyMissingPartsIsWrittenIfTheErrorsAreIgnored() {
+			var module = dnlib.Tests.Model.ModuleWithMissingParts.Create();
+
+			Assert.Throws<ModuleWriterException>(() => module.Write(new MemoryStream()));
+
+			var errors = new System.Collections.Generic.List<string>();
+			var logger = new ErrorCollector(errors);
+			var stream = new MemoryStream();
+			module.Write(stream, new ModuleWriterOptions(module) { Logger = logger, MetadataLogger = logger });
+			Assert.True(errors.Count >= 5, string.Join("\n", errors));
+			using (var written = ModuleDefMD.Load(stream.ToArray())) {
+				var type = written.Find("Ns.Type", isReflectionName: true)!;
+				Assert.Equal(2, type.Fields.Count);
+				Assert.Equal(3, type.Methods.Count);
+				Assert.Equal(3, written.Resources.Count);
+				written.LoadEverything();
+			}
+		}
+
+		sealed class ErrorCollector : ILogger {
+			readonly System.Collections.Generic.List<string> errors;
+			public ErrorCollector(System.Collections.Generic.List<string> errors) => this.errors = errors;
+			public void Log(object? sender, LoggerEvent loggerEvent, string format, params object?[] args) {
+				if (loggerEvent == LoggerEvent.Error)
+					errors.Add(string.Format(format, args));
+			}
+			public bool IgnoresEvent(LoggerEvent loggerEvent) => loggerEvent != LoggerEvent.Error;
+		}
 	}
 }
