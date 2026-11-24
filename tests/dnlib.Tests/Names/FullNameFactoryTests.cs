@@ -167,5 +167,35 @@ namespace dnlib.Tests.Names {
 			varArgSig.ParamsAfterSentinel = new System.Collections.Generic.List<TypeSig?> { CorLib.String };
 			Assert.Equal("System.Void (System.Int32,...,System.String)", FullNameFactory.MethodBaseSigFullName(varArgSig));
 		}
+
+		// Two kinds of types that only the runtime itself uses (dnlib reads them): their names have the number
+		[Fact]
+		public void NamesOfValueArraysAndModuleTypes() {
+			Assert.Equal("System.Int32 ValueArray(4)", new ValueArraySig(CorLib.Int32, 4).FullName);
+			Assert.Equal("Int32 ValueArray(4)", new ValueArraySig(CorLib.Int32, 4).TypeName);
+			Assert.Equal("System", new ValueArraySig(CorLib.Int32, 4).Namespace);
+			Assert.Equal("System.Int32 Module(2)", new ModuleSig(2, CorLib.Int32).FullName);
+			Assert.Equal("System.Int32 Module(2)[]", new SZArraySig(new ModuleSig(2, CorLib.Int32)).FullName);
+		}
+
+		// An exported type is in another assembly (a type forwarder) or in another file of this assembly. Its
+		// scope is a reference to that assembly or to that file's module, also if it's a nested type.
+		[Fact]
+		public void ScopeOfAnExportedType() {
+			var libraryRef = new AssemblyRefUser(library.Assembly!);
+			var forwarded = new ExportedTypeUser(module, 0, "Ns", "Forwarded", TypeAttributes.Public, libraryRef);
+			var inFile = new ExportedTypeUser(module, 1, "Ns", "InFile", TypeAttributes.Public, new FileDefUser("Other.netmodule", FileAttributes.ContainsMetadata, new byte[0]));
+			var nestedInFile = new ExportedTypeUser(module, 2, "", "Nested", TypeAttributes.NestedPublic, inFile);
+
+			Assert.Same(libraryRef, FullNameFactory.Scope(forwarded));
+			Assert.Same(libraryRef, forwarded.Scope);
+			foreach (var exportedType in new[] { inFile, nestedInFile }) {
+				var moduleRef = Assert.IsAssignableFrom<ModuleRef>(FullNameFactory.Scope(exportedType));
+				Assert.Equal("Other.netmodule", moduleRef.Name);
+				Assert.Same(module, moduleRef.Module);
+			}
+			Assert.Null(FullNameFactory.Scope((ExportedType?)null));
+			Assert.Null(FullNameFactory.Scope(new ExportedTypeUser(module, 0, "Ns", "NoImplementation", TypeAttributes.Public, null)));
+		}
 	}
 }
