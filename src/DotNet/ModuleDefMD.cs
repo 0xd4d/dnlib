@@ -828,7 +828,9 @@ namespace dnlib.DotNet {
 				for (uint rid = 1; rid <= nestedRows; rid++) {
 					if (!tablesStream.TryReadNestedClassRow(rid, out var nestedRow))
 						break;
-					if (nestedRow.NestedClass != 0 && nestedRow.NestedClass <= rows && !isNested[nestedRow.NestedClass]) {
+					// Must match Metadata.GetNonNestedClassRidList(): it's only a nested type if the row can be found
+					if (nestedRow.NestedClass != 0 && nestedRow.NestedClass <= rows && !isNested[nestedRow.NestedClass] &&
+						module.Metadata.GetNestedClassRid(nestedRow.NestedClass) != 0) {
 						isNested[nestedRow.NestedClass] = true;
 						nestedCount++;
 					}
