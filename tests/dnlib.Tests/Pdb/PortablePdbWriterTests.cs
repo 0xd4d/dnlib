@@ -81,6 +81,41 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// A sequence point that a portable PDB can't store is an error: a line or column that's negative or too
+		// big, or an end before the start. If the error is ignored, the values are changed to valid ones like
+		// Microsoft's PDB converter does it.
+		[Theory]
+		[InlineData(-1, 5, 10, 6, 0, 5, 10, 6)]                             // negative line
+		[InlineData(10, -3, 11, -1, 10, 0, 11, 0)]                          // negative columns
+		[InlineData(10, 5, 9, 6, 10, 5, 10, 6)]                             // ends on an earlier line
+		[InlineData(10, 9, 10, 4, 10, 9, 10, 10)]                           // ends at an earlier column
+		[InlineData(10, 5, 0xFEEFEE, 6, 10, 5, 0xFEEFED, 6)]                // the end line is the "hidden" line
+		[InlineData(0x20000000, 1, 0x20000001, 2, 0xFEEFED, 1, 0xFEEFED, 2)]    // lines are too big
+		[InlineData(10, 0x10000, 11, 0x20000, 10, 0xFFFE, 11, 0xFFFE)]      // columns are too big
+		public void InvalidSequencePointIsAnErrorAndIsWrittenWithValidValues(int startLine, int startColumn, int endLine, int endColumn,
+				int writtenStartLine, int writtenStartColumn, int writtenEndLine, int writtenEndColumn) {
+			void Change(ModuleDefMD module) {
+				var sequencePoint = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions.Select(a => a.SequencePoint).OfType<SequencePoint>().First();
+				sequencePoint.StartLine = startLine;
+				sequencePoint.StartColumn = startColumn;
+				sequencePoint.EndLine = endLine;
+				sequencePoint.EndColumn = endColumn;
+			}
+
+			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(Change));
+			Assert.Contains("Invalid sequence point", exception.Message);
+
+			var written = ChangeAndWrite(Change, options => options.Logger = DummyLogger.NoThrowInstance);
+			using (var pdb = OpenWithSrm(written.Pdb!)) {
+				var reader = pdb.GetMetadataReader();
+				var debugInformation = reader.GetMethodDebugInformation(MetadataTokens.MethodDebugInformationHandle((int)GetMethodRid("Sum")));
+				var sequencePoint = debugInformation.GetSequencePoints().First();
+
+				Assert.Equal((writtenStartLine, writtenStartColumn, writtenEndLine, writtenEndColumn),
+					(sequencePoint.StartLine, sequencePoint.StartColumn, sequencePoint.EndLine, sequencePoint.EndColumn));
+			}
+		}
+
 		static void SetPosition(SequencePoint sequencePoint, int line, int column) {
 			sequencePoint.StartLine = line;
 			sequencePoint.EndLine = line;
@@ -319,6 +354,38 @@ public enum CharEnum : ushort { }
 				Assert.Equal("ab", constants["NoTypeText"].Value);
 				Assert.Null(constants["NoTypeNull"].Value);
 			}
+		}
+
+		// The scopes of a method are a tree. A scope that's in it twice (or a scope that contains itself, which
+		// would never end) is an error, and so is a null scope. Each scope is written once if the error is ignored.
+		[Theory]
+		[InlineData("the root scope is in a scope", "PDB scope is used more than once")]
+		[InlineData("a scope is in the root scope twice", "PDB scope is used more than once")]
+		[InlineData("a scope is null", "PDB scope is null")]
+		public void ScopeTreeThatIsNotATreeIsAnError(string change, string expectedError) {
+			void Change(ModuleDefMD module) {
+				var root = DebugInfoSource.GetRootScope(module, "Sum");
+				var scope = new PdbScope { Start = root.Start, End = root.End };
+				root.Scopes.Add(scope);
+				switch (change) {
+				case "the root scope is in a scope": scope.Scopes.Add(root); break;
+				case "a scope is in the root scope twice": root.Scopes.Add(scope); break;
+				case "a scope is null": root.Scopes.Add(null!); break;
+				default: throw new ArgumentException(change);
+				}
+			}
+			// The number of scopes in a scope, at any depth
+			int CountScopes(PdbScope scope) => scope.Scopes.Sum(a => 1 + CountScopes(a));
+			int originalScopeCount;
+			using (var module = DebugInfoSource.Load())
+				originalScopeCount = CountScopes(DebugInfoSource.GetRootScope(module, "Sum"));
+
+			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(Change));
+			Assert.Contains(expectedError, exception.Message);
+
+			var written = ChangeAndWrite(Change, options => options.Logger = DummyLogger.NoThrowInstance);
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!))
+				Assert.Equal(originalScopeCount + 1, CountScopes(DebugInfoSource.GetRootScope(module, "Sum")));
 		}
 
 		// Fixed in 5ea0663e: the LocalScope rows of a method are sorted by where they start and by their length.

@@ -153,6 +153,42 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		public static IEnumerable<object?[]> ValuesOfEveryConstantType() => new[] {
+			new object?[] { true, "System.Boolean" },
+			new object?[] { 'c', "System.Char" },
+			new object?[] { (sbyte)-1, "System.SByte" },
+			new object?[] { (byte)1, "System.Byte" },
+			new object?[] { (short)-2, "System.Int16" },
+			new object?[] { (ushort)2, "System.UInt16" },
+			new object?[] { -3, "System.Int32" },
+			new object?[] { 3U, "System.UInt32" },
+			new object?[] { -4L, "System.Int64" },
+			new object?[] { 4UL, "System.UInt64" },
+			new object?[] { 1.5f, "System.Single" },
+			new object?[] { 2.5, "System.Double" },
+			new object?[] { "text", "System.String" },
+			new object?[] { 12.34m, "System.Decimal" },
+			new object?[] { new DateTime(2001, 2, 3, 4, 5, 6), "System.DateTime" },
+			new object?[] { null, "System.Object" },
+		};
+
+		// A constant from a Windows PDB can have no type. A portable PDB needs one: the type of the value.
+		[Theory]
+		[MemberData(nameof(ValuesOfEveryConstantType))]
+		public void ConstantWithoutATypeGetsTheTypeOfItsValue(object? value, string expectedType) {
+			CompiledAssembly written;
+			using (var module = DebugInfoSource.Load()) {
+				DebugInfoSource.GetRootScope(module, "Sum").Constants.Add(new PdbConstant("NoType", null, value));
+				written = RoundTrip.WriteWithPortablePdb(module, preserveMetadata: true);
+			}
+
+			using (var writtenModule = RoundTrip.LoadWithPdb(written.Image, written.Pdb!)) {
+				var constant = DebugInfoSource.GetRootScope(writtenModule, "Sum").Constants.Single(a => a.Name == "NoType");
+				Assert.Equal(expectedType, constant.Type!.FullName);
+				Assert.Equal(value, constant.Value);
+			}
+		}
+
 		public static IEnumerable<object?[]> ValuesOfTheWrongType() => new[] {
 			new object?[] { "Int32", "text", "Expected an Int32 constant" },
 			new object?[] { "Boolean", 1, "Expected a Boolean constant" },
