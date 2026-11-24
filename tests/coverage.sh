@@ -41,6 +41,13 @@ mkdir coverage
 for leg in "${legs[@]}"; do
 	# The test process is started by test.sh, dotnet-coverage also collects from child processes
 	dotnet-coverage collect --output-format cobertura --output "coverage/$leg.cobertura.xml" \
-		"./test.sh ${options[*]} $leg"
+		"bash ./test.sh ${options[*]} $leg"
 done
-python3 coverage-summary.py ${summary_options[@]+"${summary_options[@]}"} "$(cd ../src && pwd)" coverage/*.cobertura.xml | tee coverage/summary.txt
+
+# On Windows (Git Bash), Python needs the Windows form of the path (pwd -W), and python3 can be missing
+source_directory=$(cd ../src && (pwd -W 2>/dev/null || pwd))
+python=python3
+if ! command -v python3 >/dev/null; then
+	python=python
+fi
+$python coverage-summary.py ${summary_options[@]+"${summary_options[@]}"} "$source_directory" coverage/*.cobertura.xml | tee coverage/summary.txt

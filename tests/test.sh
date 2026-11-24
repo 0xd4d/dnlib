@@ -54,7 +54,8 @@ run_leg() {
 	local name=$1 tfm=$2 out=dnlib.Tests/bin/$configuration/$3
 	shift 3
 	echo "=== $name"
-	dotnet build "$project" -v:m -nologo -c "$configuration" -f "$tfm" -warnaserror "$@"
+	# No "set -e" in here: the caller checks the result
+	dotnet build "$project" -v:m -nologo -c "$configuration" -f "$tfm" -warnaserror "$@" || return 1
 	if [ "$tfm" = net10.0 ]; then
 		dotnet "$out/dnlib.Tests.dll" "${test_args[@]}"
 	elif $is_windows; then
@@ -79,14 +80,25 @@ run_leg() {
 	fi
 }
 
+# Every leg is run, also after a leg has failed: a failure in one leg (eg. only on .NET Framework) shouldn't
+# hide the failures of the next ones
+failed_legs=()
 for leg in "${legs[@]}"; do
+	result=0
 	case "$leg" in
-		net10.0)        run_leg "$leg" net10.0 net10.0 ;;
-		net10.0-nts)    run_leg "$leg" net10.0 dnlib-nts/net10.0 -p:DnlibThreadSafe=false ;;
-		netstandard2.0) run_leg "$leg" net10.0 dnlib-netstandard2.0/net10.0 -p:DnlibTfm=netstandard2.0 ;;
-		net45)          run_leg "$leg" net48 net48 ;;
-		net35)          run_leg "$leg" net48 dnlib-net35/net48 -p:DnlibTfm=net35 ;;
+		net10.0)        run_leg "$leg" net10.0 net10.0 || result=$? ;;
+		net10.0-nts)    run_leg "$leg" net10.0 dnlib-nts/net10.0 -p:DnlibThreadSafe=false || result=$? ;;
+		netstandard2.0) run_leg "$leg" net10.0 dnlib-netstandard2.0/net10.0 -p:DnlibTfm=netstandard2.0 || result=$? ;;
+		net45)          run_leg "$leg" net48 net48 || result=$? ;;
+		net35)          run_leg "$leg" net48 dnlib-net35/net48 -p:DnlibTfm=net35 || result=$? ;;
 		*) echo "Unknown leg: $leg" >&2; exit 1 ;;
 	esac
+	if [ $result -ne 0 ]; then
+		failed_legs+=("$leg")
+	fi
 done
+if [ ${#failed_legs[@]} -ne 0 ]; then
+	echo "=== Failed legs: ${failed_legs[*]}" >&2
+	exit 1
+fi
 echo "=== All legs passed: ${legs[*]}"
