@@ -1,0 +1,153 @@
+// dnlib: See LICENSE.txt for more info
+
+using System;
+using AssemblyName = System.Reflection.AssemblyName;
+using dnlib.DotNet;
+using Xunit;
+
+namespace dnlib.Tests.Names {
+	/// <summary>
+	/// <see cref="AssemblyNameInfo"/> is the name of an assembly without a module: the simple name, the version,
+	/// the culture, the public key (or its token) and the flags. It's created from the text form of a name, from
+	/// System.Reflection's <see cref="AssemblyName"/> or from any other assembly or assembly reference.
+	/// </summary>
+	public class AssemblyNameInfoTests {
+		const string FullName = "Some.Library, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b77a5c561934e089";
+
+		[Fact]
+		public void NameIsParsedFromItsTextForm() {
+			var info = new AssemblyNameInfo(FullName);
+
+			Assert.Equal("Some.Library", info.Name);
+			Assert.Equal(new Version(1, 2, 3, 4), info.Version);
+			Assert.Equal("", info.Culture);
+			Assert.Equal("b77a5c561934e089", info.PublicKeyOrToken!.ToString());
+			Assert.IsType<PublicKeyToken>(info.PublicKeyOrToken);
+			Assert.Equal(FullName, info.FullName);
+			Assert.Equal(FullName, info.FullNameToken);
+			Assert.Equal(FullName, info.ToString());
+		}
+
+		[Theory]
+		[InlineData("Lib", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("Lib, Version=1.0.0.0", "Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("Lib, Culture=de-DE", "Lib, Version=0.0.0.0, Culture=de-DE, PublicKeyToken=null")]
+		[InlineData("Lib, PublicKeyToken=null", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
+		// The parts can be in any order
+		[InlineData("Lib, PublicKeyToken=b77a5c561934e089, Culture=neutral, Version=4.0.0.0", "Lib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
+		public void PartsThatAreNotInTheTextHaveTheirDefaultValues(string text, string expectedFullName) =>
+			Assert.Equal(expectedFullName, new AssemblyNameInfo(text).FullName);
+
+		// A name with the whole public key: the full name has its token
+		[Fact]
+		public void FullNameHasTheTokenOfAPublicKey() {
+			var publicKey = new PublicKey(new byte[] { 0, 0x24, 0, 0, 4, 0x80, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8 });
+			var info = new AssemblyNameInfo("Lib, Version=1.0.0.0, PublicKey=" + publicKey);
+
+			Assert.IsType<PublicKey>(info.PublicKeyOrToken);
+			Assert.Equal(publicKey.Data, info.PublicKeyOrToken!.Data);
+			Assert.Equal("Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + publicKey.Token, info.FullName);
+		}
+
+		// The names that reflection returns for real assemblies have the same text form in dnlib
+		[Theory]
+		[InlineData(typeof(object))]
+		[InlineData(typeof(Uri))]
+		[InlineData(typeof(Xunit.Assert))]
+		[InlineData(typeof(AssemblyNameInfoTests))]
+		public void NameFromReflectionHasTheSameFullName(Type typeInTheAssembly) {
+			var reflectionName = typeInTheAssembly.Assembly.GetName();
+
+			var info = new AssemblyNameInfo(reflectionName);
+
+			Assert.Equal(reflectionName.Name, info.Name);
+			Assert.Equal(reflectionName.Version, info.Version);
+			Assert.Equal(reflectionName.FullName, info.FullName);
+			// And the text form is parsed to the same name again
+			Assert.Equal(reflectionName.FullName, new AssemblyNameInfo(reflectionName.FullName).FullName);
+			Assert.True(AssemblyNameComparer.CompareAll.Equals(info, new AssemblyNameInfo(reflectionName.FullName)));
+		}
+
+		[Fact]
+		public void NameIsCopiedFromAnotherAssembly() {
+			var assembly = new AssemblyDefUser("Lib", new Version(1, 2, 3, 4), new PublicKey(new byte[] { 1, 2, 3 }), "de") {
+				HashAlgorithm = AssemblyHashAlgorithm.SHA_256,
+				Attributes = AssemblyAttributes.PublicKey | AssemblyAttributes.Retargetable,
+			};
+
+			var info = new AssemblyNameInfo(assembly);
+
+			Assert.Equal("Lib", info.Name);
+			Assert.Equal(new Version(1, 2, 3, 4), info.Version);
+			Assert.Equal("de", info.Culture);
+			Assert.Same(assembly.PublicKey, info.PublicKeyOrToken);
+			Assert.Equal(AssemblyHashAlgorithm.SHA_256, info.HashAlgId);
+			Assert.Equal(AssemblyAttributes.PublicKey | AssemblyAttributes.Retargetable, info.Attributes);
+			Assert.True(AssemblyNameComparer.CompareAll.Equals(assembly, info));
+			// A reference has no hash algorithm
+			Assert.Equal(AssemblyHashAlgorithm.None, new AssemblyNameInfo(new AssemblyRefUser(assembly)).HashAlgId);
+		}
+
+		[Fact]
+		public void NoAssemblyIsAnEmptyName() {
+			foreach (var info in new[] { new AssemblyNameInfo(), new AssemblyNameInfo((IAssembly?)null), new AssemblyNameInfo((AssemblyName?)null) }) {
+				Assert.True(UTF8String.IsNullOrEmpty(info.Name));
+				Assert.Null(info.PublicKeyOrToken);
+				Assert.Equal(AssemblyAttributes.None, info.Attributes);
+			}
+		}
+
+		// Every flag property reads and changes its bits of Attributes, and no other bits
+		[Fact]
+		public void FlagPropertiesAreTheBitsOfAttributes() {
+			var info = new AssemblyNameInfo();
+
+			info.HasPublicKey = true;
+			info.IsRetargetable = true;
+			info.EnableJITcompileTracking = true;
+			info.DisableJITcompileOptimizer = true;
+			info.IsProcessorArchitectureSpecified = true;
+			Assert.Equal(AssemblyAttributes.PublicKey | AssemblyAttributes.Retargetable | AssemblyAttributes.EnableJITcompileTracking |
+				AssemblyAttributes.DisableJITcompileOptimizer | AssemblyAttributes.PA_Specified, info.Attributes);
+			Assert.True(info.HasPublicKey && info.IsRetargetable && info.EnableJITcompileTracking && info.DisableJITcompileOptimizer && info.IsProcessorArchitectureSpecified);
+
+			info.HasPublicKey = false;
+			info.EnableJITcompileTracking = false;
+			info.DisableJITcompileOptimizer = false;
+			info.IsProcessorArchitectureSpecified = false;
+			Assert.Equal(AssemblyAttributes.Retargetable, info.Attributes);
+
+			info.ContentType = AssemblyAttributes.ContentType_WindowsRuntime;
+			Assert.True(info.IsContentTypeWindowsRuntime && !info.IsContentTypeDefault);
+			Assert.Equal(AssemblyAttributes.Retargetable | AssemblyAttributes.ContentType_WindowsRuntime, info.Attributes);
+			info.ContentType = AssemblyAttributes.ContentType_Default;
+			Assert.True(info.IsContentTypeDefault && !info.IsContentTypeWindowsRuntime);
+		}
+
+		[Theory]
+		[InlineData(AssemblyAttributes.PA_None, "None")]
+		[InlineData(AssemblyAttributes.PA_MSIL, "MSIL")]
+		[InlineData(AssemblyAttributes.PA_x86, "X86")]
+		[InlineData(AssemblyAttributes.PA_IA64, "IA64")]
+		[InlineData(AssemblyAttributes.PA_AMD64, "X64")]
+		[InlineData(AssemblyAttributes.PA_ARM, "ARM")]
+		[InlineData(AssemblyAttributes.PA_NoPlatform, "NoPlatform")]
+		public void ProcessorArchitectureIsOneOfSevenValues(AssemblyAttributes architecture, string expectedProperty) {
+			var info = new AssemblyNameInfo { Attributes = AssemblyAttributes.Retargetable };
+
+			info.ProcessorArchitecture = architecture;
+
+			Assert.Equal(architecture, info.ProcessorArchitecture);
+			Assert.Equal(architecture | AssemblyAttributes.Retargetable, info.Attributes);
+			// Only the property of this architecture is true
+			foreach (var name in new[] { "None", "MSIL", "X86", "IA64", "X64", "ARM", "NoPlatform" }) {
+				bool value = (bool)typeof(AssemblyNameInfo).GetProperty("IsProcessorArchitecture" + name)!.GetValue(info, null)!;
+				Assert.True(value == (name == expectedProperty), name);
+			}
+			// The architecture with the bit that says that there is one
+			info.ProcessorArchitectureFull = architecture | AssemblyAttributes.PA_Specified;
+			Assert.True(info.IsProcessorArchitectureSpecified);
+			Assert.Equal(architecture | AssemblyAttributes.PA_Specified, info.ProcessorArchitectureFull);
+		}
+	}
+}
