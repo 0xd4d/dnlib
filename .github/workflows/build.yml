@@ -102,13 +102,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The minimum is a bit below what's measured (71.9% and 76.7%). Raise it when the coverage grows.
+          # The minimum is a bit below what's measured (74.1% and 79.1%). Raise it when the coverage grows.
           - name: Ubuntu
             os: ubuntu-latest
-            minimum: 70
+            minimum: 72
           - name: Windows
             os: windows-latest
-            minimum: 75
+            minimum: 77
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
