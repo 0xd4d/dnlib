@@ -183,6 +183,41 @@ namespace dnlib.Tests.Comparing {
 			}
 		}
 
+		// A generic class of the test assembly: its members' types use the type parameter
+		public class Holder<T> {
+			public T? Value { get; set; }
+			public T? this[int index] => Value;
+			public event Action<T>? Changed;
+			public void Raise(T value) => Changed?.Invoke(value);
+		}
+
+		// Reflection returns the members of Holder<int> with int in their types (Int32 Value), the definitions
+		// in the file have the type parameter (!0 Value). They're the same members.
+		[Fact]
+		public void PropertyAndEventOfAGenericTypeEqualTheReflectionMembersOfAnInstantiation() {
+			var comparer = new SigComparer();
+			using (var testModule = ModuleDefMD.Load(typeof(Holder<>).Module)) {
+				var holder = testModule.Find(typeof(Holder<>).FullName!, isReflectionName: true)!;
+				var value = holder.FindProperty("Value")!;
+				var indexer = holder.FindProperty("Item")!;
+				var changed = holder.FindEvent("Changed")!;
+
+				foreach (var type in new[] { typeof(Holder<>), typeof(Holder<int>), typeof(Holder<string[]>) }) {
+					Assert.True(comparer.Equals(value, type.GetProperty("Value")), type.ToString());
+					Assert.Equal(comparer.GetHashCode(value), comparer.GetHashCode(type.GetProperty("Value")));
+					Assert.True(comparer.Equals(indexer, type.GetProperty("Item")), type.ToString());
+					Assert.True(comparer.Equals(changed, type.GetEvent("Changed")), type.ToString());
+					Assert.Equal(comparer.GetHashCode(changed), comparer.GetHashCode(type.GetEvent("Changed")));
+
+					// Other members
+					Assert.False(comparer.Equals(value, type.GetProperty("Item")), type.ToString());
+					Assert.False(comparer.Equals(indexer, type.GetProperty("Value")), type.ToString());
+				}
+				Assert.False(comparer.Equals(value, typeof(Uri).GetProperty("Host")));
+				Assert.False(comparer.Equals(changed, typeof(AppDomain).GetEvent("ProcessExit")));
+			}
+		}
+
 		[Fact]
 		public void NullIsOnlyEqualToNull() {
 			var comparer = new SigComparer();
