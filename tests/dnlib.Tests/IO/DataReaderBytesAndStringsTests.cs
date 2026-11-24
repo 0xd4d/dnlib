@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using dnlib.IO;
 using Xunit;
@@ -280,6 +281,56 @@ namespace dnlib.Tests.IO {
 				Array.Copy(bytes, 3, expected, 0, expected.Length);
 				Assert.Equal(expected, destination.ToArray());
 				Assert.Equal(0U, reader.BytesLeft);
+			}
+		}
+
+		// The other overloads: the destination can be a BinaryWriter or dnlib's DataWriter, and the caller can
+		// pass the buffer that's used for the copy (here a small one, so it's filled more than once)
+		[Theory, MemberData(nameof(Kinds))]
+		public void CopyToEveryKindOfDestination(DataStreamKind kind) {
+			var data = Enumerable.Range(1, 100).Select(a => (byte)a).ToArray();
+			var expected = data.Skip(3).ToArray();
+			using (var source = TestDataReader.Create(kind, data)) {
+				byte[] Copy(Action<DataReader, MemoryStream> copy) {
+					var reader = source.Reader;
+					reader.Position = 3;
+					var destination = new MemoryStream();
+					copy(reader, destination);
+					return destination.ToArray();
+				}
+
+				Assert.Equal(expected, Copy((reader, stream) => reader.CopyTo(stream, new byte[7])));
+				Assert.Equal(expected, Copy((reader, stream) => reader.CopyTo(new BinaryWriter(stream))));
+				Assert.Equal(expected, Copy((reader, stream) => reader.CopyTo(new BinaryWriter(stream), new byte[7])));
+				Assert.Equal(expected, Copy((reader, stream) => reader.CopyTo(new dnlib.DotNet.Writer.DataWriter(stream))));
+				Assert.Equal(expected, Copy((reader, stream) => reader.CopyTo(new dnlib.DotNet.Writer.DataWriter(stream), new byte[7])));
+				// Nothing is left to copy at the end
+				Assert.Empty(Copy((reader, stream) => {
+					reader.Position = reader.Length;
+					reader.CopyTo(stream);
+					reader.CopyTo(new BinaryWriter(stream));
+					reader.CopyTo(new dnlib.DotNet.Writer.DataWriter(stream));
+					reader.CopyTo(stream, new byte[7]);
+				}));
+			}
+		}
+
+		[Theory, MemberData(nameof(Kinds))]
+		public void CopyToWithoutADestinationOrABufferThrows(DataStreamKind kind) {
+			using (var source = TestDataReader.Create(kind, 1, 2, 3)) {
+				var reader = source.Reader;
+				var stream = new MemoryStream();
+
+				Assert.Throws<ArgumentNullException>(() => source.Reader.CopyTo((Stream)null!));
+				Assert.Throws<ArgumentNullException>(() => source.Reader.CopyTo((Stream)null!, new byte[7]));
+				Assert.Throws<ArgumentNullException>(() => source.Reader.CopyTo((BinaryWriter)null!));
+				Assert.Throws<ArgumentNullException>(() => source.Reader.CopyTo((BinaryWriter)null!, new byte[7]));
+				Assert.Throws<ArgumentNullException>(() => source.Reader.CopyTo((dnlib.DotNet.Writer.DataWriter)null!));
+				Assert.Throws<ArgumentNullException>(() => source.Reader.CopyTo((dnlib.DotNet.Writer.DataWriter)null!, new byte[7]));
+				Assert.Throws<ArgumentNullException>(() => source.Reader.CopyTo(stream, null!));
+				// A buffer without room for a single byte
+				Assert.Throws<DataReaderException>(() => source.Reader.CopyTo(stream, new byte[0]));
+				Assert.Equal(0U, reader.Position);
 			}
 		}
 
