@@ -745,9 +745,60 @@ namespace dnlib.DotNet.Writer {
 			}
 			catch (UnauthorizedAccessException) {
 			}
+#else
+			// There's no .NET method that does it. On Windows, truncating the mapped file fails, but on Unix
+			// the process would crash.
+			if (UnixRealPath.TryGet(fileName) is string realPath)
+				fileName = realPath;
 #endif
 			return fileName;
 		}
+
+#if !NET6_0_OR_GREATER
+		static class UnixRealPath {
+			[DllImport("libc")]
+			static extern IntPtr realpath(string path, IntPtr resolvedPath);
+
+			[DllImport("libc")]
+			static extern void free(IntPtr ptr);
+
+			/// <summary>
+			/// Returns the full path of a file without any symbolic links, or <c>null</c> if that failed (eg. the
+			/// file doesn't exist or this isn't Unix)
+			/// </summary>
+			public static string? TryGet(string fileName) {
+				if (Path.DirectorySeparatorChar != '/')
+					return null;
+				try {
+					return Get(fileName);
+				}
+				catch (DllNotFoundException) {
+				}
+				catch (EntryPointNotFoundException) {
+				}
+				return null;
+			}
+
+			// A separate method: the exceptions above are thrown when a method that calls a native method is compiled
+			static string? Get(string fileName) {
+				// It allocates the returned string
+				var resolved = realpath(fileName, IntPtr.Zero);
+				if (resolved == IntPtr.Zero)
+					return null;
+				try {
+					int length = 0;
+					while (Marshal.ReadByte(resolved, length) != 0)
+						length++;
+					var bytes = new byte[length];
+					Marshal.Copy(resolved, bytes, 0, length);
+					return Encoding.UTF8.GetString(bytes);
+				}
+				finally {
+					free(resolved);
+				}
+			}
+		}
+#endif
 
 		static void DeleteFileNoThrow(string? fileName) {
 			if (String2.IsNullOrEmpty(fileName))
