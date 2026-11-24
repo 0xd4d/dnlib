@@ -376,12 +376,15 @@ namespace dnlib.DotNet {
 		ITypeDefOrRef? TryResolve(TypeRef? tr) {
 			if (!TryToUseTypeDefs || tr is null)
 				return tr;
-			if (!IsThisModule(tr))
-				return tr;
+			return (ITypeDefOrRef?)ResolveTypeDefInThisModule(tr) ?? tr;
+		}
+
+		// Returns the type if tr is a reference to a type in this module
+		TypeDef? ResolveTypeDefInThisModule(TypeRef? tr) {
+			if (tr is null || !IsThisModule(tr))
+				return null;
 			var td = tr.Resolve();
-			if (td is null || td.Module != module)
-				return tr;
-			return td;
+			return td is not null && td.Module == module ? td : null;
 		}
 
 		IMethodDefOrRef? TryResolveMethod(IMethodDefOrRef? mdr) {
@@ -399,7 +402,8 @@ namespace dnlib.DotNet {
 				return mr;
 			if (declType.Module != module)
 				return mr;
-			return (IMethodDefOrRef?)declType.ResolveMethod(mr) ?? mr;
+			// A method that's found in a base type isn't used: the reference would get another class
+			return declType.ResolveMethod(mr) is MethodDef md && md.DeclaringType == declType ? md : mr;
 		}
 
 		IField? TryResolveField(MemberRef? mr) {
@@ -414,7 +418,7 @@ namespace dnlib.DotNet {
 				return mr;
 			if (declType.Module != module)
 				return mr;
-			return (IField?)declType.ResolveField(mr) ?? mr;
+			return declType.ResolveField(mr) is FieldDef fd && fd.DeclaringType == declType ? fd : mr;
 		}
 
 		TypeDef? GetDeclaringType(MemberRef? mr) {
@@ -424,7 +428,8 @@ namespace dnlib.DotNet {
 			if (mr.Class is TypeDef td)
 				return td;
 
-			if (TryResolve(mr.Class as TypeRef) is TypeDef resolvedTypeDef)
+			// Also if TypeRefs aren't replaced by TypeDefs (TryToUseTypeDefs)
+			if (ResolveTypeDefInThisModule(mr.Class as TypeRef) is TypeDef resolvedTypeDef)
 				return resolvedTypeDef;
 
 			var modRef = mr.Class as ModuleRef;
@@ -1150,7 +1155,7 @@ namespace dnlib.DotNet {
 			if ((fd = field as FieldDef) is not null)
 				result = ImportOrNull(fd);
 			else if ((mr = field as MemberRef) is not null)
-				result = ImportOrNull(mr);
+				result = TryResolveField(ImportOrNull(mr));
 			else
 				result = null;
 
@@ -1179,7 +1184,7 @@ namespace dnlib.DotNet {
 			else if ((ms = method as MethodSpec) is not null)
 				result = ImportOrNull(ms);
 			else if ((mr = method as MemberRef) is not null)
-				result = ImportOrNull(mr);
+				result = TryResolveMethod(ImportOrNull(mr));
 			else
 				result = null;
 
