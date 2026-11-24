@@ -15,6 +15,9 @@ namespace dnlib.Tests.Resolving {
 		const string Source = @"
 public class Base<T> {
 	public int Field;
+	public T GenericField;
+	public T Property { get; set; }
+	public event System.Action<T> Changed;
 	public Base() { }
 	public Base(T value) { }
 	public void Method(T value) { }
@@ -82,6 +85,31 @@ public struct Struct {
 		[Fact]
 		public void FieldIsFoundInABaseType() =>
 			Assert.Same(baseType.FindField("Field"), mostDerived.FindFieldCheckBaseType("Field", new FieldSig(CorLib.Int32)));
+
+		// The same for fields, properties and events: T is int in Derived and MostDerived
+		[Fact]
+		public void OtherMembersOfAGenericBaseTypeAreFoundWithTheGenericArgumentsOfTheBaseType() {
+			var genericParameter = new GenericVar(0);
+			TypeSpec ActionOf(TypeSig argument) => new TypeSpecUser(new GenericInstSig(new ClassSig(CorLib.GetTypeRef("System", "Action`1")), argument));
+
+			Assert.Same(baseType.FindField("GenericField"), mostDerived.FindFieldCheckBaseType("GenericField", new FieldSig(CorLib.Int32)));
+			Assert.Null(mostDerived.FindFieldCheckBaseType("GenericField", new FieldSig(genericParameter)));
+			Assert.Null(mostDerived.FindFieldCheckBaseType("GenericField", new FieldSig(CorLib.String)));
+
+			Assert.Same(baseType.FindProperty("Property"), mostDerived.FindPropertyCheckBaseType("Property", PropertySig.CreateInstance(CorLib.Int32)));
+			Assert.Null(mostDerived.FindPropertyCheckBaseType("Property", PropertySig.CreateInstance(genericParameter)));
+			Assert.Null(mostDerived.FindPropertyCheckBaseType("Property", PropertySig.CreateInstance(CorLib.String)));
+			Assert.Null(mostDerived.FindProperty("Property", PropertySig.CreateInstance(CorLib.Int32)));
+
+			Assert.Same(baseType.FindEvent("Changed"), mostDerived.FindEventCheckBaseType("Changed", ActionOf(CorLib.Int32)));
+			Assert.Null(mostDerived.FindEventCheckBaseType("Changed", ActionOf(genericParameter)));
+			Assert.Null(mostDerived.FindEventCheckBaseType("Changed", ActionOf(CorLib.String)));
+			Assert.Null(mostDerived.FindEvent("Changed", ActionOf(CorLib.Int32)));
+
+			// In the generic type itself, T is its generic parameter
+			Assert.Same(baseType.FindProperty("Property"), baseType.FindPropertyCheckBaseType("Property", PropertySig.CreateInstance(genericParameter)));
+			Assert.Same(baseType.FindEvent("Changed"), baseType.FindEventCheckBaseType("Changed", ActionOf(genericParameter)));
+		}
 
 		// Fixed in ff3b620f
 		[Fact]

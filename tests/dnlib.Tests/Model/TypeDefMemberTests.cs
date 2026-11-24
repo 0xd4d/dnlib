@@ -74,6 +74,30 @@ public sealed class SealedClass { public class Nested { } }
 			Assert.NotNull(derived.FindMethod("Method", MethodSig.CreateInstance(CorLibTypes.Int32, CorLibTypes.Int32), SigComparerOptions.DontCompareReturnType));
 		}
 
+		// The methods that return every member with a name: only methods can have the same name in C#
+		[Fact]
+		public void AllMembersWithANameAreFound() {
+			var derived = Find("Derived");
+
+			Assert.Equal(3, derived.FindMethods("Method").Count());
+			Assert.All(derived.FindMethods("Method"), a => Assert.Equal("Method", a.Name));
+			Assert.Equal(new[] { derived.FindField("Field") }, derived.FindFields("Field"));
+			Assert.Equal(new[] { derived.FindField("Field")! }, derived.GetFields("Field"));
+			Assert.Same(derived.FindField("Field"), derived.GetField("Field"));
+			Assert.Equal(new[] { derived.FindProperty("Number") }, derived.FindProperties("Number"));
+			Assert.Equal(new[] { derived.FindEvent("Changed") }, derived.FindEvents("Changed"));
+
+			// Not the members of the base type, and no member has no name
+			Assert.Empty(derived.FindMethods("BaseMethod"));
+			Assert.Empty(derived.FindFields("BaseField"));
+			Assert.Empty(derived.GetFields("BaseField"));
+			Assert.Null(derived.GetField("BaseField"));
+			Assert.Empty(derived.FindProperties("BaseProperty"));
+			Assert.Empty(derived.FindEvents("BaseEvent"));
+			Assert.Empty(derived.GetFields(null));
+			Assert.Empty(derived.FindMethods(null));
+		}
+
 		[Fact]
 		public void MethodOfABaseTypeIsOnlyFoundIfTheBaseTypesAreChecked() {
 			var derived = Find("Derived");
