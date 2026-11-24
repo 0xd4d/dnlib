@@ -97,6 +97,28 @@ namespace dnlib.Tests.Names {
 			}
 		}
 
+		// Only the text before the first ';' of a culture is used. That's what the CLR's binder wants to do with
+		// the culture of an assembly it found, see AssemblyName::Init() in the runtime's binder/assemblyname.cpp
+		// (.NET 10 removes one character too many: there, "deu;x" is the culture "de").
+		[Theory]
+		[InlineData("de;x", "de")]
+		[InlineData("de;fr", "DE")]
+		[InlineData("de;x", "de;y;z")]
+		[InlineData(";de", "")]
+		[InlineData(";", "neutral")]
+		[InlineData("neutral;de", "")]
+		public void CultureEndsAtTheFirstSemicolon(string culture, string sameCulture) {
+			var comparer = AssemblyNameComparer.CompareAll;
+			var assembly = Create(culture: culture);
+			var same = Create(culture: sameCulture);
+
+			Assert.True(comparer.Equals(assembly, same));
+			Assert.Equal(0, comparer.CompareTo(assembly, same));
+			Assert.Equal(comparer.GetHashCode(assembly), comparer.GetHashCode(same));
+			Assert.False(comparer.Equals(assembly, Create(culture: "fr")));
+			Assert.False(comparer.Equals(Create(culture: "fr;de"), Create(culture: "de")));
+		}
+
 		[Fact]
 		public void OtherCultureIsAnotherAssembly() {
 			var comparer = AssemblyNameComparer.CompareAll;

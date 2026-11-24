@@ -279,7 +279,12 @@ namespace dnlib.DotNet {
 
 		static string GetCanonicalLocale(UTF8String? locale) => GetCanonicalLocale(UTF8String.ToSystemStringOrEmpty(locale));
 
+		// The CLR's binder only uses the text before the first ';' of an assembly's culture
+		// (AssemblyName::Init() in the runtime's binder/assemblyname.cpp)
 		static string GetCanonicalLocale(string locale) {
+			int index = locale.IndexOf(';');
+			if (index >= 0)
+				locale = locale.Substring(0, index);
 			var s = locale.ToUpperInvariant();
 			if (s == "NEUTRAL")
 				s = string.Empty;
