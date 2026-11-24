@@ -104,6 +104,55 @@ namespace dnlib.Tests.Importing {
 			Assert.Equal(ElementType.Var, memberRef.MethodSig!.RetType!.ElementType);
 		}
 
+		// Code inside a generic type uses the type with its own parameters: in Generic<T>, the operand of
+		// "ldtoken Generic<T>" or of a call of another method of Generic<T> is the instance Generic<!0>.
+		// ImportAsOperand() creates that for a generic type definition.
+		[Fact]
+		public void GenericTypeDefinitionAsAnOperandIsAnInstanceWithItsOwnParameters() {
+			var importer = CreateImporter();
+
+			var typeSpec = Assert.IsAssignableFrom<TypeSpec>(importer.ImportAsOperand(typeof(Generic<>)));
+			var instance = Assert.IsType<GenericInstSig>(typeSpec.TypeSig);
+			Assert.Equal("dnlib.Tests.Importing.ReflectionImporterTests/Generic`1", instance.GenericType!.FullName);
+			var argument = Assert.IsType<GenericVar>(Assert.Single(instance.GenericArguments));
+			Assert.Equal(0U, argument.Number);
+
+			// Import() returns the definition
+			Assert.IsAssignableFrom<TypeRef>(importer.Import(typeof(Generic<>)));
+			// Other types are the same as an operand
+			Assert.IsAssignableFrom<TypeRef>(importer.ImportAsOperand(typeof(Uri)));
+			Assert.Equal("dnlib.Tests.Importing.ReflectionImporterTests/Generic`1<System.Int32>", importer.ImportAsOperand(typeof(Generic<int>)).FullName);
+			Assert.Null(importer.ImportAsOperand((Type?)null));
+			Assert.Null(importer.ImportAsOperandOrNull((Type?)null));
+		}
+
+		[Fact]
+		public void MemberOfAGenericTypeDefinitionAsAnOperandIsAMemberOfTheInstance() {
+			var importer = CreateImporter();
+			var method = typeof(Generic<>).GetMethod("Echo")!;
+			var field = typeof(KeyValuePairHolder<>).GetField("Value")!;
+
+			var methodRef = Assert.IsAssignableFrom<MemberRef>(importer.ImportAsOperand(method));
+			var methodOwner = Assert.IsAssignableFrom<TypeSpec>(methodRef.Class);
+			Assert.Equal("dnlib.Tests.Importing.ReflectionImporterTests/Generic`1<!0>", methodOwner.FullName);
+			Assert.Equal(ElementType.Var, methodRef.MethodSig!.RetType!.ElementType);
+
+			var fieldRef = Assert.IsAssignableFrom<MemberRef>(importer.ImportAsOperand(field));
+			Assert.Equal("dnlib.Tests.Importing.ReflectionImporterTests/KeyValuePairHolder`1<!0>", Assert.IsAssignableFrom<TypeSpec>(fieldRef.Class).FullName);
+			Assert.Equal(ElementType.Var, fieldRef.FieldSig!.Type!.ElementType);
+			// Without "as an operand", the member is in the definition
+			Assert.IsAssignableFrom<TypeRef>(Assert.IsAssignableFrom<MemberRef>(importer.Import(field)).Class);
+
+			Assert.Null(importer.ImportAsOperand((System.Reflection.MethodBase?)null));
+			Assert.Null(importer.ImportAsOperand((System.Reflection.FieldInfo?)null));
+			Assert.Null(importer.ImportAsOperandOrNull((System.Reflection.MethodBase?)null));
+			Assert.Null(importer.ImportAsOperandOrNull((System.Reflection.FieldInfo?)null));
+		}
+
+		public class KeyValuePairHolder<T> {
+			public T? Value;
+		}
+
 		[Fact]
 		public void InstantiatedGenericMethodIsAMethodSpec() {
 			var method = typeof(Generic<int>).GetMethod("Convert")!.MakeGenericMethod(typeof(List<string>));
