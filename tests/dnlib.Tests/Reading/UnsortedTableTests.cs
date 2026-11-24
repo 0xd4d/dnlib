@@ -102,5 +102,40 @@ namespace dnlib.Tests.Reading {
 
 			Assert.Equal(0, AssemblyRunner.RunEntryPoint(CreateImageWithReversedTable(table)));
 		}
+
+		// A class with 'count' constants: Constants.C0 = 100, C1 = 101, ...
+		static byte[] CompileConstants(int count) {
+			var fields = string.Join(" ", Enumerable.Range(0, count).Select(i => $"public const int C{i} = {100 + i};"));
+			return CSharpCompiler.Compile("public class Constants { " + fields + " }").Image;
+		}
+
+		// An unsorted table can have two rows for the same owner, here two values of the constant C0: its own row
+		// (the first one) and the row of the last constant. The CLR uses the first one if the table has less than
+		// 25 rows. With more rows it creates a hash table, and finds the last one. The runtime's reflection tells
+		// the tests which one it is.
+		[Theory]
+		[InlineData(24, 100)]
+		[InlineData(25, 124)]
+		[InlineData(60, 159)]
+		public void RowThatTheClrFindsIsUsedIfTwoRowsHaveTheSameOwner(int constantCount, int expectedValue) {
+			var image = new MetadataPatcher(CompileConstants(constantCount)).RenameStream("#~", "#-").ToArray();
+			var patcher = new MetadataPatcher(image);
+			Assert.Equal((uint)constantCount, patcher.GetRowCount(Table.Constant));
+			patcher.SetCell(Table.Constant, (uint)constantCount, "Parent", patcher.GetCell(Table.Constant, 1, "Parent"));
+			image = ClearSortedBit(patcher.ToArray(), Table.Constant);
+
+			using (var module = ModuleDefMD.Load(image)) {
+				var constants = module.Find("Constants", isReflectionName: true)!;
+				Assert.Equal(expectedValue, constants.FindField("C0")!.Constant!.Value);
+				Assert.Equal(101, constants.FindField("C1")!.Constant!.Value);
+				// Its row is now a row of C0
+				Assert.Null(constants.FindField("C" + (constantCount - 1))!.Constant);
+			}
+
+			if (Type.GetType("Mono.Runtime") is null) {
+				using (var loaded = new LoadedAssembly(image))
+					Assert.Equal(expectedValue, loaded.Assembly.GetType("Constants")!.GetField("C0")!.GetRawConstantValue());
+			}
+		}
 	}
 }
