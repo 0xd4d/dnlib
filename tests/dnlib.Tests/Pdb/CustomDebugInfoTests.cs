@@ -167,5 +167,113 @@ namespace dnlib.Tests.Pdb {
 			}));
 			Assert.Contains("NUL", exception.Message);
 		}
+
+		// Custom debug info that the API accepts but that can't be written: something is null, or an instruction
+		// isn't in the method
+		static void AddInvalidInfo(ModuleDefMD module, string what) {
+			var method = DebugInfoSource.GetMethod(module, "Sum");
+			var instructions = method.Body!.Instructions;
+			var instructionOfAnotherMethod = dnlib.DotNet.Emit.OpCodes.Nop.ToInstruction();
+			switch (what) {
+			case "compiler option without a key": {
+				var options = new PdbCompilationOptionsCustomDebugInfo();
+				options.Options.Add(new KeyValuePair<string, string>(null!, "value"));
+				module.CustomDebugInfos.Add(options);
+				break;
+			}
+			case "compiler option without a value": {
+				var options = new PdbCompilationOptionsCustomDebugInfo();
+				options.Options.Add(new KeyValuePair<string, string>("key", null!));
+				module.CustomDebugInfos.Add(options);
+				break;
+			}
+			case "metadata reference without a name": {
+				var references = new PdbCompilationMetadataReferencesCustomDebugInfo();
+				references.References.Add(new PdbCompilationMetadataReference(null!, "", PdbCompilationMetadataReferenceFlags.Assembly, 0, 0, Guid.Empty));
+				module.CustomDebugInfos.Add(references);
+				break;
+			}
+			case "metadata reference without aliases": {
+				var references = new PdbCompilationMetadataReferencesCustomDebugInfo();
+				references.References.Add(new PdbCompilationMetadataReference("Name.dll", null!, PdbCompilationMetadataReferenceFlags.Assembly, 0, 0, Guid.Empty));
+				module.CustomDebugInfos.Add(references);
+				break;
+			}
+			case "no default namespace":
+				module.CustomDebugInfos.Add(new PdbDefaultNamespaceCustomDebugInfo(null!));
+				break;
+			case "no source link data":
+				module.CustomDebugInfos.Add(new PdbSourceLinkCustomDebugInfo(null!));
+				break;
+			case "no embedded source":
+				module.PdbState!.Documents.First().CustomDebugInfos.Add(new PdbEmbeddedSourceCustomDebugInfo(null!));
+				break;
+			case "scope of a hoisted local without a start": {
+				var scopes = new PdbStateMachineHoistedLocalScopesCustomDebugInfo();
+				scopes.Scopes.Add(new StateMachineHoistedLocalScope(null, instructions[1]));
+				method.CustomDebugInfos.Add(scopes);
+				break;
+			}
+			case "scope of a hoisted local that ends before it starts": {
+				var scopes = new PdbStateMachineHoistedLocalScopesCustomDebugInfo();
+				scopes.Scopes.Add(new StateMachineHoistedLocalScope(instructions[2], instructions[0]));
+				method.CustomDebugInfos.Add(scopes);
+				break;
+			}
+			case "async step without a yield instruction":
+				AddAsyncStep(method, new PdbAsyncStepInfo(null!, method, instructions[0]));
+				break;
+			case "async step without a breakpoint method":
+				AddAsyncStep(method, new PdbAsyncStepInfo(instructions[0], null!, instructions[0]));
+				break;
+			case "async step without a breakpoint instruction":
+				AddAsyncStep(method, new PdbAsyncStepInfo(instructions[0], method, null!));
+				break;
+			case "async step with a breakpoint in a method without a body": {
+				var noBody = new MethodDefUser("NoBody", MethodSig.CreateInstance(module.CorLibTypes.Void), MethodAttributes.Abstract | MethodAttributes.Virtual);
+				method.DeclaringType!.Methods.Add(noBody);
+				AddAsyncStep(method, new PdbAsyncStepInfo(instructions[0], noBody, instructionOfAnotherMethod));
+				break;
+			}
+			case "async step with an instruction that the breakpoint method does not have": {
+				var otherMethod = module.GetTypes().SelectMany(a => a.Methods).First(a => a.HasBody && a != method);
+				AddAsyncStep(method, new PdbAsyncStepInfo(instructions[0], otherMethod, instructionOfAnotherMethod));
+				break;
+			}
+			default:
+				throw new ArgumentException(what);
+			}
+		}
+
+		static void AddAsyncStep(MethodDef method, PdbAsyncStepInfo step) {
+			var info = new PdbAsyncMethodCustomDebugInfo(method);
+			info.StepInfos.Add(step);
+			method.CustomDebugInfos.Add(info);
+		}
+
+		[Theory]
+		[InlineData("compiler option without a key", "Compiler option `key` is null")]
+		[InlineData("compiler option without a value", "Compiler option `value` is null")]
+		[InlineData("metadata reference without a name", "Metadata reference name is null")]
+		[InlineData("metadata reference without aliases", "Metadata reference aliases is null")]
+		[InlineData("no default namespace", "Default namespace is null")]
+		[InlineData("no source link data", "Source link blob is null")]
+		[InlineData("no embedded source", "Source code blob is null")]
+		[InlineData("scope of a hoisted local without a start", "Instruction is null")]
+		[InlineData("scope of a hoisted local that ends before it starts", "End instruction is before start instruction")]
+		[InlineData("async step without a yield instruction", "YieldInstruction is null")]
+		[InlineData("async step without a breakpoint method", "BreakpointMethod is null")]
+		[InlineData("async step without a breakpoint instruction", "BreakpointInstruction is null")]
+		[InlineData("async step with a breakpoint in a method without a body", "Method has no body")]
+		[InlineData("async step with an instruction that the breakpoint method does not have", "Couldn't find an instruction")]
+		public void InfoThatCanNotBeWrittenIsAnError(string what, string expectedError) {
+			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(module => AddInvalidInfo(module, what)));
+			Assert.Contains(expectedError, exception.Message);
+
+			// If the error is ignored, the module and the rest of the PDB are written
+			var written = ChangeAndWrite(module => AddInvalidInfo(module, what), options => options.Logger = DummyLogger.NoThrowInstance);
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!))
+				Assert.Contains(DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions, a => a.SequencePoint is not null);
+		}
 	}
 }
