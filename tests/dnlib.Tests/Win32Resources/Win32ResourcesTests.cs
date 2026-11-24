@@ -252,5 +252,73 @@ namespace dnlib.Tests.Win32Resources {
 			Assert.True(new ResourceName("A") < new ResourceName("b"));
 			Assert.True(new ResourceName("a") < new ResourceName("B"));
 		}
+
+		[Fact]
+		public void ResourcesAreFoundByTypeNameAndLanguage() {
+			using (var module = ModuleDefMD.Load(compiledExe.Value)) {
+				var resources = module.Win32Resources!;
+				Add(resources.Root!, 3, "NAME", CreateData(1033, new byte[] { 1, 2, 3 }));
+
+				Assert.Equal(new ResourceName(3), resources.Find(3)!.Name);
+				Assert.Equal(new ResourceName("NAME"), resources.Find(3, "NAME")!.Name);
+				Assert.Equal(new byte[] { 1, 2, 3 }, resources.Find(3, "NAME", 1033)!.CreateReader().ToArray());
+				Assert.Null(resources.Find(3, "NAME", 1031));
+				Assert.Null(resources.Find(3, "OTHER"));
+				Assert.Null(resources.Find(3, "OTHER", 1033));
+				Assert.Null(resources.Find(99));
+				Assert.Null(resources.Find(99, 1));
+				Assert.Null(resources.Find(99, 1, 0));
+			}
+		}
+
+		// After a write, the writer knows where it wrote every directory, every data entry and every name
+		[Fact]
+		public void WriterKnowsWhereEveryPartOfTheTreeWasWritten() {
+			using (var module = ModuleDefMD.Load(compiledExe.Value)) {
+				var root = module.Win32Resources!.Root!;
+				var data = CreateData(1033, new byte[] { 1, 2, 3, 4, 5 });
+				Add(root, 3, "SOMENAME", data);
+				var writer = new ModuleWriter(module, new ModuleWriterOptions(module));
+				var stream = new MemoryStream();
+
+				writer.Write(stream);
+
+				var image = stream.ToArray();
+				var chunk = writer.Win32Resources!;
+				// The root directory is the start of the resources. A directory has the number of its entries
+				// with a name at offset 12, and the number of those with an ID at offset 14.
+				Assert.True(chunk.GetFileOffsetAndRvaOf(root, out var rootOffset, out var rootRva));
+				Assert.Equal(chunk.FileOffset, rootOffset);
+				Assert.Equal(chunk.RVA, rootRva);
+				Assert.Equal(root.Directories.Count, BitConverter.ToUInt16(image, (int)rootOffset + 12) + BitConverter.ToUInt16(image, (int)rootOffset + 14));
+				var typeDirectory = root.FindDirectory(3)!;
+				Assert.True(chunk.GetFileOffset(typeDirectory) > rootOffset);
+				Assert.Equal((uint)chunk.GetFileOffset(typeDirectory) - (uint)rootOffset, (uint)chunk.GetRVA(typeDirectory) - (uint)rootRva);
+				// The same through the base class of directories and data entries
+				Assert.Equal(chunk.GetFileOffset(typeDirectory), chunk.GetFileOffset((ResourceDirectoryEntry)typeDirectory));
+				Assert.Equal(chunk.GetRVA(typeDirectory), chunk.GetRVA((ResourceDirectoryEntry)typeDirectory));
+
+				// A data entry is the RVA and the size of its data
+				int dataEntryOffset = (int)chunk.GetFileOffset(data);
+				Assert.Equal(5U, BitConverter.ToUInt32(image, dataEntryOffset + 4));
+				Assert.Equal(chunk.GetFileOffset(data), chunk.GetFileOffset((ResourceDirectoryEntry)data));
+				Assert.NotEqual(0U, (uint)chunk.GetRVA(data));
+
+				// A name is its length and its UTF-16 chars
+				int nameOffset = (int)chunk.GetFileOffset("SOMENAME");
+				Assert.Equal(8, BitConverter.ToUInt16(image, nameOffset));
+				Assert.Equal("SOMENAME", System.Text.Encoding.Unicode.GetString(image, nameOffset + 2, 16));
+				Assert.NotEqual(0U, (uint)chunk.GetRVA("SOMENAME"));
+
+				// Things that aren't in the tree
+				Assert.False(chunk.GetFileOffsetAndRvaOf(new ResourceDirectoryUser(5), out var noOffset, out var noRva));
+				Assert.Equal(0U, (uint)noOffset + (uint)noRva);
+				Assert.False(chunk.GetFileOffsetAndRvaOf(CreateData(0, new byte[1]), out _, out _));
+				Assert.False(chunk.GetFileOffsetAndRvaOf("OTHERNAME", out _, out _));
+				Assert.False(chunk.GetFileOffsetAndRvaOf((ResourceDirectoryEntry?)null, out _, out _));
+				Assert.Equal(0U, (uint)chunk.GetFileOffset("OTHERNAME"));
+				Assert.Equal(0U, (uint)chunk.GetRVA((ResourceData?)null));
+			}
+		}
 	}
 }
