@@ -18,7 +18,7 @@ namespace dnlib.Tests.Signatures {
 		// The element types and calling conventions that are used below, see ECMA-335 II.23.1.16 and II.23.2.3
 		const byte Void = 0x01, I4 = 0x08, String = 0x0E, Ptr = 0x0F, ByRef = 0x10, ValueType = 0x11, Class = 0x12,
 			Var = 0x13, Array = 0x14, GenericInst = 0x15, FnPtr = 0x1B, SZArray = 0x1D, MVar = 0x1E, CModReqd = 0x1F,
-			CModOpt = 0x20, CModInternal = 0x22, Sentinel = 0x41, Pinned = 0x45;
+			CModOpt = 0x20, Internal = 0x21, CModInternal = 0x22, Module = 0x3F, Sentinel = 0x41, Pinned = 0x45, ValueArray = 0x17;
 		const byte DefaultCall = 0x00, VarArgCall = 0x05, FieldCall = 0x06, LocalCall = 0x07, PropertyCall = 0x08,
 			GenericInstCall = 0x0A, AsyncCall = 0x0C, GenericFlag = 0x10, HasThisFlag = 0x20;
 
@@ -222,6 +222,16 @@ namespace dnlib.Tests.Signatures {
 			yield return new object[] { "pointer", new byte[] { Ptr, Void } };
 			yield return new object[] { "by reference", new byte[] { ByRef, I4 } };
 			yield return new object[] { "generic parameters", new byte[] { GenericInst, Class, classToken, 2, Var, 0, MVar, 1 } };
+			yield return new object[] { "pinned", new byte[] { Pinned, I4 } };
+			// The types that only the runtime uses: a fixed size array (type, size), a type of another module
+			// (module number, type), and a type or a modifier that's the address of the runtime's own type
+			yield return new object[] { "value array", new byte[] { ValueArray, I4, 0x81, 0x00 } };
+			yield return new object[] { "module", new byte[] { Module, 0x81, 0x00, I4 } };
+			yield return new object[] { "internal", new byte[] { Internal }.Concat(new byte[IntPtr.Size]).ToArray() };
+			yield return new object[] { "internal modifier", new byte[] { CModInternal, 1 }.Concat(new byte[IntPtr.Size]).Concat(new byte[] { I4 }).ToArray() };
+			// The byte before the generic type's token isn't CLASS or VALUETYPE (the CLR ignores it)
+			yield return new object[] { "generic instance of an int", new byte[] { GenericInst, I4, classToken, 1, I4 } };
+			yield return new object[] { "array without dimensions", new byte[] { Array, I4, 0 } };
 		}
 
 		// A type that's nested too deeply isn't read, but the reader must still know where it ends: the types
