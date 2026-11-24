@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="5.12.0" />
     <!-- Native library (Windows only) that reads and writes Windows PDB files. The C# compiler needs it to
          create a Windows PDB, and dnlib's COM PDB reader and Windows PDB writer use it. -->
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" GeneratePathProperty="true" />

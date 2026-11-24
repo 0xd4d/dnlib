@@ -36,6 +36,18 @@ namespace dnlib.Tests.Fixtures {
 			}));
 
 		/// <summary>
+		/// <c>Sources/VbFeatures.vb</c> compiled with the Visual Basic compiler: an EXE with a portable PDB.
+		/// Its <c>Main</c> method returns 0 if everything works.
+		/// </summary>
+		public static CompiledAssembly VbFeatures => vbFeatures.Value;
+		static readonly Lazy<CompiledAssembly> vbFeatures = new Lazy<CompiledAssembly>(() =>
+			VisualBasicCompiler.Compile(ReadSource("VbFeatures.vb"), new VisualBasicCompilerOptions {
+				AssemblyName = "VbFeatures",
+				OutputKind = OutputKind.ConsoleApplication,
+				PdbKind = PdbKind.Portable,
+			}));
+
+		/// <summary>
 		/// <c>Sources/Exports.il</c>: a DLL that isn't IL only. It has an exported method, a vtable fixup and
 		/// a field with data in the PE file.
 		/// </summary>

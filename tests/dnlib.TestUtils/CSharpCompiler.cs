@@ -133,6 +133,9 @@ namespace dnlib.TestUtils {
 
 		static readonly Lazy<List<MetadataReference>> runtimeReferences = new Lazy<List<MetadataReference>>(GetRuntimeReferences);
 
+		// Also used by VisualBasicCompiler
+		internal static List<MetadataReference> RuntimeReferences => runtimeReferences.Value;
+
 		// All assemblies of the runtime that runs the tests: .NET's shared framework, or mscorlib + the System
 		// assemblies of .NET Framework/Mono.
 		static List<MetadataReference> GetRuntimeReferences() {
