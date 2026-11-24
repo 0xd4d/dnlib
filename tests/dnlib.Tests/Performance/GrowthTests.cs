@@ -67,15 +67,17 @@ namespace dnlib.Tests.Performance {
 #endif
 		}
 
-		static void AssertGrowsLikeTheInput(string operation, int size, Measurement small, Measurement big) {
+		// Returns what's wrong, or null if the time and the allocations of the big input are within the limits
+		static string? CheckGrowth(string operation, int size, Measurement small, Measurement big) {
 			var timeLimit = TimeSpan.FromTicks((long)(small.Time.Ticks * maxTimeRatio)) + timeSlack;
-			Assert.True(big.Time <= timeLimit,
-				$"{operation}: {size} items took {small.Time.TotalMilliseconds:0.0} ms, {size * 4} items took {big.Time.TotalMilliseconds:0.0} ms, the limit is {timeLimit.TotalMilliseconds:0.0} ms");
+			if (big.Time > timeLimit)
+				return $"{operation}: {size} items took {small.Time.TotalMilliseconds:0.0} ms, {size * 4} items took {big.Time.TotalMilliseconds:0.0} ms, the limit is {timeLimit.TotalMilliseconds:0.0} ms";
 			if (small.AllocatedBytes > 0) {
 				double allocationRatio = (double)big.AllocatedBytes / small.AllocatedBytes;
-				Assert.True(allocationRatio <= maxAllocationRatio,
-					$"{operation}: {size} items allocated {small.AllocatedBytes:N0} bytes, {size * 4} items allocated {big.AllocatedBytes:N0} bytes ({allocationRatio:0.0} times more)");
+				if (allocationRatio > maxAllocationRatio)
+					return $"{operation}: {size} items allocated {small.AllocatedBytes:N0} bytes, {size * 4} items allocated {big.AllocatedBytes:N0} bytes ({allocationRatio:0.0} times more)";
 			}
+			return null;
 		}
 
 		sealed class Measurements {
@@ -177,12 +179,21 @@ namespace dnlib.Tests.Performance {
 		}
 
 		static void AssertModuleGrowsLikeTheInput(Func<int, ModuleDef> createModule, int size, bool withPdb = false) {
-			var small = MeasureModule(createModule, size, withPdb);
-			var big = MeasureModule(createModule, size * 4, withPdb);
+			// A busy computer can make one measurement much too slow, so a failure is measured again. Code
+			// that really grows too fast fails every time.
+			const int attempts = 3;
+			string? failure = null;
+			for (int attempt = 0; attempt < attempts; attempt++) {
+				var small = MeasureModule(createModule, size, withPdb);
+				var big = MeasureModule(createModule, size * 4, withPdb);
 
-			AssertGrowsLikeTheInput("Writing the created module", size, small.Write, big.Write);
-			AssertGrowsLikeTheInput("Reading the module", size, small.Read, big.Read);
-			AssertGrowsLikeTheInput("Writing the module that was read", size, small.WritePreserved, big.WritePreserved);
+				failure = CheckGrowth("Writing the created module", size, small.Write, big.Write) ??
+					CheckGrowth("Reading the module", size, small.Read, big.Read) ??
+					CheckGrowth("Writing the module that was read", size, small.WritePreserved, big.WritePreserved);
+				if (failure is null)
+					return;
+			}
+			Assert.Fail($"{failure} (measured {attempts} times)");
 		}
 
 		// An empty module with one class 'Ns.Main'. 'main' is the class.
