@@ -90,6 +90,39 @@ jobs:
           if-no-files-found: error
           compression-level: 0 # .nupkg/.snupkg files are already zip files
 
+  # Fails if the tests execute less of dnlib's code than they used to: tests were removed, or a lot of code was
+  # added without tests. The publish job doesn't wait for this job.
+  coverage:
+    name: Test coverage (Ubuntu)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Install dotnet-coverage
+        shell: bash
+        run: dotnet tool install --global dotnet-coverage --version 18.12.0
+
+      # The minimum is a bit below what's measured. Raise it when the coverage grows.
+      - name: Test with coverage
+        shell: bash
+        run: tests/coverage.sh --minimum 68 net10.0
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: coverage
+          path: tests/coverage/
+          if-no-files-found: warn
+
   # Make sure it builds on Windows too, and test the code that only runs on Windows or .NET Framework
   build-windows:
     name: Build (Windows)
