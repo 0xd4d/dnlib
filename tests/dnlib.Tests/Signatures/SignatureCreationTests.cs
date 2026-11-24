@@ -309,5 +309,71 @@ namespace dnlib.Tests.Signatures {
 			Assert.Equal(0, ((IMethod?)null).GetParamCount());
 			Assert.False(((IMethod?)null).HasParams());
 		}
+
+		// The Get...() extension methods read a part of a signature that can be null: no signature has no
+		// return type, no parameters and so on
+		[Fact]
+		public void PartsOfASignatureThatCanBeNull() {
+			var method = MethodSig.CreateStaticGeneric(2, Types.Void, Types.Int32, Types.String);
+			method.ParamsAfterSentinel = new List<TypeSig?> { Types.Object };
+			var field = new FieldSig(Types.Int64);
+			var locals = new LocalSig(Types.Int32, Types.String);
+			var typeArguments = new GenericInstMethodSig(Types.Int32);
+
+			Assert.Same(Types.Void, method.GetRetType());
+			Assert.Equal(new[] { Types.Int32, (TypeSig)Types.String }, method.GetParams());
+			Assert.Equal(2, method.GetParamCount());
+			Assert.Equal(2U, method.GetGenParamCount());
+			Assert.Equal(new TypeSig[] { Types.Object }, method.GetParamsAfterSentinel());
+			Assert.Same(Types.Int64, field.GetFieldType());
+			Assert.Equal(2, locals.GetLocals().Count);
+			Assert.Same(Types.Int32, typeArguments.GetGenericArguments().Single());
+			Assert.True(MethodSig.CreateStatic(Types.Void).GetIsDefault());
+			Assert.False(field.GetIsDefault());
+
+			MethodSig? noMethod = null;
+			Assert.Null(noMethod.GetRetType());
+			Assert.Empty(noMethod.GetParams());
+			Assert.Equal(0, noMethod.GetParamCount());
+			Assert.Equal(0U, noMethod.GetGenParamCount());
+			Assert.Null(noMethod.GetParamsAfterSentinel());
+			Assert.Null(((FieldSig?)null).GetFieldType());
+			Assert.Empty(((LocalSig?)null).GetLocals());
+			Assert.Empty(((GenericInstMethodSig?)null).GetGenericArguments());
+			Assert.False(((CallingConventionSig?)null).GetIsDefault());
+		}
+
+		[Fact]
+		public void TextOfASignature() {
+			Assert.Equal("System.Void (System.Int32,System.String)", MethodSig.CreateStatic(Types.Void, Types.Int32, Types.String).ToString());
+			Assert.Equal("System.Int32 ()", PropertySig.CreateInstance(Types.Int32).ToString());
+			Assert.Equal("System.Int64", new FieldSig(Types.Int64).ToString());
+		}
+
+		// The constructors that the Create methods don't use
+		[Fact]
+		public void SignaturesCreatedWithTheirConstructors() {
+			var generic = new MethodSig(CallingConvention.Default | CallingConvention.Generic, 2);
+			var withTypes = new MethodSig(CallingConvention.HasThis, 0, Types.Void, new List<TypeSig?> { Types.Int32 }.AsEnumerable());
+			var property = new PropertySig(hasThis: true);
+
+			Assert.Equal(2U, generic.GenParamCount);
+			Assert.True(generic.Generic);
+			Assert.Null(generic.RetType);
+			Assert.Empty(generic.Params);
+			Assert.True(withTypes.HasThis);
+			Assert.Same(Types.Int32, withTypes.Params.Single());
+			Assert.True(property.HasThis && property.IsProperty);
+			Assert.False(new PropertySig(hasThis: false).HasThis);
+
+			// The flags of a calling convention are set and cleared
+			withTypes.Generic = true;
+			withTypes.ExplicitThis = true;
+			Assert.Equal(CallingConvention.HasThis | CallingConvention.Generic | CallingConvention.ExplicitThis, withTypes.CallingConvention);
+			withTypes.Generic = false;
+			withTypes.ExplicitThis = false;
+			withTypes.HasThis = false;
+			Assert.Equal(CallingConvention.Default, withTypes.CallingConvention);
+		}
 	}
 }
