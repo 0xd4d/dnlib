@@ -88,7 +88,9 @@ namespace dnlib.Tests.Resolving {
 			var image = stream.ToArray();
 
 			int numberInTheRuntime;
-			using (var loaded = new LoadedAssembly(image))
+			// An assembly with a thread static field isn't unloaded, see LoadedAssembly
+			bool hasThreadStaticField = type.Fields.Any(a => a.CustomAttributes.Count != 0);
+			using (var loaded = new LoadedAssembly(image, canBeUnloaded: !hasThreadStaticField))
 				numberInTheRuntime = (int)loaded.Assembly.GetType("Holder", throwOnError: true)!.GetMethod("Get")!.Invoke(null, null)!;
 
 			using (var written = ModuleDefMD.Load(image)) {

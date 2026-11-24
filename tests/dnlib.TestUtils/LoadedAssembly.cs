@@ -23,12 +23,15 @@ namespace dnlib.TestUtils {
 		/// Loads an assembly
 		/// </summary>
 		/// <param name="image">An assembly that only references the runtime's assemblies</param>
-		public LoadedAssembly(byte[] image) {
+		/// <param name="canBeUnloaded"><c>false</c> to keep the assembly loaded until the process exits. Needed for
+		/// an assembly with thread static fields: unloading such an assembly sometimes crashes the runtime
+		/// (.NET 10.0.14, a segmentation fault on a runtime thread some time after the unload).</param>
+		public LoadedAssembly(byte[] image, bool canBeUnloaded = true) {
 #if NET
 			// Every assembly gets its own context: the runtime would otherwise return the assembly that's
 			// already loaded when it's asked to load another one with the same name (eg. the same test assembly
 			// before and after dnlib wrote it).
-			context = new AssemblyLoadContext(name: null, isCollectible: true);
+			context = new AssemblyLoadContext(name: null, isCollectible: canBeUnloaded);
 			Assembly = context.LoadFromStream(new MemoryStream(image));
 #else
 			// Assemblies loaded from a byte array are never shared, and .NET Framework can't unload them
@@ -38,7 +41,8 @@ namespace dnlib.TestUtils {
 
 		public void Dispose() {
 #if NET
-			context.Unload();
+			if (context.IsCollectible)
+				context.Unload();
 #endif
 		}
 	}
