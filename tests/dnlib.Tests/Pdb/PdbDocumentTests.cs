@@ -142,5 +142,35 @@ namespace dnlib.Tests.Pdb {
 				Assert.Equal(new[] { "DEBUGINFO.cs", "DebugInfo.cs", "debuginfo.cs" }, ReadDocumentNamesWithSrm(written.Pdb!).OrderBy(a => a, StringComparer.Ordinal));
 			}
 		}
+
+		// A document that a sequence point uses is written even if it was removed from the list of documents
+		[Fact]
+		public void AllDocumentsCanBeRemovedButTheOnesOfSequencePointsAreStillWritten() {
+			using (var module = DebugInfoSource.Load()) {
+				var state = module.PdbState!;
+				state.Add(CreateDocument("Unused.cs"));
+
+				var removed = state.RemoveAllDocuments(returnDocs: true)!;
+
+				Assert.Equal(new[] { "DebugInfo.cs", "Unused.cs" }, removed.Select(a => a.Url).OrderBy(a => a, StringComparer.Ordinal));
+				Assert.Empty(state.Documents);
+				Assert.Null(state.RemoveAllDocuments(returnDocs: false));
+				var written = RoundTrip.WriteWithPortablePdb(module);
+				Assert.Equal(new[] { "DebugInfo.cs" }, ReadDocumentNamesWithSrm(written.Pdb!));
+			}
+		}
+
+		[Fact]
+		public void NoDocumentIsWrittenIfTheSequencePointsAreRemovedToo() {
+			using (var module = DebugInfoSource.Load()) {
+				foreach (var instruction in module.GetTypes().SelectMany(a => a.Methods).SelectMany(a => a.Body!.Instructions))
+					instruction.SequencePoint = null;
+				module.PdbState!.RemoveAllDocuments();
+
+				var written = RoundTrip.WriteWithPortablePdb(module);
+
+				Assert.Empty(ReadDocumentNamesWithSrm(written.Pdb!));
+			}
+		}
 	}
 }
