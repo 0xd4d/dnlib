@@ -451,29 +451,5 @@ namespace dnlib.Tests.Performance {
 			body.PdbMethod = new PdbMethod { Scope = rootScope };
 			return module;
 		}, 200000, withPdb: true);
-
-		// Fixed in 27fd6c2c: the Windows PDB writer looked at all instructions of a method once for every
-		// document the method uses. Only on Windows: the writer uses a native library.
-		[Fact]
-		public void SequencePointsInManyDocumentsInAWindowsPdb() {
-			Assert.SkipUnless(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows),
-				"A Windows PDB can only be written on Windows");
-
-			Measurement MeasureWrite(int size) {
-				var module = CreateModule(out var main);
-				module.CreatePdbState(PdbFileKind.WindowsPDB);
-				var instructions = AddMethod(module, main, "Method").Body!.Instructions;
-				// Every instruction is in another source file
-				for (int i = 0; i < size; i++) {
-					var instruction = OpCodes.Nop.ToInstruction();
-					instruction.SequencePoint = new SequencePoint(AddDocument(module, "Source" + i + ".cs"), i + 1, 1, i + 1, 10);
-					instructions.Insert(instructions.Count - 1, instruction);
-				}
-				return Measure(() => Write(module, withPdb: true, preserve: false, out _, out _));
-			}
-
-			const int size = 2000;
-			AssertGrowsLikeTheInput("Writing the Windows PDB", size, MeasureWrite(size), MeasureWrite(size * 4));
-		}
 	}
 }

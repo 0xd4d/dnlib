@@ -285,6 +285,45 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// The source file and the line of every sequence point, in the order of the instructions
+		static List<string> GetSequencePointDocuments(ModuleDef module) =>
+			module.GetTypes().SelectMany(a => a.Methods).Where(a => a.Body is not null)
+				.SelectMany(method => method.Body!.Instructions.Where(a => a.SequencePoint is not null)
+					.Select(a => $"{method.FullName}: {a.SequencePoint!.Document.Url} line {a.SequencePoint.StartLine}"))
+				.ToList();
+
+		// The native writer wants the sequence points of a method one source file at a time, so the writer
+		// sorts them by file. 27fd6c2c changed how (it looked at all instructions once for every file).
+		// There's no test of the time it takes: the native library needs (sequence points x files) time too.
+		[Fact]
+		public void SequencePointsThatAlternateBetweenSourceFilesAreWritten() {
+			SkipUnlessWindows();
+			using (var module = Load(Windows)) {
+				var original = module.PdbState!.Documents.Single();
+				var documents = new List<PdbDocument> { original };
+				foreach (var name in new[] { "Second.cs", "Third.cs" }) {
+					var document = new PdbDocument(name, original.Language, original.LanguageVendor, original.DocumentType, original.CheckSumAlgorithmId, original.CheckSum);
+					module.PdbState.Add(document);
+					documents.Add(document);
+				}
+				// The first sequence point is in the first file, the next one in the second file etc
+				int count = 0;
+				foreach (var instruction in module.GetTypes().SelectMany(a => a.Methods).Where(a => a.Body is not null).SelectMany(a => a.Body!.Instructions)) {
+					if (instruction.SequencePoint is not null)
+						instruction.SequencePoint.Document = documents[count++ % documents.Count];
+				}
+				var expected = GetSequencePointDocuments(module);
+				Assert.Contains(expected, a => a.Contains("Third.cs"));
+
+				var written = Write(module, PdbFileKind.WindowsPDB);
+
+				using (var reloaded = Load(written)) {
+					Assert.Equal(3, reloaded.PdbState!.Documents.Count());
+					Assert.Equal(expected, GetSequencePointDocuments(reloaded));
+				}
+			}
+		}
+
 		static readonly System.Lazy<CompiledAssembly> vbWithWindowsPdb = new System.Lazy<CompiledAssembly>(() =>
 			VisualBasicCompiler.Compile(Fixtures.Fixtures.ReadSource("VbFeatures.vb"), new VisualBasicCompilerOptions {
 				AssemblyName = "VbFeatures",
