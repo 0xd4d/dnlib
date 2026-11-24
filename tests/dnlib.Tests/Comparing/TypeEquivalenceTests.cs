@@ -238,6 +238,70 @@ namespace Interop {{
 			Assert.True(AreEqual(PointWithMarshalType(new FixedArrayMarshalType(4)), PointWithMarshalType(new FixedArrayMarshalType(4))));
 		}
 
+		// Structs that contain pointers to each other and the same struct more than once: the comparison of
+		// Node needs the comparison of Other, which needs the comparison of Node again
+		const string RecursiveSourceFormat = @"
+using System.Runtime.InteropServices;
+
+namespace Interop {{
+	[TypeIdentifier(""scope"", ""Interop.Node"")]
+	public unsafe struct Node {{
+		public Node* Next;
+		public Leaf First;
+		public Leaf Second;
+		public Other* Other;
+		public Leaf Third;
+	}}
+
+	[TypeIdentifier(""scope"", ""Interop.Other"")]
+	public unsafe struct Other {{
+		public Node* Back;
+		public Leaf Value;
+		public Other* Self;
+	}}
+
+	[TypeIdentifier(""scope"", ""Interop.Leaf"")]
+	public struct Leaf {{
+		public {0} Value;
+	}}
+}}";
+
+		ModuleDefMD CompileRecursive(string assemblyName, string leafType) {
+			var module = ModuleDefMD.Load(CSharpCompiler.Compile(string.Format(RecursiveSourceFormat, leafType), new CSharpCompilerOptions { AssemblyName = assemblyName }).Image);
+			otherModules.Add(module);
+			return module;
+		}
+
+		[Fact]
+		public void StructsThatReferenceEachOtherAreEqual() {
+			var firstModule = CompileRecursive("RecursiveFirst", "int");
+			var secondModule = CompileRecursive("RecursiveSecond", "int");
+
+			foreach (var name in new[] { "Node", "Other", "Leaf" }) {
+				Assert.True(AreEqual(Find(firstModule, name), Find(secondModule, name)), name);
+				Assert.True(AreEqual(Find(secondModule, name), Find(firstModule, name)), name);
+				Assert.False(AreEqual(Find(firstModule, name), Find(secondModule, name), SigComparerOptions.DontCheckTypeEquivalence), name);
+			}
+			Assert.False(AreEqual(Find(firstModule, "Node"), Find(secondModule, "Other")));
+		}
+
+		// Only the struct at the end of the chain is different: none of the structs that contain it are equal
+		[Fact]
+		public void StructsThatReferenceEachOtherAreNotEqualIfAStructInThemIsDifferent() {
+			var firstModule = CompileRecursive("RecursiveFirst", "int");
+			var differentModule = CompileRecursive("RecursiveDifferent", "long");
+
+			foreach (var name in new[] { "Node", "Other", "Leaf" }) {
+				Assert.False(AreEqual(Find(firstModule, name), Find(differentModule, name)), name);
+				Assert.False(AreEqual(Find(differentModule, name), Find(firstModule, name)), name);
+			}
+			// One comparer that's used for more than one comparison gives the same answers
+			var comparer = new SigComparer();
+			Assert.False(comparer.Equals(Find(firstModule, "Node"), Find(differentModule, "Node")));
+			Assert.False(comparer.Equals(Find(firstModule, "Other"), Find(differentModule, "Other")));
+			Assert.True(comparer.Equals(Find(firstModule, "Node"), Find(firstModule, "Node")));
+		}
+
 		[Fact]
 		public void TypesWithOtherNamesAreNotEqual() =>
 			Assert.False(AreEqual(Find(first, "Point"), Find(second, "Color")));
