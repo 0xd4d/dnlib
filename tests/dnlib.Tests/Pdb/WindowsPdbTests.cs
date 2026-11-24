@@ -305,6 +305,93 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// The custom debug info that only a Windows PDB has, created with the API: one of each kind is added to
+		// the method Sum of the DebugInfoSource fixture and read again
+		[Theory]
+		[InlineData(PdbReaderOptions.None)]
+		[InlineData(PdbReaderOptions.MicrosoftComReader)]
+		public void EveryKindOfWindowsPdbCustomDebugInfoIsWrittenAndRead(PdbReaderOptions readerOptions) {
+			SkipUnlessWindows();
+			CompiledAssembly written;
+			using (var module = Load(DebugInfoSource.CompiledWithWindowsPdb)) {
+				var method = DebugInfoSource.GetMethod(module, "Sum");
+				var otherMethod = DebugInfoSource.GetMethod(module, "NoLocals");
+				var body = method.Body!;
+				var infos = method.CustomDebugInfos;
+				infos.Clear();
+
+				var usingGroups = new PdbUsingGroupsCustomDebugInfo();
+				usingGroups.UsingCounts.Add(2);
+				usingGroups.UsingCounts.Add(0);
+				usingGroups.UsingCounts.Add(5);
+				infos.Add(usingGroups);
+				infos.Add(new PdbForwardModuleInfoCustomDebugInfo(otherMethod));
+				var hoistedScopes = new PdbStateMachineHoistedLocalScopesCustomDebugInfo();
+				hoistedScopes.Scopes.Add(new StateMachineHoistedLocalScope(body.Instructions[0], body.Instructions[2]));
+				hoistedScopes.Scopes.Add(new StateMachineHoistedLocalScope(null, null));
+				infos.Add(hoistedScopes);
+				// The class of a state machine is a nested type of the method's type
+				infos.Add(new PdbStateMachineTypeNameCustomDebugInfo(method.DeclaringType!.NestedTypes[0]));
+				var dynamicLocals = new PdbDynamicLocalsCustomDebugInfo();
+				// A variable is found by its index and its name, so it has the name of the local. An entry
+				// with another name is the entry of a constant.
+				var dynamicLocal = new PdbDynamicLocal { Local = body.Variables[0] };
+				var dynamicConstant = new PdbDynamicLocal { Name = "dynamicConstant" };
+				dynamicConstant.Flags.Add(1);
+				dynamicLocals.Locals.Add(dynamicConstant);
+				dynamicLocal.Flags.Add(1);
+				dynamicLocal.Flags.Add(0);
+				dynamicLocals.Locals.Add(dynamicLocal);
+				infos.Add(dynamicLocals);
+				var tupleNames = new PdbTupleElementNamesCustomDebugInfo();
+				var tuple = new PdbTupleElementNames { Local = body.Variables[0] };
+				tuple.TupleElementNames.Add("first");
+				tuple.TupleElementNames.Add("second");
+				tupleNames.Names.Add(tuple);
+				infos.Add(tupleNames);
+				infos.Add(new PdbEditAndContinueLocalSlotMapCustomDebugInfo(new byte[] { 1, 2, 3 }));
+				infos.Add(new PdbEditAndContinueLambdaMapCustomDebugInfo(new byte[] { 4, 5 }));
+
+				// A method can forward to the using groups of another method instead of having its own
+				otherMethod.CustomDebugInfos.Clear();
+				otherMethod.CustomDebugInfos.Add(new PdbForwardMethodInfoCustomDebugInfo(method));
+
+				written = Write(module, PdbFileKind.WindowsPDB);
+			}
+
+			using (var module = Load(written, readerOptions)) {
+				var method = DebugInfoSource.GetMethod(module, "Sum");
+				var otherMethod = DebugInfoSource.GetMethod(module, "NoLocals");
+				var body = method.Body!;
+				var infos = method.CustomDebugInfos;
+				T Single<T>() where T : PdbCustomDebugInfo => Assert.Single(infos.OfType<T>());
+
+				Assert.Equal(new ushort[] { 2, 0, 5 }, Single<PdbUsingGroupsCustomDebugInfo>().UsingCounts);
+				Assert.Same(otherMethod, Single<PdbForwardModuleInfoCustomDebugInfo>().Method);
+				var scopes = Single<PdbStateMachineHoistedLocalScopesCustomDebugInfo>().Scopes;
+				Assert.Equal(2, scopes.Count);
+				Assert.Same(body.Instructions[0], scopes[0].Start);
+				Assert.Same(body.Instructions[2], scopes[0].End);
+				Assert.True(scopes[1].IsSynthesizedLocal);
+				Assert.Same(method.DeclaringType!.NestedTypes[0], Single<PdbStateMachineTypeNameCustomDebugInfo>().Type);
+				var dynamicLocals = Single<PdbDynamicLocalsCustomDebugInfo>().Locals;
+				Assert.Equal(2, dynamicLocals.Count);
+				Assert.True(dynamicLocals[0].IsConstant);
+				Assert.Equal("dynamicConstant", dynamicLocals[0].Name);
+				Assert.Same(body.Variables[0], dynamicLocals[1].Local);
+				Assert.Equal(body.Variables[0].Name, dynamicLocals[1].Name);
+				Assert.Equal(new byte[] { 1, 0 }, dynamicLocals[1].Flags);
+				var tuple = Assert.Single(Single<PdbTupleElementNamesCustomDebugInfo>().Names);
+				Assert.Same(body.Variables[0], tuple.Local);
+				Assert.Equal(body.Variables[0].Name, tuple.Name);
+				Assert.Equal(new[] { "first", "second" }, tuple.TupleElementNames);
+				Assert.Equal(new byte[] { 1, 2, 3 }, Single<PdbEditAndContinueLocalSlotMapCustomDebugInfo>().Data);
+				Assert.Equal(new byte[] { 4, 5 }, Single<PdbEditAndContinueLambdaMapCustomDebugInfo>().Data);
+
+				Assert.Same(method, Assert.Single(otherMethod.CustomDebugInfos.OfType<PdbForwardMethodInfoCustomDebugInfo>()).Method);
+			}
+		}
+
 		// Writes the Windows fixture with a Windows PDB and the options, returns the files
 		static CompiledAssembly WriteWithPdbOptions(PdbWriterOptions pdbOptions, ChecksumAlgorithm algorithm = ChecksumAlgorithm.SHA256) {
 			using (var module = Load(Windows)) {

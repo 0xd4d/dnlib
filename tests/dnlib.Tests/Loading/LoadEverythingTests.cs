@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.TestUtils;
 using dnlib.TestUtils.Dumping;
@@ -26,6 +27,44 @@ namespace dnlib.Tests.Loading {
 				everything.LoadEverything();
 
 				ModuleComparer.AssertEqual(onDemand, everything, allOptions);
+			}
+		}
+
+		// The Exports fixture has things the other fixture doesn't have: a table of exported methods (vtable
+		// fixups) and a field with data in the file
+		[Fact]
+		public void ModuleWithExportedMethodsIsTheSameAsWhenItIsReadOnDemand() {
+			var image = Fixtures.Fixtures.Exports.Image;
+			using (var onDemand = ModuleDefMD.Load(image))
+			using (var everything = ModuleDefMD.Load(image)) {
+				everything.LoadEverything();
+
+				ModuleComparer.AssertEqual(onDemand, everything, allOptions);
+				Assert.Equal("Add", Assert.Single(Assert.Single(everything.VTableFixups!.VTables).Methods)!.Name);
+			}
+		}
+
+		// A module with a resource in another file, a resource in another assembly, and a file entry
+		[Fact]
+		public void LinkedResourcesAndFilesAreLoaded() {
+			byte[] image;
+			using (var module = ModuleDefMD.Load(Fixtures.Fixtures.Features.Image)) {
+				var file = new FileDefUser("Linked.bin", dnlib.DotNet.FileAttributes.ContainsNoMetadata, new byte[] { 1, 2, 3 });
+				module.Resources.Add(new LinkedResource("Linked", file, ManifestResourceAttributes.Public));
+				module.Resources.Add(new AssemblyLinkedResource("InOtherAssembly", new AssemblyRefUser("Other", new System.Version(1, 0, 0, 0)), ManifestResourceAttributes.Private));
+				var stream = new MemoryStream();
+				module.Write(stream);
+				image = stream.ToArray();
+			}
+
+			using (var module = ModuleDefMD.Load(image)) {
+				module.LoadEverything();
+
+				var linked = Assert.Single(module.Resources.OfType<LinkedResource>());
+				Assert.Equal("Linked.bin", linked.File.Name);
+				Assert.Equal(new byte[] { 1, 2, 3 }, linked.File.HashValue);
+				Assert.False(linked.File.ContainsMetadata);
+				Assert.Equal("Other", Assert.Single(module.Resources.OfType<AssemblyLinkedResource>()).Assembly.Name);
 			}
 		}
 

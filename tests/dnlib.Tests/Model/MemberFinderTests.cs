@@ -127,5 +127,39 @@ namespace dnlib.Tests.Model {
 				Assert.Contains("InModifierOfGenericParameter", names);
 			}
 		}
+
+		// The methods in the table of exported methods (vtable fixups) are found
+		[Fact]
+		public void MethodsOfVTableFixupsAreFound() {
+			using (var exports = ModuleDefMD.Load(Fixtures.Fixtures.Exports.Image)) {
+				var exported = Assert.Single(Assert.Single(exports.VTableFixups!.VTables).Methods)!;
+
+				var found = new MemberFinder().FindAll(exports);
+
+				Assert.True(found.MethodDefs.ContainsKey((MethodDef)exported));
+			}
+		}
+
+		// A type that's only named in the marshalling info of a parameter or a field
+		[Fact]
+		public void TypesInMarshallingInfoAreFound() {
+			const string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+public class Interop {
+	[MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_RECORD, SafeArrayUserDefinedSubType = typeof(System.Globalization.Calendar))]
+	public object[] Records;
+
+	public static void Call([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(System.Text.StringBuilder))] object value) { }
+}";
+			using (var interop = ModuleDefMD.Load(dnlib.TestUtils.CSharpCompiler.Compile(source).Image)) {
+				var found = new MemberFinder().FindAll(interop);
+
+				var typeNames = found.TypeRefs.Keys.Select(a => a.FullName).ToList();
+				Assert.Contains("System.Globalization.Calendar", typeNames);
+				Assert.Contains("System.Text.StringBuilder", typeNames);
+			}
+		}
 	}
 }

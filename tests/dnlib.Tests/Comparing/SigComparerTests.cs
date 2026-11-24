@@ -426,5 +426,88 @@ namespace dnlib.Tests.Comparing {
 				Assert.False(comparer.Equals(list, typeof(List<>).GetGenericArguments()[0]));
 			}
 		}
+
+		// The sizes and the lower bounds of the dimensions are a part of an array type
+		[Fact]
+		public void ArraysWithOtherBoundsAreDifferent() {
+			var module = CreateModule("A");
+			ArraySig CreateArray(uint[] sizes, int[] lowerBounds) => new ArraySig(module.CorLibTypes.Int32, 2U, sizes, lowerBounds);
+			var array = CreateArray(new uint[] { 3, 4 }, new[] { 0, 1 });
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(array, CreateArray(new uint[] { 3, 4 }, new[] { 0, 1 })));
+			Assert.Equal(comparer.GetHashCode(array), comparer.GetHashCode(CreateArray(new uint[] { 3, 4 }, new[] { 0, 1 })));
+			Assert.False(comparer.Equals(array, CreateArray(new uint[] { 3, 5 }, new[] { 0, 1 })));
+			Assert.False(comparer.Equals(array, CreateArray(new uint[] { 3 }, new[] { 0, 1 })));
+			Assert.False(comparer.Equals(array, CreateArray(new uint[] { 3, 4 }, new[] { 0, 2 })));
+			Assert.False(comparer.Equals(array, CreateArray(new uint[] { 3, 4 }, new[] { 0 })));
+			Assert.False(comparer.Equals(array, new ArraySig(module.CorLibTypes.Int32, 3U, new uint[] { 3, 4 }, new[] { 0, 1 })));
+		}
+
+		// There's a limit on how deeply the comparer follows nested types. Past it, types aren't equal: no
+		// stack overflow.
+		[Fact]
+		public void TypesThatAreNestedTooDeeplyAreNotEqual() {
+			var module = CreateModule("A");
+			TypeSig Nest(int depth) {
+				TypeSig type = module.CorLibTypes.Int32;
+				for (int i = 0; i < depth; i++)
+					type = new SZArraySig(type);
+				return type;
+			}
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(Nest(50), Nest(50)));
+			Assert.False(comparer.Equals(Nest(50), Nest(51)));
+			Assert.False(comparer.Equals(Nest(5000), Nest(5000)));
+			// Hashing doesn't fail either, and the comparer can be used again
+			comparer.GetHashCode(Nest(5000));
+			Assert.True(comparer.Equals(Nest(50), Nest(50)));
+		}
+
+		// Every kind of signature through the overload that takes any signature
+		[Fact]
+		public void HashCodeOfEveryKindOfSignature() {
+			var module = CreateModule("A");
+			var types = module.CorLibTypes;
+			var comparer = new SigComparer();
+			var pairs = new (CallingConventionSig First, CallingConventionSig Same, CallingConventionSig Other)[] {
+				(MethodSig.CreateStatic(types.Void, types.Int32), MethodSig.CreateStatic(types.Void, types.Int32), MethodSig.CreateStatic(types.Void, types.String)),
+				(new FieldSig(types.Int32), new FieldSig(types.Int32), new FieldSig(types.String)),
+				(new LocalSig(types.Int32, types.String), new LocalSig(types.Int32, types.String), new LocalSig(types.Int32)),
+				(new GenericInstMethodSig(types.Int32), new GenericInstMethodSig(types.Int32), new GenericInstMethodSig(types.String)),
+				(PropertySig.CreateInstance(types.Int32), PropertySig.CreateInstance(types.Int32), PropertySig.CreateInstance(types.String)),
+			};
+
+			foreach (var pair in pairs) {
+				Assert.True(comparer.Equals(pair.First, pair.Same), pair.First.GetType().Name);
+				Assert.Equal(comparer.GetHashCode(pair.First), comparer.GetHashCode(pair.Same));
+				Assert.False(comparer.Equals(pair.First, pair.Other), pair.First.GetType().Name);
+			}
+			// Signatures of different kinds
+			Assert.False(comparer.Equals((CallingConventionSig)new FieldSig(types.Int32), new LocalSig(types.Int32)));
+			Assert.Equal(0, comparer.GetHashCode((CallingConventionSig?)null));
+		}
+
+		// A global method can be referenced through its module (a ModuleRef) or through the global type
+		[Fact]
+		public void GlobalMethodReferencesThroughAModuleRefAndThroughTheGlobalTypeAreEqual() {
+			var module = CreateModule("A");
+			var signature = MethodSig.CreateStatic(module.CorLibTypes.Void);
+			var throughGlobalType = new MemberRefUser(module, "M", signature, module.GlobalType);
+			var throughModule = new MemberRefUser(module, "M", signature, new ModuleRefUser(module, module.Name));
+			var throughOtherModule = new MemberRefUser(module, "M", signature, new ModuleRefUser(module, "Other.netmodule"));
+			var comparer = new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
+
+			Assert.True(comparer.Equals(throughGlobalType, throughModule));
+			Assert.True(comparer.Equals(throughModule, throughGlobalType));
+			Assert.Equal(comparer.GetHashCode(throughGlobalType), comparer.GetHashCode(throughModule));
+			Assert.False(comparer.Equals(throughGlobalType, throughOtherModule));
+			Assert.False(comparer.Equals(throughModule, throughOtherModule));
+			Assert.True(comparer.Equals(throughOtherModule, new MemberRefUser(module, "M", signature, new ModuleRefUser(module, "OTHER.netmodule"))));
+			// A normal type isn't the module
+			var typeMember = new MemberRefUser(module, "M", signature, AddType(module, "Ns", "Type"));
+			Assert.False(comparer.Equals(typeMember, throughModule));
+		}
 	}
 }
