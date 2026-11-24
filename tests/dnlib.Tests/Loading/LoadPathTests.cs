@@ -120,6 +120,49 @@ namespace dnlib.Tests.Loading {
 			}
 		}
 
+		// AssemblyDef.Load() reads the module at an address too and returns its assembly
+		[Fact]
+		public void AssemblyInUnmanagedMemory() {
+			var memoryImage = CreateMemoryLayout(Image);
+			var memory = Marshal.AllocHGlobal(memoryImage.Length);
+			try {
+				Marshal.Copy(memoryImage, 0, memory, memoryImage.Length);
+
+				var assembly = AssemblyDef.Load(memory);
+				using (assembly.ManifestModule) {
+					AssertIsTheExpectedModule((ModuleDefMD)assembly.ManifestModule!);
+					Assert.Same(assembly, assembly.ManifestModule!.Assembly);
+				}
+				var context = ModuleDef.CreateModuleContext();
+				var assemblyWithContext = AssemblyDef.Load(memory, context);
+				using (assemblyWithContext.ManifestModule)
+					Assert.Same(context, assemblyWithContext.ManifestModule!.Context);
+			}
+			finally {
+				Marshal.FreeHGlobal(memory);
+			}
+			Assert.Throws<ArgumentNullException>(() => AssemblyDef.Load(IntPtr.Zero));
+		}
+
+		// A module without an assembly (a .netmodule) isn't an assembly: the memory isn't kept
+		[Fact]
+		public void ModuleWithoutAnAssemblyInUnmanagedMemoryIsNotAnAssembly() {
+			var netModule = CSharpCompiler.Compile("public class C { }", new CSharpCompilerOptions { OutputKind = Microsoft.CodeAnalysis.OutputKind.NetModule }).Image;
+			var memoryImage = CreateMemoryLayout(netModule);
+			var memory = Marshal.AllocHGlobal(memoryImage.Length);
+			try {
+				Marshal.Copy(memoryImage, 0, memory, memoryImage.Length);
+
+				var exception = Assert.Throws<BadImageFormatException>(() => AssemblyDef.Load(memory));
+				Assert.Contains("only a .NET module", exception.Message);
+				using (var module = ModuleDefMD.Load(memory))
+					Assert.Null(module.Assembly);
+			}
+			finally {
+				Marshal.FreeHGlobal(memory);
+			}
+		}
+
 		// A module that the runtime has loaded is read from the runtime's memory
 		[Fact]
 		public void ModuleOfTheRunningProgram() {
