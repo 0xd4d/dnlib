@@ -93,6 +93,69 @@ public class Original {
 			Assert.Equal("System.Version", importer.Import(typeof(Version)).FullName);
 		}
 
+		// References are mapped too, not only definitions
+		[Fact]
+		public void MappedTypeRefIsReturned() {
+			var importer = CreateImporter(new ReplacingMapper(this));
+			var other = new ModuleDefUser("Other.dll");
+			var originalRef = new TypeRefUser(other, "", "Original", new AssemblyRefUser("MapperLibrary"));
+			var anotherRef = new TypeRefUser(other, "", "Another", new AssemblyRefUser("MapperLibrary"));
+
+			Assert.Same(replacement, importer.Import(originalRef));
+			Assert.Same(replacement, importer.Import(new ClassSig(originalRef)).ToTypeDefOrRef());
+			var imported = Assert.IsAssignableFrom<TypeRef>(importer.Import(anotherRef));
+			Assert.Equal("Another", imported.Name);
+			Assert.Same(target, imported.Module);
+		}
+
+		// Replaces a reference to Original::Method with a reference to another method
+		sealed class MemberRefMapper : ImportMapper {
+			public MemberRef? Replacement;
+			public override MemberRef? Map(MemberRef source) => source.Name == "Method" ? Replacement : null;
+		}
+
+		[Fact]
+		public void MappedMemberRefIsReturned() {
+			var other = new ModuleDefUser("Other.dll");
+			var originalRef = new TypeRefUser(other, "", "Original", new AssemblyRefUser("MapperLibrary"));
+			var signature = MethodSig.CreateInstance(other.CorLibTypes.Void);
+			var methodRef = new MemberRefUser(other, "Method", signature, originalRef);
+			var unmappedRef = new MemberRefUser(other, "Unmapped", signature, originalRef);
+			var mapper = new MemberRefMapper { Replacement = new MemberRefUser(target, "ReplacementMethod", MethodSig.CreateInstance(target.CorLibTypes.Void), replacement) };
+			var importer = CreateImporter(mapper);
+
+			Assert.Same(mapper.Replacement, importer.Import(methodRef));
+			Assert.Same(mapper.Replacement, importer.Import((IMethod)methodRef));
+			var imported = importer.Import(unmappedRef);
+			Assert.Equal("Unmapped", imported.Name);
+			Assert.Same(target, imported.Module);
+		}
+
+		// What Map(Type) returns for typeof(Uri)
+		sealed class TypeMapper : ImportMapper {
+			public ITypeDefOrRef? Replacement;
+			public override ITypeDefOrRef? Map(Type source) => source == typeof(Uri) ? Replacement : null;
+		}
+
+		[Fact]
+		public void ReflectionTypeCanBeMappedToATypeRef() {
+			var replacementRef = new TypeRefUser(target, "Ns", "Elsewhere", new AssemblyRefUser("Elsewhere"));
+			var importer = CreateImporter(new TypeMapper { Replacement = replacementRef });
+
+			Assert.Same(replacementRef, importer.Import(typeof(Uri)));
+			// Also where the type is a part of another type
+			Assert.Same(replacementRef, importer.ImportAsTypeSig(typeof(Uri[])).Next!.ToTypeDefOrRef());
+		}
+
+		// A Type is a class or a struct, and that can't be a TypeSpec: it's a mistake in the mapper
+		[Fact]
+		public void ReflectionTypeCanNotBeMappedToATypeSpec() {
+			var typeSpec = new TypeSpecUser(new SZArraySig(target.CorLibTypes.Int32));
+			var importer = CreateImporter(new TypeMapper { Replacement = typeSpec });
+
+			Assert.Throws<InvalidOperationException>(() => importer.Import(typeof(Uri)));
+		}
+
 		// Maps the generic method to an instantiation of a method, which isn't a method that can be instantiated
 		sealed class MethodSpecMapper : ImportMapper {
 			readonly MethodSpec methodSpec;
