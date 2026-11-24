@@ -102,21 +102,64 @@ namespace dnlib.Tests.RoundTrips {
 
 		static bool StartsWith(byte[] data, byte[] start) => data.Length >= start.Length && data.Take(start.Length).SequenceEqual(start);
 
-		// The original #Strings heap is kept and new strings are added after it. A name that the compiler
-		// stored as the end of a longer name (eg. "Value" in "get_Value") is added again: only the offsets of
-		// strings that start after a zero byte are found in the original heap.
+		// The original #Strings heap is kept and new strings are added after it. Nothing is added here: every
+		// name is in the original heap, also a name that the compiler stored as the end of a longer name
+		// (eg. "Value" in "get_Value").
 		[Fact]
 		public void PreserveStringsOffsetsKeepsTheOriginalHeap() {
 			using (var original = ModuleDefMD.Load(Image)) {
 				var written = Write(original, MetadataFlags.PreserveStringsOffsets);
 
 				using (var writtenModule = ModuleDefMD.Load(written)) {
-					Assert.True(StartsWith(writtenModule.StringsStream.CreateReader().ToArray(), original.StringsStream.CreateReader().ToArray()));
-					// The name of the module and of the first types are at the same offsets
-					Assert.Equal(GetHeapOffsets(original, Table.Module, "Name"), GetHeapOffsets(writtenModule, Table.Module, "Name"));
+					Assert.Equal(original.StringsStream.CreateReader().ToArray(), writtenModule.StringsStream.CreateReader().ToArray());
 					ModuleComparer.AssertEqual(original, writtenModule);
 				}
 				RunUnlessMonoCanNotLoadIt(written);
+			}
+		}
+
+		// If the rows keep their place too, every row has the offset it had
+		[Fact]
+		public void PreserveStringsOffsetsKeepsTheOffsetOfEveryName() {
+			using (var original = ModuleDefMD.Load(Image)) {
+				var written = Write(original, MetadataFlags.PreserveStringsOffsets | MetadataFlags.PreserveRids);
+
+				using (var writtenModule = ModuleDefMD.Load(written)) {
+					foreach (var table in new[] { Table.Module, Table.TypeRef, Table.TypeDef, Table.Field, Table.Method, Table.Param, Table.MemberRef, Table.Property })
+						Assert.Equal(GetHeapOffsets(original, table, "Name"), GetHeapOffsets(writtenModule, table, "Name"));
+					Assert.Equal(GetHeapOffsets(original, Table.TypeDef, "Namespace"), GetHeapOffsets(writtenModule, Table.TypeDef, "Namespace"));
+				}
+			}
+		}
+
+		// A new name that's the end of a name in the original heap uses the bytes of that name, a name that
+		// isn't is added after the original heap.
+		[Fact]
+		public void PreserveStringsOffsetsUsesTheEndOfAnOriginalString() {
+			using (var original = ModuleDefMD.Load(Image)) {
+				var originalHeap = original.StringsStream.CreateReader().ToArray();
+				string longName = original.Types.Select(type => type.Name.String).OrderByDescending(name => name.Length).First();
+				string endOfName = longName.Substring(1);
+				Assert.DoesNotContain(original.GetTypes(), type => type.Name == endOfName);
+				original.Types.Add(new TypeDefUser("", endOfName, original.CorLibTypes.Object.TypeDefOrRef));
+
+				var withEndOfName = Write(original, MetadataFlags.PreserveStringsOffsets);
+				using (var writtenModule = ModuleDefMD.Load(withEndOfName)) {
+					Assert.Equal(originalHeap, writtenModule.StringsStream.CreateReader().ToArray());
+					Assert.NotNull(writtenModule.Find(endOfName, isReflectionName: false));
+				}
+
+				original.Types.Add(new TypeDefUser("", "NotInTheOriginalHeap", original.CorLibTypes.Object.TypeDefOrRef));
+				var withNewName = Write(original, MetadataFlags.PreserveStringsOffsets);
+				using (var writtenModule = ModuleDefMD.Load(withNewName)) {
+					var heap = writtenModule.StringsStream.CreateReader().ToArray();
+					Assert.True(StartsWith(heap, originalHeap));
+					// The new name, its terminating zero and the padding to a multiple of 4 bytes
+					var added = heap.Skip(originalHeap.Length).ToArray();
+					Assert.Equal("NotInTheOriginalHeap", System.Text.Encoding.UTF8.GetString(added).TrimEnd('\0'));
+					Assert.InRange(added.Length, "NotInTheOriginalHeap".Length + 1, "NotInTheOriginalHeap".Length + 4);
+					Assert.NotNull(writtenModule.Find("NotInTheOriginalHeap", isReflectionName: false));
+				}
 			}
 		}
 
