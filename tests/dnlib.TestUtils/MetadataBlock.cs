@@ -15,6 +15,12 @@ namespace dnlib.TestUtils {
 		public string Name { get; set; }
 		public byte[] Data { get; set; }
 
+		/// <summary>
+		/// The offset and the size that are written to the stream's header, or null to write the real ones
+		/// </summary>
+		public uint? OffsetInHeader { get; set; }
+		public uint? SizeInHeader { get; set; }
+
 		public MetadataBlockStream(string name, byte[] data) {
 			Name = name;
 			Data = data;
@@ -37,6 +43,12 @@ namespace dnlib.TestUtils {
 		readonly byte[] image;
 		readonly int metadataOffset;
 		readonly int metadataSize;
+		readonly int metadataSizeOffset;
+
+		/// <summary>
+		/// The size of the metadata that's written to the .NET header, or null to keep the size of the file
+		/// </summary>
+		public uint? SizeInDotNetHeader { get; set; }
 
 		public uint Signature { get; set; }
 		public ushort MajorVersion { get; set; }
@@ -70,6 +82,8 @@ namespace dnlib.TestUtils {
 				if (!peReader.PEHeaders.TryGetDirectoryOffset(directory, out metadataOffset))
 					throw new ArgumentException("The file has no metadata");
 				metadataSize = directory.Size;
+				// The .NET header: its size, the runtime version, and then the RVA and the size of the metadata
+				metadataSizeOffset = peReader.PEHeaders.CorHeaderStartOffset + 12;
 			}
 
 			int position = metadataOffset;
@@ -131,8 +145,8 @@ namespace dnlib.TestUtils {
 			foreach (var stream in Streams)
 				dataOffset += 8 + Align(Encoding.ASCII.GetByteCount(stream.Name) + 1);
 			foreach (var stream in Streams) {
-				writer.Write(dataOffset);
-				writer.Write(stream.Data.Length);
+				writer.Write(stream.OffsetInHeader ?? (uint)dataOffset);
+				writer.Write(stream.SizeInHeader ?? (uint)stream.Data.Length);
 				var name = Encoding.ASCII.GetBytes(stream.Name);
 				writer.Write(name);
 				writer.Write(new byte[Align(name.Length + 1) - name.Length]);
@@ -155,6 +169,8 @@ namespace dnlib.TestUtils {
 			var newImage = (byte[])image.Clone();
 			Array.Clear(newImage, metadataOffset, metadataSize);
 			metadata.CopyTo(newImage, metadataOffset);
+			if (SizeInDotNetHeader is not null)
+				BitConverter.GetBytes(SizeInDotNetHeader.Value).CopyTo(newImage, metadataSizeOffset);
 			return newImage;
 		}
 	}

@@ -323,6 +323,33 @@ public static class Marker {
 				strings.Data = strings.Data.Concat(Encoding.ASCII.GetBytes("Marker")).ToArray();
 				break;
 			}
+			case "heap that's bigger than the metadata":
+				block.GetStream("#US").SizeInHeader = 0x100000;
+				break;
+			case "unknown stream that's bigger than the metadata":
+				block.Streams.Add(new MetadataBlockStream("#Foo", new byte[4]) { SizeInHeader = 0x100000 });
+				break;
+			case "unknown stream that isn't in the metadata":
+				block.Streams.Add(new MetadataBlockStream("#Foo", new byte[4]) { OffsetInHeader = 0x100000 });
+				break;
+			case "tables stream that's shorter than its tables":
+				tables.SizeInHeader = (uint)GetEndOfRowCounts(tables.Data) + 16;
+				break;
+			case "tables stream that's longer than its tables":
+				tables.Data = tables.Data.Concat(new byte[0x40]).ToArray();
+				break;
+			case "tables stream that ends in its header":
+				tables.SizeInHeader = RowCountsOffset + 4;
+				break;
+			case "metadata size that's too small for the last stream":
+				block.SizeInDotNetHeader = (uint)block.CreateMetadata().Length - 8;
+				break;
+			case "metadata size that's bigger than the metadata":
+				block.SizeInDotNetHeader = (uint)block.CreateMetadata().Length + 0x1000;
+				break;
+			case "metadata size that ends after the stream headers":
+				block.SizeInDotNetHeader = 0x90;
+				break;
 			case "version string without a zero byte":
 				block.VersionString = Encoding.ASCII.GetBytes("v4.0.30319AB");
 				break;
@@ -370,6 +397,15 @@ public static class Marker {
 		[InlineData("reserved fields that aren't zero", "RRRR", "RRRR")]
 		[InlineData("strings heap that doesn't end with a zero byte", "RRRR", "RRRR")]
 		[InlineData("name at the end of the strings heap without a zero byte", "?RRR", "rejected")]
+		[InlineData("heap that's bigger than the metadata", "R?RR", "rejected")]
+		[InlineData("unknown stream that's bigger than the metadata", "RRRR", "rejected")]
+		[InlineData("unknown stream that isn't in the metadata", "RRRR", "rejected")]
+		[InlineData("tables stream that's shorter than its tables", "no type", "rejected")]
+		[InlineData("tables stream that's longer than its tables", "RRRR", "RRRR")]
+		[InlineData("tables stream that ends in its header", "rejected", "rejected")]
+		[InlineData("metadata size that's too small for the last stream", "RRRR", "rejected")]
+		[InlineData("metadata size that's bigger than the metadata", "RRRR", "RRRR")]
+		[InlineData("metadata size that ends after the stream headers", "RRRR", "rejected")]
 		[InlineData("version string without a zero byte", "RRRR", "RRRR")]
 		[InlineData("version string with 0 bytes", "RRRR", "RRRR")]
 		[InlineData("stream name with 31 characters", "RRRR", "RRRR")]
