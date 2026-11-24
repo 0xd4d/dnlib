@@ -122,17 +122,21 @@ public class Program {
 			Assert.Equal(LinesOfEveryMethod, ReadLines(written, PdbReaderOptions.None));
 		}
 
-		// The native reader finds sequence points by address, so it can't return the right ones for all methods.
-		// It failed for every method if all of them had the address 0, and reading a method body threw.
+		// The native reader finds sequence points by address, so it can't return the right ones for all methods:
+		// the methods at an address all get the last sequence points with that address, or none (address 0 with the
+		// older reader that .NET Framework uses). It fails if all methods have the address 0, and reading a method
+		// body threw. dnlib returns what the native reader returns.
 		[Theory]
-		[InlineData(new[] { 1, 2, 3, 4, 5, 6, 7 }, LinesOfEveryMethod)]
-		[InlineData(new[] { 0, 0, 0, 5, 0, 0, 3 }, "103 103 103 103 106 106 106")]
-		[InlineData(new[] { 0, 0, 0, 0, 0, 0, 0 }, "- - - - - - -")]
-		public void ComReaderReadsWhatTheNativeReaderReturns(int[] codeSizes, string expectedLines) {
+		[InlineData(new[] { 1, 2, 3, 4, 5, 6, 7 }, LinesOfEveryMethod, LinesOfEveryMethod)]
+		[InlineData(new[] { 0, 0, 0, 5, 0, 0, 3 }, "103 103 103 103 106 106 106", "- - - - 106 106 106")]
+		[InlineData(new[] { 0, 0, 0, 0, 0, 0, 0 }, "- - - - - - -", "- - - - - - -")]
+		public void ComReaderReadsWhatTheNativeReaderReturns(int[] codeSizes, string expectedLines, string expectedLinesOfTheOlderReader) {
 			SkipUnlessWindows();
 			var written = WriteFileAndPdb(codeSizes);
 
-			Assert.Equal(expectedLines, ReadLines(written, PdbReaderOptions.MicrosoftComReader));
+			var lines = ReadLines(written, PdbReaderOptions.MicrosoftComReader);
+
+			Assert.Contains(lines, new[] { expectedLines, expectedLinesOfTheOlderReader });
 		}
 	}
 }
