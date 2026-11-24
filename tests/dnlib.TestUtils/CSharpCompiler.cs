@@ -41,6 +41,13 @@ namespace dnlib.TestUtils {
 	/// </summary>
 	public sealed class CSharpCompilerOptions {
 		public string AssemblyName { get; set; } = "TestAssembly";
+
+		/// <summary>
+		/// The name of the source file that's stored in the PDB, or <c>null</c> to use the assembly name with
+		/// the extension <c>.cs</c>
+		/// </summary>
+		public string? SourcePath { get; set; }
+
 		public OutputKind OutputKind { get; set; } = OutputKind.DynamicallyLinkedLibrary;
 		public PdbKind PdbKind { get; set; } = PdbKind.None;
 		public bool Optimize { get; set; } = true;
@@ -81,7 +88,7 @@ namespace dnlib.TestUtils {
 			// The encoding is required to create a PDB (it stores a checksum of the source file)
 			var sourceText = SourceText.From(source, Encoding.UTF8);
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
-			var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, parseOptions, path: options.AssemblyName + ".cs");
+			var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, parseOptions, path: options.SourcePath ?? options.AssemblyName + ".cs");
 
 			var compilationOptions = new CSharpCompilationOptions(
 				options.OutputKind,

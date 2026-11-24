@@ -366,6 +366,26 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// Fixed in 1ffc8fdc: the language and the checksum of a source file are in a stream of the PDB whose
+		// name has the file's name with every '/' replaced by '\'. The managed reader looked for the name
+		// with '/', so such a document (eg. a build with PathMap=/_/) had no language and no checksum.
+		[Theory]
+		[InlineData(PdbReaderOptions.None)]
+		[InlineData(PdbReaderOptions.MicrosoftComReader)]
+		public void DocumentWithSlashesInItsNameHasItsLanguageAndChecksum(PdbReaderOptions readerOptions) {
+			SkipUnlessWindows();
+			var compiled = CSharpCompiler.Compile("public class Program { public static int Main() { return 0; } }",
+				new CSharpCompilerOptions { PdbKind = PdbKind.Windows, SourcePath = "/_/src/Program.cs" });
+
+			using (var module = Load(compiled, readerOptions)) {
+				var document = Assert.Single(module.PdbState!.Documents);
+				Assert.Equal("/_/src/Program.cs", document.Url);
+				Assert.Equal(PdbDocumentConstants.LanguageCSharp, document.Language);
+				Assert.Equal(PdbDocumentConstants.HashSHA1, document.CheckSumAlgorithmId);
+				Assert.Equal(20, document.CheckSum!.Length);
+			}
+		}
+
 		// Fixed in 57d99ece: the compiler also writes the states of a state machine to a Windows PDB (custom
 		// debug info kind 9). It was read as unknown data and couldn't be converted to a portable PDB.
 		[Theory]
