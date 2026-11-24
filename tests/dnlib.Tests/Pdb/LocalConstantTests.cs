@@ -189,6 +189,41 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// The type of a constant can have custom modifiers (C# doesn't write them, C++/CLI does for 'const')
+		[Fact]
+		public void ConstantWhoseTypeHasCustomModifiers() {
+			var constants = WriteAndRead(module => {
+				var isConst = module.CorLibTypes.GetTypeRef("System.Runtime.CompilerServices", "IsConst");
+				var isVolatile = module.CorLibTypes.GetTypeRef("System.Runtime.CompilerServices", "IsVolatile");
+				return new[] {
+					new Constant("Required", new CModReqdSig(isVolatile, module.CorLibTypes.Int32), 5),
+					new Constant("Optional", new CModOptSig(isConst, module.CorLibTypes.String), "text"),
+					new Constant("Both", new CModOptSig(isConst, new CModReqdSig(isVolatile, module.CorLibTypes.Int64)), 6L),
+				};
+			}, out var writtenModule);
+
+			using (writtenModule) {
+				Assert.Equal(5, constants["Required"].Value);
+				Assert.Equal("System.Int32 modreq(System.Runtime.CompilerServices.IsVolatile)", constants["Required"].Type!.FullName);
+				Assert.Equal("text", constants["Optional"].Value);
+				Assert.Equal("System.String modopt(System.Runtime.CompilerServices.IsConst)", constants["Optional"].Type!.FullName);
+				Assert.Equal(6L, constants["Both"].Value);
+				Assert.Equal("System.Int64 modreq(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsConst)", constants["Both"].Type!.FullName);
+			}
+		}
+
+		// A pinned type is the type of a local, never of a constant
+		[Fact]
+		public void ConstantWithATypeThatCanNotBeStoredIsAnError() {
+			using (var module = DebugInfoSource.Load()) {
+				DebugInfoSource.GetRootScope(module, "Sum").Constants.Add(new PdbConstant("Pinned", new PinnedSig(module.CorLibTypes.Int32), 5));
+
+				var exception = Assert.Throws<ModuleWriterException>(() => RoundTrip.WriteWithPortablePdb(module, preserveMetadata: true));
+
+				Assert.Contains("Unsupported element type in LocalConstant sig blob", exception.Message);
+			}
+		}
+
 		public static IEnumerable<object?[]> ValuesOfTheWrongType() => new[] {
 			new object?[] { "Int32", "text", "Expected an Int32 constant" },
 			new object?[] { "Boolean", 1, "Expected a Boolean constant" },
@@ -196,6 +231,14 @@ namespace dnlib.Tests.Pdb {
 			new object?[] { "Double", 1.5f, "Expected a Double constant" },
 			new object?[] { "String", 5, "Expected a String constant" },
 			new object?[] { "Object", 5, "Expected a null constant" },
+			new object?[] { "Char", 5, "Expected a Char constant" },
+			new object?[] { "SByte", 5, "Expected a SByte constant" },
+			new object?[] { "Byte", 5, "Expected a Byte constant" },
+			new object?[] { "Int16", 5, "Expected an Int16 constant" },
+			new object?[] { "UInt16", 5, "Expected a UInt16 constant" },
+			new object?[] { "UInt32", 5, "Expected a UInt32 constant" },
+			new object?[] { "Int64", 5, "Expected an Int64 constant" },
+			new object?[] { "UInt64", 5, "Expected a UInt64 constant" },
 		};
 
 		// A value that doesn't have the constant's type is an error. If the logger ignores it, the PDB is
