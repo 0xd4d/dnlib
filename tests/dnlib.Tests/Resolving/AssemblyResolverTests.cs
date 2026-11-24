@@ -68,6 +68,52 @@ namespace dnlib.Tests.Resolving {
 			}
 		}
 
+		// The paths are searched in this order: PreSearchPaths, the directory of the module that has the
+		// reference, PostSearchPaths
+		[Fact]
+		public void PostSearchPathsAreSearchedLast() {
+			var inPrePath = WriteLibrary("pre", LibraryName, "1.0.0.0");
+			var inPostPath = WriteLibrary("post", LibraryName, "1.0.0.0");
+			var onlyInPostPath = WriteLibrary("post", "OnlyInPostPath", "1.0.0.0");
+			var resolver = CreateResolver(Path.GetDirectoryName(inPrePath)!);
+			resolver.PostSearchPaths.Add(Path.GetDirectoryName(inPostPath)!);
+			try {
+				Assert.Equal(inPrePath, resolver.Resolve(CreateReference(LibraryName, "1.0.0.0"), sourceModule: null)!.ManifestModule!.Location);
+				Assert.Equal(onlyInPostPath, resolver.Resolve(CreateReference("OnlyInPostPath", "1.0.0.0"), sourceModule: null)!.ManifestModule!.Location);
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+
+			var postOnlyResolver = CreateResolver();
+			postOnlyResolver.PostSearchPaths.Add(Path.GetDirectoryName(inPostPath)!);
+			try {
+				Assert.Equal(inPostPath, postOnlyResolver.Resolve(CreateReference(LibraryName, "1.0.0.0"), sourceModule: null)!.ManifestModule!.Location);
+			}
+			finally {
+				DisposeAll(postOnlyResolver);
+			}
+		}
+
+		// The modules of a resolved assembly keep a table of their types by name (types are found often
+		// in a referenced assembly), unless the resolver is told not to do that
+		[Theory, InlineData(true), InlineData(false)]
+		public void ResolvedAssemblyHasATypeCacheIfTheResolverEnablesIt(bool enableTypeDefCache) {
+			var file = WriteLibrary("libs", LibraryName, "1.0.0.0");
+			var resolver = CreateResolver(Path.GetDirectoryName(file)!);
+			Assert.True(resolver.EnableTypeDefCache);
+			resolver.EnableTypeDefCache = enableTypeDefCache;
+			try {
+				var assembly = resolver.Resolve(CreateReference(LibraryName, "1.0.0.0"), sourceModule: null)!;
+
+				Assert.Equal(enableTypeDefCache, assembly.ManifestModule!.EnableTypeDefFindCache);
+				Assert.NotNull(assembly.Find("LibraryClass", isReflectionName: true));
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+		}
+
 		[Fact]
 		public void AssemblyIsResolvedOnce() {
 			var file = WriteLibrary("libs", LibraryName, "1.0.0.0");
