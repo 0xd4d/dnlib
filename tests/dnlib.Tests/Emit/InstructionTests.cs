@@ -83,6 +83,93 @@ namespace dnlib.Tests.Emit {
 			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Br, new List<Instruction>()));
 		}
 
+		// The same for the operands that are a part of a module: types, members, signatures, locals, parameters
+		// and other instructions
+		[Fact]
+		public void CreateChecksTheOperandTypeOfMetadataOperands() {
+			var module = new ModuleDefUser("Test.dll");
+			var typeRef = new TypeRefUser(module, "Ns", "Type", module);
+			var methodSig = MethodSig.CreateStatic(module.CorLibTypes.Void, module.CorLibTypes.Int32);
+			var methodRef = new MemberRefUser(module, "Method", methodSig, typeRef);
+			var fieldRef = new MemberRefUser(module, "Field", new FieldSig(module.CorLibTypes.Int32), typeRef);
+			var field = new FieldDefUser("Field", new FieldSig(module.CorLibTypes.Int32));
+			var method = new MethodDefUser("Method", methodSig, dnlib.DotNet.MethodAttributes.Static);
+			var local = new Local(module.CorLibTypes.Int32);
+			var target = OpCodes.Nop.ToInstruction();
+			var targets = new List<Instruction> { target };
+
+			Assert.Equal((byte)1, Instruction.Create(OpCodes.Unaligned, (byte)1).Operand);
+			Assert.Same(target, Instruction.Create(OpCodes.Br, target).Operand);
+			Assert.Same(target, Instruction.Create(OpCodes.Br_S, target).Operand);
+			Assert.Same(targets, Instruction.Create(OpCodes.Switch, targets).Operand);
+			Assert.Same(typeRef, Instruction.Create(OpCodes.Castclass, typeRef).Operand);
+			Assert.Same(module.CorLibTypes.Int32.TypeDefOrRef, Instruction.Create(OpCodes.Box, module.CorLibTypes.Int32).Operand);
+			Assert.Same(fieldRef, Instruction.Create(OpCodes.Ldsfld, fieldRef).Operand);
+			Assert.Same(methodRef, Instruction.Create(OpCodes.Call, methodRef).Operand);
+			Assert.Same(field, Instruction.Create(OpCodes.Ldsfld, (IField)field).Operand);
+			Assert.Same(method, Instruction.Create(OpCodes.Call, (IMethod)method).Operand);
+			Assert.Same(typeRef, Instruction.Create(OpCodes.Ldtoken, (ITokenOperand)typeRef).Operand);
+			Assert.Same(methodSig, Instruction.Create(OpCodes.Calli, methodSig).Operand);
+			Assert.Same(method.Parameters[0], Instruction.Create(OpCodes.Ldarg, method.Parameters[0]).Operand);
+			Assert.Same(method.Parameters[0], Instruction.Create(OpCodes.Starg_S, method.Parameters[0]).Operand);
+			Assert.Same(local, Instruction.Create(OpCodes.Ldloc, local).Operand);
+			Assert.Same(local, Instruction.Create(OpCodes.Stloc_S, local).Operand);
+
+			// An opcode that has no operand, or an operand of another kind
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Nop, (byte)1));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Nop, (sbyte)1));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Nop, 1.5f));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Nop, target));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Call, typeRef));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Nop, module.CorLibTypes.Int32));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Castclass, fieldRef));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Ldsfld, (IMethod)method));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Call, (IField)field));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Call, (ITokenOperand)typeRef));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Call, methodSig));
+			// Only the kind of operand is checked: a parameter is accepted where a local is needed
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Nop, method.Parameters[0]));
+			Assert.Throws<System.ArgumentException>(() => Instruction.Create(OpCodes.Nop, local));
+		}
+
+		// The type of the argument that an ldarg instruction loads. In an instance method, argument 0 is 'this':
+		// the declaring type, or a reference to it if it's a struct.
+		[Fact]
+		public void TypeOfTheArgumentOfAnLdargInstruction() {
+			var module = new ModuleDefUser("Test.dll");
+			var types = module.CorLibTypes;
+			var classType = new TypeDefUser("Ns", "Class", types.Object.TypeDefOrRef);
+			var structType = new TypeDefUser("Ns", "Struct", types.GetTypeRef("System", "ValueType"));
+			var genericType = new TypeDefUser("Ns", "Generic`1", types.Object.TypeDefOrRef);
+			genericType.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
+			module.Types.Add(classType);
+			module.Types.Add(structType);
+			module.Types.Add(genericType);
+			var staticSig = MethodSig.CreateStatic(types.Void, types.Int32, types.String);
+			var instanceSig = MethodSig.CreateInstance(types.Void, types.Int32);
+
+			Assert.Same(types.Int32, OpCodes.Ldarg_0.ToInstruction().GetArgumentType(staticSig, classType));
+			Assert.Same(types.String, OpCodes.Ldarg_1.ToInstruction().GetArgumentType(staticSig, classType));
+			Assert.Null(OpCodes.Ldarg_2.ToInstruction().GetArgumentType(staticSig, classType));
+
+			Assert.Equal("Ns.Class", OpCodes.Ldarg_0.ToInstruction().GetArgumentType(instanceSig, classType)!.FullName);
+			Assert.Same(types.Int32, OpCodes.Ldarg_1.ToInstruction().GetArgumentType(instanceSig, classType));
+			Assert.Null(OpCodes.Ldarg_2.ToInstruction().GetArgumentType(instanceSig, classType));
+			// 'this' of a struct is a reference, and 'this' of a generic type has the type's own generic parameters
+			Assert.Equal("Ns.Struct&", OpCodes.Ldarg_0.ToInstruction().GetArgumentType(instanceSig, structType)!.FullName);
+			Assert.Equal("Ns.Generic`1<T>", OpCodes.Ldarg_0.ToInstruction().GetArgumentType(instanceSig, genericType)!.FullName);
+			// The declaring type of a method reference can be an instantiated generic type
+			var instantiated = new TypeSpecUser(new GenericInstSig(new ClassSig(genericType), types.Int32));
+			Assert.Equal("Ns.Generic`1<System.Int32>", OpCodes.Ldarg_0.ToInstruction().GetArgumentType(instanceSig, instantiated)!.FullName);
+
+			// Nothing is known without a signature, and 'this' has no type without a declaring type
+			Assert.Null(OpCodes.Ldarg_0.ToInstruction().GetArgumentType(null, classType));
+			Assert.Null(OpCodes.Ldarg_0.ToInstruction().GetArgumentType(instanceSig, null));
+			Assert.Null(OpCodes.Ldarg_0.ToInstruction().GetArgumentType(instanceSig, new TypeSpecUser()));
+			// An instruction that isn't an ldarg has no argument
+			Assert.Null(OpCodes.Nop.ToInstruction().GetArgumentType(staticSig, classType));
+		}
+
 		[Theory]
 		[InlineData(-1, Code.Ldc_I4_M1)]
 		[InlineData(0, Code.Ldc_I4_0)]
