@@ -117,6 +117,66 @@ namespace dnlib.Tests.Reading {
 			Assert.Same(method, module.ResolveMethod(method.Rid));
 		}
 
+		// Rows that aren't types or members: the interfaces of a type and the constraints of a generic parameter
+		[Fact]
+		public void InterfaceImplAndGenericParamConstraintRowsAreResolved() {
+			var tables = module.TablesStream;
+			Assert.True(tables.InterfaceImplTable.Rows > 0 && tables.GenericParamConstraintTable.Rows > 0);
+
+			for (uint rid = 1; rid <= tables.InterfaceImplTable.Rows; rid++) {
+				Assert.True(tables.TryReadInterfaceImplRow(rid, out var row));
+				var interfaceImpl = module.ResolveInterfaceImpl(rid)!;
+				Assert.Equal(rid, interfaceImpl.Rid);
+				Assert.Contains(module.ResolveTypeDef(row.Class)!.Interfaces, a => a.Rid == rid);
+				// An object that has a generic parameter knows the owner of the parameter, so every caller gets
+				// its own object. All others are created once.
+				bool isOneObject = !((IContainsGenericParameter)interfaceImpl).ContainsGenericParameter;
+				Assert.Equal(isOneObject, ReferenceEquals(interfaceImpl, module.ResolveInterfaceImpl(rid, new GenericParamContext())));
+				if (isOneObject)
+					Assert.Contains(interfaceImpl, module.ResolveTypeDef(row.Class)!.Interfaces);
+				Assert.True(CodedToken.TypeDefOrRef.Decode(row.Interface, out MDToken interfaceToken));
+				Assert.Equal(interfaceToken, interfaceImpl.Interface!.MDToken);
+			}
+			for (uint rid = 1; rid <= tables.GenericParamConstraintTable.Rows; rid++) {
+				Assert.True(tables.TryReadGenericParamConstraintRow(rid, out var row));
+				var constraint = module.ResolveGenericParamConstraint(rid)!;
+				Assert.Equal(rid, constraint.Rid);
+				Assert.Equal(rid, module.ResolveGenericParamConstraint(rid, new GenericParamContext())!.Rid);
+				Assert.Contains(module.ResolveGenericParam(row.Owner)!.GenericParamConstraints, a => a.Rid == rid);
+			}
+			Assert.Null(module.ResolveInterfaceImpl(0));
+			Assert.Null(module.ResolveInterfaceImpl(tables.InterfaceImplTable.Rows + 1));
+			Assert.Null(module.ResolveGenericParamConstraint(0));
+			Assert.Null(module.ResolveGenericParamConstraint(tables.GenericParamConstraintTable.Rows + 1));
+			Assert.Null(module.ResolveGenericParam(0));
+		}
+
+		// ReadCilBody() reads the code at an RVA: the same instructions as the body of the method that's there
+		[Fact]
+		public void CilBodyIsReadFromAnRva() {
+			int count = 0;
+			foreach (var method in module.GetTypes().SelectMany(a => a.Methods).Where(a => a.HasBody)) {
+				var body = module.ReadCilBody(method.Parameters, method.RVA, GenericParamContext.Create(method));
+
+				Assert.NotSame(method.Body, body);
+				Assert.Equal(method.Body!.Instructions.Select(a => a.ToString()).ToArray(), body.Instructions.Select(a => a.ToString()).ToArray());
+				Assert.Equal(method.Body.MaxStack, body.MaxStack);
+				Assert.Equal(method.Body.Variables.Count, body.Variables.Count);
+				Assert.Equal(method.Body.ExceptionHandlers.Count, body.ExceptionHandlers.Count);
+				count++;
+			}
+			Assert.True(count > 50);
+
+			// Without the method, a generic parameter in an operand has no owner: it's only a number
+			var genericMethod = module.GetTypes().SelectMany(a => a.Methods).First(a => a.HasBody && a.Body!.Instructions.Any(i => i.Operand is IField field && field.DeclaringType!.FullName.Contains("<T>")));
+			var bodyWithoutOwner = module.ReadCilBody(genericMethod.Parameters, genericMethod.RVA);
+			Assert.Contains(bodyWithoutOwner.Instructions, a => a.Operand is IField field && field.DeclaringType!.FullName.Contains("<!0>"));
+
+			// No code: an empty body
+			Assert.Empty(module.ReadCilBody(new List<Parameter>(), 0).Instructions);
+			Assert.Empty(module.ReadCilBody(new List<Parameter>(), (dnlib.PE.RVA)0x7FFFFFF0).Instructions);
+		}
+
 		[Fact]
 		public void ReadBlobReturnsTheSignatureOfARow() {
 			var type = module.Find("Features.Code", isReflectionName: true)!;
