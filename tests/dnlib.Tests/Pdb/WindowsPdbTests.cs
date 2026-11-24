@@ -323,5 +323,47 @@ namespace dnlib.Tests.Pdb {
 				Assert.Equal(0, AssemblyRunner.RunEntryPoint(written.Image));
 			}
 		}
+
+		// Fixed in 86066117: the native PDB writer needs one outermost scope for the whole method. With a root
+		// scope that ended before the method's end, the sequence points after it were lost, and a second
+		// outermost scope failed.
+		[Fact]
+		public void RootScopeThatIsShorterThanTheMethodKeepsAllSequencePoints() {
+			SkipUnlessWindows();
+			using (var module = Load(Windows)) {
+				var body = module.Find("Features.Code", isReflectionName: true)!.FindMethod("Locals")!.Body!;
+				int sequencePointCount = body.Instructions.Count(a => a.SequencePoint is not null);
+				Assert.True(sequencePointCount > 3);
+				var rootScope = body.PdbMethod!.Scope!;
+				// The scope ends in the middle of the method
+				rootScope.End = body.Instructions[body.Instructions.Count / 2];
+
+				var written = Write(module, PdbFileKind.WindowsPDB, DummyLogger.NoThrowInstance);
+
+				using (var reloaded = Load(written)) {
+					var reloadedBody = reloaded.Find("Features.Code", isReflectionName: true)!.FindMethod("Locals")!.Body!;
+					Assert.Equal(sequencePointCount, reloadedBody.Instructions.Count(a => a.SequencePoint is not null));
+					Assert.Contains(reloadedBody.Variables, a => a.Name == "buffer");
+				}
+			}
+		}
+
+		// Fixed in 482ed58b: a constant without a type is valid in a Windows PDB
+		[Fact]
+		public void ConstantWithoutATypeSurvivesAWrite() {
+			SkipUnlessWindows();
+			using (var module = Load(Windows)) {
+				var rootScope = module.Find("Features.Code", isReflectionName: true)!.FindMethod("Locals")!.Body!.PdbMethod!.Scope!;
+				GetScopes(rootScope).First(a => a.Constants.Count != 0).Constants.Add(new PdbConstant("NoType", null, 77));
+
+				var written = Write(module, PdbFileKind.WindowsPDB, DummyLogger.NoThrowInstance);
+
+				using (var reloaded = Load(written)) {
+					var reloadedRoot = reloaded.Find("Features.Code", isReflectionName: true)!.FindMethod("Locals")!.Body!.PdbMethod!.Scope!;
+					var constant = GetScopes(reloadedRoot).SelectMany(a => a.Constants).Single(a => a.Name == "NoType");
+					Assert.Equal(77, constant.Value);
+				}
+			}
+		}
 	}
 }

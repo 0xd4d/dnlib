@@ -289,6 +289,32 @@ public enum CharEnum : ushort { }
 			}
 		}
 
+		// Fixed in 482ed58b: a constant from a Windows PDB can have no type (Microsoft's PDB converter writes
+		// such constants). A portable PDB needs one, so the type of the value is written. Null is a null object.
+		[Fact]
+		public void ConstantWithoutATypeIsWrittenWithTheTypeOfItsValue() {
+			var written = ChangeAndWrite(module => {
+				var constants = DebugInfoSource.GetRootScope(module, "Sum").Constants;
+				constants.Add(new PdbConstant("NoTypeNumber", null, 0x12345678));
+				constants.Add(new PdbConstant("NoTypeText", null, "ab"));
+				constants.Add(new PdbConstant("NoTypeNull", null, null));
+			});
+
+			using (var pdb = OpenWithSrm(written.Pdb!)) {
+				var reader = pdb.GetMetadataReader();
+				Assert.Equal(new byte[] { (byte)ElementType.I4, 0x78, 0x56, 0x34, 0x12 }, GetConstantSignature(reader, "NoTypeNumber"));
+				Assert.Equal(new byte[] { (byte)ElementType.String, (byte)'a', 0, (byte)'b', 0 }, GetConstantSignature(reader, "NoTypeText"));
+				Assert.Equal(new byte[] { (byte)ElementType.Object }, GetConstantSignature(reader, "NoTypeNull"));
+			}
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!)) {
+				var constants = DebugInfoSource.GetRootScope(module, "Sum").Constants.ToDictionary(a => a.Name!);
+				Assert.Equal(0x12345678, constants["NoTypeNumber"].Value);
+				Assert.Equal(ElementType.I4, constants["NoTypeNumber"].Type!.ElementType);
+				Assert.Equal("ab", constants["NoTypeText"].Value);
+				Assert.Null(constants["NoTypeNull"].Value);
+			}
+		}
+
 		// Fixed in 5ea0663e: the LocalScope rows of a method are sorted by where they start and by their length.
 		// A reader puts a scope into the scope before it if it has the same range, but the writer didn't keep
 		// such scopes in their order: the locals and constants of a scope moved to another scope.
