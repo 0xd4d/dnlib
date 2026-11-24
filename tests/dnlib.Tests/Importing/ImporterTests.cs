@@ -285,6 +285,62 @@ namespace dnlib.Tests.Importing {
 			Assert.Same(nested, new Importer(module, ImporterOptions.TryToUseDefs).ImportOrNull(nestedRef));
 		}
 
+		// The types of the core library are the target module's own instances of them
+		[Fact]
+		public void CoreLibraryTypeSigBecomesTheOneOfTheTargetModule() {
+			var source = CreateModule("Source");
+			var target = CreateModule("Target");
+			var importer = new Importer(target);
+			ICorLibTypes from = source.CorLibTypes, to = target.CorLibTypes;
+			var types = new[] {
+				new[] { from.Void, to.Void }, new[] { from.Boolean, to.Boolean }, new[] { from.Char, to.Char },
+				new[] { from.SByte, to.SByte }, new[] { from.Byte, to.Byte }, new[] { from.Int16, to.Int16 },
+				new[] { from.UInt16, to.UInt16 }, new[] { from.Int32, to.Int32 }, new[] { from.UInt32, to.UInt32 },
+				new[] { from.Int64, to.Int64 }, new[] { from.UInt64, to.UInt64 }, new[] { from.Single, to.Single },
+				new[] { from.Double, to.Double }, new[] { from.String, to.String }, new[] { from.TypedReference, to.TypedReference },
+				new[] { from.IntPtr, to.IntPtr }, new[] { from.UIntPtr, to.UIntPtr }, new[] { from.Object, to.Object },
+			};
+
+			foreach (var type in types) {
+				Assert.NotSame(type[0], type[1]);
+				Assert.Same(type[1], importer.ImportOrNull((TypeSig)type[0]));
+				// Also inside another type
+				var array = Assert.IsType<SZArraySig>(importer.ImportOrNull(new SZArraySig(type[0])));
+				Assert.Same(type[1], array.Next);
+			}
+		}
+
+		// A MemberRef is in a type, but it can also be in a ModuleRef (a global method or field of another module
+		// of the assembly) or in a MethodDef (a call of a method with a variable number of arguments, in the
+		// method's own module)
+		[Fact]
+		public void MemberRefKeepsTheKindOfItsParent() {
+			var source = CreateSourceModule(out _, out var sourceMethod, out _);
+			var target = CreateModule("Target");
+			var targetType = new TypeDefUser("Ns", "Target", target.CorLibTypes.Object.TypeDefOrRef);
+			target.Types.Add(targetType);
+			var targetMethod = new MethodDefUser("Method", MethodSig.CreateStatic(target.CorLibTypes.Void), dnlib.DotNet.MethodAttributes.Static);
+			targetType.Methods.Add(targetMethod);
+			var signature = MethodSig.CreateStatic(source.CorLibTypes.Void);
+			var importer = new Importer(target);
+
+			var inModuleRef = importer.ImportOrNull(new MemberRefUser(source, "Global", signature, new ModuleRefUser(source, "Other.netmodule")));
+			var moduleRef = Assert.IsAssignableFrom<ModuleRef>(inModuleRef!.Class);
+			Assert.Equal("Other.netmodule", moduleRef.Name);
+			Assert.Same(target, moduleRef.Module);
+
+			// A global method of the source module, through the module's global type
+			var inGlobalType = importer.ImportOrNull(new MemberRefUser(source, "Global", signature, source.GlobalType));
+			Assert.Equal("Source.dll", Assert.IsAssignableFrom<ModuleRef>(inGlobalType!.Class).Name);
+
+			var inMethodOfTheTarget = importer.ImportOrNull(new MemberRefUser(target, "Method", signature, targetMethod));
+			Assert.Same(targetMethod, inMethodOfTheTarget!.Class);
+
+			// A method of another module can't be the parent, and there must be a parent
+			Assert.Null(importer.ImportOrNull(new MemberRefUser(source, "Method", signature, sourceMethod)));
+			Assert.Null(importer.ImportOrNull(new MemberRefUser(source, "Method", signature)));
+		}
+
 		[Fact]
 		public void NullIsImportedAsNull() {
 			var importer = new Importer(CreateModule("Target"));
