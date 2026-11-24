@@ -89,6 +89,65 @@ namespace dnlib.Tests.Reading {
 			}
 		}
 
+		// The same for parameters, events and properties: they keep their rows but the methods and the types
+		// don't, so the file gets a ParamPtr, an EventPtr and a PropertyPtr table
+		static readonly Lazy<byte[]> imageWithOtherPointerTables = new Lazy<byte[]>(() => {
+			using (var module = ModuleDefMD.Load(Fixtures.Fixtures.Features.Image)) {
+				MoveLastTypeToTheFront(module);
+				// The methods of every type in the opposite order: the parameters aren't in the order of their methods
+				foreach (var type in module.GetTypes()) {
+					var methods = type.Methods.Reverse().ToList();
+					type.Methods.Clear();
+					foreach (var method in methods)
+						type.Methods.Add(method);
+					// And its events, so they aren't in the order of their rows anymore
+					var events = type.Events.Reverse().ToList();
+					type.Events.Clear();
+					foreach (var eventDef in events)
+						type.Events.Add(eventDef);
+				}
+				var options = new ModuleWriterOptions(module);
+				options.MetadataOptions.Flags |= MetadataFlags.PreserveParamRids | MetadataFlags.PreserveEventRids | MetadataFlags.PreservePropertyRids;
+				var stream = new MemoryStream();
+				module.Write(stream, options);
+				return stream.ToArray();
+			}
+		});
+
+		[Fact]
+		public void ParametersEventsAndPropertiesCanHavePointerTablesToo() {
+			using (var original = ModuleDefMD.Load(Fixtures.Fixtures.Features.Image))
+			using (var module = ModuleDefMD.Load(imageWithOtherPointerTables.Value)) {
+				var tables = module.TablesStream;
+				Assert.False(module.Metadata.IsCompressed);
+				Assert.Equal(tables.ParamTable.Rows, tables.ParamPtrTable.Rows);
+				Assert.Equal(tables.EventTable.Rows, tables.EventPtrTable.Rows);
+				Assert.Equal(tables.PropertyTable.Rows, tables.PropertyPtrTable.Rows);
+				Assert.True(tables.EventPtrTable.Rows > 0 && tables.PropertyPtrTable.Rows > 10 && tables.ParamPtrTable.Rows > 10);
+
+				// The members are the members of the same types, with the row numbers they had
+				string Key(IMemberDef member) => member.DeclaringType!.FullName + "::" + member.Name;
+				var originalProperties = original.GetTypes().SelectMany(a => a.Properties).ToDictionary(Key, a => a.MDToken);
+				var originalEvents = original.GetTypes().SelectMany(a => a.Events).ToDictionary(Key, a => a.MDToken);
+				Assert.Equal(originalProperties, module.GetTypes().SelectMany(a => a.Properties).ToDictionary(Key, a => a.MDToken));
+				Assert.Equal(originalEvents, module.GetTypes().SelectMany(a => a.Events).ToDictionary(Key, a => a.MDToken));
+				var originalParameters = original.GetTypes().SelectMany(a => a.Methods).SelectMany(a => a.ParamDefs.Select(p => new { Name = a.FullName + " " + p.Sequence, p.MDToken })).ToDictionary(a => a.Name, a => a.MDToken);
+				var parameters = module.GetTypes().SelectMany(a => a.Methods).SelectMany(a => a.ParamDefs.Select(p => new { Name = a.FullName + " " + p.Sequence, p.MDToken })).ToDictionary(a => a.Name, a => a.MDToken);
+				Assert.Equal(originalParameters, parameters);
+
+				// The raw rows of the pointer tables can be read
+				Assert.True(tables.TryReadParamPtrRow(1, out var paramPtr));
+				Assert.InRange(paramPtr.Param, 1U, tables.ParamTable.Rows);
+				Assert.True(tables.TryReadEventPtrRow(1, out var eventPtr));
+				Assert.InRange(eventPtr.Event, 1U, tables.EventTable.Rows);
+				Assert.True(tables.TryReadPropertyPtrRow(1, out var propertyPtr));
+				Assert.InRange(propertyPtr.Property, 1U, tables.PropertyTable.Rows);
+			}
+			RoundTrip.CheckWithNewMetadata(imageWithOtherPointerTables.Value);
+			if (Type.GetType("Mono.Runtime") is null)
+				Assert.Equal(0, AssemblyRunner.RunEntryPoint(imageWithOtherPointerTables.Value));
+		}
+
 		// The CLR loads a file with pointer tables. Mono doesn't.
 		[Fact]
 		public void ProgramWithPointerTablesRuns() {

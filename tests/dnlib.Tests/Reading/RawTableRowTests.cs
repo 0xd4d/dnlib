@@ -132,5 +132,54 @@ namespace dnlib.Tests.Reading {
 			}
 			Assert.True(count >= 53, $"Only {count} row structs were checked");
 		}
+
+		// Six tables that no compiler writes rows to: the two edit-and-continue tables, and four tables for
+		// the processors and operating systems of an assembly that the runtime ignores. A listener of the
+		// writer's events can add rows to any table, which is how the test gets a file that has them.
+		[Fact]
+		public void RowsOfTablesThatCompilersDoNotUseAreRead() {
+			byte[] image;
+			using (var source = ModuleDefMD.Load(Fixtures.Fixtures.Features.Image)) {
+				var options = new dnlib.DotNet.Writer.ModuleWriterOptions(source);
+				options.WriterEvent += (sender, e) => {
+					if (e.Event != dnlib.DotNet.Writer.ModuleWriterEvent.MDEndCreateTables)
+						return;
+					var tables = e.Writer.Metadata.TablesHeap;
+					tables.ENCLogTable.Create(new RawENCLogRow(0x06000001, 1));
+					tables.ENCLogTable.Create(new RawENCLogRow(0x02000002, 0));
+					tables.ENCMapTable.Create(new RawENCMapRow(0x06000001));
+					tables.AssemblyProcessorTable.Create(new RawAssemblyProcessorRow(0x8664));
+					tables.AssemblyOSTable.Create(new RawAssemblyOSRow(2, 10, 1));
+					tables.AssemblyRefProcessorTable.Create(new RawAssemblyRefProcessorRow(0x14C, 1));
+					tables.AssemblyRefOSTable.Create(new RawAssemblyRefOSRow(2, 6, 3, 1));
+				};
+				var stream = new System.IO.MemoryStream();
+				source.Write(stream, options);
+				image = stream.ToArray();
+			}
+
+			using (var written = ModuleDefMD.Load(image)) {
+				var tables = written.TablesStream;
+				Assert.Equal(2U, tables.ENCLogTable.Rows);
+				Assert.True(tables.TryReadENCLogRow(2, out var encLog));
+				Assert.Equal(0x02000002U, encLog.Token);
+				Assert.Equal(0U, encLog.FuncCode);
+				Assert.True(tables.TryReadENCMapRow(1, out var encMap));
+				Assert.Equal(0x06000001U, encMap.Token);
+				Assert.True(tables.TryReadAssemblyProcessorRow(1, out var processor));
+				Assert.Equal(0x8664U, processor.Processor);
+				Assert.True(tables.TryReadAssemblyOSRow(1, out var os));
+				Assert.Equal(new uint[] { 2, 10, 1 }, new[] { os.OSPlatformId, os.OSMajorVersion, os.OSMinorVersion });
+				Assert.True(tables.TryReadAssemblyRefProcessorRow(1, out var refProcessor));
+				Assert.Equal(new uint[] { 0x14C, 1 }, new[] { refProcessor.Processor, refProcessor.AssemblyRef });
+				Assert.True(tables.TryReadAssemblyRefOSRow(1, out var refOS));
+				Assert.Equal(new uint[] { 2, 6, 3, 1 }, new[] { refOS.OSPlatformId, refOS.OSMajorVersion, refOS.OSMinorVersion, refOS.AssemblyRef });
+				Assert.False(tables.TryReadAssemblyOSRow(2, out _));
+
+				// The rows don't change what the module is
+				using (var original = ModuleDefMD.Load(Fixtures.Fixtures.Features.Image))
+					dnlib.TestUtils.Dumping.ModuleComparer.AssertEqual(original, written);
+			}
+		}
 	}
 }

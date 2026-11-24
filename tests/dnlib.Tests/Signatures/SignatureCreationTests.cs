@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System.Collections.Generic;
 using System.Linq;
 using dnlib.DotNet;
 using Xunit;
@@ -125,6 +126,86 @@ namespace dnlib.Tests.Signatures {
 			Assert.True(new GenericInstMethodSig(Types.Int32).IsGenericInst);
 			Assert.Equal("System.Int32", new GenericInstMethodSig(Types.Int32, Types.String).GenericArguments[0]!.FullName);
 			Assert.True(PropertySig.CreateStatic(Types.Int32).IsProperty);
+		}
+
+		// There are overloads for one, two and three types so no array is needed. Each one creates what the
+		// overload that takes an array of types creates.
+		[Fact]
+		public void OverloadsForOneToThreeTypesCreateTheSameSignatures() {
+			TypeSig a = Types.Int32, b = Types.String, c = Types.Object, ret = Types.Boolean;
+			var pairs = new (CallingConventionSig WithArray, CallingConventionSig WithTypes)[] {
+				(MethodSig.CreateStatic(ret, new[] { a }), MethodSig.CreateStatic(ret, a)),
+				(MethodSig.CreateStatic(ret, new[] { a, b }), MethodSig.CreateStatic(ret, a, b)),
+				(MethodSig.CreateStatic(ret, new[] { a, b, c }), MethodSig.CreateStatic(ret, a, b, c)),
+				(MethodSig.CreateInstance(ret, new[] { a }), MethodSig.CreateInstance(ret, a)),
+				(MethodSig.CreateInstance(ret, new[] { a, b }), MethodSig.CreateInstance(ret, a, b)),
+				(MethodSig.CreateInstance(ret, new[] { a, b, c }), MethodSig.CreateInstance(ret, a, b, c)),
+				(MethodSig.CreateStaticGeneric(2, ret, new[] { a }), MethodSig.CreateStaticGeneric(2, ret, a)),
+				(MethodSig.CreateStaticGeneric(2, ret, new[] { a, b }), MethodSig.CreateStaticGeneric(2, ret, a, b)),
+				(MethodSig.CreateStaticGeneric(2, ret, new[] { a, b, c }), MethodSig.CreateStaticGeneric(2, ret, a, b, c)),
+				(MethodSig.CreateInstanceGeneric(2, ret, new[] { a }), MethodSig.CreateInstanceGeneric(2, ret, a)),
+				(MethodSig.CreateInstanceGeneric(2, ret, new[] { a, b }), MethodSig.CreateInstanceGeneric(2, ret, a, b)),
+				(MethodSig.CreateInstanceGeneric(2, ret, new[] { a, b, c }), MethodSig.CreateInstanceGeneric(2, ret, a, b, c)),
+				(PropertySig.CreateStatic(ret, new[] { a }), PropertySig.CreateStatic(ret, a)),
+				(PropertySig.CreateStatic(ret, new[] { a, b }), PropertySig.CreateStatic(ret, a, b)),
+				(PropertySig.CreateStatic(ret, new[] { a, b, c }), PropertySig.CreateStatic(ret, a, b, c)),
+				(PropertySig.CreateInstance(ret, new[] { a }), PropertySig.CreateInstance(ret, a)),
+				(PropertySig.CreateInstance(ret, new[] { a, b }), PropertySig.CreateInstance(ret, a, b)),
+				(PropertySig.CreateInstance(ret, new[] { a, b, c }), PropertySig.CreateInstance(ret, a, b, c)),
+				(new LocalSig(new[] { a }), new LocalSig(a)),
+				(new LocalSig(new[] { a, b }), new LocalSig(a, b)),
+				(new LocalSig(new[] { a, b, c }), new LocalSig(a, b, c)),
+				(new GenericInstMethodSig(new[] { a }), new GenericInstMethodSig(a)),
+				(new GenericInstMethodSig(new[] { a, b }), new GenericInstMethodSig(a, b)),
+				(new GenericInstMethodSig(new[] { a, b, c }), new GenericInstMethodSig(a, b, c)),
+			};
+
+			var comparer = new SigComparer();
+			for (int i = 0; i < pairs.Length; i++) {
+				Assert.True(comparer.Equals(pairs[i].WithArray, pairs[i].WithTypes), $"Pair {i}");
+				Assert.Equal(pairs[i].WithArray.GetCallingConvention(), pairs[i].WithTypes.GetCallingConvention());
+			}
+			// Two pairs are never equal: every overload creates another signature
+			Assert.False(comparer.Equals(pairs[0].WithTypes, pairs[1].WithTypes));
+			Assert.False(comparer.Equals(pairs[0].WithTypes, pairs[3].WithTypes));
+			Assert.False(comparer.Equals(pairs[0].WithTypes, pairs[6].WithTypes));
+		}
+
+		[Fact]
+		public void GenericInstanceOverloadsCreateTheSameType() {
+			var genericType = new ClassSig(new TypeRefUser(module, "Ns", "Generic`3", Types.AssemblyRef));
+			TypeSig a = Types.Int32, b = Types.String, c = Types.Object;
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(new GenericInstSig(genericType, new[] { a }), new GenericInstSig(genericType, a)));
+			Assert.True(comparer.Equals(new GenericInstSig(genericType, new[] { a, b }), new GenericInstSig(genericType, a, b)));
+			Assert.True(comparer.Equals(new GenericInstSig(genericType, new[] { a, b, c }), new GenericInstSig(genericType, a, b, c)));
+			Assert.True(comparer.Equals(new GenericInstSig(genericType, new List<TypeSig?> { a, b }), new GenericInstSig(genericType, a, b)));
+			// Only the generic type, the arguments are added later
+			var empty = new GenericInstSig(genericType);
+			Assert.Empty(empty.GenericArguments);
+			Assert.Same(genericType, empty.GenericType);
+			Assert.Empty(new GenericInstSig(genericType, 3).GenericArguments);
+			Assert.Empty(new GenericInstSig(genericType, 3U).GenericArguments);
+			Assert.Null(new GenericInstSig().GenericType);
+		}
+
+		[Fact]
+		public void CloneCopiesTheOtherKindsOfSignatures() {
+			var comparer = new SigComparer();
+			var field = new FieldSig(Types.Int32);
+			var property = PropertySig.CreateInstance(Types.Int32, Types.String);
+			var locals = new LocalSig(Types.Int32, Types.String);
+			var instantiation = new GenericInstMethodSig(Types.Int32, Types.String);
+
+			Assert.NotSame(field, field.Clone());
+			Assert.True(comparer.Equals(field, field.Clone()));
+			Assert.NotSame(property.Params, property.Clone().Params);
+			Assert.True(comparer.Equals(property, property.Clone()));
+			Assert.NotSame(locals.Locals, locals.Clone().Locals);
+			Assert.True(comparer.Equals(locals, locals.Clone()));
+			Assert.NotSame(instantiation.GenericArguments, instantiation.Clone().GenericArguments);
+			Assert.True(comparer.Equals(instantiation, instantiation.Clone()));
 		}
 
 		[Fact]

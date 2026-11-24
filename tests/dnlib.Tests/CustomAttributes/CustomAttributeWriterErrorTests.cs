@@ -116,6 +116,62 @@ namespace dnlib.Tests.CustomAttributes {
 			AssertIsAWriterError(new CustomAttribute(notAMethod), "method signature is invalid");
 		}
 
+		// A struct that isn't an enum can't be an argument
+		[Fact]
+		public void ArgumentOfAStructThatIsNotAnEnum() {
+			var structType = new TypeDefUser("Ns", "Struct", Types.GetTypeRef("System", "ValueType"));
+			created.Module.Types.Add(structType);
+			var structSig = new ValueTypeSig(structType);
+			var attribute = new CustomAttribute(CreateConstructor(structSig));
+			attribute.ConstructorArguments.Add(new CAArgument(structSig, 5));
+
+			AssertIsAWriterError(attribute, "value is not an enum");
+		}
+
+		[Fact]
+		public void ArgumentOfAPointerType() {
+			var pointer = new PtrSig(Types.Int32);
+			var attribute = new CustomAttribute(CreateConstructor(pointer));
+			attribute.ConstructorArguments.Add(new CAArgument(pointer, 5));
+
+			AssertIsAWriterError(attribute, "Invalid or unsupported element type");
+		}
+
+		// The constructor of an attribute can't have a variable number of arguments
+		[Fact]
+		public void ConstructorWithParametersAfterTheSentinel() {
+			var signature = MethodSig.CreateInstance(Types.Void);
+			signature.CallingConvention |= CallingConvention.VarArg;
+			signature.ParamsAfterSentinel = new List<TypeSig?> { Types.Int32 };
+			var constructor = new MemberRefUser(created.Module, ".ctor", signature, Types.GetTypeRef("System", "SomeAttribute"));
+
+			AssertIsAWriterError(new CustomAttribute(constructor), "parameters after the sentinel");
+		}
+
+		// The number of named arguments is stored in 16 bits
+		[Fact]
+		public void MoreThan65535NamedArguments() {
+			var attribute = new CustomAttribute(CreateConstructor());
+			for (int i = 0; i < 0x10000; i++)
+				attribute.NamedArguments.Add(new CANamedArgument(isField: true, Types.Int32, "Field" + i, new CAArgument(Types.Int32, i)));
+
+			AssertIsAWriterError(attribute, "too many named arguments");
+		}
+
+		[Fact]
+		public void ExactlyTheMaximumNumberOfNamedArgumentsIsWritten() {
+			var attribute = new CustomAttribute(CreateConstructor());
+			for (int i = 0; i < 0xFFFF; i++)
+				attribute.NamedArguments.Add(new CANamedArgument(isField: true, Types.Int32, "F", new CAArgument(Types.Int32, i)));
+			created.Type.CustomAttributes.Add(attribute);
+
+			using (var module = created.WriteAndRead()) {
+				var read = Assert.Single(CreatedModule.GetType(module).CustomAttributes);
+				Assert.Equal(0xFFFF, read.NamedArguments.Count);
+				Assert.Equal(0xFFFE, read.NamedArguments[0xFFFE].Value);
+			}
+		}
+
 		// An attribute can be the bytes of its value: they're written as they are
 		[Fact]
 		public void RawAttributeIsWrittenAsItIs() {
