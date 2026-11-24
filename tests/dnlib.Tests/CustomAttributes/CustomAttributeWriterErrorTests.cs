@@ -156,5 +156,44 @@ namespace dnlib.Tests.CustomAttributes {
 
 			AssertIsAWriterError(attribute, "Raw custom attribute contains arguments");
 		}
+
+		static readonly Type[] primitiveTypes = {
+			typeof(bool), typeof(char), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int),
+			typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double),
+		};
+
+		// 65 as a value of the type ('A' as a char, true as a bool)
+		static object CreateValue(Type type) =>
+			type == typeof(bool) ? true : type == typeof(char) ? 'A' : Convert.ChangeType(65, type);
+
+		// Every pair of different primitive types
+		public static IEnumerable<object[]> PrimitiveTypePairs() =>
+			from declared in primitiveTypes
+			from actual in primitiveTypes
+			where declared != actual
+			select new object[] { declared, actual };
+
+		// The value of an argument is boxed, so it can be a value of another type than the argument's type.
+		// That's an error. If the error is ignored, the number is written as a value of the argument's type.
+		[Theory]
+		[MemberData(nameof(PrimitiveTypePairs))]
+		public void ValueOfAnotherPrimitiveTypeIsAnErrorAndIsConvertedIfTheErrorIsIgnored(Type declared, Type actual) {
+			var declaredSig = created.Module.ImportAsTypeSig(declared);
+			var attribute = new CustomAttribute(CreateConstructor(declaredSig));
+			attribute.ConstructorArguments.Add(new CAArgument(declaredSig, CreateValue(actual)));
+			created.Type.CustomAttributes.Add(attribute);
+
+			var exception = Assert.Throws<ModuleWriterException>(() => created.Write());
+			Assert.Contains("value.Value's type != value.Type", exception.Message);
+
+			var stream = new MemoryStream();
+			created.Module.Write(stream, new ModuleWriterOptions(created.Module) { Logger = DummyLogger.NoThrowInstance });
+			using (var module = ModuleDefMD.Load(stream.ToArray())) {
+				var read = Assert.Single(CreatedModule.GetType(module).CustomAttributes);
+				// A bool is 1 as a number
+				object expected = actual == typeof(bool) ? Convert.ChangeType(1, declared) : CreateValue(declared);
+				Assert.Equal(expected, Assert.Single(read.ConstructorArguments).Value);
+			}
+		}
 	}
 }
