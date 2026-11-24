@@ -45,6 +45,20 @@ public static class Code {
 		const char Letter = 'x';
 	}
 
+	// A debug build has extra debug info for edit-and-continue: the slots of the locals, the lambdas and
+	// the states of the state machine
+	public static async System.Threading.Tasks.Task<int> Async(int value) {
+		await System.Threading.Tasks.Task.Yield();
+		int doubled = value * 2;
+		await System.Threading.Tasks.Task.Yield();
+		return doubled;
+	}
+
+	public static Func<int, int> Lambda(int add) {
+		Func<int, int> addIt = a => a + add;
+		return addIt;
+	}
+
 	public static object SpecialLocals() {
 		dynamic anything = 1;
 		Dictionary<string, dynamic> map = null;
@@ -57,6 +71,14 @@ public static class Code {
 		static readonly Lazy<CompiledAssembly> compiled = new Lazy<CompiledAssembly>(() =>
 			// Not optimized: the compiler keeps all locals and their scopes
 			CSharpCompiler.Compile(Source, new CSharpCompilerOptions { AssemblyName = "DebugInfo", PdbKind = PdbKind.Portable, Optimize = false }));
+
+		static readonly Lazy<CompiledAssembly> compiledWithWindowsPdb = new Lazy<CompiledAssembly>(() =>
+			CSharpCompiler.Compile(Source, new CSharpCompilerOptions { AssemblyName = "DebugInfo", PdbKind = PdbKind.Windows, Optimize = false }));
+
+		/// <summary>
+		/// The same assembly with a Windows PDB. Only works on Windows.
+		/// </summary>
+		public static CompiledAssembly CompiledWithWindowsPdb => compiledWithWindowsPdb.Value;
 
 		/// <summary>
 		/// The assembly and its portable PDB. The source file's name is <c>DebugInfo.cs</c>.

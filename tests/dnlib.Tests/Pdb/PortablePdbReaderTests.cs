@@ -91,6 +91,28 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// The kinds of custom debug info of all methods of the module
+		internal static HashSet<PdbCustomDebugInfoKind> GetMethodCustomDebugInfoKinds(ModuleDef module) =>
+			new HashSet<PdbCustomDebugInfoKind>(module.GetTypes().SelectMany(a => a.Methods).SelectMany(a => a.CustomDebugInfos).Select(a => a.Kind));
+
+		// The compiler writes this for a debug build, so the debugger can change the code of a running program
+		[Fact]
+		public void EditAndContinueDebugInfoIsRead() {
+			using (var module = DebugInfoSource.Load()) {
+				var kinds = GetMethodCustomDebugInfoKinds(module);
+
+				Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueLocalSlotMap, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueLambdaMap, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.AsyncMethod, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.StateMachineHoistedLocalScopes, kinds);
+
+				var lambda = DebugInfoSource.GetMethod(module, "Lambda");
+				Assert.Contains(lambda.CustomDebugInfos, a => a is PdbEditAndContinueLambdaMapCustomDebugInfo info && info.Data.Length != 0);
+				Assert.Contains(lambda.CustomDebugInfos, a => a is PdbEditAndContinueLocalSlotMapCustomDebugInfo info && info.Data.Length != 0);
+			}
+		}
+
 		// The rows of a LocalScope table for the SRM-created PDB files below
 		sealed class ScopeRow {
 			public string MethodName = string.Empty;

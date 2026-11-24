@@ -162,12 +162,29 @@ namespace dnlib.TestUtils.Dumping {
 
 		string Utf8Text(BlobHandle handle) => Encoding.UTF8.GetString(reader.GetBlobBytes(handle));
 
+		// The table is sorted by parent. The rows of one parent are written sorted by kind: their order in the
+		// file has no meaning, and dnlib writes some kinds in another order than the compiler does (eg. the
+		// async method info after the other custom debug info of the method).
 		void DumpCustomDebugInformation() {
+			var rowsOfParent = new System.Collections.Generic.List<string>();
+			string? currentParent = null;
 			foreach (var handle in reader.CustomDebugInformation) {
 				var info = reader.GetCustomDebugInformation(handle);
-				text.AppendLine($"CustomDebugInformation {MetadataTokens.GetRowNumber(handle)}: {RowText(info.Parent)}, kind {GuidText(info.Kind)}");
-				text.AppendLine($"  {BlobText(info.Value)}");
+				string parent = RowText(info.Parent);
+				if (parent != currentParent) {
+					AppendSorted(rowsOfParent);
+					currentParent = parent;
+				}
+				rowsOfParent.Add($"CustomDebugInformation: {parent}, kind {GuidText(info.Kind)}{Environment.NewLine}  {BlobText(info.Value)}");
 			}
+			AppendSorted(rowsOfParent);
+		}
+
+		void AppendSorted(System.Collections.Generic.List<string> lines) {
+			lines.Sort(StringComparer.Ordinal);
+			foreach (var line in lines)
+				text.AppendLine(line);
+			lines.Clear();
 		}
 	}
 }

@@ -283,8 +283,14 @@ public enum CharEnum : ushort { }
 				using (var pdb = OpenWithSrm(written.Pdb!)) {
 					var signature = GetConstantSignature(pdb.GetMetadataReader(), "EnumConstant");
 					Assert.Equal(expectedStart, signature.Take(expectedStart.Length));
-					// The rest is the compressed token of the enum type
-					Assert.Equal(expectedStart.Length + 1, signature.Length);
+					// The rest is the compressed token of the enum type (1 or 2 bytes)
+					unsafe {
+						fixed (byte* p = signature) {
+							var blobReader = new BlobReader(p + expectedStart.Length, signature.Length - expectedStart.Length);
+							Assert.Equal(HandleKind.TypeReference, blobReader.ReadTypeHandle().Kind);
+							Assert.Equal(0, blobReader.RemainingBytes);
+						}
+					}
 				}
 			}
 		}

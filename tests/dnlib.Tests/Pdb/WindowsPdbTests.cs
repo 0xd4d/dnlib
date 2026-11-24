@@ -365,5 +365,51 @@ namespace dnlib.Tests.Pdb {
 				}
 			}
 		}
+
+		// Fixed in 57d99ece: the compiler also writes the states of a state machine to a Windows PDB (custom
+		// debug info kind 9). It was read as unknown data and couldn't be converted to a portable PDB.
+		[Theory]
+		[InlineData(PdbReaderOptions.None)]
+		[InlineData(PdbReaderOptions.MicrosoftComReader)]
+		public void EditAndContinueDebugInfoIsReadFromAWindowsPdb(PdbReaderOptions readerOptions) {
+			SkipUnlessWindows();
+			using (var portable = DebugInfoSource.Load())
+			using (var windows = Load(DebugInfoSource.CompiledWithWindowsPdb, readerOptions)) {
+				var kinds = PortablePdbReaderTests.GetMethodCustomDebugInfoKinds(windows);
+
+				Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueLocalSlotMap, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueLambdaMap, kinds);
+				Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap, kinds);
+				Assert.DoesNotContain(PdbCustomDebugInfoKind.Unknown, kinds);
+				Assert.Equal(GetSourceLevelDebugInfo(portable), GetSourceLevelDebugInfo(windows));
+			}
+		}
+
+		[Fact]
+		public void EditAndContinueDebugInfoSurvivesTheConversionToAPortablePdb() {
+			SkipUnlessWindows();
+			using (var portable = DebugInfoSource.Load())
+			using (var windows = Load(DebugInfoSource.CompiledWithWindowsPdb)) {
+				// Read everything before the kind of the PDB is changed
+				var expected = GetSourceLevelDebugInfo(windows);
+				var written = Write(windows, PdbFileKind.PortablePDB, DummyLogger.NoThrowInstance);
+
+				using (var converted = Load(written)) {
+					Assert.Equal(expected, GetSourceLevelDebugInfo(converted));
+					foreach (var methodName in new[] { "Lambda", "Sum" }) {
+						var expectedInfos = DebugInfoSource.GetMethod(portable, methodName).CustomDebugInfos;
+						var actualInfos = DebugInfoSource.GetMethod(converted, methodName).CustomDebugInfos;
+						// The same edit-and-continue data as in the PDB that the compiler created as a portable PDB
+						Assert.Equal(
+							expectedInfos.OfType<PdbEditAndContinueLocalSlotMapCustomDebugInfo>().Select(a => System.BitConverter.ToString(a.Data)),
+							actualInfos.OfType<PdbEditAndContinueLocalSlotMapCustomDebugInfo>().Select(a => System.BitConverter.ToString(a.Data)));
+						Assert.Equal(
+							expectedInfos.OfType<PdbEditAndContinueLambdaMapCustomDebugInfo>().Select(a => System.BitConverter.ToString(a.Data)),
+							actualInfos.OfType<PdbEditAndContinueLambdaMapCustomDebugInfo>().Select(a => System.BitConverter.ToString(a.Data)));
+					}
+					Assert.Contains(PdbCustomDebugInfoKind.EditAndContinueStateMachineStateMap, PortablePdbReaderTests.GetMethodCustomDebugInfoKinds(converted));
+				}
+			}
+		}
 	}
 }
