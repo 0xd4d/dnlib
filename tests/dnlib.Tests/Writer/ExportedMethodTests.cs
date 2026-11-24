@@ -55,14 +55,14 @@ public static class Functions {
 			}
 		}
 
-		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT)]
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.IA64)]
 		public void ExportDirectoryHasTheNamesSorted(Machine machine) {
 			var written = WriteWithExports(machine);
 
 			Assert.Equal(new[] { "ExportedFirst", "ExportedSecond" }, PEExports.GetNames(written));
 		}
 
-		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT)]
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.IA64)]
 		public void ExportInfoIsReadFromTheWrittenFile(Machine machine) {
 			using (var module = ModuleDefMD.Load(WriteWithExports(machine))) {
 				var functions = module.Find("Functions", isReflectionName: true)!;
@@ -88,7 +88,7 @@ public static class Functions {
 		}
 
 		// Fixed in 96cbcc25: the ordinal of an export that also has a name was ignored
-		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT)]
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.IA64)]
 		public void ExportsKeepTheirOrdinals(Machine machine) {
 			var written = WriteWithExports(machine, functions => {
 				functions.FindMethod("First")!.ExportInfo = new MethodExportInfo("ExportedFirst", 9);
@@ -131,5 +131,22 @@ public static class Functions {
 		[Fact]
 		public void ModuleWithoutExportedMethodsHasNoExportDirectory() =>
 			Assert.Empty(PEExports.GetNames(CSharpCompiler.Compile(Source).Image));
+
+		// An exported method needs a few bytes of native code that jump to it. dnlib has that code for x86, x64,
+		// ARM and Itanium, not for ARM64.
+		[Fact]
+		public void ExportedMethodForAProcessorWithoutNativeStubIsAnError() {
+			var exception = Assert.Throws<ModuleWriterException>(() => WriteWithExports(Machine.ARM64));
+			Assert.Contains("the CPU architecture isn't supported", exception.Message);
+
+			// If the error is ignored, the file has no export directory, but it's the same module
+			var written = WriteWithExports(Machine.ARM64, functions => functions.FindMethod("First")!.ExportInfo = new MethodExportInfo("ExportedFirst"),
+				DummyLogger.NoThrowInstance);
+			Assert.Empty(PEExports.GetNames(written));
+			using (var module = ModuleDefMD.Load(written)) {
+				Assert.Equal(Machine.ARM64, module.Machine);
+				Assert.NotNull(module.Find("Functions", isReflectionName: true)!.FindMethod("First"));
+			}
+		}
 	}
 }
