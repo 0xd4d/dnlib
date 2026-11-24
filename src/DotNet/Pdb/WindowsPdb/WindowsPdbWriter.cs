@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			instrToOffset = new Dictionary<Instruction, uint>();
 			visitedScopes = new HashSet<PdbScope>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
-			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
+			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.GetCompilerOfDocuments()) ? 1 : 0;
 			writer.Initialize(metadata);
 		}
 

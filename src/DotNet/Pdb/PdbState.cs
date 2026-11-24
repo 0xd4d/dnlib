@@ -165,7 +165,7 @@ namespace dnlib.DotNet.Pdb {
 		public PdbState(ModuleDef module, PdbFileKind pdbFileKind) {
 			if (module is null)
 				throw new ArgumentNullException(nameof(module));
-			compiler = CalculateCompiler(module);
+			compiler = Compiler.Other;
 			PdbFileKind = pdbFileKind;
 			originalPdbFileKind = pdbFileKind;
 		}
@@ -182,7 +182,6 @@ namespace dnlib.DotNet.Pdb {
 			reader.Initialize(module);
 			PdbFileKind = reader.PdbFileKind;
 			originalPdbFileKind = reader.PdbFileKind;
-			compiler = CalculateCompiler(module);
 
 			userEntryPoint = module.ResolveToken(reader.UserEntryPoint) as MethodDef;
 
@@ -190,6 +189,7 @@ namespace dnlib.DotNet.Pdb {
 			int count = documents.Count;
 			for (int i = 0; i < count; i++)
 				Add_NoLock(documents[i]);
+			compiler = CalculateCompiler(docs.Keys);
 		}
 
 		/// <summary>
@@ -396,7 +396,16 @@ namespace dnlib.DotNet.Pdb {
 #endif
 		}
 
+		/// <summary>
+		/// The compiler that created the PDB file that was read
+		/// </summary>
 		internal Compiler Compiler => compiler;
+
+		/// <summary>
+		/// The compiler according to the documents that this instance has now. A PDB writer uses it: a reader of
+		/// the written file only has its documents.
+		/// </summary>
+		internal Compiler GetCompilerOfDocuments() => CalculateCompiler(Documents);
 
 		internal void InitializeMethodBody(ModuleDefMD module, MethodDef ownerMethod, CilBody body) {
 			if (reader is null)
@@ -421,29 +430,17 @@ namespace dnlib.DotNet.Pdb {
 				method.GetCustomDebugInfos(ownerMethod, body, customDebugInfos);
 		}
 
-		static Compiler CalculateCompiler(ModuleDef module) {
-			if (module is null)
-				return Compiler.Other;
-
-			foreach (var asmRef in module.GetAssemblyRefs()) {
-				if (asmRef.Name == nameAssemblyVisualBasic || asmRef.Name == nameAssemblyVisualBasicCore)
+		// The language of the documents says which compiler it was: Roslyn writes Visual Basic's PDB files in another
+		// way (GenerateVisualBasicStylePdb) and Microsoft's PDB converter (Pdb2Pdb) also checks the documents.
+		// A reference to the Visual Basic runtime says nothing: the runtime can be embedded in a Visual Basic
+		// assembly, and code in any language can use it.
+		static Compiler CalculateCompiler(IEnumerable<PdbDocument> documents) {
+			foreach (var document in documents) {
+				if (document.Language == PdbDocumentConstants.LanguageVisualBasic)
 					return Compiler.VisualBasic;
 			}
-
-			// Disable this for now, we shouldn't be resolving types this early since we could be called by the ModuleDefMD ctor
-#if false
-			// The VB runtime can also be embedded, and if so, it seems that "Microsoft.VisualBasic.Embedded"
-			// attribute is added to the assembly's custom attributes.
-			var asm = module.Assembly;
-			if (asm is not null && asm.CustomAttributes.IsDefined("Microsoft.VisualBasic.Embedded"))
-				return Compiler.VisualBasic;
-#endif
-
 			return Compiler.Other;
 		}
-		static readonly UTF8String nameAssemblyVisualBasic = new UTF8String("Microsoft.VisualBasic");
-		// .NET Core 3.0 has this assembly because Microsoft.VisualBasic contains WinForms refs
-		static readonly UTF8String nameAssemblyVisualBasicCore = new UTF8String("Microsoft.VisualBasic.Core");
 
 		void AddSequencePoints(CilBody body, bool sorted, SymbolMethod method) {
 			int instrIndex = 0;
