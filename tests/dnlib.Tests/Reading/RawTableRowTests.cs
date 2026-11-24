@@ -97,5 +97,40 @@ namespace dnlib.Tests.Reading {
 			}
 			Assert.True(count >= 53, $"Only {count} tables were checked");
 		}
+
+		// RawRowEqualityComparer compares the rows of every table (the writer uses it to find a row that it
+		// already has). For every row struct: two rows with the same column values are equal and have the
+		// same hash code, and a row with another value in any one column isn't equal.
+		[Fact]
+		public void RowsAreEqualIfAllTheirColumnsAreEqual() {
+			var comparer = new RawRowEqualityComparer();
+			int count = 0;
+			foreach (var comparerInterface in typeof(RawRowEqualityComparer).GetInterfaces()) {
+				// IEqualityComparer<RawTypeDefRow> etc
+				var rowType = comparerInterface.GetGenericArguments()[0];
+				var equals = comparerInterface.GetMethod("Equals")!;
+				var getHashCode = comparerInterface.GetMethod("GetHashCode")!;
+				// The constructor with a parameter for every column (GenericParam has a second one)
+				var constructor = rowType.GetConstructors().OrderByDescending(a => a.GetParameters().Length).First();
+				var parameters = constructor.GetParameters();
+
+				object CreateRow(int changedColumn) {
+					var arguments = parameters.Select((a, index) => Convert.ChangeType(index + 1 + (index == changedColumn ? 100 : 0), a.ParameterType)).ToArray();
+					return constructor.Invoke(arguments);
+				}
+
+				var row = CreateRow(changedColumn: -1);
+				var sameRow = CreateRow(changedColumn: -1);
+				Assert.True((bool)equals.Invoke(comparer, new[] { row, sameRow })!, rowType.Name);
+				Assert.Equal(getHashCode.Invoke(comparer, new[] { row }), getHashCode.Invoke(comparer, new[] { sameRow }));
+				for (int column = 0; column < parameters.Length; column++) {
+					var otherRow = CreateRow(column);
+					Assert.False((bool)equals.Invoke(comparer, new[] { row, otherRow })!, $"{rowType.Name}.{parameters[column].Name}");
+					Assert.False((bool)equals.Invoke(comparer, new[] { otherRow, row })!, $"{rowType.Name}.{parameters[column].Name}");
+				}
+				count++;
+			}
+			Assert.True(count >= 53, $"Only {count} row structs were checked");
+		}
 	}
 }

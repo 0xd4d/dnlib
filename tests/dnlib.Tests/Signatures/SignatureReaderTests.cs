@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
@@ -203,6 +204,46 @@ namespace dnlib.Tests.Signatures {
 				arrays++;
 			Assert.Null(type);
 			Assert.InRange(arrays, 10, 999);
+		}
+
+		// The types that can be at the end of the too deeply nested type of the next test
+		public static IEnumerable<object[]> InnermostTypes() {
+			const byte classToken = 0x08;   // TypeDef 2 as a coded token
+			yield return new object[] { "int", new byte[] { I4 } };
+			yield return new object[] { "class", new byte[] { Class, classToken } };
+			yield return new object[] { "generic instance", new byte[] { GenericInst, Class, classToken, 2, I4, String } };
+			// int[,] with one size (3) and one lower bound (0)
+			yield return new object[] { "array", new byte[] { Array, I4, 2, 1, 3, 1, 0 } };
+			// static void(int, string)
+			yield return new object[] { "function pointer", new byte[] { FnPtr, DefaultCall, 2, Void, I4, String } };
+			// A generic function pointer has the number of generic parameters before the number of parameters
+			yield return new object[] { "generic function pointer", new byte[] { FnPtr, GenericFlag, 1, 1, Void, I4 } };
+			yield return new object[] { "modifier", new byte[] { CModOpt, classToken, CModReqd, classToken, I4 } };
+			yield return new object[] { "pointer", new byte[] { Ptr, Void } };
+			yield return new object[] { "by reference", new byte[] { ByRef, I4 } };
+			yield return new object[] { "generic parameters", new byte[] { GenericInst, Class, classToken, 2, Var, 0, MVar, 1 } };
+		}
+
+		// A type that's nested too deeply isn't read, but the reader must still know where it ends: the types
+		// that follow it in the signature are read. The method is 'static void(TooDeep, string)'.
+		[Theory]
+		[MemberData(nameof(InnermostTypes))]
+		public void TypeAfterATypeThatIsNestedTooDeeplyIsRead(string description, byte[] innermostType) {
+			Assert.NotEmpty(description);
+			var signature = new List<byte> { DefaultCall, 2, Void };
+			signature.AddRange(Enumerable.Repeat(SZArray, 300));
+			signature.AddRange(innermostType);
+			signature.Add(String);
+
+			var methodSig = Assert.IsType<MethodSig>(ReadSig(signature.ToArray()));
+
+			Assert.Equal(2, methodSig.Params.Count);
+			Assert.Equal(ElementType.String, methodSig.Params[1]!.ElementType);
+			// The first parameter is arrays of arrays of ... of nothing
+			var type = methodSig.Params[0];
+			while (type is SZArraySig)
+				type = type.Next;
+			Assert.Null(type);
 		}
 
 		[Fact]
