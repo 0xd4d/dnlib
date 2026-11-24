@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using dnlib.DotNet.Pdb.WindowsPdb;
 using dnlib.DotNet.Writer;
+using dnlib.IO;
 
 namespace dnlib.DotNet.Pdb.Dss {
 #if NETCOREAPP
@@ -61,6 +62,31 @@ namespace dnlib.DotNet.Pdb.Dss {
 						userPdbStream.SetLength(userPdbStream.Position);
 				}
 			}
+		}
+
+		public override byte[]? GetPdbChecksum(ChecksumAlgorithm pdbChecksumAlgorithm) {
+			if (!closeCalled || pdbIStream is null)
+				return null;
+			// The COM writer can't calculate it, so it's calculated from the file it wrote
+			long length = pdbIStream.Length;
+			if (length <= 0 || length > int.MaxValue)
+				return null;
+			var pdbData = new byte[(int)length];
+			var oldPos = pdbStream.Position;
+			try {
+				pdbStream.Position = pdbIStream.BaseOffset;
+				int offset = 0;
+				while (offset < pdbData.Length) {
+					int read = pdbStream.Read(pdbData, offset, pdbData.Length - offset);
+					if (read <= 0)
+						return null;
+					offset += read;
+				}
+			}
+			finally {
+				pdbStream.Position = oldPos;
+			}
+			return PdbChecksumValidator.TryComputeWindowsPdbChecksum(ByteArrayDataReaderFactory.CreateReader(pdbData), pdbChecksumAlgorithm);
 		}
 
 		public override void CloseMethod() => writer.CloseMethod();

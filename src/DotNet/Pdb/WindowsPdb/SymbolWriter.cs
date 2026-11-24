@@ -11,6 +11,12 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 
 		public abstract void Initialize(Metadata metadata);
 		public abstract void Close();
+
+		/// <summary>
+		/// Gets the checksum of the PDB file for a PDB checksum debug directory entry, or <c>null</c> if it can't be
+		/// calculated. Can only be called after <see cref="Close"/>: the file must have all its bytes.
+		/// </summary>
+		public abstract byte[]? GetPdbChecksum(ChecksumAlgorithm pdbChecksumAlgorithm);
 		public abstract bool GetDebugInfo(ChecksumAlgorithm pdbChecksumAlgorithm, ref uint pdbAge, out Guid guid, out uint stamp, out IMAGE_DEBUG_DIRECTORY pIDD, out byte[]? codeViewData);
 
 		public abstract void SetUserEntryPoint(MDToken entryMethod);

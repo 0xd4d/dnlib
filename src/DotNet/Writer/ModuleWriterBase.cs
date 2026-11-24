@@ -1077,7 +1077,6 @@ namespace dnlib.DotNet.Writer {
 		const uint PdbAge = 1;
 		void WriteWindowsPdb(PdbState pdbState) {
 			bool addPdbChecksumDebugDirectoryEntry = (TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0;
-			addPdbChecksumDebugDirectoryEntry = false;//TODO: If this is true, get the checksum from the PDB writer
 			var symWriter = GetWindowsPdbSymbolWriter(TheOptions.PdbOptions, out var pdbFilename);
 			if (symWriter is null) {
 				Error("Could not create a PDB symbol writer. A Windows OS might be required.");
@@ -1106,8 +1105,15 @@ namespace dnlib.DotNet.Writer {
 					entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
 				}
 
-				//TODO: Only do this if symWriter supports PDB checksums
-				if (addPdbChecksumDebugDirectoryEntry) { }//TODO: AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);, and verify that the order of the debug dir entries is the same as Roslyn created binaries
+				// Same order as the entries of a file with a portable PDB: CodeView, PDB checksum, reproducible.
+				// The checksum is of the whole file (without its GUID and timestamp), so the PDB is closed first.
+				if (addPdbChecksumDebugDirectoryEntry) {
+					var checksumBytes = pdbWriter.CloseAndGetPdbChecksum(TheOptions.PdbChecksumAlgorithm);
+					if (checksumBytes is not null)
+						AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);
+					else
+						Error("Could not calculate the checksum of the PDB file");
+				}
 				if (symWriter.IsDeterministic)
 					AddReproduciblePdbDebugDirectoryEntry();
 			}

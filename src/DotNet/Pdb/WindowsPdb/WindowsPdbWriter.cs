@@ -555,6 +555,15 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.GetDebugInfo(pdbChecksumAlgorithm, ref pdbAge, out guid, out stamp, out idd, out codeViewData);
 
 		public void Close() => writer.Close();
+
+		/// <summary>
+		/// Closes the PDB and returns its checksum for a PDB checksum debug directory entry, or <c>null</c> if
+		/// it can't be calculated
+		/// </summary>
+		public byte[]? CloseAndGetPdbChecksum(ChecksumAlgorithm pdbChecksumAlgorithm) {
+			Close();
+			return writer.GetPdbChecksum(pdbChecksumAlgorithm);
+		}
 		ILogger GetLogger() => Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 		void Error(string message, params object?[] args) => GetLogger().Log(this, LoggerEvent.Error, message, args);
 
