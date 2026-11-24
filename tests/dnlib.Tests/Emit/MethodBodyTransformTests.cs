@@ -91,6 +91,112 @@ namespace dnlib.Tests.Emit {
 			}, body.Instructions.Select(a => a.OpCode.Code).ToArray());
 		}
 
+		// Every short branch instruction and its long form: the opcodes with the names "x.s" and "x"
+		public static TheoryData<string, string> ShortAndLongBranches {
+			get {
+				var data = new TheoryData<string, string>();
+				var all = typeof(OpCodes).GetFields().Where(a => a.FieldType == typeof(OpCode)).Select(a => (OpCode)a.GetValue(null)!).ToList();
+				foreach (var shortBranch in all.Where(a => a.OperandType == OperandType.ShortInlineBrTarget)) {
+					var longBranch = all.Single(a => a.Name + ".s" == shortBranch.Name);
+					data.Add(shortBranch.Name, longBranch.Name);
+				}
+				return data;
+			}
+		}
+
+		static OpCode GetOpCode(string name) =>
+			typeof(OpCodes).GetFields().Where(a => a.FieldType == typeof(OpCode)).Select(a => (OpCode)a.GetValue(null)!).Single(a => a.Name == name);
+
+		[Theory, MemberData(nameof(ShortAndLongBranches))]
+		public void EveryShortBranchHasALongFormThatTheTransformsUse(string shortName, string longName) {
+			var body = new CilBody();
+			var target = OpCodes.Ret.ToInstruction();
+			var branch = new Instruction(GetOpCode(shortName), target);
+			body.Instructions.Add(branch);
+			body.Instructions.Add(target);
+
+			body.SimplifyBranches();
+			Assert.Equal(longName, branch.OpCode.Name);
+			Assert.Same(target, branch.Operand);
+
+			body.OptimizeBranches();
+			Assert.Equal(shortName, branch.OpCode.Name);
+			Assert.Same(target, branch.Operand);
+		}
+
+		[Fact]
+		public void ThereAre14ShortBranches() =>
+			Assert.Equal(14, ShortAndLongBranches.Count);
+
+		// Every instruction that loads or stores an argument or a local, with an argument or local at the indexes
+		// where the shortest form changes: 0-3 have their own instructions, up to 255 the index is a byte
+		[Theory]
+		[InlineData(0, "ldarg.0", "ldarga.s", "starg.s", "ldloc.0", "ldloca.s", "stloc.0")]
+		[InlineData(1, "ldarg.1", "ldarga.s", "starg.s", "ldloc.1", "ldloca.s", "stloc.1")]
+		[InlineData(2, "ldarg.2", "ldarga.s", "starg.s", "ldloc.2", "ldloca.s", "stloc.2")]
+		[InlineData(3, "ldarg.3", "ldarga.s", "starg.s", "ldloc.3", "ldloca.s", "stloc.3")]
+		[InlineData(4, "ldarg.s", "ldarga.s", "starg.s", "ldloc.s", "ldloca.s", "stloc.s")]
+		[InlineData(255, "ldarg.s", "ldarga.s", "starg.s", "ldloc.s", "ldloca.s", "stloc.s")]
+		[InlineData(256, "ldarg", "ldarga", "starg", "ldloc", "ldloca", "stloc")]
+		public void ArgumentAndLocalInstructionsUseTheShortestFormForTheIndex(int index, params string[] expectedShortForms) {
+			var module = new ModuleDefUser("Test.dll");
+			var parameterTypes = Enumerable.Repeat<TypeSig>(module.CorLibTypes.Int32, 300).ToArray();
+			var method = new MethodDefUser("M", MethodSig.CreateStatic(module.CorLibTypes.Void, parameterTypes), MethodAttributes.Public | MethodAttributes.Static);
+			var body = new CilBody();
+			method.Body = body;
+			var locals = Enumerable.Range(0, 300).Select(a => body.Variables.Add(new Local(module.CorLibTypes.Int32))).ToList();
+			var parameter = method.Parameters[index];
+			var local = locals[index];
+			body.Instructions.Add(OpCodes.Ldarg.ToInstruction(parameter));
+			body.Instructions.Add(OpCodes.Ldarga.ToInstruction(parameter));
+			body.Instructions.Add(OpCodes.Starg.ToInstruction(parameter));
+			body.Instructions.Add(OpCodes.Ldloc.ToInstruction(local));
+			body.Instructions.Add(OpCodes.Ldloca.ToInstruction(local));
+			body.Instructions.Add(OpCodes.Stloc.ToInstruction(local));
+
+			body.OptimizeMacros();
+			Assert.Equal(expectedShortForms, body.Instructions.Select(a => a.OpCode.Name));
+
+			// And back: the general form with the same argument or local
+			body.SimplifyMacros(method.Parameters);
+			Assert.Equal(new[] { "ldarg", "ldarga", "starg", "ldloc", "ldloca", "stloc" }, body.Instructions.Select(a => a.OpCode.Name));
+			Assert.All(body.Instructions.Take(3), a => Assert.Same(parameter, a.Operand));
+			Assert.All(body.Instructions.Skip(3), a => Assert.Same(local, a.Operand));
+		}
+
+		// ldc.i4.m1 and ldc.i4.0 - ldc.i4.8 have no operand, ldc.i4.s has a signed byte
+		[Theory]
+		[InlineData(-129, "ldc.i4")]
+		[InlineData(-128, "ldc.i4.s")]
+		[InlineData(-2, "ldc.i4.s")]
+		[InlineData(-1, "ldc.i4.m1")]
+		[InlineData(0, "ldc.i4.0")]
+		[InlineData(1, "ldc.i4.1")]
+		[InlineData(2, "ldc.i4.2")]
+		[InlineData(3, "ldc.i4.3")]
+		[InlineData(4, "ldc.i4.4")]
+		[InlineData(5, "ldc.i4.5")]
+		[InlineData(6, "ldc.i4.6")]
+		[InlineData(7, "ldc.i4.7")]
+		[InlineData(8, "ldc.i4.8")]
+		[InlineData(9, "ldc.i4.s")]
+		[InlineData(127, "ldc.i4.s")]
+		[InlineData(128, "ldc.i4")]
+		[InlineData(int.MaxValue, "ldc.i4")]
+		public void Int32ConstantUsesTheShortestForm(int value, string expectedShortForm) {
+			var body = new CilBody();
+			var instruction = new Instruction(OpCodes.Ldc_I4, value);
+			body.Instructions.Add(instruction);
+
+			body.OptimizeMacros();
+			Assert.Equal(expectedShortForm, instruction.OpCode.Name);
+			Assert.Equal(value, instruction.GetLdcI4Value());
+
+			body.SimplifyMacros(new List<Parameter>());
+			Assert.Equal("ldc.i4", instruction.OpCode.Name);
+			Assert.Equal(value, instruction.Operand);
+		}
+
 		[Fact]
 		public void BranchTransformsUseShortBranchesOnlyIfTheTargetIsNear() {
 			var body = new CilBody();
