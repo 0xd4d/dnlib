@@ -35,10 +35,10 @@ public abstract class Program {
 
 			public MethodDecrypter(uint ridToReplace) => this.ridToReplace = ridToReplace;
 
-			public bool GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters, GenericParamContext gpContext, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out MethodBody? methodBody) {
+			public bool GetMethodBody(uint rid, RVA rva, IList<Parameter> parameters, GenericParamContext gpContext, out MethodBody methodBody) {
 				Calls.Add((rid, rva, parameters.Count));
 				if (rid != ridToReplace) {
-					methodBody = null;
+					methodBody = null!;
 					return false;
 				}
 				var body = new CilBody();
