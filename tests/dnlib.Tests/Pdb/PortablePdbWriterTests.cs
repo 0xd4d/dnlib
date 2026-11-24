@@ -388,6 +388,59 @@ public enum CharEnum : ushort { }
 				Assert.Equal(originalScopeCount + 1, CountScopes(DebugInfoSource.GetRootScope(module, "Sum")));
 		}
 
+		// Custom debug info of a kind that dnlib doesn't know
+		sealed class UnknownKindOfInfo : PdbCustomDebugInfo {
+			public override PdbCustomDebugInfoKind Kind => (PdbCustomDebugInfoKind)12345;
+			public override Guid Guid => Guid.Empty;
+		}
+
+		static void MakePdbInfoInvalid(ModuleDefMD module, string what) {
+			var method = DebugInfoSource.GetMethod(module, "Sum");
+			var instructions = method.Body!.Instructions;
+			var root = DebugInfoSource.GetRootScope(module, "Sum");
+			switch (what) {
+			case "scope that ends before it starts":
+				root.Scopes.Add(new PdbScope { Start = instructions[3], End = instructions[1] });
+				break;
+			case "import scopes that are each other's parent": {
+				var first = new PdbImportScope();
+				var second = new PdbImportScope { Parent = first };
+				first.Parent = second;
+				root.ImportScope = first;
+				break;
+			}
+			case "document without a name":
+				module.PdbState!.Documents.First().Url = null!;
+				break;
+			case "iterator method without the method it was created for":
+				method.CustomDebugInfos.Add(new PdbIteratorMethodCustomDebugInfo(null!));
+				break;
+			case "custom debug info of an unknown kind":
+				method.CustomDebugInfos.Add(new UnknownKindOfInfo());
+				break;
+			default:
+				throw new ArgumentException(what);
+			}
+		}
+
+		[Theory]
+		[InlineData("scope that ends before it starts", "PDB scope's end instruction is before its start instruction")]
+		[InlineData("import scopes that are each other's parent", "PdbImportScope has an infinite Parent loop")]
+		[InlineData("document without a name", "Document name is null")]
+		[InlineData("iterator method without the method it was created for", "KickoffMethod is null")]
+		[InlineData("custom debug info of an unknown kind", "Unknown custom debug info")]
+		public void DebugInfoThatCanNotBeWrittenIsAnError(string what, string expectedError) {
+			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(module => MakePdbInfoInvalid(module, what)));
+			Assert.Contains(expectedError, exception.Message);
+
+			// If the error is ignored, the PDB is written and can be read
+			var written = ChangeAndWrite(module => MakePdbInfoInvalid(module, what), options => options.Logger = DummyLogger.NoThrowInstance);
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!))
+				Assert.Contains(DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions, a => a.SequencePoint is not null);
+			using (var pdb = OpenWithSrm(written.Pdb!))
+				Assert.True(pdb.GetMetadataReader().MethodDebugInformation.Count > 0);
+		}
+
 		// Fixed in 5ea0663e: the LocalScope rows of a method are sorted by where they start and by their length.
 		// A reader puts a scope into the scope before it if it has the same range, but the writer didn't keep
 		// such scopes in their order: the locals and constants of a scope moved to another scope.
