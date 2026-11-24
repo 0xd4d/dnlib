@@ -48,6 +48,33 @@ namespace dnlib.Tests.Model {
 			Assert.Equal(24, MDToken.TABLE_SHIFT);
 		}
 
+		// Fixed: a rid with more than 24 bits changed the table of the token (the bits were ORed into it).
+		// Only the lower 24 bits of the rid are used.
+		[Theory]
+		[InlineData(0x12345678U, 0x345678U)]
+		[InlineData(0x01000000U, 0U)]
+		[InlineData(0xFFFFFFFFU, 0xFFFFFFU)]
+		[InlineData(0x80000001U, 1U)]
+		public void RidWithMoreThan24BitsDoesNotChangeTheTable(uint rid, uint expectedRid) {
+			foreach (var table in new[] { Table.Module, Table.Field, Table.Method, Table.GenericParamConstraint, (Table)0xFF }) {
+				var fromUInt32 = new MDToken(table, rid);
+				var fromInt32 = new MDToken(table, unchecked((int)rid));
+
+				Assert.Equal(table, fromUInt32.Table);
+				Assert.Equal(expectedRid, fromUInt32.Rid);
+				Assert.Equal(((uint)table << 24) | expectedRid, fromUInt32.Raw);
+				Assert.Equal(fromUInt32, fromInt32);
+			}
+		}
+
+		[Fact]
+		public void NegativeRidDoesNotChangeTheTable() {
+			var token = new MDToken(Table.TypeDef, -1);
+
+			Assert.Equal(Table.TypeDef, token.Table);
+			Assert.Equal(MDToken.RID_MAX, token.Rid);
+		}
+
 		[Fact]
 		public void TokenWithRidZeroIsNull() {
 			Assert.True(new MDToken(Table.TypeDef, 0).IsNull);
