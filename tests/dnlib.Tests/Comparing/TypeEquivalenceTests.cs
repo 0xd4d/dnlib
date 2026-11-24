@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.TestUtils;
 using Xunit;
@@ -133,6 +134,74 @@ namespace Interop {{
 			Assert.False(AreEqual(OtherPoint(type => type.Layout = TypeAttributes.ExplicitLayout), point));
 			// The CLR's layout is its own choice: such structs are never equivalent
 			Assert.False(AreEqual(OtherPoint(type => type.Layout = TypeAttributes.AutoLayout), OtherPoint(type => type.Layout = TypeAttributes.AutoLayout)));
+		}
+
+		// Equivalent structs have the same public instance fields and nothing else: the CLR's
+		// CompareStructuresForEquivalence()
+		[Theory]
+		[InlineData("a method")]
+		[InlineData("a private field")]
+		[InlineData("a static field")]
+		[InlineData("one more field")]
+		[InlineData("one field less")]
+		public void StructsWithOtherMembersAreNotEqual(string change) {
+			var point = Find(first, "Point");
+			var other = Find(CompileAnother(), "Point");
+			var int32 = other.Module!.CorLibTypes.Int32;
+			switch (change) {
+			case "a method":
+				other.Methods.Add(new MethodDefUser("Method", MethodSig.CreateInstance(other.Module.CorLibTypes.Void), MethodAttributes.Public));
+				break;
+			case "a private field":
+				other.FindField("Y")!.Access = FieldAttributes.Private;
+				break;
+			case "a static field":
+				other.Fields.Insert(0, new FieldDefUser("Shared", new FieldSig(int32), FieldAttributes.Public | FieldAttributes.Static));
+				break;
+			case "one more field":
+				other.Fields.Add(new FieldDefUser("Z", new FieldSig(int32), FieldAttributes.Public));
+				break;
+			case "one field less":
+				other.Fields.RemoveAt(1);
+				break;
+			default:
+				throw new ArgumentException(change);
+			}
+
+			Assert.False(AreEqual(point, other));
+			Assert.False(AreEqual(other, point));
+		}
+
+		// The values of an enum are constants: they aren't compared. The type of the values is.
+		[Fact]
+		public void EnumsAreComparedByTheirUnderlyingType() {
+			var color = Find(first, "Color");
+			var withOtherValues = Find(CompileAnother(), "Color");
+			withOtherValues.Fields.Remove(withOtherValues.FindField("Green")!);
+			var withOtherType = Find(CompileAnother(), "Color");
+			withOtherType.FindField("value__")!.FieldSig!.Type = withOtherType.Module!.CorLibTypes.Int64;
+
+			Assert.True(AreEqual(color, withOtherValues));
+			Assert.False(AreEqual(color, withOtherType));
+			// An enum and a struct with the same name aren't the same kind of type
+			var structNamedColor = Find(CompileAnother(), "Point");
+			structNamedColor.Name = "Color";
+			structNamedColor.CustomAttributes.Clear();
+			foreach (var attribute in color.CustomAttributes)
+				structNamedColor.CustomAttributes.Add(new CustomAttribute(attribute.Constructor, attribute.ConstructorArguments.Select(a => a.Clone())));
+			Assert.False(AreEqual(color, structNamedColor));
+		}
+
+		[Fact]
+		public void DelegateWithoutAnInvokeMethodIsNotEqual() {
+			var callback = Find(first, "Callback");
+			var other = Find(CompileAnother(), "Callback");
+			Assert.True(AreEqual(callback, other));
+
+			other.Methods.Remove(other.FindMethod("Invoke")!);
+
+			Assert.False(AreEqual(callback, other));
+			Assert.False(AreEqual(other, callback));
 		}
 
 		[Fact]
