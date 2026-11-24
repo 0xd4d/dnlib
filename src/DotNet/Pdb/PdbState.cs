@@ -562,26 +562,8 @@ recursive_call:
 						}
 						// An enum constant is stored like a constant of its underlying type. Only an enum in
 						// this module is checked, an enum in another assembly would have to be resolved.
-						else if (((ValueTypeSig)type).TypeDefOrRef is TypeDef enumType && enumType.IsEnum) {
-							switch (enumType.GetEnumUnderlyingType().RemovePinnedAndModifiers().GetElementType()) {
-							case ElementType.Boolean:
-								if (constant.Value is short)
-									constant.Value = (short)constant.Value != 0;
-								break;
-							case ElementType.Char:
-								if (constant.Value is ushort)
-									constant.Value = (char)(ushort)constant.Value;
-								break;
-							case ElementType.I1:
-								if (constant.Value is short)
-									constant.Value = (sbyte)(short)constant.Value;
-								break;
-							case ElementType.U1:
-								if (constant.Value is short)
-									constant.Value = (byte)(short)constant.Value;
-								break;
-							}
-						}
+						else if (((ValueTypeSig)type).TypeDefOrRef is TypeDef enumType && enumType.IsEnum)
+							constant.Value = FixWindowsPdbEnumValue(enumType, constant.Value);
 						break;
 					case ElementType.String:
 						// Use the kind of the PDB that was read, PdbFileKind can be changed to write another kind
@@ -605,8 +587,12 @@ recursive_call:
 						break;
 					case ElementType.GenericInst:
 						var gis = (GenericInstSig)type;
-						if (gis.GenericType is ValueTypeSig)
+						if (gis.GenericType is ValueTypeSig genericValueType) {
+							// An enum that's nested in a generic type
+							if (genericValueType.TypeDefOrRef is TypeDef genericEnumType && genericEnumType.IsEnum)
+								constant.Value = FixWindowsPdbEnumValue(genericEnumType, constant.Value);
 							break;
+						}
 						goto case ElementType.Class;
 					case ElementType.Var:
 					case ElementType.MVar:
@@ -704,6 +690,29 @@ do_return:
 		}
 
 		internal void Dispose() => reader?.Dispose();
+
+		// A Windows PDB stores a Boolean, Char, SByte or Byte constant as an Int16 or UInt16
+		static object? FixWindowsPdbEnumValue(TypeDef enumType, object? value) {
+			switch (enumType.GetEnumUnderlyingType().RemovePinnedAndModifiers().GetElementType()) {
+			case ElementType.Boolean:
+				if (value is short)
+					return (short)value != 0;
+				break;
+			case ElementType.Char:
+				if (value is ushort)
+					return (char)(ushort)value;
+				break;
+			case ElementType.I1:
+				if (value is short)
+					return (sbyte)(short)value;
+				break;
+			case ElementType.U1:
+				if (value is short)
+					return (byte)(short)value;
+				break;
+			}
+			return value;
+		}
 
 		static bool IsSystemDateTime(ITypeDefOrRef? tdr) =>
 			tdr is not null && tdr.Name == "DateTime" && tdr.Namespace == "System" && tdr.DefinitionAssembly.IsCorLib();
