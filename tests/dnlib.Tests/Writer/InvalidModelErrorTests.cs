@@ -52,6 +52,33 @@ namespace dnlib.Tests.Writer {
 			case "method body of an unknown kind":
 				created.AddMethod("Method").MethodBody = new UnknownMethodBody();
 				break;
+			case "method without a signature":
+				created.AddMethod("Method", OpCodes.Ret.ToInstruction()).Signature = null;
+				break;
+			case "method with 65536 locals": {
+				var body = created.AddMethod("Method", OpCodes.Ret.ToInstruction()).Body!;
+				for (int i = 0; i < 0x10000; i++)
+					body.Variables.Add(new Local(Types.Int32));
+				break;
+			}
+			case "marshal type with an unknown native type":
+				created.AddField("Field", Types.Int32).MarshalType = new MarshalType((NativeType)0x12345);
+				break;
+			case "custom marshaler without its values":
+				created.AddField("Field", Types.Int32).MarshalType = new MarshalType(NativeType.CustomMarshaler);
+				break;
+			case "raw marshal blob without its data":
+				created.AddField("Field", Types.Int32).MarshalType = new MarshalType(NativeType.RawBlob);
+				break;
+			case "safe array with a type name but no variant type":
+				created.AddField("Field", Types.Int32).MarshalType = new SafeArrayMarshalType(VariantType.NotInitialized, created.Type);
+				break;
+			case "security attribute without a type": {
+				var declSecurity = new DeclSecurityUser { Action = SecurityAction.Demand };
+				declSecurity.SecurityAttributes.Add(new SecurityAttribute(null));
+				created.Type.DeclSecurities.Add(declSecurity);
+				break;
+			}
 			default:
 				throw new ArgumentException(what);
 			}
@@ -64,6 +91,13 @@ namespace dnlib.Tests.Writer {
 		[InlineData("exported types that are nested in each other", "infinite Implementation loop")]
 		[InlineData("instruction with an operand that has no token", "Invalid instruction operand")]
 		[InlineData("method body of an unknown kind", "Unsupported method body")]
+		[InlineData("method without a signature", "CallingConventionSig is null")]
+		[InlineData("method with 65536 locals", "Too many locals")]
+		[InlineData("marshal type with an unknown native type", "Invalid MarshalType.NativeType")]
+		[InlineData("custom marshaler without its values", "a custom marshaler must be a CustomMarshalType")]
+		[InlineData("raw marshal blob without its data", "a raw blob must be a RawMarshalType")]
+		[InlineData("safe array with a type name but no variant type", "is valid even though a previous field was invalid")]
+		[InlineData("security attribute without a type", "SecurityAttribute attribute type is null")]
 		public void ModuleThatCanNotBeWrittenAsItIsIsAnError(string what, string expectedError) {
 			MakeInvalid(what);
 
@@ -75,8 +109,8 @@ namespace dnlib.Tests.Writer {
 			created.Module.Write(stream, new ModuleWriterOptions(created.Module) { Logger = DummyLogger.NoThrowInstance });
 			using (var module = ModuleDefMD.Load(stream.ToArray())) {
 				var type = CreatedModule.GetType(module);
-				Assert.All(type.Fields, a => Assert.NotNull(a.FieldSig));
-				Assert.All(type.Methods, a => Assert.NotNull(a.MethodSig));
+				Assert.Equal(created.Type.Fields.Count, type.Fields.Count);
+				Assert.Equal(created.Type.Methods.Count, type.Methods.Count);
 			}
 		}
 	}
