@@ -219,5 +219,59 @@ public struct Struct {
 
 			Assert.Same(baseType.FindField("Field"), baseType.Resolve(reference));
 		}
+
+		// The names are compared exactly unless the options say that the case of a name doesn't matter
+		[Fact]
+		public void MembersAreFoundWithoutCaseIfTheOptionsSaySo() {
+			const SigComparerOptions methodsAndFields = SigComparerOptions.CaseInsensitiveMethodFieldNames;
+			var methodSig = MethodSig.CreateInstance(CorLib.Void);
+			var fieldSig = new FieldSig(CorLib.Int32);
+			var propertySig = PropertySig.CreateInstance(new GenericVar(0));
+			var eventType = baseType.FindEvent("Changed")!.EventType;
+
+			Assert.Null(baseType.FindMethod("VIRTUAL", methodSig));
+			Assert.Null(baseType.FindMethod("VIRTUAL", methodSig, SigComparerOptions.CaseInsensitivePropertyNames));
+			Assert.Same(baseType.FindMethod("Virtual"), baseType.FindMethod("VIRTUAL", methodSig, methodsAndFields));
+			Assert.Same(baseType.FindMethod("Virtual"), baseType.FindMethod("VIRTUAL", methodSig, methodsAndFields, module));
+
+			Assert.Null(baseType.FindField("FIELD", fieldSig));
+			Assert.Same(baseType.FindField("Field"), baseType.FindField("FIELD", fieldSig, methodsAndFields));
+			Assert.Same(baseType.FindField("Field"), baseType.FindField("FIELD", fieldSig, methodsAndFields, module));
+
+			Assert.Null(baseType.FindProperty("PROPERTY", propertySig));
+			Assert.Null(baseType.FindProperty("PROPERTY", propertySig, methodsAndFields));
+			Assert.Same(baseType.FindProperty("Property"), baseType.FindProperty("PROPERTY", propertySig, SigComparerOptions.CaseInsensitivePropertyNames));
+			Assert.Same(baseType.FindProperty("Property"), baseType.FindProperty("PROPERTY", propertySig, SigComparerOptions.CaseInsensitivePropertyNames, module));
+
+			Assert.Null(baseType.FindEvent("CHANGED", eventType));
+			Assert.Same(baseType.FindEvent("Changed"), baseType.FindEvent("Changed", eventType));
+			Assert.Same(baseType.FindEvent("Changed"), baseType.FindEvent("CHANGED", eventType, SigComparerOptions.CaseInsensitiveEventNames));
+			Assert.Same(baseType.FindEvent("Changed"), baseType.FindEvent("CHANGED", eventType, SigComparerOptions.CaseInsensitiveEventNames, module));
+		}
+
+		[Fact]
+		public void MembersOfABaseTypeAreFoundWithoutCaseIfTheOptionsSaySo() {
+			const SigComparerOptions methodsAndFields = SigComparerOptions.CaseInsensitiveMethodFieldNames;
+			var methodSig = MethodSig.CreateInstance(CorLib.Void);
+			var fieldSig = new FieldSig(CorLib.Int32);
+			// Derived is a Base<int>: the type of the property is int there
+			var propertySig = PropertySig.CreateInstance(CorLib.Int32);
+
+			Assert.Null(mostDerived.FindMethodCheckBaseType("VIRTUAL", methodSig));
+			Assert.Same(baseType.FindMethod("Virtual"), mostDerived.FindMethodCheckBaseType("VIRTUAL", methodSig, methodsAndFields));
+			Assert.Same(derived.FindMethod("OwnMethod"), mostDerived.FindMethodCheckBaseType("ownmethod", methodSig, methodsAndFields, module));
+
+			Assert.Null(mostDerived.FindFieldCheckBaseType("FIELD", fieldSig));
+			Assert.Same(baseType.FindField("Field"), mostDerived.FindFieldCheckBaseType("FIELD", fieldSig, methodsAndFields));
+			Assert.Same(baseType.FindField("Field"), mostDerived.FindFieldCheckBaseType("FIELD", fieldSig, methodsAndFields, module));
+
+			Assert.Null(mostDerived.FindPropertyCheckBaseType("PROPERTY", propertySig));
+			Assert.Same(baseType.FindProperty("Property"), mostDerived.FindPropertyCheckBaseType("Property", propertySig));
+			Assert.Same(baseType.FindProperty("Property"), mostDerived.FindPropertyCheckBaseType("PROPERTY", propertySig, SigComparerOptions.CaseInsensitivePropertyNames));
+			Assert.Same(baseType.FindProperty("Property"), mostDerived.FindPropertyCheckBaseType("PROPERTY", propertySig, SigComparerOptions.CaseInsensitivePropertyNames, module));
+
+			Assert.Same(baseType.FindEvent("Changed"), mostDerived.FindEventCheckBaseType("Changed"));
+			Assert.Null(mostDerived.FindEventCheckBaseType("CHANGED"));
+		}
 	}
 }
