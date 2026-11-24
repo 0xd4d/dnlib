@@ -60,7 +60,7 @@ namespace dnlib.Tests.Emit {
 			reader.ReadCode(code.Length);
 
 			var instructions = reader.Instructions;
-			Assert.Equal(new[] { Code.Ldstr, Code.Call, Code.Ldloc_1, Code.Pop, Code.Br_S, Code.Nop, Code.Ret }, instructions.Select(a => a.OpCode.Code));
+			Assert.Equal(new[] { Code.Ldstr, Code.Call, Code.Ldloc_1, Code.Pop, Code.Br_S, Code.Nop, Code.Ret }, instructions.Select(a => a.OpCode.Code).ToArray());
 			Assert.Equal(new uint[] { 0, 5, 10, 11, 12, 14, 15 }, instructions.Select(a => a.Offset));
 			Assert.Equal("text", instructions[0].Operand);
 			Assert.Same(method, instructions[1].Operand);
@@ -82,7 +82,7 @@ namespace dnlib.Tests.Emit {
 
 			reader.ReadSomeInstructions(4);
 
-			Assert.Equal(new[] { Code.Nop, Code.Nop, Code.Nop, Code.Ret }, reader.Instructions.Select(a => a.OpCode.Code));
+			Assert.Equal(new[] { Code.Nop, Code.Nop, Code.Nop, Code.Ret }, reader.Instructions.Select(a => a.OpCode.Code).ToArray());
 			// More instructions than the code has: the reader stops at the end of the code
 			var readerOfAll = new ListTokenReader(code, new object[0]);
 			readerOfAll.ReadSomeInstructions(100);
@@ -177,7 +177,7 @@ namespace dnlib.Tests.Emit {
 
 			reader.RestoreMethod(method);
 
-			Assert.Equal(new[] { Code.Nop, Code.Nop, Code.Nop, Code.Ret }, method.Body.Instructions.Select(a => a.OpCode.Code));
+			Assert.Equal(new[] { Code.Nop, Code.Nop, Code.Nop, Code.Ret }, method.Body.Instructions.Select(a => a.OpCode.Code).ToArray());
 			Assert.Equal("System.Int32", Assert.Single(method.Body.Variables).Type!.FullName);
 			Assert.Single(method.Body.ExceptionHandlers);
 			// A method without a body can't get one this way

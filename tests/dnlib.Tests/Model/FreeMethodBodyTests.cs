@@ -25,7 +25,7 @@ namespace dnlib.Tests.Model {
 				main.FreeMethodBody();
 
 				Assert.NotSame(body, main.Body);
-				Assert.Equal(codes, main.Body!.Instructions.Select(a => a.OpCode.Code));
+				Assert.Equal(codes.ToArray(), main.Body!.Instructions.Select(a => a.OpCode.Code).ToArray());
 				Assert.Same(main.Body, main.Body);
 			}
 		}
