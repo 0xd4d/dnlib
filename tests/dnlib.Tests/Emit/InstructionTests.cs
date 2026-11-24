@@ -347,6 +347,55 @@ namespace dnlib.Tests.Emit {
 			Assert.Equal("IL_0000: switch(IL_001A,null)", new Instruction(OpCodes.Switch, new Instruction?[] { target, null }).ToString());
 		}
 
+		// The text of the operand of every kind of instruction, also if the operand is missing or of another kind
+		[Fact]
+		public void TextOfEveryKindOfOperand() {
+			var types = CorLibTypes;
+			var field = new MemberRefUser(module, "Field", new FieldSig(types.Int32), types.GetTypeRef("System", "Console"));
+			var local = new Local(types.Int32, "count");
+			var unnamedLocal = new Local(types.Int32, null, 3);
+			string Operand(OpCode opCode, object? operand) => InstructionPrinter.GetOperandString(new Instruction(opCode, operand));
+
+			Assert.Equal("", Operand(OpCodes.Nop, null));
+			Assert.Equal("System.Int32 System.Console::Field", Operand(OpCodes.Ldsfld, field));
+			Assert.Equal("System.Console", Operand(OpCodes.Castclass, types.GetTypeRef("System", "Console")));
+			Assert.Equal("System.Int32 System.Console::Field", Operand(OpCodes.Ldtoken, field));
+			Assert.Equal("5", Operand(OpCodes.Ldc_I4_S, (sbyte)5));
+			Assert.Equal("5", Operand(OpCodes.Ldc_I8, 5L));
+			Assert.Equal("1.5", Operand(OpCodes.Ldc_R4, 1.5f));
+			Assert.Equal("2.5", Operand(OpCodes.Ldc_R8, 2.5));
+			Assert.Equal("System.Void (System.Int32)", Operand(OpCodes.Calli, MethodSig.CreateStatic(types.Void, types.Int32)));
+			Assert.Equal("count", Operand(OpCodes.Ldloc, local));
+			Assert.Equal("V_3", Operand(OpCodes.Ldloc_S, unnamedLocal));
+
+			// No operand, or an operand that isn't what the instruction needs
+			Assert.Equal("null", Operand(OpCodes.Br, null));
+			Assert.Equal("null", Operand(OpCodes.Br_S, "not an instruction"));
+			Assert.Equal("null", Operand(OpCodes.Call, null));
+			Assert.Equal("not a method", Operand(OpCodes.Call, "not a method"));
+			Assert.Equal("null", Operand(OpCodes.Ldstr, null));
+			Assert.Equal("null", Operand(OpCodes.Switch, null));
+			Assert.Equal("null", Operand(OpCodes.Ldloc, null));
+			Assert.Equal("", Operand(OpCodes.Ldc_I4, null));
+
+			// The whole instruction, and no instruction
+			Assert.Equal("", InstructionPrinter.ToString(null));
+			var builder = new System.Text.StringBuilder("load");
+			InstructionPrinter.AddOperandString(builder, new Instruction(OpCodes.Ldloc, local));
+			InstructionPrinter.AddOperandString(builder, new Instruction(OpCodes.Ldloc, local), " and ");
+			Assert.Equal("loadcount and count", builder.ToString());
+		}
+
+		// Chars of a string that can't be shown are written like in C#
+		[Theory]
+		[InlineData("plain", "\"plain\"")]
+		[InlineData("", "\"\"")]
+		[InlineData("a\"b\\c", "\"a\\\"b\\\\c\"")]
+		[InlineData("\a\b\f\n\r\t\v", "\"\\a\\b\\f\\n\\r\\t\\v\"")]
+		[InlineData("\u0001\u001F", "\"\\u0001\\u001F\"")]
+		public void TextOfAStringOperandHasEscapedChars(string value, string expectedText) =>
+			Assert.Equal(expectedText, InstructionPrinter.GetOperandString(new Instruction(OpCodes.Ldstr, value)));
+
 		[Fact]
 		public void CloneCopiesEverythingButSharesTheOperand() {
 			var original = OpCodes.Ldstr.ToInstruction("text");
