@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Linq;
 using dnlib.DotNet;
 using Xunit;
 
@@ -226,6 +227,101 @@ namespace dnlib.Tests.Names {
 			var type = Assert.IsAssignableFrom<TypeRef>(TypeNameParser.ParseReflection(module, "Ns.NotInModule", null));
 
 			Assert.Equal("Test", GetAssembly(type).Name);
+		}
+
+		// The bounds of an array dimension: "lower..upper", or "lower..." if it has no size. The runtime's type
+		// names don't have bounds (such an array is "T[*]" or "T[,]"), this is dnlib's own syntax.
+		[Theory]
+		[InlineData("Ns.T[0..4], A", 1, new[] { 0 }, new uint[] { 5 })]
+		[InlineData("Ns.T[1..5,-2..2], A", 2, new[] { 1, -2 }, new uint[] { 5, 5 })]
+		[InlineData("Ns.T[-5..-3], A", 1, new[] { -5 }, new uint[] { 3 })]
+		[InlineData("Ns.T[3...], A", 1, new[] { 3 }, new uint[0])]
+		[InlineData("Ns.T[ 0 .. 9 , 1..1 ], A", 2, new[] { 0, 1 }, new uint[] { 10, 1 })]
+		[InlineData("Ns.T[*,*], A", 2, new int[0], new uint[0])]
+		public void ArrayBounds(string name, uint expectedRank, int[] expectedLowerBounds, uint[] expectedSizes) {
+			var array = Assert.IsType<ArraySig>(Parse(name));
+
+			Assert.Equal(expectedRank, array.Rank);
+			Assert.Equal(expectedLowerBounds, array.LowerBounds);
+			Assert.Equal(expectedSizes, array.Sizes);
+			Assert.Equal("Ns.T", array.Next!.FullName);
+		}
+
+		[Theory]
+		[InlineData("Ns.T[5..4], A")]               // upper < lower
+		[InlineData("Ns.T[0..99999999999], A")]     // too big for an integer
+		[InlineData("Ns.T[0.4], A")]                // one dot
+		[InlineData("Ns.T[0...4], A")]              // three dots and a size
+		[InlineData("Ns.T[-], A")]
+		public void InvalidArrayBoundsReturnNull(string name) =>
+			Assert.Null(Parse(name));
+
+		[Fact]
+		public void AssemblyNameWithAPublicKeyAndFlags() {
+			var publicKey = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+			string publicKeyText = string.Concat(publicKey.Select(a => a.ToString("X2")));
+
+			var assembly = GetAssembly(ParseTypeRef($"Ns.T, Lib, Version=1.2.3.4, Culture=en-US, PublicKey={publicKeyText}, Retargetable=Yes, ContentType=WindowsRuntime"));
+
+			Assert.Equal("Lib", assembly.Name);
+			Assert.Equal(new Version(1, 2, 3, 4), assembly.Version);
+			Assert.Equal("en-US", assembly.Culture);
+			Assert.True(assembly.HasPublicKey);
+			Assert.Equal(publicKey, Assert.IsType<PublicKey>(assembly.PublicKeyOrToken).Data);
+			Assert.True(assembly.IsRetargetable);
+			Assert.True(assembly.IsContentTypeWindowsRuntime);
+		}
+
+		[Fact]
+		public void AssemblyNameWithANullPublicKeyAndFlagsThatAreOff() {
+			var assembly = GetAssembly(ParseTypeRef("Ns.T, Lib, PublicKey=null, Retargetable=No, ContentType=Default"));
+
+			Assert.True(assembly.HasPublicKey);
+			Assert.True(PublicKeyBase.IsNullOrEmpty2(Assert.IsType<PublicKey>(assembly.PublicKeyOrToken)));
+			Assert.False(assembly.IsRetargetable);
+			Assert.True(assembly.IsContentTypeDefault);
+		}
+
+		sealed class FixedAssemblyFinder : IAssemblyRefFinder {
+			public TypeRef? AskedFor;
+			public AssemblyRef? FindAssemblyRef(TypeRef nonNestedTypeRef) {
+				AskedFor = nonNestedTypeRef;
+				return new AssemblyRefUser("FoundByTheHelper", new Version(7, 0, 0, 0));
+			}
+		}
+
+		// A helper can say in which assembly a type without an assembly name is. It's asked for the
+		// outermost type, and not if the name has an assembly.
+		[Fact]
+		public void HelperFindsTheAssemblyOfATypeWithoutAnAssemblyName() {
+			var module = CreateModule();
+			var finder = new FixedAssemblyFinder();
+
+			var nested = Assert.IsAssignableFrom<TypeRef>(TypeNameParser.ParseReflection(module, "Ns.Outer+Nested", finder));
+
+			Assert.Equal("Ns.Outer", finder.AskedFor!.FullName);
+			Assert.Equal("FoundByTheHelper", nested.DefinitionAssembly!.Name);
+
+			finder.AskedFor = null;
+			var withAssembly = Assert.IsAssignableFrom<TypeRef>(TypeNameParser.ParseReflection(module, "Ns.Outer, Other", finder));
+			Assert.Null(finder.AskedFor);
+			Assert.Equal("Other", withAssembly.DefinitionAssembly!.Name);
+		}
+
+		// A generic parameter (!0, !!0) in a name gets its owner from the context
+		[Fact]
+		public void ParseWithAGenericParameterContext() {
+			var module = CreateModule();
+			var type = new TypeDefUser("Ns", "Generic`1", module.CorLibTypes.Object.TypeDefOrRef);
+			type.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
+			module.Types.Add(type);
+			var context = new GenericParamContext(type);
+
+			var list = Assert.IsType<GenericInstSig>(TypeNameParser.ParseAsTypeSigReflection(module, "Ns.List`1[[System.String, mscorlib]], A", null, context));
+			Assert.Equal("Ns.List`1<System.String>", list.FullName);
+			var asType = TypeNameParser.ParseReflectionOrThrow(module, "Ns.List`1[[System.String, mscorlib]], A", null, context);
+			Assert.Equal("Ns.List`1<System.String>", Assert.IsAssignableFrom<TypeSpec>(asType).FullName);
+			Assert.Equal("Ns.T[]", TypeNameParser.ParseAsTypeSigReflectionOrThrow(module, "Ns.T[], A", null, context).FullName);
 		}
 	}
 }

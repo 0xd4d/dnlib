@@ -204,5 +204,169 @@ namespace dnlib.Tests.Emit {
 				Assert.Equal(101, runtimeMethod.Invoke(null, new object[] { 1 }));
 			}
 		}
+
+		public class GenericHolder<T> {
+			public static T Value = default!;
+			public static T Echo(T value) => value;
+		}
+
+		// The locals of a dynamic method aren't stored with tokens: a class is stored as the address of the
+		// runtime's own data about the type, which the reader converts back to the type
+		[Fact]
+		public void LocalsOfClassAndStructTypes() {
+			var dynamicMethod = new DynamicMethod("Locals", typeof(void), Type.EmptyTypes);
+			var il = dynamicMethod.GetILGenerator();
+			il.DeclareLocal(typeof(Guid));
+			il.DeclareLocal(typeof(System.Text.StringBuilder));
+			il.DeclareLocal(typeof(System.Collections.Generic.List<string>));
+			il.DeclareLocal(typeof(DynamicMethodBodyReaderTests));
+			il.DeclareLocal(typeof(GenericHolder<int>[]));
+			il.Emit(ReflectionOpCodes.Ret);
+			var locals = (Action)dynamicMethod.CreateDelegate(typeof(Action));
+			locals();
+
+			var method = Read(locals);
+
+			Assert.Equal(new[] {
+				"System.Guid",
+				"System.Text.StringBuilder",
+				"System.Collections.Generic.List`1<System.String>",
+				"dnlib.Tests.Emit.DynamicMethodBodyReaderTests",
+				"dnlib.Tests.Emit.DynamicMethodBodyReaderTests/GenericHolder`1<System.Int32>[]",
+			}, method.Body!.Variables.Select(a => a.Type!.FullName));
+			Assert.True(method.Body.Variables[0].Type!.IsValueType);
+			Assert.False(method.Body.Variables[1].Type!.IsValueType);
+		}
+
+		// A member of an instantiated generic type is stored with its type
+		[Fact]
+		public void MembersOfAGenericType() {
+			var dynamicMethod = new DynamicMethod("Generic", typeof(int), Type.EmptyTypes, typeof(DynamicMethodBodyReaderTests).Module);
+			var il = dynamicMethod.GetILGenerator();
+			il.Emit(ReflectionOpCodes.Ldc_I4_3);
+			il.Emit(ReflectionOpCodes.Stsfld, typeof(GenericHolder<int>).GetField("Value")!);
+			il.Emit(ReflectionOpCodes.Ldsfld, typeof(GenericHolder<int>).GetField("Value")!);
+			il.Emit(ReflectionOpCodes.Call, typeof(GenericHolder<int>).GetMethod("Echo")!);
+			il.Emit(ReflectionOpCodes.Ret);
+			var generic = (Func<int>)dynamicMethod.CreateDelegate(typeof(Func<int>));
+			Assert.Equal(3, generic());
+
+			var instructions = Read(generic).Body!.Instructions;
+
+			const string holder = "dnlib.Tests.Emit.DynamicMethodBodyReaderTests/GenericHolder`1<System.Int32>";
+			var field = Assert.IsAssignableFrom<MemberRef>(instructions[1].Operand);
+			Assert.Equal(holder, field.DeclaringType!.FullName);
+			Assert.Equal("Value", field.Name);
+			// The signature is the one of the definition: the field's type is the generic parameter T
+			Assert.Equal(ElementType.Var, field.FieldSig!.Type!.ElementType);
+			var calledMethod = Assert.IsAssignableFrom<MemberRef>(instructions[3].Operand);
+			Assert.Equal(holder, calledMethod.DeclaringType!.FullName);
+			Assert.Equal("Echo", calledMethod.Name);
+			Assert.Equal(ElementType.Var, calledMethod.MethodSig!.RetType!.ElementType);
+		}
+
+		// ldtoken of a type, a method and a field, and a call of an instantiated generic method
+		[Fact]
+		public void TokenOperandsAndAGenericMethod() {
+			var dynamicMethod = new DynamicMethod("Tokens", typeof(int[]), Type.EmptyTypes, typeof(DynamicMethodBodyReaderTests).Module);
+			var il = dynamicMethod.GetILGenerator();
+			il.Emit(ReflectionOpCodes.Ldtoken, typeof(Guid));
+			il.Emit(ReflectionOpCodes.Pop);
+			il.Emit(ReflectionOpCodes.Ldtoken, typeof(DynamicMethodBodyReaderTests).GetMethod(nameof(Twice))!);
+			il.Emit(ReflectionOpCodes.Pop);
+			il.Emit(ReflectionOpCodes.Ldtoken, typeof(DynamicMethodBodyReaderTests).GetField(nameof(StaticField))!);
+			il.Emit(ReflectionOpCodes.Pop);
+			il.Emit(ReflectionOpCodes.Call, typeof(Array).GetMethod(nameof(Array.Empty))!.MakeGenericMethod(typeof(int)));
+			il.Emit(ReflectionOpCodes.Ret);
+			var tokens = (Func<int[]>)dynamicMethod.CreateDelegate(typeof(Func<int[]>));
+			Assert.Empty(tokens());
+
+			var instructions = Read(tokens).Body!.Instructions;
+
+			Assert.Equal("System.Guid", Assert.IsAssignableFrom<ITypeDefOrRef>(instructions[0].Operand).FullName);
+			Assert.Equal("System.Int32 dnlib.Tests.Emit.DynamicMethodBodyReaderTests::Twice(System.Int32)", Assert.IsAssignableFrom<IMethod>(instructions[2].Operand).FullName);
+			Assert.Equal("System.Int32 dnlib.Tests.Emit.DynamicMethodBodyReaderTests::StaticField", Assert.IsAssignableFrom<IField>(instructions[4].Operand).FullName);
+			var emptyArray = Assert.IsAssignableFrom<MethodSpec>(instructions[6].Operand);
+			Assert.Equal("System.Array", emptyArray.DeclaringType!.FullName);
+			Assert.Equal("System.Int32", Assert.Single(emptyArray.GenericInstMethodSig!.GenericArguments)!.FullName);
+		}
+
+		// An indirect call has the signature of the called method as its operand
+		[Fact]
+		public void IndirectCallHasASignature() {
+			var dynamicMethod = new DynamicMethod("Indirect", typeof(int), Type.EmptyTypes, typeof(DynamicMethodBodyReaderTests).Module);
+			var il = dynamicMethod.GetILGenerator();
+			il.Emit(ReflectionOpCodes.Ldc_I4, 21);
+			il.Emit(ReflectionOpCodes.Ldftn, typeof(DynamicMethodBodyReaderTests).GetMethod(nameof(Twice))!);
+			il.EmitCalli(ReflectionOpCodes.Calli, System.Reflection.CallingConventions.Standard, typeof(int), new[] { typeof(int) }, null);
+			il.Emit(ReflectionOpCodes.Ret);
+			var indirect = (Func<int>)dynamicMethod.CreateDelegate(typeof(Func<int>));
+			Assert.Equal(42, indirect());
+
+			var instructions = Read(indirect).Body!.Instructions;
+
+			Assert.Equal(Code.Calli, instructions[2].OpCode.Code);
+			var signature = Assert.IsType<MethodSig>(instructions[2].Operand);
+			Assert.Equal("System.Int32", signature.RetType!.FullName);
+			Assert.Equal("System.Int32", Assert.Single(signature.Params)!.FullName);
+			Assert.False(signature.HasThis);
+		}
+
+		// The code of a method that's created with DynamicILInfo is a byte array, and so are its exception
+		// handlers, in the format of a method body in a file: "small" (12 bytes per handler) or "fat" (24).
+		//
+		//   IL_0000: nop           try {
+		//   IL_0001: leave.s IL_0006
+		//   IL_0003: pop           } catch (Exception) {
+		//   IL_0004: leave.s IL_0006   }
+		//   IL_0006: ldc.i4.5
+		//   IL_0007: ret
+		static Func<int> CreateMethodFromBytes(bool fatExceptionHandlers) {
+			var dynamicMethod = new DynamicMethod("FromBytes", typeof(int), Type.EmptyTypes);
+			var info = dynamicMethod.GetDynamicILInfo();
+			info.SetCode(new byte[] { 0x00, 0xDE, 0x03, 0x26, 0xDE, 0x00, 0x1B, 0x2A }, 1);
+			info.SetLocalSignature(SignatureHelper.GetLocalVarSigHelper().GetSignature());
+			var exceptionToken = BitConverter.GetBytes(info.GetTokenFor(typeof(Exception).TypeHandle));
+			byte[] handlers;
+			if (fatExceptionHandlers) {
+				handlers = new byte[] {
+					0x41, 28, 0, 0,                 // fat exception handlers, 4 + 24 bytes
+					0, 0, 0, 0,                     // catch
+					0, 0, 0, 0, 3, 0, 0, 0,         // try: offset 0, 3 bytes
+					3, 0, 0, 0, 3, 0, 0, 0,         // handler: offset 3, 3 bytes
+				}.Concat(exceptionToken).ToArray();
+			}
+			else {
+				handlers = new byte[] {
+					0x01, 16, 0, 0,                 // exception handlers, 4 + 12 bytes
+					0, 0,                           // catch
+					0, 0, 3,                        // try: offset 0, 3 bytes
+					3, 0, 3,                        // handler: offset 3, 3 bytes
+				}.Concat(exceptionToken).ToArray();
+			}
+			info.SetExceptions(handlers);
+			return (Func<int>)dynamicMethod.CreateDelegate(typeof(Func<int>));
+		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void ExceptionHandlersOfAMethodThatWasCreatedFromBytes(bool fatExceptionHandlers) {
+			// Mono can't create such a method
+			SkipOnMono();
+			var fromBytes = CreateMethodFromBytes(fatExceptionHandlers);
+			Assert.Equal(5, fromBytes());
+
+			var body = Read(fromBytes).Body!;
+
+			Assert.Equal(new[] { Code.Nop, Code.Leave_S, Code.Pop, Code.Leave_S, Code.Ldc_I4_5, Code.Ret }, body.Instructions.Select(a => a.OpCode.Code));
+			var handler = Assert.Single(body.ExceptionHandlers);
+			Assert.Equal(ExceptionHandlerType.Catch, handler.HandlerType);
+			Assert.Equal("System.Exception", handler.CatchType!.FullName);
+			Assert.Same(body.Instructions[0], handler.TryStart);
+			Assert.Same(body.Instructions[2], handler.TryEnd);
+			Assert.Same(body.Instructions[2], handler.HandlerStart);
+			Assert.Same(body.Instructions[4], handler.HandlerEnd);
+		}
 	}
 }
