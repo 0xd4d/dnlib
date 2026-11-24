@@ -112,39 +112,147 @@ namespace dnlib.Tests.Importing {
 			fieldRef = new MemberRefUser(user, "Field", new FieldSig(user.CorLibTypes.Int64), typeRef);
 		}
 
-		// A reference to a type of the target module becomes the TypeDef. A reference to a member (a
-		// MemberRef) stays a MemberRef, but it's a MemberRef of the TypeDef.
+		// References to a type of the target module and to its members become the definitions
 		[Fact]
-		public void ReferenceToATypeOfTheTargetModuleBecomesItsDefIfTheOptionIsSet() {
-			var module = CreateSourceModuleThatResolvesItself(out var type, out _, out _);
+		public void ReferencesToTheTargetModuleBecomeItsDefsIfTheOptionIsSet() {
+			var module = CreateSourceModuleThatResolvesItself(out var type, out var method, out var field);
 			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out var typeRef, out var methodRef, out var fieldRef);
 
 			var importer = new Importer(module, ImporterOptions.TryToUseDefs);
 
 			Assert.Same(type, importer.ImportOrNull(typeRef));
+			Assert.Same(method, importer.ImportOrNull((IMethod)methodRef));
+			Assert.Same(field, importer.ImportOrNull((IField)fieldRef));
 			// Also in a signature
 			var signature = Assert.IsType<ClassSig>(importer.ImportOrNull(new ClassSig(typeRef)));
 			Assert.Same(type, signature.TypeDefOrRef);
-
-			var importedMethod = Assert.IsAssignableFrom<MemberRef>(importer.ImportOrNull((IMethod)methodRef));
-			Assert.Same(type, importedMethod.Class);
-			var importedField = Assert.IsAssignableFrom<MemberRef>(importer.ImportOrNull((IField)fieldRef));
-			Assert.Same(type, importedField.Class);
 		}
 
-		[Theory]
-		[InlineData((ImporterOptions)0)]
-		[InlineData(ImporterOptions.TryToUseMethodDefs | ImporterOptions.TryToUseFieldDefs)]
-		public void ReferenceToATypeOfTheTargetModuleStaysAReferenceWithoutTheOption(ImporterOptions options) {
-			var module = CreateSourceModuleThatResolvesItself(out _, out _, out _);
-			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out var typeRef, out var methodRef, out _);
+		// The overload that takes a MemberRef returns a MemberRef, so it can't return the definition
+		[Fact]
+		public void MemberRefOverloadReturnsAMemberRefOfTheTypeDef() {
+			var module = CreateSourceModuleThatResolvesItself(out var type, out _, out _);
+			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out _, out var methodRef, out var fieldRef);
 
-			var importer = new Importer(module, options);
+			var importer = new Importer(module, ImporterOptions.TryToUseDefs);
+
+			Assert.Same(type, importer.ImportOrNull(methodRef)!.Class);
+			Assert.Same(type, importer.ImportOrNull(fieldRef)!.Class);
+		}
+
+		[Fact]
+		public void ReferencesToTheTargetModuleStayReferencesWithoutTheOption() {
+			var module = CreateSourceModuleThatResolvesItself(out _, out _, out _);
+			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out var typeRef, out var methodRef, out var fieldRef);
+
+			var importer = new Importer(module);
 
 			var imported = Assert.IsAssignableFrom<TypeRef>(importer.ImportOrNull(typeRef));
 			// The reference is to the module itself
 			Assert.Same(module, imported.ResolutionScope);
 			Assert.IsAssignableFrom<TypeRef>(Assert.IsAssignableFrom<MemberRef>(importer.ImportOrNull((IMethod)methodRef)).Class);
+			Assert.IsAssignableFrom<TypeRef>(Assert.IsAssignableFrom<MemberRef>(importer.ImportOrNull((IField)fieldRef)).Class);
+		}
+
+		// Each option is for one kind of definition. Q11 of the test notes: a MemberRef wasn't replaced at
+		// all, and the reflection imports only replaced a member if TryToUseTypeDefs was set too.
+		[Theory]
+		[InlineData(ImporterOptions.TryToUseTypeDefs, true, false, false)]
+		[InlineData(ImporterOptions.TryToUseMethodDefs, false, true, false)]
+		[InlineData(ImporterOptions.TryToUseFieldDefs, false, false, true)]
+		public void OnlyTheKindOfDefOfTheOptionIsUsed(ImporterOptions options, bool typeDef, bool methodDef, bool fieldDef) {
+			var module = CreateSourceModuleThatResolvesItself(out _, out _, out _);
+			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out var typeRef, out var methodRef, out var fieldRef);
+
+			var importer = new Importer(module, options);
+
+			Assert.Equal(typeDef, importer.ImportOrNull(typeRef) is TypeDef);
+			Assert.Equal(methodDef, importer.ImportOrNull((IMethod)methodRef) is MethodDef);
+			Assert.Equal(fieldDef, importer.ImportOrNull((IField)fieldRef) is FieldDef);
+		}
+
+		[Fact]
+		public void ReferenceToAMemberThatTheTypeDoesNotHaveStaysAReference() {
+			var module = CreateSourceModuleThatResolvesItself(out var type, out _, out _);
+			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out var typeRef, out _, out _);
+			var otherSignature = new MemberRefUser(typeRef.Module, "Method", MethodSig.CreateStatic(module.CorLibTypes.Void), typeRef);
+			var otherName = new MemberRefUser(typeRef.Module, "OtherField", new FieldSig(module.CorLibTypes.Int64), typeRef);
+
+			var importer = new Importer(module, ImporterOptions.TryToUseDefs);
+
+			var importedMethod = Assert.IsAssignableFrom<MemberRef>(importer.ImportOrNull((IMethod)otherSignature));
+			Assert.Same(type, importedMethod.Class);
+			Assert.IsAssignableFrom<MemberRef>(importer.ImportOrNull((IField)otherName));
+		}
+
+		// A reference through a derived type to a method of its base type isn't replaced by the method of
+		// the base type: it would be a reference with another class
+		[Fact]
+		public void ReferenceToAnInheritedMethodStaysAReference() {
+			var module = CreateSourceModuleThatResolvesItself(out var type, out _, out _);
+			var derived = new TypeDefUser("Ns", "Derived", type);
+			module.Types.Add(derived);
+			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out var typeRef, out var methodRef, out _);
+			var derivedRef = new TypeRefUser(typeRef.Module, "Ns", "Derived", typeRef.ResolutionScope);
+			var throughDerived = new MemberRefUser(typeRef.Module, "Method", methodRef.MethodSig, derivedRef);
+
+			var imported = new Importer(module, ImporterOptions.TryToUseDefs).ImportOrNull((IMethod)throughDerived);
+
+			Assert.Same(derived, Assert.IsAssignableFrom<MemberRef>(imported).Class);
+		}
+
+		// A member of an instantiated generic type must stay a MemberRef: a definition has no generic arguments
+		[Fact]
+		public void ReferenceToAMemberOfAGenericInstanceStaysAReference() {
+			var module = CreateSourceModuleThatResolvesItself(out var type, out _, out _);
+			type.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
+			type.Name = "Source`1";
+			var user = CreateModule("User");
+			var typeRef = new TypeRefUser(user, "Ns", "Source`1", new AssemblyRefUser("Source", new Version(1, 2, 3, 4)));
+			var instance = new TypeSpecUser(new GenericInstSig(new ClassSig(typeRef), user.CorLibTypes.Int32));
+			var methodRef = new MemberRefUser(user, "Method", MethodSig.CreateStatic(user.CorLibTypes.Int32, user.CorLibTypes.String), instance);
+
+			var imported = Assert.IsAssignableFrom<MemberRef>(new Importer(module, ImporterOptions.TryToUseDefs).ImportOrNull((IMethod)methodRef));
+
+			var importedInstance = Assert.IsType<GenericInstSig>(Assert.IsAssignableFrom<TypeSpec>(imported.Class).TypeSig);
+			Assert.Same(type, importedInstance.GenericType!.TypeDefOrRef);
+		}
+
+		// An instantiated generic method: the MethodSpec is of the MethodDef
+		[Fact]
+		public void MethodSpecOfAReferenceToTheTargetModuleIsAMethodSpecOfTheDef() {
+			var module = CreateSourceModuleThatResolvesItself(out var type, out _, out _);
+			var genericMethod = new MethodDefUser("Generic", MethodSig.CreateStaticGeneric(1, module.CorLibTypes.Void, new GenericMVar(0)));
+			genericMethod.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
+			type.Methods.Add(genericMethod);
+			CreateReferencesToTheSourceModule(new Version(1, 2, 3, 4), out var typeRef, out _, out _);
+			var user = typeRef.Module!;
+			var reference = new MemberRefUser(user, "Generic", MethodSig.CreateStaticGeneric(1, user.CorLibTypes.Void, new GenericMVar(0)), typeRef);
+			var methodSpec = new MethodSpecUser(reference, new GenericInstMethodSig(user.CorLibTypes.Int32));
+
+			var imported = Assert.IsAssignableFrom<MethodSpec>(new Importer(module, ImporterOptions.TryToUseDefs).ImportOrNull((IMethod)methodSpec));
+
+			Assert.Same(genericMethod, imported.Method);
+			Assert.Equal("System.Int32", Assert.Single(imported.GenericInstMethodSig!.GenericArguments)!.FullName);
+		}
+
+		// A global method is referenced through a ModuleRef with the name of its module
+		[Fact]
+		public void ReferenceToAGlobalMethodOfTheTargetModuleBecomesItsDef() {
+			var module = CreateSourceModuleThatResolvesItself(out _, out _, out _);
+			var globalMethod = new MethodDefUser("Global", MethodSig.CreateStatic(module.CorLibTypes.Void), dnlib.DotNet.MethodAttributes.Public | dnlib.DotNet.MethodAttributes.Static);
+			module.GlobalType!.Methods.Add(globalMethod);
+			// Another module of the same assembly
+			var otherModule = new ModuleDefUser("Other.netmodule");
+			module.Assembly!.Modules.Add(otherModule);
+			var reference = new MemberRefUser(otherModule, "Global", MethodSig.CreateStatic(otherModule.CorLibTypes.Void), new ModuleRefUser(otherModule, "Source.dll"));
+			var toAnotherModule = new MemberRefUser(otherModule, "Global", MethodSig.CreateStatic(otherModule.CorLibTypes.Void), new ModuleRefUser(otherModule, "Third.netmodule"));
+
+			var importer = new Importer(module, ImporterOptions.TryToUseDefs);
+
+			Assert.Same(globalMethod, importer.ImportOrNull((IMethod)reference));
+			var imported = Assert.IsAssignableFrom<MemberRef>(importer.ImportOrNull((IMethod)toAnotherModule));
+			Assert.Equal("Third.netmodule", Assert.IsAssignableFrom<ModuleRef>(imported.Class).Name);
 		}
 
 		// The target module can't reference another version of its own assembly: an assembly with its name is
@@ -175,20 +283,6 @@ namespace dnlib.Tests.Importing {
 			var nestedRef = new TypeRefUser(typeRef.Module, "", "Nested", typeRef);
 
 			Assert.Same(nested, new Importer(module, ImporterOptions.TryToUseDefs).ImportOrNull(nestedRef));
-		}
-
-		// A global method is referenced through a ModuleRef with the name of its module
-		[Fact]
-		public void ReferenceToAGlobalMethodKeepsTheNameOfItsModule() {
-			var module = CreateSourceModuleThatResolvesItself(out _, out _, out _);
-			var otherModule = new ModuleDefUser("Other.netmodule");
-			module.Assembly!.Modules.Add(otherModule);
-			var reference = new MemberRefUser(otherModule, "Global", MethodSig.CreateStatic(otherModule.CorLibTypes.Void), new ModuleRefUser(otherModule, "Third.netmodule"));
-
-			var imported = Assert.IsAssignableFrom<MemberRef>(new Importer(module, ImporterOptions.TryToUseDefs).ImportOrNull((IMethod)reference));
-
-			Assert.Equal("Third.netmodule", Assert.IsAssignableFrom<ModuleRef>(imported.Class).Name);
-			Assert.Same(module, imported.Module);
 		}
 
 		[Fact]
