@@ -117,6 +117,80 @@ namespace dnlib.Tests.Reading {
 			Assert.True(isSame, $".NET Framework reads '{runtime}', expected '{expectedNetFramework}'");
 		}
 
+		const string AskInAnotherProcessVariable = "DNLIB_TESTS_ASK_CASES_THAT_STOP_THE_RUNTIME";
+		const string ChildCaseVariable = "DNLIB_TESTS_CHILD_CASE";
+		const string ChildResultVariable = "DNLIB_TESTS_CHILD_RESULT";
+		public const string StopsTheProcess = "stops the process";
+
+		/// <summary>
+		/// For a case that makes the runtime stop the process (a fatal error or an AccessViolationException): the
+		/// runtime is asked in another process, which runs this test again. Only if the environment variable
+		/// <c>DNLIB_TESTS_ASK_CASES_THAT_STOP_THE_RUNTIME</c> is 1: a process that crashes can show a dialog or
+		/// keep a build machine busy, so it's not done by default.
+		/// </summary>
+		/// <param name="stopsNetFramework"><c>true</c> if .NET Framework stops, <c>false</c> if .NET stops. The
+		/// other runtime isn't asked.</param>
+		/// <param name="readWithTheRuntime">Reads with the runtime</param>
+		/// <param name="orReadsOtherMemory"><c>true</c> if the runtime reads memory at an address that isn't in the
+		/// file: the process stops if there's no memory at that address, else any value is read</param>
+		public static void AssertRuntimeStopsTheProcess(bool stopsNetFramework, Func<string> readWithTheRuntime, bool orReadsOtherMemory = false) {
+			var test = TestContext.Current.Test;
+			string? id = test?.UniqueID;
+			if (Environment.GetEnvironmentVariable(ChildCaseVariable) is string childCase) {
+				// This is the other process
+				if (childCase == id) {
+					string result;
+					try {
+						result = readWithTheRuntime();
+					}
+					catch (Exception ex) {
+						result = "throws " + ex.GetType().Name;
+					}
+					File.WriteAllText(Environment.GetEnvironmentVariable(ChildResultVariable)!, result);
+				}
+				return;
+			}
+			if (Environment.GetEnvironmentVariable(AskInAnotherProcessVariable) != "1" || IsRuntimeNotAsked || IsDotNet == stopsNetFramework || id is null)
+				return;
+
+			var testMethod = TestContext.Current.TestMethod!;
+			string methodName = testMethod.TestClass.TestClassName + "." + testMethod.MethodName;
+			var commandLine = Environment.GetCommandLineArgs();
+			string resultFile = Path.GetTempFileName();
+			try {
+				File.Delete(resultFile);
+				// .NET: "dotnet dnlib.Tests.dll", .NET Framework: "dnlib.Tests.exe"
+				string program = System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName;
+				string arguments = (IsDotNet ? $"\"{commandLine[0]}\" " : "") + $"-method \"{methodName}\"";
+				var startInfo = new System.Diagnostics.ProcessStartInfo(program, arguments) {
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+				};
+				startInfo.EnvironmentVariables[ChildCaseVariable] = id;
+				startInfo.EnvironmentVariables[ChildResultVariable] = resultFile;
+				using (var process = System.Diagnostics.Process.Start(startInfo)!) {
+					process.OutputDataReceived += (sender, e) => { };
+					process.ErrorDataReceived += (sender, e) => { };
+					process.BeginOutputReadLine();
+					process.BeginErrorReadLine();
+					if (!process.WaitForExit(120000)) {
+						process.Kill();
+						Assert.Fail("The other process didn't end");
+					}
+					process.WaitForExit();
+					if (orReadsOtherMemory && File.Exists(resultFile))
+						return;
+					Assert.False(File.Exists(resultFile), $"The runtime didn't stop the process: it reads '{(File.Exists(resultFile) ? File.ReadAllText(resultFile) : "")}'");
+					Assert.NotEqual(0, process.ExitCode);
+				}
+			}
+			finally {
+				File.Delete(resultFile);
+			}
+		}
+
 		// To find the test cases that make a runtime crash or hang (see AssertReadAskOnlyDotNet): if the
 		// environment variable DNLIB_TESTS_RUNTIME_LOG is the name of a file, a line "ASK id name" is written to
 		// it before the runtime is asked and "DONE id" after it. The last "ASK" without a "DONE" is the case that

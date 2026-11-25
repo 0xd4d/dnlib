@@ -229,8 +229,11 @@ public class Marker { }
 		public void AttributeValues(string attributeBytes, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(attributeBytes);
 
-			if (expectedRuntime == "not asked")
+			if (expectedRuntime == "not asked") {
 				Assert.Equal(expectedDnlib, ReadWithDnlib(image));
+				// .NET stops the process (a segmentation fault / an access violation)
+				ClrReaderComparison.AssertRuntimeStopsTheProcess(stopsNetFramework: false, () => ReadWithTheRuntime(image));
+			}
 			else
 				ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
 		}

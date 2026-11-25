@@ -98,18 +98,22 @@ public class C {
 				}
 			}
 
-			if (expectedRuntime == "not asked") {
-				Assert.Equal(expectedDnlib, dnlib);
-				return;
-			}
-			ClrReaderComparison.AssertRead(expectedDnlib, dnlib, expectedRuntime, () => {
+			Func<string> readWithTheRuntime = () => {
 				using (var loaded = new LoadedAssembly(image)) {
 					var type = loaded.Assembly.GetType("C")!;
 					var a = (int[])type.GetField("A")!.GetValue(null)!;
 					var b = (int[])type.GetField("B")!.GetValue(null)!;
 					return string.Join(" ", a.Select(x => x.ToString("X"))) + " / " + string.Join(" ", b.Select(x => x.ToString("X")));
 				}
-			});
+			};
+			// .NET reads the memory at the address also if it isn't in the file: a fatal error stops the process if
+			// there's no memory, else the field has the values that are there
+			if (expectedRuntime == "not asked") {
+				Assert.Equal(expectedDnlib, dnlib);
+				ClrReaderComparison.AssertRuntimeStopsTheProcess(stopsNetFramework: false, readWithTheRuntime, orReadsOtherMemory: true);
+				return;
+			}
+			ClrReaderComparison.AssertRead(expectedDnlib, dnlib, expectedRuntime, readWithTheRuntime);
 		}
 	}
 }

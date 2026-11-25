@@ -341,6 +341,7 @@ public class InMain {
 
 			if (expectedNetFramework == NotAsked) {
 				Assert.Equal(expectedDnlib, ReadWithDnlib(mainFile));
+				ClrReaderComparison.AssertRuntimeStopsTheProcess(stopsNetFramework: true, () => ReadWithTheRuntime(mainFile));
 				return;
 			}
 			if (expectedNetFramework == TypeIsNotFound) {

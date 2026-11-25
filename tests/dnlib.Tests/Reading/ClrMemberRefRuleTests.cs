@@ -157,8 +157,10 @@ public class C {
 
 			// .NET Framework isn't asked for a MemberRef without a signature: its Module.ResolveMethod() then stops
 			// the process with an AccessViolationException
-			if (changes == "Signature = 0")
+			if (changes == "Signature = 0") {
 				ClrReaderComparison.AssertReadAskOnlyDotNet(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+				ClrReaderComparison.AssertRuntimeStopsTheProcess(stopsNetFramework: true, () => ReadWithTheRuntime(image));
+			}
 			else
 				ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
 		}
