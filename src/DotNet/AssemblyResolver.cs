@@ -271,64 +271,64 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-				var resolvedAssembly = Resolve2(assembly, sourceModule);
-				if (resolvedAssembly is null) {
-					string asmName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
-					string asmNameTrimmed = asmName.Trim();
-					if (asmName != asmNameTrimmed) {
-						assembly = new AssemblyNameInfo {
-							Name = asmNameTrimmed,
-							Version = assembly.Version,
-							PublicKeyOrToken = assembly.PublicKeyOrToken,
-							Culture = assembly.Culture,
-							Attributes = assembly.Attributes,
-						};
-						resolvedAssembly = Resolve2(assembly, sourceModule);
+			var resolvedAssembly = Resolve2(assembly, sourceModule);
+			if (resolvedAssembly is null) {
+				string asmName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
+				string asmNameTrimmed = asmName.Trim();
+				if (asmName != asmNameTrimmed) {
+					assembly = new AssemblyNameInfo {
+						Name = asmNameTrimmed,
+						Version = assembly.Version,
+						PublicKeyOrToken = assembly.PublicKeyOrToken,
+						Culture = assembly.Culture,
+						Attributes = assembly.Attributes,
+					};
+					resolvedAssembly = Resolve2(assembly, sourceModule);
+				}
+			}
+
+			if (resolvedAssembly is null) {
+				// Make sure we don't search for this assembly again. This speeds up callers who
+				// keep asking for this assembly when trying to resolve many different TypeRefs
+				cachedAssemblies[GetAssemblyNameKey(assembly)] = null;
+				return null;
+			}
+
+			var key1 = GetAssemblyNameKey(resolvedAssembly);
+			var key2 = GetAssemblyNameKey(assembly);
+			cachedAssemblies.TryGetValue(key1, out var asm1);
+			cachedAssemblies.TryGetValue(key2, out var asm2);
+
+			if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
+				// This assembly was just resolved
+				if (enableTypeDefCache) {
+					var modules = resolvedAssembly.Modules;
+					int count = modules.Count;
+					for (int i = 0; i < count; i++) {
+						var module = modules[i];
+						if (module is not null)
+							module.EnableTypeDefFindCache = true;
 					}
 				}
+			}
 
-				if (resolvedAssembly is null) {
-					// Make sure we don't search for this assembly again. This speeds up callers who
-					// keep asking for this assembly when trying to resolve many different TypeRefs
-					cachedAssemblies[GetAssemblyNameKey(assembly)] = null;
-					return null;
-				}
+			bool inserted = false;
+			if (!cachedAssemblies.ContainsKey(key1)) {
+				cachedAssemblies.Add(key1, resolvedAssembly);
+				inserted = true;
+			}
+			if (!cachedAssemblies.ContainsKey(key2)) {
+				cachedAssemblies.Add(key2, resolvedAssembly);
+				inserted = true;
+			}
+			if (inserted || asm1 == resolvedAssembly || asm2 == resolvedAssembly)
+				return resolvedAssembly;
 
-				var key1 = GetAssemblyNameKey(resolvedAssembly);
-				var key2 = GetAssemblyNameKey(assembly);
-				cachedAssemblies.TryGetValue(key1, out var asm1);
-				cachedAssemblies.TryGetValue(key2, out var asm2);
-
-				if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
-					// This assembly was just resolved
-					if (enableTypeDefCache) {
-						var modules = resolvedAssembly.Modules;
-						int count = modules.Count;
-						for (int i = 0; i < count; i++) {
-							var module = modules[i];
-							if (module is not null)
-								module.EnableTypeDefFindCache = true;
-						}
-					}
-				}
-
-				bool inserted = false;
-				if (!cachedAssemblies.ContainsKey(key1)) {
-					cachedAssemblies.Add(key1, resolvedAssembly);
-					inserted = true;
-				}
-				if (!cachedAssemblies.ContainsKey(key2)) {
-					cachedAssemblies.Add(key2, resolvedAssembly);
-					inserted = true;
-				}
-				if (inserted || asm1 == resolvedAssembly || asm2 == resolvedAssembly)
-					return resolvedAssembly;
-
-				// Dupe assembly. Don't insert it.
-				var dupeModule = resolvedAssembly.ManifestModule;
-				if (dupeModule is not null)
-					dupeModule.Dispose();
-				return asm1 ?? asm2;
+			// Dupe assembly. Don't insert it.
+			var dupeModule = resolvedAssembly.ManifestModule;
+			if (dupeModule is not null)
+				dupeModule.Dispose();
+			return asm1 ?? asm2;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -358,10 +358,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-				if (cachedAssemblies.TryGetValue(asmKey, out var cachedAsm) && cachedAsm is not null)
-					return asm == cachedAsm;
-				cachedAssemblies[asmKey] = asm;
-				return true;
+			if (cachedAssemblies.TryGetValue(asmKey, out var cachedAsm) && cachedAsm is not null)
+				return asm == cachedAsm;
+			cachedAssemblies[asmKey] = asm;
+			return true;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -390,14 +390,14 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-				if (asm.ManifestModule is { } module)
-					moduleSearchPaths.Remove(module);
-				if (findExactMatch)
-					return cachedAssemblies.Remove(asmKey);
-				string[] keys = [.. cachedAssemblies.Where(x => x.Value == asm).Select(x => x.Key)];
-				foreach (string key in keys)
-					cachedAssemblies.Remove(key);
-				return keys.Length > 0;
+			if (asm.ManifestModule is { } module)
+				moduleSearchPaths.Remove(module);
+			if (findExactMatch)
+				return cachedAssemblies.Remove(asmKey);
+			string[] keys = [.. cachedAssemblies.Where(x => x.Value == asm).Select(x => x.Key)];
+			foreach (string key in keys)
+				cachedAssemblies.Remove(key);
+			return keys.Length > 0;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -415,9 +415,9 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-				asms = new List<AssemblyDef?>(cachedAssemblies.Values);
-				cachedAssemblies.Clear();
-				moduleSearchPaths.Clear();
+			asms = new List<AssemblyDef?>(cachedAssemblies.Values);
+			cachedAssemblies.Clear();
+			moduleSearchPaths.Clear();
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -439,8 +439,8 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
-				// A failed resolve is cached as a null value
-				assemblies = cachedAssemblies.Values.Where(a => a is not null).ToArray()!;
+			// A failed resolve is cached as a null value
+			assemblies = cachedAssemblies.Values.Where(a => a is not null).ToArray()!;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitReadLock(); }
@@ -591,6 +591,8 @@ namespace dnlib.DotNet {
 		IEnumerable<string> FindAssemblies2(IAssembly assembly, IEnumerable<string>? paths) {
 			if (paths is not null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
+				if (!IsFileName(asmSimpleName))
+					yield break;
 				var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
 				foreach (var ext in exts) {
 					foreach (var path in paths) {
@@ -641,6 +643,8 @@ namespace dnlib.DotNet {
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
 		protected virtual IEnumerable<string>? FindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
+			if (!IsFileName(UTF8String.ToSystemStringOrEmpty(assembly.Name)))
+				yield break;
 			if (assembly.IsContentTypeWindowsRuntime) {
 				string? path;
 				try {
@@ -781,19 +785,52 @@ namespace dnlib.DotNet {
 			return dirs;
 		}
 
+		// The name of an assembly is used as the name of its file. Returns false if the name has a directory or
+		// is a full path (it could also be a path to another computer): the CLR never loads such a file, and no
+		// file outside the search paths must be opened.
+		static bool IsFileName(string asmSimpleName) {
+			if (asmSimpleName.IndexOf('/') >= 0 || asmSimpleName.IndexOf('\\') >= 0)
+				return false;
+			try {
+				return !Path.IsPathRooted(asmSimpleName);
+			}
+			catch (ArgumentException) {
+				// Invalid path chars
+				return false;
+			}
+		}
+
+		// Returns the culture of the assembly if it has one and it can be the name of a directory, else null
+		static string? GetCultureDirectory(IAssembly assembly) {
+			var culture = UTF8String.ToSystemStringOrEmpty(assembly.Culture);
+			if (culture.Length == 0 || culture.Equals("neutral", StringComparison.OrdinalIgnoreCase))
+				return null;
+			foreach (char c in culture) {
+				if (!(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') && !(c >= '0' && c <= '9') && c != '-' && c != '_')
+					return null;
+			}
+			return culture;
+		}
+
 		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
+			if (!IsFileName(asmSimpleName))
+				yield break;
 			var searchPaths = GetSearchPaths(sourceModule);
 			var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
+			// The CLR looks for an assembly with a culture (eg. a satellite assembly with resources) in a directory
+			// with the name of the culture
+			var culture = GetCultureDirectory(assembly);
 			foreach (var ext in exts) {
 				foreach (var path in searchPaths) {
-					for (int i = 0; i < 2; i++) {
+					for (int i = culture is null ? 2 : 0; i < 4; i++) {
 						string path2;
 						try {
-							if (i == 0)
-								path2 = Path.Combine(path, asmSimpleName + ext);
+							var path1 = i < 2 ? Path.Combine(path, culture!) : path;
+							if ((i & 1) == 0)
+								path2 = Path.Combine(path1, asmSimpleName + ext);
 							else
-								path2 = Path.Combine(Path.Combine(path, asmSimpleName), asmSimpleName + ext);
+								path2 = Path.Combine(Path.Combine(path1, asmSimpleName), asmSimpleName + ext);
 						}
 						catch (ArgumentException) {
 							// Invalid path chars
