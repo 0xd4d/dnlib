@@ -930,5 +930,93 @@ public class Program {
 				Assert.Contains(expectedMessage, exception.Message);
 			}
 		}
+
+		// Scopes, locals, async info and an entry point that the writer can't write are errors too
+		[Theory]
+		[InlineData("scope that ends before it starts", "PDB scope's end instruction is before its start instruction")]
+		[InlineData("null scope", "PDB scope is null")]
+		[InlineData("scope that is in the method twice", "PDB scope is used more than once in the method")]
+		[InlineData("scope that isn't in its parent", "PDB scope isn't inside its parent scope")]
+		[InlineData("scope with an instruction of another method", "Instruction was removed from the body but is referenced from PdbScope")]
+		[InlineData("null local", "PDB local is null")]
+		[InlineData("async method without the method it was created for", "KickoffMethod is null")]
+		[InlineData("async method of another module", "is not defined in this module")]
+		[InlineData("two async infos", "Duplicate async method custom debug info")]
+		[InlineData("async step without a yield instruction", "YieldInstruction is null")]
+		[InlineData("async step without a method", "BreakpointMethod is null")]
+		[InlineData("async step without an instruction to continue at", "BreakpointInstruction is null")]
+		[InlineData("async step that continues at an instruction of another method", "Async method instruction has been removed")]
+		[InlineData("entry point of another module", "is not defined in this module")]
+		public void DebugInfoThatCanNotBeWrittenIsAnError(string what, string expectedMessage) {
+			SkipUnlessWindows();
+			using (var module = Load(DebugInfoSource.CompiledWithWindowsPdb))
+			using (var otherModule = Load(Windows)) {
+				var method = DebugInfoSource.GetMethod(module, "Sum");
+				var otherMethod = DebugInfoSource.GetMethod(module, "NoLocals");
+				var methodOfOtherModule = otherModule.GetTypes().SelectMany(a => a.Methods).First(a => a.HasBody);
+				var instructions = method.Body!.Instructions;
+				var root = DebugInfoSource.GetRootScope(module, "Sum");
+				var infos = method.CustomDebugInfos;
+				switch (what) {
+				case "scope that ends before it starts":
+					root.Scopes.Add(new PdbScope { Start = instructions[3], End = instructions[1] });
+					break;
+				case "null scope":
+					root.Scopes.Add(null!);
+					break;
+				case "scope that is in the method twice":
+					var twice = new PdbScope { Start = instructions[1], End = instructions[2] };
+					root.Scopes.Add(twice);
+					root.Scopes.Add(twice);
+					break;
+				case "scope that isn't in its parent":
+					var parent = new PdbScope { Start = instructions[2], End = instructions[3] };
+					parent.Scopes.Add(new PdbScope { Start = instructions[1], End = instructions[4] });
+					root.Scopes.Add(parent);
+					break;
+				case "scope with an instruction of another method":
+					root.Scopes.Add(new PdbScope { Start = otherMethod.Body!.Instructions[0], End = instructions[2] });
+					break;
+				case "null local":
+					root.Variables.Add(null!);
+					break;
+				case "async method without the method it was created for":
+					infos.Add(new PdbAsyncMethodCustomDebugInfo(null!));
+					break;
+				case "async method of another module":
+					infos.Add(new PdbAsyncMethodCustomDebugInfo(methodOfOtherModule));
+					break;
+				case "two async infos":
+					infos.Add(new PdbAsyncMethodCustomDebugInfo(otherMethod));
+					infos.Add(new PdbAsyncMethodCustomDebugInfo(otherMethod));
+					break;
+				case "async step without a yield instruction":
+					AddAsyncStep(new PdbAsyncStepInfo(null!, method, instructions[1]));
+					break;
+				case "async step without a method":
+					AddAsyncStep(new PdbAsyncStepInfo(instructions[0], null!, instructions[1]));
+					break;
+				case "async step without an instruction to continue at":
+					AddAsyncStep(new PdbAsyncStepInfo(instructions[0], method, null!));
+					break;
+				case "async step that continues at an instruction of another method":
+					AddAsyncStep(new PdbAsyncStepInfo(instructions[0], otherMethod, instructions[1]));
+					break;
+				case "entry point of another module":
+					module.PdbState!.UserEntryPoint = methodOfOtherModule;
+					break;
+				}
+				void AddAsyncStep(PdbAsyncStepInfo step) {
+					var asyncMethod = new PdbAsyncMethodCustomDebugInfo(otherMethod);
+					asyncMethod.StepInfos.Add(step);
+					infos.Add(asyncMethod);
+				}
+				var options = new ModuleWriterOptions(module) { WritePdb = true, PdbStream = new MemoryStream(), PdbFileName = "written.pdb" };
+
+				var exception = Assert.Throws<ModuleWriterException>(() => module.Write(new MemoryStream(), options));
+
+				Assert.Contains(expectedMessage, exception.Message);
+			}
+		}
 	}
 }
