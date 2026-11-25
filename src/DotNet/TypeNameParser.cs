@@ -898,12 +898,42 @@ namespace dnlib.DotNet {
 		string ReadAssemblyNameId() {
 			SkipWhite();
 			var sb = new StringBuilder();
-			int c;
-			while ((c = GetAsmNameChar()) != -1)
-				sb.Append((char)c);
-			var name = sb.ToString().Trim();
+			int c = PeekChar();
+			string name;
+			if (c == '"' || c == '\'') {
+				// A name in quotes (it has a quote, or white space at its start or end, see
+				// FullNameFactory.AssemblyFullName()): it ends at the same quote, and it isn't trimmed
+				int quote = ReadChar();
+				while (true) {
+					c = ReadChar();
+					Verify(c != -1, "Expected the end of the quoted assembly name");
+					if (c == quote)
+						break;
+					if (c == '\\')
+						c = ReadEscapedAsmNameChar();
+					sb.Append((char)c);
+				}
+				name = sb.ToString();
+			}
+			else {
+				while ((c = GetAsmNameChar()) != -1)
+					sb.Append((char)c);
+				name = sb.ToString().Trim();
+			}
 			Verify(name.Length > 0, "Expected an assembly name");
 			return name;
+		}
+
+		// The char after a backslash: \t, \r and \n are a tab, a carriage return and a new line, every other
+		// char is itself
+		int ReadEscapedAsmNameChar() {
+			int c = ReadChar();
+			switch (c) {
+			case 't': return '\t';
+			case 'r': return '\r';
+			case 'n': return '\n';
+			default: return c;
+			}
 		}
 
 		int GetAsmNameChar() {
@@ -913,7 +943,7 @@ namespace dnlib.DotNet {
 			switch (c) {
 			case '\\':
 				ReadChar();
-				return ReadChar();
+				return ReadEscapedAsmNameChar();
 
 			// Only a bracketed generic argument's assembly name ends with ']'. It's not escaped in a
 			// top-level assembly name (the CLR doesn't support it there).

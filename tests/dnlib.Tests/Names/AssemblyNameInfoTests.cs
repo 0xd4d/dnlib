@@ -149,5 +149,55 @@ namespace dnlib.Tests.Names {
 			Assert.True(info.IsProcessorArchitectureSpecified);
 			Assert.Equal(architecture | AssemblyAttributes.PA_Specified, info.ProcessorArchitectureFull);
 		}
+
+		// Fixed in this commit: a name with a quote, or with white space at its start or end, is in double
+		// quotes like in System.Reflection.AssemblyName.FullName (and the parser reads such a name), and tab,
+		// carriage return and new line are \t, \r and \n
+		[Theory]
+		[InlineData("A B", "A B")]
+		[InlineData(" A", "\" A\"")]
+		[InlineData("A ", "\"A \"")]
+		[InlineData("\tA", "\"\\tA\"")]
+		[InlineData("A\"B", "\"A\\\"B\"")]
+		[InlineData("A'B", "\"A\\'B\"")]
+		[InlineData("A\tB\r\nC", "A\\tB\\r\\nC")]
+		[InlineData("A,B=C\\D", "A\\,B\\=C\\\\D")]
+		public void NameWithSpecialCharsIsWrittenLikeSystemReflectionDoes(string name, string expectedNameInFullName) {
+			var info = new AssemblyNameInfo { Name = name, Version = new Version(1, 2, 3, 4), Culture = "" };
+			string expected = expectedNameInFullName + ", Version=1.2.3.4, Culture=neutral, PublicKeyToken=null";
+
+			Assert.Equal(expected, info.FullName);
+			// .NET Framework and Mono write these names in another way
+			if (typeof(object).Assembly.GetName().Name == "System.Private.CoreLib") {
+				var reflectionName = new System.Reflection.AssemblyName { Name = name, Version = new Version(1, 2, 3, 4), CultureInfo = System.Globalization.CultureInfo.InvariantCulture };
+				reflectionName.SetPublicKeyToken(new byte[0]);
+				Assert.Equal(reflectionName.FullName, info.FullName);
+			}
+
+			// The parser reads the name again
+			Assert.Equal(name, new AssemblyNameInfo(expected).Name);
+			Assert.Equal(expected, new AssemblyNameInfo(expected).FullName);
+		}
+
+		// Fixed in this commit: 65535 in a version is "no value". The full name doesn't have that part and
+		// the parts after it, like System.Reflection.AssemblyName.FullName.
+		[Theory]
+		[InlineData(1, 2, 3, 4, "Lib, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null")]
+		[InlineData(1, 2, 3, 65535, "Lib, Version=1.2.3, Culture=neutral, PublicKeyToken=null")]
+		[InlineData(1, 2, 65535, 4, "Lib, Version=1.2, Culture=neutral, PublicKeyToken=null")]
+		[InlineData(1, 65535, 3, 4, "Lib, Version=1, Culture=neutral, PublicKeyToken=null")]
+		[InlineData(65535, 2, 3, 4, "Lib, Culture=neutral, PublicKeyToken=null")]
+		[InlineData(65535, 65535, 65535, 65535, "Lib, Culture=neutral, PublicKeyToken=null")]
+		[InlineData(65534, 65534, 65534, 65534, "Lib, Version=65534.65534.65534.65534, Culture=neutral, PublicKeyToken=null")]
+		public void VersionPartThatIs65535IsNotInTheFullName(int major, int minor, int build, int revision, string expected) {
+			var info = new AssemblyNameInfo { Name = "Lib", Version = new Version(major, minor, build, revision), Culture = "" };
+
+			Assert.Equal(expected, info.FullName);
+			if (typeof(object).Assembly.GetName().Name == "System.Private.CoreLib") {
+				var reflectionName = new System.Reflection.AssemblyName { Name = "Lib", Version = new Version(major, minor, build, revision), CultureInfo = System.Globalization.CultureInfo.InvariantCulture };
+				reflectionName.SetPublicKeyToken(new byte[0]);
+				Assert.Equal(reflectionName.FullName, info.FullName);
+			}
+		}
 	}
 }

@@ -58,23 +58,25 @@ namespace dnlib.Tests.Reading {
 		const string EcmaKey = "[00 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00]";
 		const string Token = "[01 02 03 04 05 06 07 08]";
 
-		// Not the same, and not changed in dnlib:
-		// - the runtime leaves out a version part that is 65535 (and the parts after it): it means "no value"
-		// - the runtime puts a name with a quote or with a space at its start or end in quotes
-		// - a name of a referenced assembly goes through CultureInfo: what it does with a culture that it doesn't
-		//   know depends on the operating system, so the tests only have a culture that every system knows
+		// Fixed in this commit: like System.Reflection.AssemblyName.FullName, dnlib leaves out a version part that
+		// is 65535 ("no value") and the parts after it, and puts a name with a quote or with a space at its
+		// start or end in double quotes. (Assembly.FullName uses single quotes for a name with a double quote.)
+		//
+		// A name of a referenced assembly goes through CultureInfo: what it does with a culture that it doesn't
+		// know depends on the operating system, so the tests only have a culture that every system knows.
 		[Theory]
 		[InlineData("", "TestAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
-		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "TestAssembly, Version=65535.65535.65535.65535, Culture=neutral, PublicKeyToken=null", "TestAssembly, Culture=neutral, PublicKeyToken=null")]
-		[InlineData("MajorVersion = 65535", "TestAssembly, Version=65535.0.0.0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Culture=neutral, PublicKeyToken=null")]
-		[InlineData("RevisionNumber = 65535", "TestAssembly, Version=0.0.0.65535, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.0.0.65535, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "TestAssembly, Culture=neutral, PublicKeyToken=null", "TestAssembly, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("MajorVersion = 65535", "TestAssembly, Culture=neutral, PublicKeyToken=null", "TestAssembly, Culture=neutral, PublicKeyToken=null")]
+		// Assembly.FullName has the 65535 if it's the last part, AssemblyName.FullName (and dnlib) leaves it out
+		[InlineData("RevisionNumber = 65535", "TestAssembly, Version=0.0.0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.0.0.65535, Culture=neutral, PublicKeyToken=null")]
 		// The name
 		[InlineData("Name = 'A B'", "A B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("Name = 'A,B'", "A\\,B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A\\,B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("Name = 'A=B'", "A\\=B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A\\=B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
-		[InlineData("Name = 'A\"B'", "A\"B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "'A\"B', Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("Name = 'A\"B'", "\"A\\\"B\", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "'A\"B', Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("Name = 'A\\B'", "A\\\\B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A\\\\B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
-		[InlineData("Name = ' A '", " A , Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "\" A \", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("Name = ' A '", "\" A \", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "\" A \", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("Name = ''", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "throws FileLoadException")]
 		// The culture
 		[InlineData("Locale = 'de'", "TestAssembly, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "TestAssembly, Version=0.0.0.0, Culture=de, PublicKeyToken=null")]
@@ -114,16 +116,16 @@ namespace dnlib.Tests.Reading {
 
 		[Theory]
 		[InlineData("", "Ref, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
-		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "Ref, Version=65535.65535.65535.65535, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Culture=neutral, PublicKeyToken=0102030405060708")]
-		[InlineData("MajorVersion = 65535", "Ref, Version=65535.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Culture=neutral, PublicKeyToken=0102030405060708")]
-		[InlineData("RevisionNumber = 65535", "Ref, Version=1.2.3.65535, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3, Culture=neutral, PublicKeyToken=0102030405060708")]
+		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "Ref, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Culture=neutral, PublicKeyToken=0102030405060708")]
+		[InlineData("MajorVersion = 65535", "Ref, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Culture=neutral, PublicKeyToken=0102030405060708")]
+		[InlineData("RevisionNumber = 65535", "Ref, Version=1.2.3, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3, Culture=neutral, PublicKeyToken=0102030405060708")]
 		// The name
 		[InlineData("Name = 'A B'", "A B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "A B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
 		[InlineData("Name = 'A,B'", "A\\,B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "A\\,B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
 		[InlineData("Name = 'A=B'", "A\\=B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "A\\=B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
-		[InlineData("Name = 'A\"B'", "A\"B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "\"A\\\"B\", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
+		[InlineData("Name = 'A\"B'", "\"A\\\"B\", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "\"A\\\"B\", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
 		[InlineData("Name = 'A\\B'", "A\\\\B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "A\\\\B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
-		[InlineData("Name = ' A '", " A , Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "\" A \", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
+		[InlineData("Name = ' A '", "\" A \", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "\" A \", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
 		[InlineData("Name = ''", ", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "")]
 		// The culture
 		[InlineData("Locale = 'de'", "Ref, Version=1.2.3.4, Culture=de, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3.4, Culture=de, PublicKeyToken=0102030405060708")]
