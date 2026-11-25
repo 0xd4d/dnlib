@@ -93,10 +93,29 @@ namespace dnlib.Tests.Reading {
 		/// neither can be caught, and the whole test run then fails or hangs.
 		/// </summary>
 		public static void AssertReadAskOnlyDotNet(string expectedDnlib, string dnlib, string expectedRuntime, Func<string> readWithTheRuntime) {
-			if (IsDotNet)
+			if (IsDotNet || Environment.GetEnvironmentVariable("DNLIB_TESTS_ASK_NET_FRAMEWORK") == "1")
 				AssertRead(expectedDnlib, dnlib, expectedRuntime, readWithTheRuntime);
 			else
 				Assert.Equal(expectedDnlib, dnlib);
+		}
+
+		// To find the test cases that make a runtime crash or hang (see AssertReadAskOnlyDotNet): if the
+		// environment variable DNLIB_TESTS_RUNTIME_LOG is the name of a file, a line "ASK id name" is written to
+		// it before the runtime is asked and "DONE id" after it. The last "ASK" without a "DONE" is the case that
+		// crashed. The runtime isn't asked for a case whose id is a line of the file DNLIB_TESTS_RUNTIME_SKIP.
+		static string? StartLog() {
+			string? id = TestContext.Current.Test?.UniqueID;
+			if (id is null)
+				return null;
+			if (Environment.GetEnvironmentVariable("DNLIB_TESTS_RUNTIME_SKIP") is string skipFile && File.Exists(skipFile) && File.ReadAllLines(skipFile).Contains(id))
+				return "skip";
+			if (Environment.GetEnvironmentVariable("DNLIB_TESTS_RUNTIME_LOG") is string logFile)
+				File.AppendAllText(logFile, $"ASK {id} {TestContext.Current.Test?.TestDisplayName}\r\n");
+			return id;
+		}
+		static void EndLog(string? id, string result) {
+			if (id is not null && Environment.GetEnvironmentVariable("DNLIB_TESTS_RUNTIME_LOG") is string logFile)
+				File.AppendAllText(logFile, $"DONE {id} {result}\r\n");
 		}
 
 		/// <summary>
@@ -117,12 +136,18 @@ namespace dnlib.Tests.Reading {
 
 		// An exception is "throws" and its name: a CLR can reject a file that another CLR loads
 		static string ReadOrException(Func<string> readWithTheRuntime) {
+			string? logId = StartLog();
+			if (logId == "skip")
+				Assert.Skip("The runtime isn't asked: the case is in the file DNLIB_TESTS_RUNTIME_SKIP");
+			string result;
 			try {
-				return readWithTheRuntime();
+				result = readWithTheRuntime();
 			}
 			catch (Exception ex) {
-				return "throws " + ex.GetType().Name;
+				result = "throws " + ex.GetType().Name;
 			}
+			EndLog(logId, result);
+			return result;
 		}
 	}
 }
