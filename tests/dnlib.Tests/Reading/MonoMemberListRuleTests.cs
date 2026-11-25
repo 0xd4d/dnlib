@@ -21,6 +21,9 @@ namespace dnlib.Tests.Reading {
 	/// If a method has two Param rows with the same number, Mono uses the last row and the CLR the first one.
 	/// Fixed in a later commit than the binary search: dnlib used the first row.
 	///
+	/// Where versions of Mono differ, the expected value is "A|B": Mono 6.14 doesn't return a property whose methods
+	/// are methods of another type, Mono 6.12 does.
+	///
 	/// Mono is only asked by the tests for .NET Framework (the files then reference mscorlib) and only if the
 	/// <c>mono</c> command exists. Every file needs a new process: Mono stops the process if it doesn't like
 	/// the metadata.
@@ -182,7 +185,7 @@ static class Program {
 		[InlineData("properties", "PropertyMap.PropertyList of 1 = 0", "A[; EA1 EA2]", "A[; EA1 EA2]")]
 		[InlineData("properties", "PropertyMap.PropertyList of 2 = 0", "A[; EA1 EA2] B[; EB1 EB2]", "stops the process")]
 		[InlineData("properties", "PropertyMap.PropertyList of 3 = 0", "B[; EB1 EB2] C[; EC1 EC2]", "stops the process")]
-		[InlineData("properties", "PropertyMap.PropertyList of 3 = 7", "B[PB1 PB2 PC1 PC2; EB1 EB2] C[; EC1 EC2]", "B[PB1 PB2 PC1 PC2; EB1 EB2] C[; EC1 EC2]")]
+		[InlineData("properties", "PropertyMap.PropertyList of 3 = 7", "B[PB1 PB2 PC1 PC2; EB1 EB2] C[; EC1 EC2]", "B[PB1 PB2 PC1 PC2; EB1 EB2] C[; EC1 EC2]|C[; EC1 EC2]")]
 		[InlineData("properties", "PropertyMap.PropertyList of 3 = 100", "B[PB1 PB2 PC1 PC2; EB1 EB2] C[; EC1 EC2]", "stops the process")]
 		[InlineData("properties", "PropertyMap.PropertyList of 2 = 100", "A[PA1 PA2 PB1 PB2 PC1 PC2; EA1 EA2] B[; EB1 EB2]", "stops the process")]
 		[InlineData("properties", "EventMap.EventList of 1 = 0", "A[PA1 PA2; ]", "stops the process")]
@@ -205,7 +208,7 @@ static class Program {
 
 			Assert.Equal(expectedDnlib, dnlib);
 			if (IsMonoAsked)
-				Assert.Equal(expectedMono, ReadWithMono(kind, image));
+				Assert.Contains(ReadWithMono(kind, image), expectedMono.Split('|'));
 		}
 	}
 }

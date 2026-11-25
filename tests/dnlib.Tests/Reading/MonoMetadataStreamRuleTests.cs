@@ -15,10 +15,11 @@ namespace dnlib.Tests.Reading {
 	/// values, dnlib must read the same ones.
 	/// </summary>
 	/// <remarks>
-	/// There are two Mono runtimes: the one that is part of .NET, and the older one that the <c>mono</c> command
-	/// is (version 6). dnlib does what .NET's Mono does: a <c>#JTD</c> stream means that all columns are big.
-	/// The older Mono doesn't know that stream ("Unknown heap type") and reads the tables as they are: the
-	/// three cases with a <c>#JTD</c> stream are the only ones where it reads values and dnlib reads other ones.
+	/// There are several Mono runtimes: the one that is part of .NET, and the versions of the <c>mono</c> command.
+	/// dnlib does what .NET's Mono does: a <c>#JTD</c> stream means that all columns are big. Mono 6.12 doesn't know
+	/// that stream ("Unknown heap type") and reads the tables as they are; Mono 6.14 knows it and stops the process
+	/// because the columns of these files aren't big. The versions also don't agree on which sizes of the
+	/// <c>#Strings</c> stream stop the process. Where the versions differ, the expected value is "A|B".
 	///
 	/// Mono is only asked by the tests for .NET Framework (the files then reference mscorlib) and only if the
 	/// <c>mono</c> command exists. Every file needs a new process: Mono stops the process if it doesn't like
@@ -183,14 +184,14 @@ static class Program {
 		[InlineData("streams: unknown stream", "RRRR", "RRRR")]
 		[InlineData("streams: stream without a name", "RRRR", "RRRR")]
 		[InlineData("streams: stream with one char", "RRRR", "RRRR")]
-		[InlineData("streams: #JTD", "????", "RRRR")]
+		[InlineData("streams: #JTD", "????", "RRRR|stops the process")]
 		[InlineData("streams: #Pdb", "RRRR", "RRRR")]
 		[InlineData("streams: two tables streams", "RRRR", "RRRR")]
 		[InlineData("streams: tables stream and an uncompressed tables stream", "RRRR", "RRRR")]
 		[InlineData("streams: #Schema after the tables stream, decoys last", "DDDD", "DDDD")]
 		[InlineData("streams: #Schema after the tables stream, decoys first", "RRRR", "RRRR")]
 		[InlineData("streams: #Schema after the tables stream, decoys with lower case names first", "RRRR", "RRRR")]
-		[InlineData("streams: #Schema and #JTD after the tables stream", "????", "RRRR")]
+		[InlineData("streams: #Schema and #JTD after the tables stream", "????", "RRRR|stops the process")]
 		[InlineData("streams: #Schema before the tables stream", "RRRR", "RRRR")]
 		[InlineData("streams: #schema after the tables stream, decoys first", "RRRR", "RRRR")]
 		[InlineData("streams: heaps with upper case names", "???R", "stops the process")]
@@ -207,7 +208,7 @@ static class Program {
 		[InlineData("streams, uncompressed: two tables streams", "RRRR", "RRRR")]
 		[InlineData("streams, uncompressed: #Schema after the tables stream, decoys first", "RRRR", "RRRR")]
 		[InlineData("streams, uncompressed: #Schema before the tables stream", "RRRR", "RRRR")]
-		[InlineData("streams, uncompressed: #JTD", "????", "RRRR")]
+		[InlineData("streams, uncompressed: #JTD", "????", "RRRR|stops the process")]
 		[InlineData("streams, uncompressed: #jtd", "RRRR", "RRRR")]
 		public void MetadataStreamsAndHeaders(string change, string expectedDnlib, string expectedMono) {
 			var image = CreateImage(change);
@@ -215,7 +216,7 @@ static class Program {
 
 			Assert.Equal(expectedDnlib, dnlib);
 			if (IsMonoAsked)
-				Assert.Equal(expectedMono, ReadWithMono(image));
+				Assert.Contains(ReadWithMono(image), expectedMono.Split('|'));
 		}
 
 		// The same type as in the other files, and a second constant: the Constant table has two rows
@@ -286,8 +287,8 @@ public static class Second {
 		[Theory]
 		[InlineData("", "RRRR", "RRRR", "RRRR")]
 		// Mono doesn't use the size of a stream
-		[InlineData("size of #Strings = 0", "RRRR", "stops the process", "?RRR")]
-		[InlineData("size of #Strings = 0xFFFFFFFF", "RRRR", "RRRR", "?RRR")]
+		[InlineData("size of #Strings = 0", "RRRR", "stops the process|RRRR", "?RRR")]
+		[InlineData("size of #Strings = 0xFFFFFFFF", "RRRR", "RRRR|stops the process", "?RRR")]
 		[InlineData("size of #US = 0", "RRRR", "stops the process", "R?RR")]
 		[InlineData("size of #Blob = 0", "RRRR", "stops the process", "R??R")]
 		[InlineData("size of #Blob = 0xFFFFFFFF", "RRRR", "RRRR", "R??R")]
@@ -322,7 +323,7 @@ public static class Second {
 			Assert.Equal(expectedDnlib, dnlib);
 			Assert.Equal(expectedDnlibLikeTheClr, dnlibLikeTheClr);
 			if (IsMonoAsked)
-				Assert.Equal(expectedMono, ReadWithMono(image, markerRid));
+				Assert.Contains(ReadWithMono(image, markerRid), expectedMono.Split('|'));
 		}
 	}
 }
