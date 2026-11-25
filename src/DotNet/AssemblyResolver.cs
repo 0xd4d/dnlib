@@ -271,64 +271,64 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			var resolvedAssembly = Resolve2(assembly, sourceModule);
-			if (resolvedAssembly is null) {
-				string asmName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
-				string asmNameTrimmed = asmName.Trim();
-				if (asmName != asmNameTrimmed) {
-					assembly = new AssemblyNameInfo {
-						Name = asmNameTrimmed,
-						Version = assembly.Version,
-						PublicKeyOrToken = assembly.PublicKeyOrToken,
-						Culture = assembly.Culture,
-						Attributes = assembly.Attributes,
-					};
-					resolvedAssembly = Resolve2(assembly, sourceModule);
-				}
-			}
-
-			if (resolvedAssembly is null) {
-				// Make sure we don't search for this assembly again. This speeds up callers who
-				// keep asking for this assembly when trying to resolve many different TypeRefs
-				cachedAssemblies[GetAssemblyNameKey(assembly)] = null;
-				return null;
-			}
-
-			var key1 = GetAssemblyNameKey(resolvedAssembly);
-			var key2 = GetAssemblyNameKey(assembly);
-			cachedAssemblies.TryGetValue(key1, out var asm1);
-			cachedAssemblies.TryGetValue(key2, out var asm2);
-
-			if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
-				// This assembly was just resolved
-				if (enableTypeDefCache) {
-					var modules = resolvedAssembly.Modules;
-					int count = modules.Count;
-					for (int i = 0; i < count; i++) {
-						var module = modules[i];
-						if (module is not null)
-							module.EnableTypeDefFindCache = true;
+				var resolvedAssembly = Resolve2(assembly, sourceModule);
+				if (resolvedAssembly is null) {
+					string asmName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
+					string asmNameTrimmed = asmName.Trim();
+					if (asmName != asmNameTrimmed) {
+						assembly = new AssemblyNameInfo {
+							Name = asmNameTrimmed,
+							Version = assembly.Version,
+							PublicKeyOrToken = assembly.PublicKeyOrToken,
+							Culture = assembly.Culture,
+							Attributes = assembly.Attributes,
+						};
+						resolvedAssembly = Resolve2(assembly, sourceModule);
 					}
 				}
-			}
 
-			bool inserted = false;
-			if (!cachedAssemblies.ContainsKey(key1)) {
-				cachedAssemblies.Add(key1, resolvedAssembly);
-				inserted = true;
-			}
-			if (!cachedAssemblies.ContainsKey(key2)) {
-				cachedAssemblies.Add(key2, resolvedAssembly);
-				inserted = true;
-			}
-			if (inserted || asm1 == resolvedAssembly || asm2 == resolvedAssembly)
-				return resolvedAssembly;
+				if (resolvedAssembly is null) {
+					// Make sure we don't search for this assembly again. This speeds up callers who
+					// keep asking for this assembly when trying to resolve many different TypeRefs
+					cachedAssemblies[GetAssemblyNameKey(assembly)] = null;
+					return null;
+				}
 
-			// Dupe assembly. Don't insert it.
-			var dupeModule = resolvedAssembly.ManifestModule;
-			if (dupeModule is not null)
-				dupeModule.Dispose();
-			return asm1 ?? asm2;
+				var key1 = GetAssemblyNameKey(resolvedAssembly);
+				var key2 = GetAssemblyNameKey(assembly);
+				cachedAssemblies.TryGetValue(key1, out var asm1);
+				cachedAssemblies.TryGetValue(key2, out var asm2);
+
+				if (asm1 != resolvedAssembly && asm2 != resolvedAssembly) {
+					// This assembly was just resolved
+					if (enableTypeDefCache) {
+						var modules = resolvedAssembly.Modules;
+						int count = modules.Count;
+						for (int i = 0; i < count; i++) {
+							var module = modules[i];
+							if (module is not null)
+								module.EnableTypeDefFindCache = true;
+						}
+					}
+				}
+
+				bool inserted = false;
+				if (!cachedAssemblies.ContainsKey(key1)) {
+					cachedAssemblies.Add(key1, resolvedAssembly);
+					inserted = true;
+				}
+				if (!cachedAssemblies.ContainsKey(key2)) {
+					cachedAssemblies.Add(key2, resolvedAssembly);
+					inserted = true;
+				}
+				if (inserted || asm1 == resolvedAssembly || asm2 == resolvedAssembly)
+					return resolvedAssembly;
+
+				// Dupe assembly. Don't insert it.
+				var dupeModule = resolvedAssembly.ManifestModule;
+				if (dupeModule is not null)
+					dupeModule.Dispose();
+				return asm1 ?? asm2;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -358,10 +358,10 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (cachedAssemblies.TryGetValue(asmKey, out var cachedAsm) && cachedAsm is not null)
-				return asm == cachedAsm;
-			cachedAssemblies[asmKey] = asm;
-			return true;
+				if (cachedAssemblies.TryGetValue(asmKey, out var cachedAsm) && cachedAsm is not null)
+					return asm == cachedAsm;
+				cachedAssemblies[asmKey] = asm;
+				return true;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -390,14 +390,14 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			if (asm.ManifestModule is { } module)
-				moduleSearchPaths.Remove(module);
-			if (findExactMatch)
-				return cachedAssemblies.Remove(asmKey);
-			string[] keys = [.. cachedAssemblies.Where(x => x.Value == asm).Select(x => x.Key)];
-			foreach (string key in keys)
-				cachedAssemblies.Remove(key);
-			return keys.Length > 0;
+				if (asm.ManifestModule is { } module)
+					moduleSearchPaths.Remove(module);
+				if (findExactMatch)
+					return cachedAssemblies.Remove(asmKey);
+				string[] keys = [.. cachedAssemblies.Where(x => x.Value == asm).Select(x => x.Key)];
+				foreach (string key in keys)
+					cachedAssemblies.Remove(key);
+				return keys.Length > 0;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -415,9 +415,9 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterWriteLock(); try {
 #endif
-			asms = new List<AssemblyDef?>(cachedAssemblies.Values);
-			cachedAssemblies.Clear();
-			moduleSearchPaths.Clear();
+				asms = new List<AssemblyDef?>(cachedAssemblies.Values);
+				cachedAssemblies.Clear();
+				moduleSearchPaths.Clear();
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitWriteLock(); }
@@ -439,8 +439,8 @@ namespace dnlib.DotNet {
 #if THREAD_SAFE
 			theLock.EnterReadLock(); try {
 #endif
-			// A failed resolve is cached as a null value
-			assemblies = cachedAssemblies.Values.Where(a => a is not null).ToArray()!;
+				// A failed resolve is cached as a null value
+				assemblies = cachedAssemblies.Values.Where(a => a is not null).ToArray()!;
 #if THREAD_SAFE
 			}
 			finally { theLock.ExitReadLock(); }
