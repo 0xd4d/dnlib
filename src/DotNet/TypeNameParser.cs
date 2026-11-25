@@ -801,6 +801,8 @@ namespace dnlib.DotNet {
 
 		AssemblyRef ReadAssemblyRef() {
 			var asmRef = new AssemblyRefUser();
+			// A name without "Version=" has no version: it's a reference to any version, like in the CLR
+			asmRef.Version = Utils.NoAssemblyVersion;
 			if (ownerModule is not null)
 				ownerModule.UpdateRowId(asmRef);
 

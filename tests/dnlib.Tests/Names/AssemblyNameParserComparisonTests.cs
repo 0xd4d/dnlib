@@ -14,8 +14,9 @@ namespace dnlib.Tests.Names {
 	/// the name, the version, the culture, the public key (token), and "retargetable" / "winrt".
 	/// <list type="bullet">
 	/// <item>Where System.Reflection reads a value, dnlib reads the same value.</item>
-	/// <item>A part that isn't in the text is null in System.Reflection. In dnlib the version is 0.0.0.0
-	/// and the culture is empty (an AssemblyRef always has them).</item>
+	/// <item>A part that isn't in the text is null in System.Reflection. In dnlib the version is
+	/// 65535.65535.65535.65535 ("no version", shown as null here) and the culture is empty (an AssemblyRef
+	/// always has them).</item>
 	/// <item>dnlib reads texts that System.Reflection rejects ("invalid"): the same key twice, a key
 	/// without a value, a quote in a name that isn't in quotes, a public key token that doesn't have 8
 	/// bytes. And "Language" is another name for "Culture".</item>
@@ -36,7 +37,9 @@ namespace dnlib.Tests.Names {
 			var assemblyRef = ReflectionTypeNameParser.ParseAssemblyRef(text);
 			if (assemblyRef is null)
 				return "invalid";
-			return Describe(assemblyRef.Name, assemblyRef.Version, assemblyRef.Culture, assemblyRef.PublicKeyOrToken?.Data, assemblyRef.HasPublicKey, assemblyRef.IsRetargetable, assemblyRef.IsContentTypeWindowsRuntime);
+			// No version is 65535 for every number in dnlib, like in the metadata
+			var version = assemblyRef.Version == new Version(65535, 65535, 65535, 65535) ? null : assemblyRef.Version;
+			return Describe(assemblyRef.Name, version, assemblyRef.Culture, assemblyRef.PublicKeyOrToken?.Data, assemblyRef.HasPublicKey, assemblyRef.IsRetargetable, assemblyRef.IsContentTypeWindowsRuntime);
 		}
 
 		static string ParseWithSystemReflection(string text) {
@@ -53,7 +56,7 @@ namespace dnlib.Tests.Names {
 		}
 
 		[Theory]
-		[InlineData("Lib", "Lib|0.0.0.0||null", "Lib|null|null|null")]
+		[InlineData("Lib", "Lib|null||null", "Lib|null|null|null")]
 		[InlineData("Lib, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b77a5c561934e089", "Lib|1.2.3.4||b77a5c561934e089", "Lib|1.2.3.4||b77a5c561934e089")]
 		[InlineData("Lib, Version=1.2.3.4, Culture=de-DE, PublicKeyToken=null", "Lib|1.2.3.4|de-DE|null", "Lib|1.2.3.4|de-DE|")]
 		// White space and the case of the keys
@@ -62,65 +65,65 @@ namespace dnlib.Tests.Names {
 		[InlineData("Lib, version=1.2.3.4, CULTURE=de, publickeytoken=b77a5c561934e089", "Lib|1.2.3.4|de|b77a5c561934e089", "Lib|1.2.3.4|de|b77a5c561934e089")]
 		[InlineData("Lib\t, Version=1.2.3.4", "Lib|1.2.3.4||null", "Lib|1.2.3.4|null|null")]
 		// Names with special chars
-		[InlineData("Lib.Name-1_2", "Lib.Name-1_2|0.0.0.0||null", "Lib.Name-1_2|null|null|null")]
-		[InlineData("A B", "A B|0.0.0.0||null", "A B|null|null|null")]
-		[InlineData("\"A B\"", "A B|0.0.0.0||null", "A B|null|null|null")]
-		[InlineData("' A '", " A |0.0.0.0||null", " A |null|null|null")]
+		[InlineData("Lib.Name-1_2", "Lib.Name-1_2|null||null", "Lib.Name-1_2|null|null|null")]
+		[InlineData("A B", "A B|null||null", "A B|null|null|null")]
+		[InlineData("\"A B\"", "A B|null||null", "A B|null|null|null")]
+		[InlineData("' A '", " A |null||null", " A |null|null|null")]
 		[InlineData("\" A \", Version=1.2.3.4", " A |1.2.3.4||null", " A |1.2.3.4|null|null")]
-		[InlineData("\"A\\\"B\"", "A\"B|0.0.0.0||null", "A\"B|null|null|null")]
-		[InlineData("A\\,B", "A,B|0.0.0.0||null", "A,B|null|null|null")]
-		[InlineData("A\\=B", "A=B|0.0.0.0||null", "A=B|null|null|null")]
-		[InlineData("A\\\\B", "A\\B|0.0.0.0||null", "A\\B|null|null|null")]
-		[InlineData("A\\tB", "A\tB|0.0.0.0||null", "A\tB|null|null|null")]
-		[InlineData("A=B", "A=B|0.0.0.0||null", "invalid")]
-		[InlineData("A\"B", "A\"B|0.0.0.0||null", "invalid")]
-		[InlineData("A'B", "A'B|0.0.0.0||null", "invalid")]
+		[InlineData("\"A\\\"B\"", "A\"B|null||null", "A\"B|null|null|null")]
+		[InlineData("A\\,B", "A,B|null||null", "A,B|null|null|null")]
+		[InlineData("A\\=B", "A=B|null||null", "A=B|null|null|null")]
+		[InlineData("A\\\\B", "A\\B|null||null", "A\\B|null|null|null")]
+		[InlineData("A\\tB", "A\tB|null||null", "A\tB|null|null|null")]
+		[InlineData("A=B", "A=B|null||null", "invalid")]
+		[InlineData("A\"B", "A\"B|null||null", "invalid")]
+		[InlineData("A'B", "A'B|null||null", "invalid")]
 		[InlineData("\"A", "invalid", "invalid")]
-		[InlineData("\"A\"B", "A|0.0.0.0||null", "invalid")]
+		[InlineData("\"A\"B", "A|null||null", "invalid")]
 		[InlineData("", "invalid", "invalid")]
 		[InlineData(" ", "invalid", "invalid")]
 		[InlineData(", Version=1.2.3.4", "invalid", "invalid")]
 		[InlineData("\"\"", "invalid", "invalid")]
 		// The same key twice, keys that don't exist, values that are missing
 		[InlineData("Lib, Version=1.2.3.4, Version=2.0.0.0", "Lib|2.0.0.0||null", "invalid")]
-		[InlineData("Lib, Culture=de, Culture=fr", "Lib|0.0.0.0|fr|null", "invalid")]
-		[InlineData("Lib, Unknown=1", "Lib|0.0.0.0||null", "Lib|null|null|null")]
-		[InlineData("Lib, Unknown", "Lib|0.0.0.0||null", "invalid")]
+		[InlineData("Lib, Culture=de, Culture=fr", "Lib|null|fr|null", "invalid")]
+		[InlineData("Lib, Unknown=1", "Lib|null||null", "Lib|null|null|null")]
+		[InlineData("Lib, Unknown", "Lib|null||null", "invalid")]
 		[InlineData("Lib, Version=", "invalid", "invalid")]
 		[InlineData("Lib, Culture=", "invalid", "invalid")]
 		[InlineData("Lib, PublicKeyToken=", "invalid", "invalid")]
-		[InlineData("Lib,", "Lib|0.0.0.0||null", "invalid")]
+		[InlineData("Lib,", "Lib|null||null", "invalid")]
 		[InlineData("Lib,,Version=1.2.3.4", "Lib|1.2.3.4||null", "invalid")]
-		[InlineData("Lib, =1", "Lib|0.0.0.0||null", "invalid")]
+		[InlineData("Lib, =1", "Lib|null||null", "invalid")]
 		// The culture
-		[InlineData("Lib, Culture=NEUTRAL", "Lib|0.0.0.0||null", "Lib|null||null")]
-		[InlineData("Lib, Culture=\"de\"", "Lib|0.0.0.0|de|null", "Lib|null|de|null")]
-		[InlineData("Lib, Language=de", "Lib|0.0.0.0|de|null", "Lib|null|null|null")]
-		[InlineData("Lib, Culture=de\\,x", "Lib|0.0.0.0|de,x|null", "invalid")]
+		[InlineData("Lib, Culture=NEUTRAL", "Lib|null||null", "Lib|null||null")]
+		[InlineData("Lib, Culture=\"de\"", "Lib|null|de|null", "Lib|null|de|null")]
+		[InlineData("Lib, Language=de", "Lib|null|de|null", "Lib|null|null|null")]
+		[InlineData("Lib, Culture=de\\,x", "Lib|null|de,x|null", "invalid")]
 		// The public key token and the public key
-		[InlineData("Lib, PublicKeyToken=B77A5C561934E089", "Lib|0.0.0.0||b77a5c561934e089", "Lib|null|null|b77a5c561934e089")]
-		[InlineData("Lib, PublicKeyToken=NULL", "Lib|0.0.0.0||null", "Lib|null|null|")]
-		[InlineData("Lib, PublicKeyToken=neutral", "Lib|0.0.0.0||null", "invalid")]
-		[InlineData("Lib, PublicKeyToken=b77a5c56", "Lib|0.0.0.0||b77a5c56", "invalid")]
+		[InlineData("Lib, PublicKeyToken=B77A5C561934E089", "Lib|null||b77a5c561934e089", "Lib|null|null|b77a5c561934e089")]
+		[InlineData("Lib, PublicKeyToken=NULL", "Lib|null||null", "Lib|null|null|")]
+		[InlineData("Lib, PublicKeyToken=neutral", "Lib|null||null", "invalid")]
+		[InlineData("Lib, PublicKeyToken=b77a5c56", "Lib|null||b77a5c56", "invalid")]
 		[InlineData("Lib, PublicKeyToken=b77a5c561934e08", "invalid", "invalid")]
 		[InlineData("Lib, PublicKeyToken=xyz", "invalid", "invalid")]
-		[InlineData("Lib, PublicKeyToken=b77a5c561934e089aa", "Lib|0.0.0.0||b77a5c561934e089aa", "invalid")]
-		[InlineData("Lib, PublicKey=null", "Lib|0.0.0.0||null", "Lib|null|null|key:")]
-		[InlineData("Lib, PublicKey=00000000000000000400000000000000", "Lib|0.0.0.0||key:00000000000000000400000000000000", "Lib|null|null|key:00000000000000000400000000000000")]
-		[InlineData("Lib, PublicKey=0102", "Lib|0.0.0.0||key:0102", "Lib|null|null|key:0102")]
-		[InlineData("Lib, PublicKey=00000000000000000400000000000000, PublicKeyToken=b77a5c561934e089", "Lib|0.0.0.0||b77a5c561934e089", "invalid")]
+		[InlineData("Lib, PublicKeyToken=b77a5c561934e089aa", "Lib|null||b77a5c561934e089aa", "invalid")]
+		[InlineData("Lib, PublicKey=null", "Lib|null||null", "Lib|null|null|key:")]
+		[InlineData("Lib, PublicKey=00000000000000000400000000000000", "Lib|null||key:00000000000000000400000000000000", "Lib|null|null|key:00000000000000000400000000000000")]
+		[InlineData("Lib, PublicKey=0102", "Lib|null||key:0102", "Lib|null|null|key:0102")]
+		[InlineData("Lib, PublicKey=00000000000000000400000000000000, PublicKeyToken=b77a5c561934e089", "Lib|null||b77a5c561934e089", "invalid")]
 		// Other keys
-		[InlineData("Lib, Retargetable=Yes", "Lib|0.0.0.0||null|retargetable", "Lib|null|null|null|retargetable")]
-		[InlineData("Lib, Retargetable=yes", "Lib|0.0.0.0||null|retargetable", "Lib|null|null|null|retargetable")]
-		[InlineData("Lib, Retargetable=No", "Lib|0.0.0.0||null", "Lib|null|null|null")]
-		[InlineData("Lib, Retargetable=1", "Lib|0.0.0.0||null", "invalid")]
-		[InlineData("Lib, ContentType=WindowsRuntime", "Lib|0.0.0.0||null|winrt", "Lib|null|null|null|winrt")]
-		[InlineData("Lib, ContentType=windowsruntime", "Lib|0.0.0.0||null|winrt", "Lib|null|null|null|winrt")]
-		[InlineData("Lib, ContentType=Default", "Lib|0.0.0.0||null", "invalid")]
-		[InlineData("Lib, ContentType=Other", "Lib|0.0.0.0||null", "invalid")]
-		[InlineData("Lib, ProcessorArchitecture=MSIL", "Lib|0.0.0.0||null", "Lib|null|null|null")]
-		[InlineData("Lib, ProcessorArchitecture=Nothing", "Lib|0.0.0.0||null", "invalid")]
-		[InlineData("Lib, Custom=null", "Lib|0.0.0.0||null", "Lib|null|null|null")]
+		[InlineData("Lib, Retargetable=Yes", "Lib|null||null|retargetable", "Lib|null|null|null|retargetable")]
+		[InlineData("Lib, Retargetable=yes", "Lib|null||null|retargetable", "Lib|null|null|null|retargetable")]
+		[InlineData("Lib, Retargetable=No", "Lib|null||null", "Lib|null|null|null")]
+		[InlineData("Lib, Retargetable=1", "Lib|null||null", "invalid")]
+		[InlineData("Lib, ContentType=WindowsRuntime", "Lib|null||null|winrt", "Lib|null|null|null|winrt")]
+		[InlineData("Lib, ContentType=windowsruntime", "Lib|null||null|winrt", "Lib|null|null|null|winrt")]
+		[InlineData("Lib, ContentType=Default", "Lib|null||null", "invalid")]
+		[InlineData("Lib, ContentType=Other", "Lib|null||null", "invalid")]
+		[InlineData("Lib, ProcessorArchitecture=MSIL", "Lib|null||null", "Lib|null|null|null")]
+		[InlineData("Lib, ProcessorArchitecture=Nothing", "Lib|null||null", "invalid")]
+		[InlineData("Lib, Custom=null", "Lib|null||null", "Lib|null|null|null")]
 		public void NameIsParsed(string text, string expectedDnlib, string expectedSystemReflection) {
 			Assert.Equal(expectedDnlib, ParseWithDnlib(text));
 			// .NET Framework and Mono have other parsers

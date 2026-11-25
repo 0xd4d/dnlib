@@ -28,15 +28,33 @@ namespace dnlib.Tests.Names {
 			Assert.Equal(FullName, info.ToString());
 		}
 
+		// Changed in this commit: a name without a version got version 0.0.0.0. It now has no version (every
+		// number is 65535, see NameWithoutAVersionIsAnyVersion), and its full name has no version either.
 		[Theory]
-		[InlineData("Lib", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("Lib", "Lib, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("Lib, Version=1.0.0.0", "Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")]
-		[InlineData("Lib, Culture=de-DE", "Lib, Version=0.0.0.0, Culture=de-DE, PublicKeyToken=null")]
-		[InlineData("Lib, PublicKeyToken=null", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("Lib, Culture=de-DE", "Lib, Culture=de-DE, PublicKeyToken=null")]
+		[InlineData("Lib, PublicKeyToken=null", "Lib, Culture=neutral, PublicKeyToken=null")]
 		// The parts can be in any order
 		[InlineData("Lib, PublicKeyToken=b77a5c561934e089, Culture=neutral, Version=4.0.0.0", "Lib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
 		public void PartsThatAreNotInTheTextHaveTheirDefaultValues(string text, string expectedFullName) =>
 			Assert.Equal(expectedFullName, new AssemblyNameInfo(text).FullName);
+
+		// Changed in this commit: 65535 is "no value" in the metadata, and the CLR takes any version of the
+		// assembly for a reference without a version. System.Reflection.AssemblyName has a null version.
+		[Fact]
+		public void NameWithoutAVersionIsAnyVersion() {
+			var noVersion = new Version(65535, 65535, 65535, 65535);
+
+			Assert.Equal(noVersion, new AssemblyNameInfo("Lib").Version);
+			Assert.Equal(noVersion, new AssemblyNameInfo("Lib, Culture=de").Version);
+			Assert.Equal(noVersion, new AssemblyNameInfo(new System.Reflection.AssemblyName("Lib")).Version);
+			Assert.Equal(noVersion, new AssemblyRefUser(new System.Reflection.AssemblyName("Lib")).Version);
+			Assert.Equal(noVersion, new AssemblyNameInfo(new AssemblyNameInfo { Name = "Lib" }).Version);
+			Assert.Equal(noVersion, new AssemblyRefUser(new AssemblyNameInfo { Name = "Lib" }).Version);
+			// A version of 0.0.0.0 is a version
+			Assert.Equal(new Version(0, 0, 0, 0), new AssemblyNameInfo("Lib, Version=0.0.0.0").Version);
+		}
 
 		// A name with the whole public key: the full name has its token
 		[Fact]

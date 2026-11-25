@@ -252,6 +252,13 @@ namespace dnlib.DotNet {
 		static readonly Version zeroVersion = new Version(0, 0, 0, 0);
 
 		/// <summary>
+		/// The version of a reference to an assembly that has no version: every number is 65535, "no value".
+		/// The CLR does the same with a <c>System.Reflection.AssemblyName</c> without a version, and such a
+		/// reference is then a reference to any version of the assembly.
+		/// </summary>
+		internal static readonly Version NoAssemblyVersion = new Version(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, ushort.MaxValue);
+
+		/// <summary>
 		/// Checks whether a number of a version has no value: it's 65535, or the <see cref="Version"/>
 		/// doesn't have it (-1)
 		/// </summary>

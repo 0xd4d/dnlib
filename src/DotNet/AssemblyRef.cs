@@ -399,12 +399,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="assembly">Assembly</param>
+		/// <param name="assembly">Assembly. A missing version becomes 65535.65535.65535.65535: no version, a reference to any version of the assembly.</param>
 		public AssemblyRefUser(IAssembly assembly) {
 			if (assembly is null)
 				throw new ArgumentNullException("asmName");
 
-			version = assembly.Version ?? new Version(0, 0, 0, 0);
+			version = assembly.Version ?? Utils.NoAssemblyVersion;
 			publicKeyOrToken = assembly.PublicKeyOrToken;
 			name = UTF8String.IsNullOrEmpty(assembly.Name) ? UTF8String.Empty : assembly.Name;
 			culture = UTF8String.EmptyIfNull(assembly.Culture);

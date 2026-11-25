@@ -26,13 +26,14 @@ namespace dnlib.Tests.Importing {
 			Assert.Equal(publicKey.Token?.Data, reference.PublicKeyOrToken?.Token?.Data);
 		}
 
-		// Fixed in f7199526
+		// Fixed in f7199526 (it threw). Changed in this commit: the version was 0.0.0.0, it's now "no version",
+		// which is 65535 for every number in the metadata: a reference to any version of the assembly.
 		[Fact]
-		public void ReferenceToAnAssemblyWithoutAVersionHasVersionZero() {
+		public void ReferenceToAnAssemblyWithoutAVersionHasNoVersion() {
 			var assembly = new AssemblyNameInfo { Name = "Name" };
 			Assert.Null(assembly.Version);
 
-			Assert.Equal(new Version(0, 0, 0, 0), assembly.ToAssemblyRef()?.Version);
+			Assert.Equal(new Version(65535, 65535, 65535, 65535), assembly.ToAssemblyRef()?.Version);
 		}
 
 		// Fixed in dd7fe491: compilers write this flag in a reference to a retargetable assembly
