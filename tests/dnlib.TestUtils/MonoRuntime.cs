@@ -56,4 +56,44 @@ namespace dnlib.TestUtils {
 			}
 		}
 	}
+
+	/// <summary>
+	/// A small C# program that the <c>mono</c> command runs with a file that a test created. The program
+	/// writes <c>&lt;result&gt;</c> and then its result to the standard output (Mono writes warnings about the
+	/// file's metadata there too).
+	/// </summary>
+	public sealed class MonoProgram : IDisposable {
+		const string ResultMarker = "<result>";
+		readonly TempDirectory directory = new TempDirectory();
+		readonly string source;
+		string? program;
+		int files;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="source">C# code of a program for .NET Framework. Its first argument is the file.</param>
+		public MonoProgram(string source) => this.source = source;
+
+		/// <summary>
+		/// Writes the file, runs the program with it and returns the program's result, or <c>null</c> if Mono
+		/// stopped the process or the program didn't write a result
+		/// </summary>
+		/// <param name="image">The file that the program reads</param>
+		/// <param name="arguments">The arguments after the file name</param>
+		public string? Run(byte[] image, string arguments) {
+			if (program is null) {
+				var programImage = CSharpCompiler.Compile(source, new CSharpCompilerOptions { AssemblyName = "ReadWithMono", OutputKind = Microsoft.CodeAnalysis.OutputKind.ConsoleApplication }).Image;
+				File.WriteAllBytes(directory.GetPath("ReadWithMono.exe"), programImage);
+				program = directory.GetPath("ReadWithMono.exe");
+			}
+			var file = directory.GetPath($"file{++files}.dll");
+			File.WriteAllBytes(file, image);
+			var output = MonoRuntime.Run(program, $"\"{file}\" {arguments}");
+			int index = output is null ? -1 : output.LastIndexOf(ResultMarker, StringComparison.Ordinal);
+			return index < 0 ? null : output!.Substring(index + ResultMarker.Length);
+		}
+
+		public void Dispose() => directory.Dispose();
+	}
 }

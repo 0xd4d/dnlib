@@ -75,15 +75,15 @@ public static class C {
 	public static event Action EC2 { add { } remove { } }
 }
 ";
-		static readonly byte[] propertyImage = Compile(PropertySource);
+		internal static readonly byte[] propertyImage = Compile(PropertySource);
 
 		const BindingFlags Declared = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
 		// "Table.Column of X = value": writes the value to that column of the row of the type or method X
 		// (or of row X if it's a number). More than one change is separated by a comma.
-		static byte[] CreateImage(string changes) => CreateImage(baseImage, changes);
+		internal static byte[] CreateImage(string changes) => CreateImage(baseImage, changes);
 
-		static byte[] CreateImage(byte[] image, string changes) {
+		internal static byte[] CreateImage(byte[] image, string changes) {
 			var patcher = new MetadataPatcher(image);
 			if (changes == "nothing")
 				return patcher.ToArray();
@@ -104,8 +104,8 @@ public static class C {
 
 		static readonly string[] typeNames = { "<Module>", "A", "B", "C" };
 
-		static string[] ReadMembersWithDnlib(byte[] image) {
-			using (var module = ModuleDefMD.Load(image)) {
+		internal static string[] ReadMembersWithDnlib(byte[] image, CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR) {
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions(runtime))) {
 				return typeNames.Select(name => {
 					var type = module.Types.Single(a => a.Name == name);
 					return Describe(name, type.Fields.Select(a => a.Name.String).ToArray(), type.Methods.Select(a => a.Name.String).ToArray());
@@ -141,14 +141,14 @@ public static class C {
 
 		// What was read, without the types or methods that have what the compiler gave them ("normal" if all
 		// of them have that)
-		static string OnlyChanges(string[] read, string[] normal) {
+		internal static string OnlyChanges(string[] read, string[] normal) {
 			if (read.Length != normal.Length)
 				return string.Join(" ", read);
 			var changes = read.Where((a, i) => a != normal[i]).ToArray();
 			return changes.Length == 0 ? "normal" : string.Join(" ", changes);
 		}
 
-		static readonly string[] normalMembers = { "<Module>[; ]", "A[a1 a2; MA1 MA2]", "B[b1 b2; MB1 MB2]", "C[c1 c2; MC1 MC2]" };
+		internal static readonly string[] normalMembers = { "<Module>[; ]", "A[a1 a2; MA1 MA2]", "B[b1 b2; MB1 MB2]", "C[c1 c2; MC1 MC2]" };
 
 		[Theory]
 		[InlineData("nothing", "normal", "normal")]
@@ -185,8 +185,8 @@ public static class C {
 
 		// A parameter has the name of the row with its number (the Sequence column). Every method has two
 		// parameters, so that the rows of another method also have the numbers of parameters that exist.
-		static string[] ReadParametersWithDnlib(byte[] image) {
-			using (var module = ModuleDefMD.Load(image)) {
+		internal static string[] ReadParametersWithDnlib(byte[] image, CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR) {
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions(runtime))) {
 				var methods = module.Types.SelectMany(a => a.Methods).ToArray();
 				return methodNames.Select(name => {
 					var method = methods.First(a => a.Name == name);
@@ -215,7 +215,7 @@ public static class C {
 			}
 		}
 
-		static readonly string[] normalParameters = { "MA1(a1x,a1y)", "MA2(a2x,a2y)", "MB1(b1x,b1y)", "MB2(b2x,b2y)", "MC1(c1x,c1y)", "MC2(c2x,c2y)" };
+		internal static readonly string[] normalParameters = { "MA1(a1x,a1y)", "MA2(a2x,a2y)", "MB1(b1x,b1y)", "MB2(b2x,b2y)", "MC1(c1x,c1y)", "MC2(c2x,c2y)" };
 
 		// The Param table: rows 1-2 are the parameters of MA1, 3-4 of MA2, 5-6 of MB1, 7-8 of MB2, 9-10 of
 		// MC1 and 11-12 of MC2.
@@ -252,8 +252,8 @@ public static class C {
 
 		static readonly string[] classNames = { "A", "B", "C" };
 
-		static string[] ReadPropertiesWithDnlib(byte[] image) {
-			using (var module = ModuleDefMD.Load(image)) {
+		internal static string[] ReadPropertiesWithDnlib(byte[] image, CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR) {
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions(runtime))) {
 				return classNames.Select(name => {
 					var type = module.Types.Single(a => a.Name == name);
 					return Describe(name, type.Properties.Select(a => a.Name.String).ToArray(), type.Events.Select(a => a.Name.String).ToArray());
@@ -284,7 +284,7 @@ public static class C {
 			}
 		}
 
-		static readonly string[] normalProperties = { "A[PA1 PA2; EA1 EA2]", "B[PB1 PB2; EB1 EB2]", "C[PC1 PC2; EC1 EC2]" };
+		internal static readonly string[] normalProperties = { "A[PA1 PA2; EA1 EA2]", "B[PB1 PB2; EB1 EB2]", "C[PC1 PC2; EC1 EC2]" };
 
 		// System.Reflection doesn't return the properties or events of a type ("throws") if one of them has
 		// a method of another type: where dnlib reads more than the type's own members, it throws
