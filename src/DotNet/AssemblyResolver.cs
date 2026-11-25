@@ -153,6 +153,10 @@ namespace dnlib.DotNet {
 		/// <c>false</c> if it first tries to match exactly, and if that fails, it picks an
 		/// assembly that is closest to the requested assembly.
 		/// </summary>
+		/// <remarks>A version number of the requested assembly that is 65535 (or that is missing in its
+		/// <see cref="Version"/>) has no value: like in the CLR, an assembly with any number there, and with
+		/// any numbers after it, matches exactly. Eg. a reference with version 1.2.65535.65535 matches
+		/// assemblies with version 1.2.0.0 and 1.2.3.4, and 65535.65535.65535.65535 matches every version.</remarks>
 		public bool FindExactMatch {
 			get => findExactMatch;
 			set => findExactMatch = value;
@@ -457,9 +461,18 @@ namespace dnlib.DotNet {
 			if (moduleContext is null && sourceModule is not null)
 				moduleContext = sourceModule.Context;
 
-			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, true), moduleContext) ??
-					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, true), moduleContext) ??
-					FindExactAssembly(assembly, PostFindAssemblies(assembly, sourceModule, true), moduleContext);
+			// If a version number of the requested assembly has no value, more than one version matches
+			// exactly: it can then be an assembly that's already cached or one in another directory of the GAC
+			bool hasOneVersion = !Utils.HasVersionNumberWithoutValue(assembly.Version);
+			if (!hasOneVersion) {
+				foreach (var kv in cachedAssemblies) {
+					if (kv.Value is { } asm && IsExactMatch(assembly, asm))
+						return asm;
+				}
+			}
+			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, hasOneVersion), moduleContext) ??
+					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, hasOneVersion), moduleContext) ??
+					FindExactAssembly(assembly, PostFindAssemblies(assembly, sourceModule, hasOneVersion), moduleContext);
 			if (resolvedAssembly is not null)
 				return resolvedAssembly;
 
@@ -484,13 +497,12 @@ namespace dnlib.DotNet {
 		AssemblyDef? FindExactAssembly(IAssembly assembly, IEnumerable<string>? paths, ModuleContext? moduleContext) {
 			if (paths is null)
 				return null;
-			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var path in paths) {
 				ModuleDefMD? mod = null;
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
-					if (asm is not null && asmComparer.Equals(assembly, asm)) {
+					if (asm is not null && IsExactMatch(assembly, asm)) {
 						mod = null;
 						return asm;
 					}
@@ -504,6 +516,18 @@ namespace dnlib.DotNet {
 			}
 			return null;
 		}
+
+		// A requested version number that has no value (65535) matches any number, and so do the numbers
+		// after it, like in the CLR
+		static bool IsExactMatch(IAssembly requested, AssemblyDef assembly) {
+			if (!Utils.HasVersionNumberWithoutValue(requested.Version))
+				return AssemblyNameComparer.CompareAll.Equals(requested, assembly);
+			if (!allExceptVersionComparer.Equals(requested, assembly))
+				return false;
+			Utils.GetRequestedVersionRange(requested.Version, out var lowest, out var highest);
+			return Utils.CompareTo(assembly.Version, lowest) >= 0 && Utils.CompareTo(assembly.Version, highest) <= 0;
+		}
+		static readonly AssemblyNameComparer allExceptVersionComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All & ~AssemblyNameComparerFlags.Version);
 
 		/// <summary>
 		/// Finds the closest assembly from the already cached assemblies

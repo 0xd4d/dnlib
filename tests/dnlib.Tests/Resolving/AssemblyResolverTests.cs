@@ -236,6 +236,50 @@ namespace dnlib.Tests.Resolving {
 			}
 		}
 
+		// Changed in this commit: a requested version number that is 65535 (or that the System.Version doesn't
+		// have) has no value. The CLR takes an assembly with any number there and with any numbers after it, so
+		// such an assembly is an exact match.
+		[Theory]
+		[InlineData("65535.65535.65535.65535", true)]
+		[InlineData("65535.0.0.0", true)]
+		[InlineData("1.65535.65535.65535", true)]
+		[InlineData("1.2.65535.65535", true)]
+		[InlineData("1.2", true)]
+		[InlineData("1.2.65535.9", true)]
+		[InlineData("1.2.3.65535", true)]
+		[InlineData("1.2.3", true)]
+		[InlineData("1.2.3.4", true)]
+		[InlineData("2.65535.65535.65535", false)]
+		[InlineData("1.3.65535.65535", false)]
+		[InlineData("1.3", false)]
+		[InlineData("1.2.4.65535", false)]
+		[InlineData("1.2.3.5", false)]
+		[InlineData("0.0.0.0", false)]
+		public void VersionNumberWithoutValueMatchesAnyNumberExactly(string requestedVersion, bool expectedFound) {
+			var file = WriteLibrary("libs", LibraryName, "1.2.3.4");
+			var resolver = CreateResolver(Path.GetDirectoryName(file)!);
+			resolver.FindExactMatch = true;
+			try {
+				var assembly = resolver.Resolve(CreateReference(LibraryName, requestedVersion), sourceModule: null);
+				Assert.Equal(expectedFound ? "1.2.3.4" : null, assembly?.Version.ToString());
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+		}
+
+		[Fact]
+		public void VersionNumberWithoutValueMatchesACachedAssemblyExactly() {
+			var resolver = CreateResolver();
+			resolver.FindExactMatch = true;
+			var assembly = new AssemblyDefUser(LibraryName, new Version(1, 2, 3, 4));
+			resolver.AddToCache(assembly);
+
+			Assert.Same(assembly, resolver.Resolve(CreateReference(LibraryName, "1.2.65535.65535"), sourceModule: null));
+			Assert.Null(resolver.Resolve(CreateReference(LibraryName, "1.3.65535.65535"), sourceModule: null));
+			Assert.Null(resolver.Resolve(CreateReference("Other", "1.2.65535.65535"), sourceModule: null));
+		}
+
 		[Fact]
 		public void TheVersionThatMatchesIsPreferred() {
 			var oldFile = WriteLibrary("old", LibraryName, "1.0.0.0");

@@ -252,6 +252,15 @@ namespace dnlib.DotNet {
 		static readonly Version zeroVersion = new Version(0, 0, 0, 0);
 
 		/// <summary>
+		/// Checks whether a number of a version has no value: it's 65535, or the <see cref="Version"/>
+		/// doesn't have it (-1)
+		/// </summary>
+		/// <param name="version">A version or <c>null</c> to be treated as v0.0.0.0</param>
+		internal static bool HasVersionNumberWithoutValue(Version? version) =>
+			version is not null && (version.Major == ushort.MaxValue || version.Minor == ushort.MaxValue ||
+			GetMetadataVersionValue(version.Build) == ushort.MaxValue || GetMetadataVersionValue(version.Revision) == ushort.MaxValue);
+
+		/// <summary>
 		/// Parses the version of an assembly name like System.Reflection.AssemblyName does: 2 to 4 numbers from
 		/// 0 to 65535. The third and fourth number have no value (-1 in the returned <see cref="Version"/>) if
 		/// they're missing or 65535.
