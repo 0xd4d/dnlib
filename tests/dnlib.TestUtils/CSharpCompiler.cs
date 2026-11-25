@@ -69,6 +69,18 @@ namespace dnlib.TestUtils {
 		/// Extra assemblies the code can use, eg. another test assembly
 		/// </summary>
 		public List<byte[]> References { get; } = new List<byte[]>();
+
+		/// <summary>
+		/// Modules (compiled with <see cref="OutputKind.NetModule"/>) that become other files of the assembly: the
+		/// code can use their types
+		/// </summary>
+		public List<byte[]> ModuleReferences { get; } = new List<byte[]>();
+
+		/// <summary>
+		/// Resources that are other files of the assembly: the name of the resource, and the name and content
+		/// of its file. The assembly only has the name and a hash of the file.
+		/// </summary>
+		public Dictionary<string, KeyValuePair<string, byte[]>> LinkedResources { get; } = new Dictionary<string, KeyValuePair<string, byte[]>>();
 	}
 
 	/// <summary>
@@ -100,6 +112,8 @@ namespace dnlib.TestUtils {
 			var references = runtimeReferences.Value.ToList();
 			foreach (var reference in options.References)
 				references.Add(MetadataReference.CreateFromImage(reference));
+			foreach (var reference in options.ModuleReferences)
+				references.Add(ModuleMetadata.CreateFromImage(reference).GetReference());
 
 			var compilation = CSharpCompilation.Create(options.AssemblyName, new[] { syntaxTree }, references, compilationOptions);
 
@@ -124,6 +138,11 @@ namespace dnlib.TestUtils {
 			foreach (var resource in options.Resources) {
 				var content = resource.Value;
 				resources.Add(new ResourceDescription(resource.Key, () => new MemoryStream(content), isPublic: true));
+			}
+
+			foreach (var resource in options.LinkedResources) {
+				var content = resource.Value.Value;
+				resources.Add(new ResourceDescription(resource.Key, resource.Value.Key, () => new MemoryStream(content), isPublic: true));
 			}
 
 			Stream? win32Resources = null;
