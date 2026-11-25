@@ -100,9 +100,7 @@ public class D {
 		public void MethodThatImplementsAnotherMethod(string changes, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(changes);
 
-			// Only .NET is asked: the test run on .NET Framework never ended when these tests were added, and which
-			// of their cases it doesn't return from isn't known yet
-			ClrReaderComparison.AssertReadAskOnlyDotNet(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+			ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
 		}
 	}
 }

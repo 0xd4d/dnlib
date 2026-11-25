@@ -136,9 +136,7 @@ public class C {
 				dnlib = "M: " + ReadWithDnlib(type.FindMethod("M")!) + ", Normal: " + ReadWithDnlib(type.FindMethod("Normal")!);
 			}
 
-			// Only .NET is asked: the test run on .NET Framework never ended when these tests were added, and which
-			// of their cases it doesn't return from isn't known yet
-			ClrReaderComparison.AssertReadAskOnlyDotNet(expectedDnlib, dnlib, expectedRuntime, () => {
+			ClrReaderComparison.AssertRead(expectedDnlib, dnlib, expectedRuntime, () => {
 				using (var loaded = new LoadedAssembly(image)) {
 					var type = loaded.Assembly.GetType("C")!;
 					return "M: " + ReadWithTheRuntime(type.GetMethod("M")!) + ", Normal: " + ReadWithTheRuntime(type.GetMethod("Normal")!);

@@ -155,9 +155,12 @@ public class C {
 		public void CalledMethod(string changes, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(changes);
 
-			// For some of these rows .NET Framework's Module.ResolveMethod() stops the process with an
-			// AccessViolationException
-			ClrReaderComparison.AssertReadAskOnlyDotNet(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+			// .NET Framework isn't asked for a MemberRef without a signature: its Module.ResolveMethod() then stops
+			// the process with an AccessViolationException
+			if (changes == "Signature = 0")
+				ClrReaderComparison.AssertReadAskOnlyDotNet(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+			else
+				ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
 		}
 	}
 }
