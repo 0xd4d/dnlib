@@ -263,5 +263,38 @@ namespace dnlib.Tests.Writer {
 			using (var module = ModuleDefMD.Load(stream.ToArray()))
 				Assert.Equal(Code.Ret, CreatedModule.GetType(module).FindMethod("M")!.Body!.Instructions.Last().OpCode.Code);
 		}
+
+		// The operand of an instruction can be a signature: it's written as a row of the StandAloneSig table.
+		// A method signature is the one of a calli instruction, a field signature is only used by obfuscated code:
+		// dnlib reads no operand for it.
+		[Theory]
+		[InlineData(false, false)]
+		[InlineData(true, false)]
+		[InlineData(false, true)]
+		[InlineData(true, true)]
+		public void SignatureOperandIsARowOfTheStandAloneSigTable(bool isFieldSignature, bool preserveTokens) {
+			var created = new CreatedModule();
+			var types = created.Module.CorLibTypes;
+			CallingConventionSig signature = isFieldSignature ? new FieldSig(types.String) : MethodSig.CreateStatic(types.Int32, types.String);
+			created.AddMethod("Method", OpCodes.Ldnull.ToInstruction(), OpCodes.Ldnull.ToInstruction(), new Instruction(OpCodes.Calli, signature), OpCodes.Pop.ToInstruction(), OpCodes.Ret.ToInstruction());
+			var stream = new MemoryStream();
+			var options = new ModuleWriterOptions(created.Module);
+			if (preserveTokens)
+				options.MetadataOptions.Flags |= MetadataFlags.PreserveAll;
+
+			created.Module.Write(stream, options);
+
+			using (var module = ModuleDefMD.Load(stream.ToArray())) {
+				Assert.Equal(1U, module.TablesStream.StandAloneSigTable.Rows);
+				var standAloneSig = module.ResolveStandAloneSig(1)!;
+				Assert.Equal(isFieldSignature ? "System.String" : "System.Int32 (System.String)", isFieldSignature ? (standAloneSig.Signature as FieldSig)?.Type?.FullName : standAloneSig.MethodSig?.ToString());
+				var instruction = CreatedModule.GetType(module).FindMethod("Method")!.Body!.Instructions[2];
+				// The operand of the instruction is the signature of that row if it's a method signature
+				if (isFieldSignature)
+					Assert.Null(instruction.Operand);
+				else
+					Assert.True(new SigComparer().Equals(signature, instruction.Operand as CallingConventionSig), $"The operand is {instruction.Operand}");
+			}
+		}
 	}
 }

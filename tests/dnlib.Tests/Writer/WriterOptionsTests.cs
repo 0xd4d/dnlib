@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using dnlib.DotNet;
+using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
 using dnlib.TestUtils;
 using Xunit;
@@ -173,6 +174,39 @@ namespace dnlib.Tests.Writer {
 			Assert.Equal(5, extra.VirtualSize);
 			Assert.Equal(new byte[] { 1, 2, 3, 4, 5 }, written.Skip(extra.PointerToRawData).Take(5));
 			Assert.Equal(0, AssemblyRunner.RunEntryPoint(written));
+		}
+
+		// The default options of a module depend on the runtime that the module is for: a file for .NET Framework
+		// 1.x has the older versions in its headers (its tables have no generics), unless the module itself has
+		// versions (a new module and a module that was read from a file have them).
+		[Theory]
+		[InlineData(MDHeaderRuntimeVersion.MS_CLR_10, 0x00020000U, 0x0100)]
+		[InlineData(MDHeaderRuntimeVersion.MS_CLR_11, 0x00020000U, 0x0100)]
+		[InlineData(MDHeaderRuntimeVersion.MS_CLR_20, 0x00020005U, 0x0200)]
+		[InlineData(MDHeaderRuntimeVersion.MS_CLR_40, 0x00020005U, 0x0200)]
+		public void HeaderVersionsAreTheOnesOfTheModulesRuntime(string runtimeVersion, uint expectedRuntimeVersion, int expectedTablesVersion) {
+			var created = new CreatedModule();
+			created.Module.RuntimeVersion = runtimeVersion;
+			// A new module has versions
+			Assert.NotNull(created.Module.Cor20HeaderRuntimeVersion);
+			Assert.NotNull(created.Module.TablesHeaderVersion);
+			created.Module.Cor20HeaderRuntimeVersion = null;
+			created.Module.TablesHeaderVersion = null;
+
+			using (var module = created.WriteAndRead()) {
+				Assert.Equal(runtimeVersion, module.RuntimeVersion);
+				Assert.Equal(expectedRuntimeVersion, module.Cor20HeaderRuntimeVersion);
+				Assert.Equal((ushort)expectedTablesVersion, module.TablesHeaderVersion);
+				Assert.Equal(runtimeVersion == MDHeaderRuntimeVersion.MS_CLR_10 || runtimeVersion == MDHeaderRuntimeVersion.MS_CLR_11, module.IsClr1x);
+			}
+
+			// The versions of the module are used if it has them
+			created.Module.Cor20HeaderRuntimeVersion = 0x00030007;
+			created.Module.TablesHeaderVersion = 0x0101;
+			using (var module = created.WriteAndRead()) {
+				Assert.Equal(0x00030007U, module.Cor20HeaderRuntimeVersion);
+				Assert.Equal((ushort)0x0101, module.TablesHeaderVersion);
+			}
 		}
 	}
 }
