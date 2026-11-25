@@ -183,5 +183,33 @@ public class Interop {
 				Assert.Contains("System.Text.StringBuilder", typeNames);
 			}
 		}
+
+		// The arguments of a custom attribute can have types that nothing else in the module uses: typeof() values,
+		// values of an enum, and both of them in an object parameter or in an array
+		[Fact]
+		public void TypesInCustomAttributeArgumentsAreFound() {
+			const string source = @"
+using System;
+public class InfoAttribute : Attribute {
+	public InfoAttribute(object value, Type[] types, object[] values) { }
+	public object Named { get; set; }
+	public Type[] NamedTypes;
+}
+[Info(typeof(System.Text.StringBuilder), new[] { typeof(System.IO.Stream), typeof(Uri[]) }, new object[] { DayOfWeek.Monday, typeof(System.Threading.Thread), new object[] { ConsoleColor.Red, typeof(Version) } },
+	Named = AttributeTargets.Class, NamedTypes = new[] { typeof(System.Collections.Generic.Dictionary<TimeSpan, Guid>) })]
+public class Marked { }
+";
+			using (var compiled = ModuleDefMD.Load(dnlib.TestUtils.CSharpCompiler.Compile(source).Image)) {
+				var found = new MemberFinder().FindAll(compiled);
+
+				var typeNames = found.TypeRefs.Keys.Select(a => a.FullName).ToList();
+				foreach (var name in new[] {
+					"System.Text.StringBuilder", "System.IO.Stream", "System.Uri", "System.DayOfWeek", "System.Threading.Thread", "System.ConsoleColor",
+					"System.Version", "System.AttributeTargets", "System.Collections.Generic.Dictionary`2", "System.TimeSpan", "System.Guid",
+				})
+					Assert.Contains(name, typeNames);
+				Assert.Contains(found.CustomAttributes.Keys, a => a.TypeFullName == "InfoAttribute");
+			}
+		}
 	}
 }

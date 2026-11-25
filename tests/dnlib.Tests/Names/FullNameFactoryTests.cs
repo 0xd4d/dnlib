@@ -197,5 +197,38 @@ namespace dnlib.Tests.Names {
 			Assert.Null(FullNameFactory.Scope((ExportedType?)null));
 			Assert.Null(FullNameFactory.Scope(new ExportedTypeUser(module, 0, "Ns", "NoImplementation", TypeAttributes.Public, null)));
 		}
+
+		// A row of the ExportedType table (a type that is in another file or assembly) has names like a type
+		[Fact]
+		public void ExportedTypeHasTheNamesOfItsType() {
+			var module = new ModuleDefUser("Test.dll");
+			var assembly = new AssemblyDefUser("Test", new Version(1, 2, 3, 4));
+			assembly.Modules.Add(module);
+			var other = new AssemblyRefUser("Other", new Version(5, 6, 7, 8));
+			var outer = new ExportedTypeUser(module, 0, "Ns.Inner", "Outer`1", TypeAttributes.Public | TypeAttributes.Forwarder, other);
+			var nested = new ExportedTypeUser(module, 0, "", "Nested", TypeAttributes.NestedPublic, outer);
+			module.ExportedTypes.Add(outer);
+			module.ExportedTypes.Add(nested);
+
+			foreach (IType type in new IType[] { outer, nested }) {
+				bool isNested = type == nested;
+				Assert.Equal(isNested ? "Ns.Inner.Outer`1/Nested" : "Ns.Inner.Outer`1", FullNameFactory.FullName(type, isReflection: false, helper: null, sb: null));
+				Assert.Equal(isNested ? "Ns.Inner.Outer`1+Nested" : "Ns.Inner.Outer`1", FullNameFactory.FullName(type, isReflection: true, helper: null, sb: null));
+				Assert.Equal(isNested ? "Nested" : "Outer`1", FullNameFactory.Name(type, isReflection: false, sb: null));
+				Assert.Equal(isNested ? "Nested" : "Outer`1", FullNameFactory.Name(type, isReflection: true, sb: null));
+				Assert.Equal(isNested ? "" : "Ns.Inner", FullNameFactory.Namespace(type, isReflection: false, sb: null));
+				Assert.Equal("Ns.Inner", FullNameFactory.Namespace(type, isReflection: true, sb: null));
+				Assert.Equal((isNested ? "Ns.Inner.Outer`1+Nested" : "Ns.Inner.Outer`1") + ", Other, Version=5.6.7.8, Culture=neutral, PublicKeyToken=null", FullNameFactory.AssemblyQualifiedName(type));
+				// The properties of the type give the same names
+				Assert.Equal(type.FullName, FullNameFactory.FullName(type, isReflection: false, helper: null, sb: null));
+				Assert.Equal(type.ReflectionFullName, FullNameFactory.FullName(type, isReflection: true, helper: null, sb: null));
+				Assert.Equal(type.AssemblyQualifiedName, FullNameFactory.AssemblyQualifiedName(type));
+				Assert.Same(other, FullNameFactory.DefinitionAssembly(type as ExportedType));
+			}
+			// Something that is no type has no name
+			Assert.Equal("", FullNameFactory.FullName((IType?)null, isReflection: false, helper: null, sb: null));
+			Assert.Equal("", FullNameFactory.Name((IType?)null, isReflection: true, sb: null));
+			Assert.Equal("", FullNameFactory.Namespace((IType?)null, isReflection: true, sb: null));
+		}
 	}
 }
