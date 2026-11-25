@@ -144,5 +144,82 @@ namespace dnlib.Tests.Reading {
 
 			AssertSame(ReadLayoutsWithDnlib(image, count), () => ReadLayoutsWithTheRuntime(image, count));
 		}
+
+		// Only the types whose name starts with the prefix: the compiler can add other types
+		static byte[] CompileOnly(string source, string prefix) {
+			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(source).Image)) {
+				foreach (var type in module.Types.Where(a => !a.IsGlobalModuleType && !a.Name.StartsWith(prefix)).ToArray())
+					module.Types.Remove(type);
+				module.CustomAttributes.Clear();
+				var stream = new MemoryStream();
+				module.Write(stream);
+				return stream.ToArray();
+			}
+		}
+
+		// Gives the rows first..last of the table the owner of row 'first'
+		static byte[] SetSameOwner(byte[] image, Table table, string ownerColumn, int count, int first, int last) {
+			var patcher = new MetadataPatcher(image);
+			Assert.Equal((uint)count, patcher.GetRowCount(table));
+			uint owner = patcher.GetCell(table, (uint)first, ownerColumn);
+			for (int rid = first + 1; rid <= last; rid++)
+				patcher.SetCell(table, (uint)rid, ownerColumn, owner);
+			return patcher.ToArray();
+		}
+
+		// Fields F1, F2, ... that are marshalled as the native types 2, 3, ... The FieldMarshal table then
+		// has a row for every field.
+		[Theory]
+		[MemberData(nameof(Cases))]
+		public void NativeTypeOfAFieldWithMoreThanOneRow(int count, int first, int last) {
+			// Native types that have no other values in the table
+			var nativeTypes = new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 19, 20, 21, 22, 25, 26, 28, 31 };
+			var fields = string.Join("\n", Enumerable.Range(1, count).Select(a => $"	[MarshalAs((UnmanagedType){nativeTypes[a - 1]})] public int F{a};"));
+			var image = CompileOnly("using System.Runtime.InteropServices;\npublic class Marker {\n" + fields + "\n}", "Marker");
+			image = SetSameOwner(image, Table.FieldMarshal, "Parent", count, first, last);
+
+			string dnlib;
+			using (var module = ModuleDefMD.Load(image)) {
+				var type = module.Find("Marker", isReflectionName: true)!;
+				dnlib = string.Join(" ", Enumerable.Range(1, count).Select(a => type.FindField("F" + a)!.MarshalType is MarshalType marshalType ? ((int)marshalType.NativeType).ToString() : "-"));
+			}
+
+			AssertSame(dnlib, () => {
+				using (var loaded = new LoadedAssembly(image)) {
+					var type = loaded.Assembly.GetType("Marker", throwOnError: true)!;
+					return string.Join(" ", Enumerable.Range(1, count).Select(a => {
+						var attribute = (System.Runtime.InteropServices.MarshalAsAttribute?)type.GetField("F" + a)!.GetCustomAttributes(typeof(System.Runtime.InteropServices.MarshalAsAttribute), false).FirstOrDefault();
+						return attribute is null ? "-" : ((int)attribute.Value).ToString();
+					}));
+				}
+			});
+		}
+
+		// Methods M1, M2, ... of a native library with the entry points E1, E2, ... The ImplMap table then
+		// has a row for every method.
+		[Theory]
+		[MemberData(nameof(Cases))]
+		public void EntryPointOfAMethodWithMoreThanOneRow(int count, int first, int last) {
+			var methods = string.Join("\n", Enumerable.Range(1, count).Select(a => $"	[DllImport(\"lib\", EntryPoint = \"E{a}\")] public static extern void M{a}();"));
+			var image = CompileOnly("using System.Runtime.InteropServices;\npublic class Marker {\n" + methods + "\n}", "Marker");
+			image = SetSameOwner(image, Table.ImplMap, "MemberForwarded", count, first, last);
+
+			string dnlib;
+			using (var module = ModuleDefMD.Load(image)) {
+				var type = module.Find("Marker", isReflectionName: true)!;
+				dnlib = string.Join(" ", Enumerable.Range(1, count).Select(a => type.FindMethod("M" + a)!.ImplMap?.Name.String ?? "-"));
+			}
+
+			AssertSame(dnlib, () => {
+				using (var loaded = new LoadedAssembly(image)) {
+					var type = loaded.Assembly.GetType("Marker", throwOnError: true)!;
+					return string.Join(" ", Enumerable.Range(1, count).Select(a => {
+						var attribute = (System.Runtime.InteropServices.DllImportAttribute?)type.GetMethod("M" + a)!.GetCustomAttributes(typeof(System.Runtime.InteropServices.DllImportAttribute), false).FirstOrDefault();
+						// A method without a row has an empty entry point
+						return string.IsNullOrEmpty(attribute?.EntryPoint) ? "-" : attribute!.EntryPoint!;
+					}));
+				}
+			});
+		}
 	}
 }
