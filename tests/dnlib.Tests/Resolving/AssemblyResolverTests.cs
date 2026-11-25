@@ -159,6 +159,89 @@ namespace dnlib.Tests.Resolving {
 			}
 		}
 
+		// Creates the directory 'directoryName' with an assembly 'name' that has the culture
+		string WriteLibraryWithCulture(string directoryName, string name, string culture) {
+			var source = $"[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")] [assembly: System.Reflection.AssemblyCulture(\"{culture}\")]";
+			var image = CSharpCompiler.Compile(source, new CSharpCompilerOptions { AssemblyName = name }).Image;
+			var libraryDirectory = directory.GetPath(directoryName);
+			Directory.CreateDirectory(libraryDirectory);
+			var file = Path.Combine(libraryDirectory, name + ".dll");
+			File.WriteAllBytes(file, image);
+			return file;
+		}
+
+		static AssemblyRefUser CreateReference(string name, string version, string culture) =>
+			new AssemblyRefUser(name, new Version(version), null, culture);
+
+		// The resources of a program for a language are in a "satellite assembly": App.resources.dll in a directory
+		// with the name of the culture. The runtime finds an assembly with a culture there, and so does the resolver.
+		// Fixed in 9e081cff (the directory of a module) and in this commit (the other search paths): only the
+		// directories themselves were searched.
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void SatelliteAssemblyIsFoundInTheDirectoryOfItsCulture(bool inASearchPath) {
+			var appFile = WriteLibrary("app", "DnlibTestApp", "1.0.0.0");
+			string germanFile = WriteLibraryWithCulture(Path.Combine(inASearchPath ? "other" : "app", "de"), "DnlibTestApp.resources", "de");
+			string frenchFile = WriteLibraryWithCulture(Path.Combine(inASearchPath ? "other" : "app", "fr"), "DnlibTestApp.resources", "fr");
+			var resolver = inASearchPath ? CreateResolver(directory.GetPath("other")) : CreateResolver();
+			try {
+				using (var app = ModuleDefMD.Load(appFile, resolver.DefaultModuleContext)) {
+					// Only the directory of the reference's culture is searched. (This is asked first: an assembly with
+					// the same name that was found before is the closest match of a reference with another culture.)
+					Assert.Null(resolver.Resolve(CreateReference("DnlibTestApp.resources", "1.0.0.0", "es"), app));
+					Assert.Null(resolver.Resolve(CreateReference("DnlibTestApp.resources2", "1.0.0.0", "de"), app));
+
+					var german = resolver.Resolve(CreateReference("DnlibTestApp.resources", "1.0.0.0", "de"), app);
+					var french = resolver.Resolve(CreateReference("DnlibTestApp.resources", "1.0.0.0", "fr"), app);
+
+					Assert.Equal(germanFile, german?.ManifestModule!.Location);
+					Assert.Equal("de", german!.Culture);
+					Assert.Equal(frenchFile, french?.ManifestModule!.Location);
+				}
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+		}
+
+		// A reference without a culture isn't searched in the directory of a culture
+		[Fact]
+		public void AssemblyWithoutACultureIsNotFoundInTheDirectoryOfACulture() {
+			var appFile = WriteLibrary("app", "DnlibTestApp", "1.0.0.0");
+			WriteLibraryWithCulture(Path.Combine("app", "de"), "DnlibTestApp.resources", "de");
+			var resolver = CreateResolver();
+			try {
+				using (var app = ModuleDefMD.Load(appFile, resolver.DefaultModuleContext)) {
+					Assert.Null(resolver.Resolve(CreateReference("DnlibTestApp.resources", "1.0.0.0"), app));
+					Assert.Null(resolver.Resolve(CreateReference("DnlibTestApp.resources", "1.0.0.0", "neutral"), app));
+				}
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+		}
+
+		// A culture that can't be the name of a directory isn't used as one
+		[Theory]
+		[InlineData("..")]
+		[InlineData("de/..")]
+		[InlineData("de\\..\\de")]
+		[InlineData("de;x")]
+		public void CultureThatIsNotAWordIsNotADirectory(string culture) {
+			var appFile = WriteLibrary("app", "DnlibTestApp", "1.0.0.0");
+			WriteLibraryWithCulture(Path.Combine("app", "de"), "DnlibTestApp.resources", "de");
+			WriteLibrary("", "DnlibTestApp.resources", "1.0.0.0");
+			var resolver = CreateResolver();
+			try {
+				using (var app = ModuleDefMD.Load(appFile, resolver.DefaultModuleContext))
+					Assert.Null(resolver.Resolve(CreateReference("DnlibTestApp.resources", "1.0.0.0", culture), app));
+			}
+			finally {
+				DisposeAll(resolver);
+			}
+		}
+
 		// A .NET Framework application can list sub directories with its assemblies in its config file
 		// (App.exe.config, <probing privatePath="...">). Only directories below the application are used.
 		[Fact]

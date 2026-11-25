@@ -594,18 +594,22 @@ namespace dnlib.DotNet {
 				if (!IsFileName(asmSimpleName))
 					yield break;
 				var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
+				// An assembly with a culture is in a directory with the name of the culture
+				var culture = GetCultureDirectory(assembly);
 				foreach (var ext in exts) {
 					foreach (var path in paths) {
-						string fullPath;
-						try {
-							fullPath = Path.Combine(path, asmSimpleName + ext);
+						for (int i = culture is null ? 1 : 0; i < 2; i++) {
+							string fullPath;
+							try {
+								fullPath = Path.Combine(i == 0 ? Path.Combine(path, culture!) : path, asmSimpleName + ext);
+							}
+							catch (ArgumentException) {
+								// Invalid path chars
+								yield break;
+							}
+							if (File2.Exists(fullPath))
+								yield return fullPath;
 						}
-						catch (ArgumentException) {
-							// Invalid path chars
-							yield break;
-						}
-						if (File2.Exists(fullPath))
-							yield return fullPath;
 					}
 				}
 			}
