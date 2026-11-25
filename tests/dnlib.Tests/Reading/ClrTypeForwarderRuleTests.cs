@@ -103,9 +103,7 @@ public class C { }";
 		public void ForwardedType(string changes, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(changes);
 
-			// Only .NET is asked until these cases were tried on .NET Framework: a type that is nested in itself could
-			// make it crash or never return
-			ClrReaderComparison.AssertReadAskOnlyDotNet(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+			ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
 		}
 	}
 }
