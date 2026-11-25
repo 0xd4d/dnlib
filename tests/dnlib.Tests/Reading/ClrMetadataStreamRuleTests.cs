@@ -35,41 +35,18 @@ public static class Marker {
 	public static string Text() => ""UserString"";
 }
 ";
-		// A stream that's only there so that the tests have room for more streams
-		sealed class PaddingHeap : IHeap {
-			public string Name => "#Pad";
-			public bool IsEmpty => false;
-			public FileOffset FileOffset { get; private set; }
-			public RVA RVA { get; private set; }
-			public void SetReadOnly() { }
-			public void SetOffset(FileOffset offset, RVA rva) {
-				FileOffset = offset;
-				RVA = rva;
-			}
-			public uint GetFileLength() => 0x4000;
-			public uint GetVirtualSize() => GetFileLength();
-			public uint CalculateAlignment() => 0;
-			public void WriteTo(DataWriter writer) => writer.WriteBytes(new byte[0x4000]);
-		}
-
 		static readonly byte[] baseImage = CreateBaseImage(Source);
 		// The same with a generic class: the file has the tables that .NET Framework 2.0 added
 		static readonly byte[] baseImageWithGenerics = CreateBaseImage(Source + "public class Generic<T> { }");
 		static readonly uint markerRid = GetMarkerRid();
 
-		static byte[] CreateBaseImage(string source, bool bigColumns = false) {
-			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(source).Image)) {
-				var options = new ModuleWriterOptions(module);
+		static byte[] CreateBaseImage(string source, bool bigColumns = false) =>
+			ClrReaderComparison.CreateBaseImage(source, options => {
 				if (bigColumns) {
 					options.MetadataOptions.TablesHeapOptions.UseENC = true;
 					options.MetadataOptions.TablesHeapOptions.ForceBigColumns = true;
 				}
-				options.MetadataOptions.CustomHeaps.Add(new PaddingHeap());
-				var stream = new MemoryStream();
-				module.Write(stream, options);
-				return stream.ToArray();
-			}
-		}
+			});
 
 		static uint GetMarkerRid() {
 			using (var module = ModuleDefMD.Load(baseImage))
@@ -496,21 +473,9 @@ public static class Marker {
 			}
 		}
 
-		// Compares dnlib with the runtime. .NET must do what the test expects, another CLR (.NET Framework)
-		// may do something else: the test is then skipped with a message that says what it did. Mono isn't
-		// asked: it stops the process if it doesn't like the metadata.
-		static void AssertRead(byte[] image, string expectedDnlib, string expectedRuntime) {
-			Assert.Equal(expectedDnlib, ReadWithDnlib(image));
-			if (Type.GetType("Mono.Runtime") is not null)
-				return;
-			string runtime = ReadWithTheRuntime(image);
-			// "A|B": .NET 10 does A, the runtime's newest source code does B
-			var allExpected = expectedRuntime.Split('|');
-			if (typeof(object).Assembly.GetName().Name == "System.Private.CoreLib")
-				Assert.Contains(runtime, allExpected);
-			else
-				Assert.SkipUnless(allExpected.Contains(runtime), $"This CLR reads '{runtime}', .NET reads '{expectedRuntime}', dnlib reads '{expectedDnlib}'");
-		}
+		// Compares dnlib with the runtime
+		static void AssertRead(byte[] image, string expectedDnlib, string expectedRuntime) =>
+			ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
 
 		[Theory]
 		[InlineData("nothing", "RRRR", "RRRR")]
