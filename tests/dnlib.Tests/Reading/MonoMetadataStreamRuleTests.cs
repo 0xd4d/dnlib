@@ -96,8 +96,8 @@ static class Program {
 			}
 		}
 
-		string ReadWithMono(byte[] image) {
-			var output = MonoRuntime.Run(fixture.Program, $"\"{fixture.WriteFile(image)}\" {ClrMetadataStreamRuleTests.markerRid}");
+		string ReadWithMono(byte[] image, uint? typeRid = null) {
+			var output = MonoRuntime.Run(fixture.Program, $"\"{fixture.WriteFile(image)}\" {typeRid ?? ClrMetadataStreamRuleTests.markerRid}");
 			if (output is null)
 				return "stops the process";
 			// Mono writes warnings about the metadata to the output too
@@ -216,6 +216,113 @@ static class Program {
 			Assert.Equal(expectedDnlib, dnlib);
 			if (IsMonoAsked)
 				Assert.Equal(expectedMono, ReadWithMono(image));
+		}
+
+		// The same type as in the other files, and a second constant: the Constant table has two rows
+		const string Source = @"
+public static class Marker {
+	public const int Number = 0x11223344;
+	public static string Text() => ""UserString"";
+}
+public static class Second {
+	public const int Other = 0x55667788;
+}
+";
+		static readonly byte[] baseImage = ClrReaderComparison.CreateBaseImage(Source);
+		static readonly uint markerRid = new MetadataPatcher(baseImage).FindRow(DotNet.MD.Table.TypeDef, "Name", "Marker");
+
+		static byte[] SetUInt32(byte[] image, long offset, uint value) =>
+			new MetadataPatcher(image).SetBytes(offset, BitConverter.GetBytes(value)).ToArray();
+
+		// The changes, separated by "; ":
+		//	size of #Name = number				the size of a stream in its header
+		//	rows of Table |= number				sets bits of the number of rows of a table in the tables header
+		//	sorted tables = number				the bits of the tables header that say which tables are sorted
+		//	constants reversed					the two rows of the Constant table in the other order
+		//	.NET header size = number			the size in the .NET header (it's 0x48)
+		//	metadata size = number				the size of the metadata in the .NET header
+		static byte[] CreateImageWithOtherSizes(string changes) {
+			var image = baseImage;
+			foreach (var change in changes.Split(new[] { "; " }, StringSplitOptions.RemoveEmptyEntries)) {
+				var parts = change.Split(new[] { " |= ", " = " }, StringSplitOptions.None);
+				uint value = parts.Length == 2 ? (parts[1].StartsWith("0x") ? Convert.ToUInt32(parts[1], 16) : uint.Parse(parts[1])) : 0;
+				var patcher = new MetadataPatcher(image);
+				if (parts[0].StartsWith("size of "))
+					image = patcher.SetStreamSize(parts[0].Substring(8), value).ToArray();
+				else if (parts[0].StartsWith("rows of ")) {
+					var table = (DotNet.MD.Table)Enum.Parse(typeof(DotNet.MD.Table), parts[0].Substring(8));
+					image = patcher.SetRowCount(table, patcher.GetRowCount(table) | value).ToArray();
+				}
+				else if (parts[0] == "sorted tables")
+					// The tables header is 24 bytes, the last 8 are the bits of the sorted tables
+					image = patcher.SetBytes(patcher.GetStreamFileOffset("#~") + 16, BitConverter.GetBytes((ulong)value)).ToArray();
+				else if (parts[0] == "constants reversed") {
+					foreach (var column in patcher.GetColumnNames(DotNet.MD.Table.Constant)) {
+						uint first = patcher.GetCell(DotNet.MD.Table.Constant, 1, column);
+						patcher.SetCell(DotNet.MD.Table.Constant, 1, column, patcher.GetCell(DotNet.MD.Table.Constant, 2, column));
+						patcher.SetCell(DotNet.MD.Table.Constant, 2, column, first);
+					}
+					image = patcher.ToArray();
+				}
+				else {
+					using (var peImage = new dnlib.PE.PEImage(image)) {
+						// The .NET header starts with its size. The address and the size of the metadata are at offset 8.
+						var directory = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[14];
+						long headerOffset = (long)peImage.ToFileOffset(directory.VirtualAddress);
+						if (parts[0] == ".NET header size")
+							image = SetUInt32(image, headerOffset, value);
+						else if (parts[0] == "metadata size")
+							image = SetUInt32(image, headerOffset + 12, value);
+						else
+							throw new ArgumentException(change);
+					}
+				}
+			}
+			return image;
+		}
+
+		// Sizes and numbers that Mono doesn't use or uses in another way than the CLR. The last value of the CLR
+		// column is what dnlib reads if it reads the file like the CLR.
+		[Theory]
+		[InlineData("", "RRRR", "RRRR", "RRRR")]
+		// Mono doesn't use the size of a stream
+		[InlineData("size of #Strings = 0", "RRRR", "stops the process", "?RRR")]
+		[InlineData("size of #Strings = 0xFFFFFFFF", "RRRR", "RRRR", "?RRR")]
+		[InlineData("size of #US = 0", "RRRR", "stops the process", "R?RR")]
+		[InlineData("size of #Blob = 0", "RRRR", "stops the process", "R??R")]
+		[InlineData("size of #Blob = 0xFFFFFFFF", "RRRR", "RRRR", "R??R")]
+		[InlineData("size of #GUID = 0", "RRRR", "stops the process", "RRR?")]
+		[InlineData("size of #~ = 0", "RRRR", "RRRR", "rejected")]
+		[InlineData("size of #~ = 24", "RRRR", "RRRR", "rejected")]
+		[InlineData("size of #~ = 0xFFFFFFFF", "RRRR", "RRRR", "rejected")]
+		[InlineData("size of #Strings = 0; size of #US = 0; size of #Blob = 0; size of #GUID = 0; size of #~ = 0", "RRRR", "stops the process", "rejected")]
+		// Mono only uses 24 bits of a number of rows
+		[InlineData("rows of TypeDef |= 0x01000000", "RRRR", "RRRR", "RRRR")]
+		[InlineData("rows of TypeDef |= 0xFF000000", "RRRR", "RRRR", "RRRR")]
+		[InlineData("rows of Constant |= 0x80000000", "RRRR", "RRRR", "RRRR")]
+		[InlineData("rows of Module |= 0x01000000; rows of TypeRef |= 0x01000000; rows of Field |= 0x01000000; rows of Method |= 0x01000000", "RRRR", "RRRR", "RRRR")]
+		[InlineData("rows of TypeDef |= 0x00010000", "???R", "stops the process", "???R")]
+		// Mono does a binary search in every table that must be sorted, whatever the header says
+		[InlineData("sorted tables = 0", "RRRR", "RRRR", "RRRR")]
+		[InlineData("sorted tables = 0xFFFFFFFF", "RRRR", "RRRR", "RRRR")]
+		[InlineData("constants reversed", "RRRR", "RRRR", "RR?R")]
+		[InlineData("constants reversed; sorted tables = 0", "RRRR", "RRRR", "RR?R")]
+		// The sizes in the .NET header
+		[InlineData(".NET header size = 0", "RRRR", "RRRR", "rejected")]
+		[InlineData(".NET header size = 0x47", "RRRR", "RRRR", "rejected")]
+		[InlineData(".NET header size = 0xFFFFFFFF", "RRRR", "RRRR", "RRRR")]
+		[InlineData("metadata size = 0", "RRRR", "RRRR", "RRRR")]
+		[InlineData("metadata size = 16", "RRRR", "RRRR", "RRRR")]
+		[InlineData("metadata size = 0xFFFFFFFF", "RRRR", "RRRR", "RRRR")]
+		public void SizesAndRowCounts(string changes, string expectedDnlib, string expectedMono, string expectedDnlibLikeTheClr) {
+			var image = CreateImageWithOtherSizes(changes);
+			string dnlib = ClrMetadataStreamRuleTests.ReadWithDnlib(image, CLRRuntimeReaderKind.Mono, markerRid);
+			string dnlibLikeTheClr = ClrMetadataStreamRuleTests.ReadWithDnlib(image, CLRRuntimeReaderKind.CLR, markerRid);
+
+			Assert.Equal(expectedDnlib, dnlib);
+			Assert.Equal(expectedDnlibLikeTheClr, dnlibLikeTheClr);
+			if (IsMonoAsked)
+				Assert.Equal(expectedMono, ReadWithMono(image, markerRid));
 		}
 	}
 }

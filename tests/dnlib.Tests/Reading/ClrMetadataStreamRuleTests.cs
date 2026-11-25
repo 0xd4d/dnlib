@@ -98,7 +98,7 @@ public static class Marker {
 			});
 		}
 
-		internal static string ReadWithDnlib(byte[] image, CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR) {
+		internal static string ReadWithDnlib(byte[] image, CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR, uint? typeRid = null) {
 			ModuleDefMD module;
 			try {
 				module = ModuleDefMD.Load(image, new ModuleCreationOptions(runtime));
@@ -107,7 +107,7 @@ public static class Marker {
 				return "rejected";
 			}
 			using (module) {
-				var type = module.ResolveTypeDef(markerRid);
+				var type = module.ResolveTypeDef(typeRid ?? markerRid);
 				if (type is null)
 					return "no type";
 				var text = type.Methods.FirstOrDefault(a => a.MethodSig?.RetType?.ElementType == ElementType.String)?.Body?.Instructions.FirstOrDefault(a => a.Operand is string)?.Operand as string;
