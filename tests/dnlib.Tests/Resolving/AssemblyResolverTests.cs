@@ -280,6 +280,21 @@ namespace dnlib.Tests.Resolving {
 			Assert.Null(resolver.Resolve(CreateReference("Other", "1.2.65535.65535"), sourceModule: null));
 		}
 
+		// Fixed in this commit: a name without a version (null) was version 0.0.0.0, which no assembly matched
+		// exactly. It's now a reference to any version.
+		[Fact]
+		public void NameWithoutAVersionMatchesAnyVersionExactly() {
+			var resolver = CreateResolver();
+			resolver.FindExactMatch = true;
+			var assembly = new AssemblyDefUser(LibraryName, new Version(1, 2, 3, 4));
+			resolver.AddToCache(assembly);
+			var nameWithoutVersion = new AssemblyNameInfo { Name = LibraryName, Culture = "" };
+			Assert.Null(nameWithoutVersion.Version);
+
+			Assert.Same(assembly, resolver.Resolve(nameWithoutVersion, sourceModule: null));
+			Assert.Null(resolver.Resolve(new AssemblyNameInfo { Name = "Other", Culture = "" }, sourceModule: null));
+		}
+
 		[Fact]
 		public void TheVersionThatMatchesIsPreferred() {
 			var oldFile = WriteLibrary("old", LibraryName, "1.0.0.0");

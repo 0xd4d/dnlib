@@ -182,14 +182,14 @@ namespace dnlib.DotNet {
 		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>: a number
 		/// that hasn't been initialized (-1) is the same as 65535, which is how "no value" is stored in the
 		/// metadata.</remarks>
-		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
-		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <param name="a">Version #1 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
+		/// <param name="b">Version #2 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
 		internal static int CompareTo(Version? a, Version? b) {
 			if (a is null)
-				a = new Version();
+				a = NoAssemblyVersion;
 			if (b is null)
-				b = new Version();
+				b = NoAssemblyVersion;
 			if (a.Major != b.Major)
 				return a.Major.CompareTo(b.Major);
 			if (a.Minor != b.Minor)
@@ -205,8 +205,8 @@ namespace dnlib.DotNet {
 		/// <remarks>This differs from <see cref="System.Version.Equals(Version)"/> if the build
 		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>, see
 		/// <see cref="CompareTo(Version, Version)"/>.</remarks>
-		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
-		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <param name="a">Version #1 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
+		/// <param name="b">Version #2 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		internal static bool Equals(Version? a, Version? b) => CompareTo(a, b) == 0;
 
@@ -215,11 +215,12 @@ namespace dnlib.DotNet {
 		/// revision number that is -1 becomes 65535, which is how "no value" is stored in the metadata
 		/// (the CLR and <c>System.Reflection.Metadata</c> do the same).
 		/// </summary>
-		/// <param name="a">A <see cref="Version"/> instance or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <param name="a">A <see cref="Version"/> instance or <c>null</c> to be treated as no version
+		/// (65535.65535.65535.65535)</param>
 		/// <returns>A new <see cref="Version"/> instance</returns>
 		internal static Version CreateVersionWithNoUndefinedValues(Version? a) {
 			if (a is null)
-				return new Version(0, 0, 0, 0);
+				return NoAssemblyVersion;
 			return new Version(a.Major, a.Minor, GetMetadataVersionValue(a.Build), GetMetadataVersionValue(a.Revision));
 		}
 
@@ -262,9 +263,9 @@ namespace dnlib.DotNet {
 		/// Checks whether a number of a version has no value: it's 65535, or the <see cref="Version"/>
 		/// doesn't have it (-1)
 		/// </summary>
-		/// <param name="version">A version or <c>null</c> to be treated as v0.0.0.0</param>
+		/// <param name="version">A version or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
 		internal static bool HasVersionNumberWithoutValue(Version? version) =>
-			version is not null && (version.Major == ushort.MaxValue || version.Minor == ushort.MaxValue ||
+			version is null || (version.Major == ushort.MaxValue || version.Minor == ushort.MaxValue ||
 			GetMetadataVersionValue(version.Build) == ushort.MaxValue || GetMetadataVersionValue(version.Revision) == ushort.MaxValue);
 
 		/// <summary>

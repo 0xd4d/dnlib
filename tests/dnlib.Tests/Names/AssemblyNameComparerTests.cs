@@ -181,6 +181,24 @@ namespace dnlib.Tests.Names {
 				Assert.Equal(comparer.GetHashCode(assembly), comparer.GetHashCode(other));
 		}
 
+		// Fixed in this commit: a name without a version (null) was the same as version 0.0.0.0. It's now the
+		// same as "no version" in the metadata, 65535 for every number.
+		[Fact]
+		public void NameWithoutAVersionIsNotVersionZero() {
+			var comparer = AssemblyNameComparer.CompareAll;
+			var noVersion = Create();
+			noVersion.Version = null!;
+			var noVersionInMetadata = Create(version: "65535.65535.65535.65535");
+
+			Assert.True(comparer.Equals(noVersion, noVersionInMetadata));
+			Assert.Equal(0, comparer.CompareTo(noVersion, noVersionInMetadata));
+			Assert.Equal(comparer.GetHashCode(noVersion), comparer.GetHashCode(noVersionInMetadata));
+			Assert.False(comparer.Equals(noVersion, Create(version: "0.0.0.0")));
+			// It's a reference to any version: the highest one is the closest
+			Assert.Equal(1, Closest(noVersion, Create(version: "1.0.0.0"), Create(version: "2.0.0.0")));
+			Assert.Equal(0, Closest(noVersion, Create(version: "2.0.0.0"), Create(version: "1.0.0.0")));
+		}
+
 		[Fact]
 		public void PredefinedComparers() {
 			Assert.True(AssemblyNameComparer.NameOnly.Equals(Create(), Create(version: "9.9.9.9", token: OtherToken, culture: "de")));
