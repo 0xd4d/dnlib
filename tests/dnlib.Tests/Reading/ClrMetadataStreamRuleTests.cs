@@ -38,7 +38,7 @@ public static class Marker {
 		static readonly byte[] baseImage = CreateBaseImage(Source);
 		// The same with a generic class: the file has the tables that .NET Framework 2.0 added
 		static readonly byte[] baseImageWithGenerics = CreateBaseImage(Source + "public class Generic<T> { }");
-		static readonly uint markerRid = GetMarkerRid();
+		internal static readonly uint markerRid = GetMarkerRid();
 
 		static byte[] CreateBaseImage(string source, bool bigColumns = false) =>
 			ClrReaderComparison.CreateBaseImage(source, options => {
@@ -88,7 +88,7 @@ public static class Marker {
 			heapNames.Select(name => CreateDecoy(block, name, rename?.Invoke(name))).ToList();
 
 		// One letter for each of the four values: R if it's the real value, D if it's the value of the decoy
-		static string Describe(string? typeName, string? text, object? number, Guid? mvid) {
+		internal static string Describe(string? typeName, string? text, object? number, Guid? mvid) {
 			char Letter(bool isReal, bool isDecoy) => isReal ? 'R' : isDecoy ? 'D' : '?';
 			return new string(new[] {
 				Letter(typeName == "Marker", typeName == "Decoy1"),
@@ -98,10 +98,10 @@ public static class Marker {
 			});
 		}
 
-		static string ReadWithDnlib(byte[] image) {
+		internal static string ReadWithDnlib(byte[] image, CLRRuntimeReaderKind runtime = CLRRuntimeReaderKind.CLR) {
 			ModuleDefMD module;
 			try {
-				module = ModuleDefMD.Load(image);
+				module = ModuleDefMD.Load(image, new ModuleCreationOptions(runtime));
 			}
 			catch (BadImageFormatException) {
 				return "rejected";
@@ -140,7 +140,7 @@ public static class Marker {
 		}
 
 		// What the test changes in the metadata
-		static byte[] CreateImage(string change) {
+		internal static byte[] CreateImage(string change) {
 			var block = CreateBlock();
 			var streams = block.Streams;
 			var tables = block.GetStream("#~");
@@ -217,7 +217,7 @@ public static class Marker {
 			return block.Write();
 		}
 
-		static byte[] CreateUncompressedImage(string change) {
+		internal static byte[] CreateUncompressedImage(string change) {
 			var block = new MetadataBlock(CreateImage(change));
 			foreach (var stream in block.Streams.Where(a => a.Name == "#~"))
 				stream.Name = "#-";
@@ -240,7 +240,7 @@ public static class Marker {
 			return RowCountsOffset + count * 4;
 		}
 
-		static byte[] CreateImageWithAnotherHeader(string change) {
+		internal static byte[] CreateImageWithAnotherHeader(string change) {
 			var block = new MetadataBlock(change.Contains("generic") ? baseImageWithGenerics : baseImage).RemoveStream("#Pad");
 			var tables = block.GetStream("#~");
 			var strings = block.GetStream("#Strings");
