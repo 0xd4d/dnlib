@@ -51,12 +51,40 @@ public class Program {
 		static readonly CSharpCompilerOptions libraryOptions = new CSharpCompilerOptions { AssemblyName = "Lib" };
 		static readonly byte[] libraryImage = CSharpCompiler.Compile("[assembly: System.Reflection.AssemblyVersion(\"1.2.3.4\")]" + LibrarySource, libraryOptions).Image;
 		static readonly byte[] germanLibraryImage = CSharpCompiler.Compile("[assembly: System.Reflection.AssemblyVersion(\"1.2.3.4\")]" + GermanLibrarySource, libraryOptions).Image;
-		static readonly byte[] baseImage = ClrReaderComparison.CreateBaseImage(MainSource, compilerOptions: CreateOptions());
+		static readonly byte[] baseImage = ClrReaderComparison.CreateBaseImage(MainSource, compilerOptions: CreateOptions(libraryImage));
 
-		static CSharpCompilerOptions CreateOptions() {
+		// The same library with a strong name, and the code that uses it
+		static readonly StrongNameKey key = CreateKey();
+		static readonly byte[] signedLibraryImage = Sign(libraryImage);
+		static readonly byte[] signedGermanLibraryImage = Sign(germanLibraryImage);
+		static readonly byte[] signedBaseImage = ClrReaderComparison.CreateBaseImage(MainSource, compilerOptions: CreateOptions(signedLibraryImage));
+
+		static CSharpCompilerOptions CreateOptions(byte[] library) {
 			var options = new CSharpCompilerOptions { AssemblyName = "Main" };
-			options.References.Add(libraryImage);
+			options.References.Add(library);
 			return options;
+		}
+
+		// A new key pair in the format of an .snk file
+		static StrongNameKey CreateKey() {
+			using (var rsa = new System.Security.Cryptography.RSACryptoServiceProvider(1024)) {
+				var blob = rsa.ExportCspBlob(includePrivateParameters: true);
+				// The key's algorithm id is at offset 4. .NET exports a "key exchange" key (CALG_RSA_KEYX, 0xA400),
+				// strong name keys (sn.exe -k) are signature keys (CALG_RSA_SIGN, 0x2400). The key is the same.
+				blob[4] = 0x00;
+				blob[5] = 0x24;
+				return new StrongNameKey(blob);
+			}
+		}
+
+		static byte[] Sign(byte[] image) {
+			using (var module = ModuleDefMD.Load(image)) {
+				var options = new dnlib.DotNet.Writer.ModuleWriterOptions(module);
+				options.InitializeStrongNameSigning(module, key);
+				var stream = new MemoryStream();
+				module.Write(stream, options);
+				return stream.ToArray();
+			}
 		}
 
 		readonly TempDirectory directory = new TempDirectory();
@@ -65,11 +93,11 @@ public class Program {
 
 		// The directory of the program is "app". The library is there, in directories in it, and in the directory
 		// above it. The one in the directory "de" has the culture "de".
-		string WriteFiles(byte[] mainImage) {
+		string WriteFiles(byte[] mainImage, bool signed = false) {
 			foreach (var relativePath in new[] { "app", "app/Lib", "app/sub", "app/de", "app/de/Lib", "" }) {
 				var path = directory.GetPath(relativePath.Replace('/', Path.DirectorySeparatorChar));
 				Directory.CreateDirectory(path);
-				File.WriteAllBytes(Path.Combine(path, "Lib.dll"), relativePath.StartsWith("app/de") ? germanLibraryImage : libraryImage);
+				File.WriteAllBytes(Path.Combine(path, "Lib.dll"), relativePath.StartsWith("app/de") ? (signed ? signedGermanLibraryImage : germanLibraryImage) : (signed ? signedLibraryImage : libraryImage));
 			}
 			var mainFile = Path.Combine(directory.GetPath("app"), "Main.dll");
 			File.WriteAllBytes(mainFile, mainImage);
@@ -88,15 +116,39 @@ public class Program {
 			return offset;
 		}
 
-		// "Column = value", separated by "; ": a column of the AssemblyRef row of the library. A value is a number
-		// or 'text' (a new string; {dir} is the full path of the program's directory).
-		byte[] CreateImage(string changes) {
-			var image = baseImage;
+		// Adds a blob to the end of the #Blob heap and returns its offset
+		static uint AddBlob(ref byte[] image, byte[] blob) {
+			var block = new MetadataBlock(image);
+			if (block.Streams.Any(a => a.Name == ClrReaderComparison.PaddingStreamName))
+				block.RemoveStream(ClrReaderComparison.PaddingStreamName);
+			var heap = block.GetStream("#Blob");
+			uint offset = (uint)heap.Data.Length;
+			var length = blob.Length < 0x80 ? new[] { (byte)blob.Length } : new[] { (byte)(0x80 | (blob.Length >> 8)), (byte)blob.Length };
+			heap.Data = heap.Data.Concat(length).Concat(blob).ToArray();
+			image = block.Write();
+			return offset;
+		}
+
+		// "Column = value", separated by "; ": a column of the AssemblyRef row of the library. A value is
+		//	a number
+		//	'text'			a new string. {dir} is the full path of the program's directory.
+		//	[hex bytes]		a new blob
+		//	the public key	a new blob: the public key of the library with a strong name
+		byte[] CreateImage(string changes, bool signed = false) {
+			var image = signed ? signedBaseImage : baseImage;
 			uint row = new MetadataPatcher(image).FindRow(Table.AssemblyRef, "Name", "Lib");
 			var cells = new List<(string column, uint value)>();
 			foreach (var change in changes.Split(new[] { "; " }, StringSplitOptions.RemoveEmptyEntries)) {
 				var parts = change.Split(new[] { " = " }, StringSplitOptions.None);
-				uint value = parts[1].StartsWith("'") ? AddString(ref image, parts[1].Substring(1, parts[1].Length - 2).Replace("{dir}", directory.GetPath("app"))) : uint.Parse(parts[1]);
+				uint value;
+				if (parts[1].StartsWith("'"))
+					value = AddString(ref image, parts[1].Substring(1, parts[1].Length - 2).Replace("{dir}", directory.GetPath("app")));
+				else if (parts[1].StartsWith("["))
+					value = AddBlob(ref image, parts[1].Trim('[', ']').Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(a => Convert.ToByte(a, 16)).ToArray());
+				else if (parts[1] == "the public key")
+					value = AddBlob(ref image, key.PublicKey);
+				else
+					value = uint.Parse(parts[1]);
 				cells.Add((parts[0], value));
 			}
 			var patcher = new MetadataPatcher(image);
@@ -110,8 +162,9 @@ public class Program {
 			path.StartsWith(testDirectory, StringComparison.OrdinalIgnoreCase) ? path.Substring(testDirectory.Length + 1).Replace('\\', '/') : "another directory";
 
 		// The file of the library that the resolver finds for the main file's reference
-		string ReadWithDnlib(string mainFile) {
+		string ReadWithDnlib(string mainFile, bool findExactMatch = false) {
 			var context = ModuleDef.CreateModuleContext();
+			((AssemblyResolver)context.AssemblyResolver).FindExactMatch = findExactMatch;
 			using (var module = ModuleDefMD.Load(mainFile, context)) {
 				var reference = module.GetAssemblyRefs().Single(a => a.Name != module.CorLibTypes.AssemblyRef.Name);
 				var assembly = context.AssemblyResolver.Resolve(reference, module);
@@ -196,6 +249,50 @@ public class Program {
 			var mainFile = WriteFiles(CreateImage(changes));
 
 			ClrReaderComparison.AssertReadOnNetFramework(expectedDnlib, ReadWithDnlib(mainFile), expectedNetFramework, () => ReadWithTheRuntime(mainFile));
+		}
+
+		// The library has a strong name: version 1.2.3.4, a public key, and the reference has the token of the key.
+		// The runtime then only loads a library with the version and the key of the reference. dnlib's resolver
+		// does the same if its FindExactMatch is true; by default it also returns a library that isn't the same.
+		// The value of dnlib is "the file by default; exact: the file if FindExactMatch is true".
+		[Theory]
+		[InlineData("", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		// The version. 65535 = no value.
+		[InlineData("RevisionNumber = 5", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("RevisionNumber = 3", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("MajorVersion = 2", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("MajorVersion = 0; MinorVersion = 0; BuildNumber = 0; RevisionNumber = 0", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("RevisionNumber = 65535", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("BuildNumber = 65535", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("BuildNumber = 65535; RevisionNumber = 65535", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("MinorVersion = 65535", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("MajorVersion = 65535", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("MajorVersion = 9; RevisionNumber = 65535", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("BuildNumber = 9; RevisionNumber = 65535", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("MinorVersion = 9; BuildNumber = 65535; RevisionNumber = 65535", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		// The public key token, or the public key if the flag 1 is set
+		[InlineData("PublicKeyOrToken = 0", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("PublicKeyOrToken = [01 02 03 04 05 06 07 08]", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("PublicKeyOrToken = [01 02 03]", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("PublicKeyOrToken = the public key", "app/Lib.dll; exact: null", "throws ArgumentException")]
+		[InlineData("PublicKeyOrToken = the public key; Flags = 1", "app/Lib.dll; exact: app/Lib.dll", "app/Lib.dll")]
+		[InlineData("Flags = 1", "app/Lib.dll; exact: null", "throws SecurityException")]
+		[InlineData("PublicKeyOrToken = 0; Flags = 1", "app/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("Flags = 256", "app/Lib.dll; exact: app/Lib.dll", "throws FileLoadException")]
+		// The culture
+		[InlineData("Locale = 'de'", "app/de/Lib.dll; exact: app/de/Lib.dll", "app/de/Lib.dll")]
+		[InlineData("Locale = 'fr'", "app/Lib.dll; exact: null", "throws FileNotFoundException")]
+		[InlineData("Locale = 'sub'", "app/sub/Lib.dll; exact: null", "throws FileLoadException")]
+		[InlineData("Locale = 'de'; RevisionNumber = 5", "app/de/Lib.dll; exact: null", "throws FileLoadException")]
+		// The name
+		[InlineData("Name = 'NoSuchLib'", "null; exact: null", "throws FileNotFoundException")]
+		public void LibraryWithAStrongNameOfAReference(string changes, string expectedDnlib, string expectedNetFramework) {
+			var mainFile = WriteFiles(CreateImage(changes, signed: true), signed: true);
+			string dnlib = $"{ReadWithDnlib(mainFile)}; exact: {ReadWithDnlib(mainFile, findExactMatch: true)}";
+
+			ClrReaderComparison.AssertReadOnNetFramework(expectedDnlib, dnlib, expectedNetFramework, () => ReadWithTheRuntime(mainFile));
 		}
 
 		// Shows the files that the resolver wants to open
