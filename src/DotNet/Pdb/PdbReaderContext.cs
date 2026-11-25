@@ -55,14 +55,17 @@ namespace dnlib.DotNet.Pdb {
 			pdbFilename = null;
 			var reader = GetCodeViewDataReader();
 			// magic, guid, age, zero-terminated string
-			if (reader.Length < 4 + 16 + 4 + 1)
+			if (reader.Length < 4 + 16 + 4)
 				return false;
 			if (reader.ReadUInt32() != 0x53445352)
 				return false;
 			guid = reader.ReadGuid();
 			age = reader.ReadUInt32();
-			pdbFilename = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates();
-			return pdbFilename is not null;
+			// Like System.Reflection.Metadata: the string ends at the first zero, the data after it is padding.
+			// If there's no zero, the string ends where the data ends.
+			pdbFilename = reader.TryReadZeroTerminatedUtf8StringKeepUnpairedSurrogates() ??
+				reader.ReadUtf8StringKeepUnpairedSurrogates((int)reader.BytesLeft);
+			return true;
 		}
 
 		DataReader GetCodeViewDataReader() {

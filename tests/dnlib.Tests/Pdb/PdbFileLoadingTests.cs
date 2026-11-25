@@ -70,6 +70,83 @@ public static class Program {
 				AssertHasDebugInfo(module);
 		}
 
+		// The CodeView entry of the debug directory: "RSDS", a GUID, the age and then the name of the PDB file,
+		// 24 bytes before the name. Returns the file with another size of that data, and another name if
+		// newName isn't null (it's written over the start of the old name; it's shorter).
+		static byte[] ChangeCodeViewData(int newSize, byte[]? newName = null) {
+			var image = (byte[])compiled.Image.Clone();
+			using (var peReader = new PEReader(new MemoryStream(compiled.Image))) {
+				var entries = peReader.ReadDebugDirectory();
+				int index = entries.IndexOf(entries.Single(a => a.Type == DebugDirectoryEntryType.CodeView));
+				Assert.True(newSize <= entries[index].DataSize);
+				Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(peReader.PEHeaders.PEHeader!.DebugTableDirectory, out int tableOffset));
+				// An entry has 28 bytes, the size of its data is at offset 16
+				BitConverter.GetBytes(newSize).CopyTo(image, tableOffset + index * 28 + 16);
+				newName?.CopyTo(image, entries[index].DataPointer + CodeViewNameOffset);
+			}
+			return image;
+		}
+		const int CodeViewNameOffset = 24;
+		const string CodeViewName = "TestAssembly.pdb";
+
+		// Fixed in the commit that added this test: dnlib needed a zero byte after the name. Without it, it read
+		// no PDB file at all, also not one that was passed to it. Like System.Reflection.Metadata, the name now
+		// ends where the data ends.
+		[Fact]
+		public void NameInTheDebugDirectoryCanEndWithoutAZeroByte() {
+			var image = ChangeCodeViewData(CodeViewNameOffset + CodeViewName.Length);
+			Assert.Equal(CodeViewName, GetPdbNameInTheDebugDirectory(image));
+			string modulePath = WriteFile("Renamed.exe", image);
+			WriteFile(CodeViewName, compiled.Pdb!);
+
+			using (var module = ModuleDefMD.Load(modulePath))
+				AssertHasDebugInfo(module);
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions { PdbFileOrData = compiled.Pdb!, TryToLoadPdbFromDisk = false }))
+				AssertHasDebugInfo(module);
+		}
+
+		// The name ends at the first zero byte, whatever follows it
+		[Fact]
+		public void BytesAfterTheNameInTheDebugDirectoryAreIgnored() {
+			var image = ChangeCodeViewData(CodeViewNameOffset + CodeViewName.Length + 1, new byte[] { (byte)'x', 0, 0x20, 0xFF });
+			Assert.Equal("x", GetPdbNameInTheDebugDirectory(image));
+			string modulePath = WriteFile("Renamed.exe", image);
+			WriteFile("x", compiled.Pdb!);
+
+			using (var module = ModuleDefMD.Load(modulePath))
+				AssertHasDebugInfo(module);
+		}
+
+		// No name at all: the PDB file has the name of the module
+		[Fact]
+		public void DebugDirectoryWithoutANameOfThePdbFile() {
+			var image = ChangeCodeViewData(CodeViewNameOffset);
+			Assert.Equal("", GetPdbNameInTheDebugDirectory(image));
+			string modulePath = WriteFile("Renamed.exe", image);
+			WriteFile("Renamed.pdb", compiled.Pdb!);
+
+			using (var module = ModuleDefMD.Load(modulePath))
+				AssertHasDebugInfo(module);
+		}
+
+		// The data ends in the GUID or in the age: without them, dnlib can't know that a PDB file is the
+		// module's file, and reads none
+		[Theory]
+		[InlineData(CodeViewNameOffset - 1)]
+		[InlineData(4)]
+		[InlineData(1)]
+		public void NoPdbIsLoadedIfTheDebugDirectoryHasNoIdOfThePdbFile(int size) {
+			var image = ChangeCodeViewData(size);
+			string modulePath = WriteFile("Renamed.exe", image);
+			WriteFile("Renamed.pdb", compiled.Pdb!);
+			WriteFile(CodeViewName, compiled.Pdb!);
+
+			using (var module = ModuleDefMD.Load(modulePath))
+				Assert.Null(module.PdbState);
+			using (var module = ModuleDefMD.Load(image, new ModuleCreationOptions { PdbFileOrData = compiled.Pdb!, TryToLoadPdbFromDisk = false }))
+				Assert.Null(module.PdbState);
+		}
+
 		[Fact]
 		public void PdbWithTheNameOfTheModuleIsLoaded() {
 			string modulePath = WriteFile("Renamed.exe", compiled.Image);
