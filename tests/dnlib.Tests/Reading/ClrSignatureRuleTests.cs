@@ -22,16 +22,18 @@ public static class Marker {
 	public static int Field;
 	public static System.Collections.Generic.List<int> List;
 	public static System.DateTime Date;
+	public static void Method(int a, string b) { }
 }
 ";
 		static readonly byte[] baseImage = ClrReaderComparison.CreateBaseImage(Source);
-		static readonly uint fieldRid;
+		static readonly uint fieldRid, methodRid;
 		static readonly string objectToken, listToken, dateTimeToken, markerToken;
 
 		static ClrSignatureRuleTests() {
 			using (var module = ModuleDefMD.Load(baseImage)) {
 				var type = module.Find("Marker", isReflectionName: true)!;
 				fieldRid = type.FindField("Field")!.Rid;
+				methodRid = type.FindMethod("Method")!.Rid;
 				objectToken = GetCodedToken(module.GetTypeRefs().Single(a => a.FullName == "System.Object"));
 				listToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "List`1"));
 				dateTimeToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "DateTime"));
@@ -51,12 +53,22 @@ public static class Marker {
 			signature.Replace("{Object}", objectToken).Replace("{List}", listToken).Replace("{DateTime}", dateTimeToken).Replace("{Marker}", markerToken)
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(a => Convert.ToByte(a, 16)).ToArray();
 
-		// Adds the signature to the end of the #Blob heap. The field then has that signature.
-		static byte[] CreateImage(string signature) {
+		// Adds the signature to the end of the #Blob heap. The field or the method then has that signature.
+		static byte[] CreateImage(string signature, Table table = Table.Field) {
 			var bytes = ParseSignature(signature);
 			Assert.True(bytes.Length < 0x80);
 			int heapLength = new MetadataBlock(baseImage).GetStream("#Blob").Data.Length;
-			var block = new MetadataBlock(new MetadataPatcher(baseImage).SetCell(Table.Field, fieldRid, "Signature", (uint)heapLength).ToArray());
+			var patcher = new MetadataPatcher(baseImage);
+			if (table == Table.Field)
+				patcher.SetCell(Table.Field, fieldRid, "Signature", (uint)heapLength);
+			else {
+				// The method is the last one. It gets no rows of the Param table (the names of the parameters):
+				// System.Reflection doesn't return the parameters if the rows aren't the ones of the signature.
+				Assert.Equal(methodRid, patcher.GetRowCount(Table.Method));
+				patcher.SetCell(Table.Method, methodRid, "Signature", (uint)heapLength);
+				patcher.SetCell(Table.Method, methodRid, "ParamList", patcher.GetRowCount(Table.Param) + 1);
+			}
+			var block = new MetadataBlock(patcher.ToArray());
 			block.RemoveStream(ClrReaderComparison.PaddingStreamName);
 			var heap = block.GetStream("#Blob");
 			heap.Data = heap.Data.Concat(new[] { (byte)bytes.Length }).Concat(bytes).ToArray();
@@ -181,6 +193,92 @@ public static class Marker {
 			var image = CreateImage(signature);
 
 			ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+		}
+
+		// "return type(parameter type,parameter type)"
+		static string ReadMethodWithDnlib(byte[] image) {
+			using (var module = ModuleDefMD.Load(image)) {
+				var sig = module.ResolveMethod(methodRid)!.MethodSig;
+				if (sig is null)
+					return "no signature";
+				// A generic parameter that doesn't exist has no reflection name: "!!0" is its dnlib name
+				string Name(TypeSig? type) => type is null ? "no type" : type is GenericSig ? type.FullName : WithoutAssemblyNames(type.ReflectionFullName);
+				var parameters = sig.Params.Select(Name);
+				if (sig.ParamsAfterSentinel is not null)
+					parameters = parameters.Concat(new[] { "..." }).Concat(sig.ParamsAfterSentinel.Select(Name));
+				return $"{Name(sig.RetType)}({string.Join(",", parameters)})";
+			}
+		}
+
+		static string ReadMethodWithTheRuntime(byte[] image) {
+			try {
+				using (var loaded = new LoadedAssembly(image)) {
+					var method = (System.Reflection.MethodInfo)loaded.Assembly.ManifestModule.ResolveMethod(new MDToken(Table.Method, methodRid).ToInt32())!;
+					string Name(Type type) => WithoutAssemblyNames(type.FullName ?? type.ToString());
+					return $"{Name(method.ReturnType)}({string.Join(",", method.GetParameters().Select(a => Name(a.ParameterType)))})";
+				}
+			}
+			catch (Exception ex) {
+				return "throws " + ex.GetType().Name;
+			}
+		}
+
+		// A method signature: the calling convention (0: a static method), the number of parameters, the
+		// return type and the types of the parameters
+		//
+		// "...": dnlib has the parameters after byte 41 in MethodSig.ParamsAfterSentinel, System.Reflection
+		// shows them like the other parameters
+		[Theory]
+		[InlineData("00 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
+		// The calling convention byte: 20 = has a this parameter, 40 = the this parameter is in the
+		// signature, 10 = generic (the number of generic parameters follows), 1-5 and 9 = kinds of native
+		// methods and methods with a variable number of arguments
+		[InlineData("20 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("60 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("40 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("01 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("02 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("05 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
+		[InlineData("05 02 01 08 41 0E", "System.Void(System.Int32,...,System.String)", "System.Void(System.Int32,System.String)")]
+		[InlineData("09 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("0B 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("0F 02 01 08 0E", "no signature", "throws TypeLoadException")]
+		[InlineData("80 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
+		[InlineData("10 00 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
+		[InlineData("10 01 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
+		[InlineData("06 08", "no signature", "throws NullReferenceException")]
+		[InlineData("07 02 01 08 0E", "no signature", "throws TypeLoadException")]
+		// The number of parameters
+		[InlineData("00 00 01", "System.Void()", "System.Void()")]
+		[InlineData("00 01 01 08 0E", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		[InlineData("00 03 01 08 0E", "no signature", "throws BadImageFormatException")]
+		[InlineData("00 80 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
+		[InlineData("00", "no signature", "throws TypeLoadException")]
+		[InlineData("00 02", "no signature", "throws TypeLoadException")]
+		// Return types
+		[InlineData("00 00 08", "System.Int32()", "System.Int32()")]
+		[InlineData("00 00 10 08", "System.Int32&()", "System.Int32&()")]
+		[InlineData("00 00 16", "System.TypedReference()", "System.TypedReference()")]
+		[InlineData("00 00 10 16", "System.TypedReference&()", "System.TypedReference&()")]
+		[InlineData("00 00 10 01", "System.Void&()", "System.Void&()")]
+		[InlineData("00 00 20 {Object} 01", "System.Void()", "System.Void()")]
+		[InlineData("00 00 45 08", "System.Int32()", "System.Int32()")]
+		[InlineData("00 00 41", "no signature", "throws BadImageFormatException")]
+		// Parameter types
+		[InlineData("00 01 01 10 08", "System.Void(System.Int32&)", "System.Void(System.Int32&)")]
+		[InlineData("00 01 01 10 10 08", "System.Void(System.Int32&&)", "throws TypeLoadException")]
+		[InlineData("00 01 01 01", "System.Void(System.Void)", "System.Void(System.Void)")]
+		[InlineData("00 01 01 16", "System.Void(System.TypedReference)", "System.Void(System.TypedReference)")]
+		[InlineData("00 01 01 10 16", "System.Void(System.TypedReference&)", "System.Void(System.TypedReference&)")]
+		[InlineData("00 01 01 20 {Object} 10 08", "System.Void(System.Int32&)", "System.Void(System.Int32&)")]
+		[InlineData("00 01 01 10 20 {Object} 08", "System.Void(System.Int32&)", "System.Void(System.Int32&)")]
+		[InlineData("00 01 01 41 08", "System.Void(...,System.Int32)", "System.Void(System.Int32)")]
+		[InlineData("00 01 01 45 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		[InlineData("00 01 01 1E 00", "System.Void(!!0)", "throws BadImageFormatException")]
+		public void MethodSignature(string signature, string expectedDnlib, string expectedRuntime) {
+			var image = CreateImage(signature, Table.Method);
+
+			ClrReaderComparison.AssertRead(expectedDnlib, ReadMethodWithDnlib(image), expectedRuntime, () => ReadMethodWithTheRuntime(image));
 		}
 	}
 }
