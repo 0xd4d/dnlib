@@ -164,6 +164,66 @@ public class WithoutSecurity {
 			RoundTrip.CheckWithNewMetadata(written);
 		}
 
+		// The security attribute [PrincipalPermission(SecurityAction.Demand, Name = userName)]: the method can only be
+		// called if the thread's user has that name. A null name is every user.
+		static SecurityAttribute CreatePrincipalPermission(ModuleDef module, string? userName, bool asXml) {
+			if (asXml) {
+				string identity = userName is null ? "<Identity Authenticated=\"false\"/>" : $"<Identity Authenticated=\"true\" ID=\"{userName}\"/>";
+				return SecurityAttribute.CreateFromXml(module, "<PermissionSet class=\"System.Security.PermissionSet\" version=\"1\">" +
+					$"<IPermission class=\"System.Security.Permissions.PrincipalPermission, {module.CorLibTypes.AssemblyRef.FullName}\" version=\"1\">{identity}</IPermission></PermissionSet>");
+			}
+			var types = module.CorLibTypes;
+			var arguments = new List<CANamedArgument>();
+			if (userName is null)
+				arguments.Add(new CANamedArgument(false, types.Boolean, "Authenticated", new CAArgument(types.Boolean, false)));
+			else
+				arguments.Add(new CANamedArgument(false, types.String, "Name", new CAArgument(types.String, new UTF8String(userName))));
+			return new SecurityAttribute(types.GetTypeRef("System.Security.Permissions", "PrincipalPermissionAttribute"), arguments);
+		}
+
+		// .NET Framework reads the security attributes of a method when the method is called. Only .NET Framework
+		// does that: .NET ignores them, and Mono only checks them if it's asked to.
+		[Theory]
+		[InlineData(false, "NoSuchUser", true, true)]
+		[InlineData(false, null, true, false)]
+		[InlineData(true, "NoSuchUser", true, true)]
+		[InlineData(true, null, true, false)]
+		// Without the flag "has security" of the method, the attributes aren't read
+		[InlineData(false, "NoSuchUser", false, false)]
+		[InlineData(true, "NoSuchUser", false, false)]
+		public void NetFrameworkEnforcesAWrittenSecurityAttribute(bool asXml, string? userName, bool hasSecurityFlag, bool isDenied) {
+			Assert.SkipWhen(Reading.ClrReaderComparison.IsDotNet || Reading.ClrReaderComparison.IsMono, "Only .NET Framework enforces security attributes");
+			byte[] written;
+			using (var module = ModuleDefMD.Load(image)) {
+				var method = module.Find("WithoutSecurity", isReflectionName: true)!.FindMethod("Method")!;
+				// A compiler for .NET Framework 1.x wrote two XML texts, one of them with the permissions that aren't
+				// code access permissions (eg. this one), and that one had its own action. .NET Framework doesn't
+				// enforce this XML text if the action is Demand.
+				var action = asXml ? SecurityAction.NonCasDemand : SecurityAction.Demand;
+				method.DeclSecurities.Add(new DeclSecurityUser(action, new List<SecurityAttribute> { CreatePrincipalPermission(module, userName, asXml) }));
+				// The CLR only looks for security attributes if the method has this flag
+				method.HasSecurity = hasSecurityFlag;
+				var stream = new MemoryStream();
+				module.Write(stream);
+				written = stream.ToArray();
+			}
+			using (var module = ModuleDefMD.Load(written)) {
+				var blob = module.Find("WithoutSecurity", isReflectionName: true)!.FindMethod("Method")!.DeclSecurities.Single().GetBlob()!;
+				Assert.Equal(asXml ? (byte)'<' : (byte)'.', blob[0]);
+			}
+
+			using (var loaded = new LoadedAssembly(written)) {
+				var type = loaded.Assembly.GetType("WithoutSecurity", throwOnError: true)!;
+				var instance = Activator.CreateInstance(type);
+				Action call = () => type.GetMethod("Method")!.Invoke(instance, null);
+
+				if (isDenied)
+					Assert.IsType<System.Security.SecurityException>(Assert.Throws<System.Reflection.TargetInvocationException>(call).InnerException);
+				else
+					call();
+			}
+		}
+
 		// Only one PermissionSetAttribute with only the XML property is the old format
 		[Fact]
 		public void OtherAttributesAreNotPermissionSetXml() {
