@@ -88,6 +88,18 @@ namespace dnlib.Tests.Reading {
 		}
 
 		/// <summary>
+		/// Same as <see cref="AssertRead"/>, but only .NET is asked and not .NET Framework. For tests with
+		/// metadata that makes .NET Framework stop the process (an AccessViolationException) or never return:
+		/// neither can be caught, and the whole test run then fails or hangs.
+		/// </summary>
+		public static void AssertReadAskOnlyDotNet(string expectedDnlib, string dnlib, string expectedRuntime, Func<string> readWithTheRuntime) {
+			if (IsDotNet)
+				AssertRead(expectedDnlib, dnlib, expectedRuntime, readWithTheRuntime);
+			else
+				Assert.Equal(expectedDnlib, dnlib);
+		}
+
+		/// <summary>
 		/// For tests without expected values: dnlib must read what .NET reads. Another CLR (.NET Framework)
 		/// may read something else: the test is then skipped with a message that says what it read.
 		/// </summary>
