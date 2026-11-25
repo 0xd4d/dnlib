@@ -102,6 +102,83 @@ namespace dnlib.Tests.Loading {
 			}
 		}
 
+		// The row of the ExportedType table says which type of the other module it is: the CLR (.NET Framework)
+		// uses the type with the token of the row and doesn't check its name. See ClrFileTableRuleTests.
+		// Fixed in this commit: the type was always found by its name.
+		[Theory]
+		[InlineData("the token of the type", "Ns.InOther")]
+		[InlineData("the token of another type", "<Module>")]
+		[InlineData("no token", "Ns.InOther")]
+		[InlineData("a token that doesn't exist", null)]
+		[InlineData("the token of a method", null)]
+		public void TypeOfAnotherModuleIsTheTypeWithTheTokenOfTheExportedType(string token, string? expectedType) {
+			var mainFile = WriteAssembly();
+			byte[] image;
+			using (var main = ModuleDefMD.Load(File.ReadAllBytes(mainFile)))
+			using (var other = ModuleDefMD.Load(File.ReadAllBytes(directory.GetPath("Other.netmodule")))) {
+				main.ExportedTypes.Single().TypeDefId = token switch {
+					"the token of the type" => other.Find("Ns.InOther", isReflectionName: true)!.MDToken.Raw,
+					"the token of another type" => other.GlobalType!.MDToken.Raw,
+					"no token" => 0,
+					"a token that doesn't exist" => 0x02001234,
+					_ => 0x06000001,
+				};
+				var stream = new MemoryStream();
+				main.Write(stream);
+				image = stream.ToArray();
+			}
+			File.WriteAllBytes(mainFile, image);
+
+			var assembly = AssemblyDef.Load(mainFile);
+			try {
+				var manifestModule = assembly.ManifestModule!;
+				manifestModule.Context = ModuleDef.CreateModuleContext();
+				((AssemblyResolver)manifestModule.Context.AssemblyResolver).AddToCache(assembly);
+				var reference = new TypeRefUser(manifestModule, "Ns", "InOther", assembly.ToAssemblyRef());
+
+				Assert.Equal(expectedType, assembly.Find("Ns.InOther", isReflectionName: true)?.FullName);
+				Assert.Equal(expectedType, assembly.Find("Ns.InOther", isReflectionName: false)?.FullName);
+				Assert.Equal(expectedType, assembly.Find(reference)?.FullName);
+				Assert.Equal(expectedType, manifestModule.ExportedTypes.Single().Resolve()?.FullName);
+				Assert.Equal(expectedType, reference.Resolve()?.FullName);
+				// A type of the main module is found as before
+				Assert.Equal("Ns.InMain", assembly.Find("Ns.InMain", isReflectionName: true)?.FullName);
+				// The type can still be found in its module
+				Assert.NotNull(assembly.Modules[1].Find("Ns.InOther", isReflectionName: true));
+			}
+			finally {
+				DisposeModules(assembly);
+			}
+		}
+
+		// A row of the ExportedType table that says that the type is in another assembly (a type forwarder) means
+		// that this assembly doesn't have the type, also if one of its other modules has a type with that name
+		[Fact]
+		public void TypeThatIsForwardedToAnotherAssemblyIsNotATypeOfAnotherModule() {
+			var mainFile = WriteAssembly();
+			byte[] image;
+			using (var main = ModuleDefMD.Load(File.ReadAllBytes(mainFile))) {
+				var file = (FileDef)main.ExportedTypes.Single().Implementation!;
+				main.ExportedTypes.Single().Implementation = new AssemblyRefUser("NoSuchAssembly", new Version(1, 0, 0, 0));
+				// The row of another type keeps the file in the File table
+				main.ExportedTypes.Add(new ExportedTypeUser(main, 0, "Ns", "Unused", TypeAttributes.Public, file));
+				var stream = new MemoryStream();
+				main.Write(stream);
+				image = stream.ToArray();
+			}
+			File.WriteAllBytes(mainFile, image);
+
+			var assembly = AssemblyDef.Load(mainFile);
+			try {
+				Assert.Equal(new[] { "Main.dll", "Other.netmodule" }, assembly.Modules.Select(a => a.Name.String));
+				Assert.Null(assembly.Find("Ns.InOther", isReflectionName: true));
+				Assert.NotNull(assembly.Modules[1].Find("Ns.InOther", isReflectionName: true));
+			}
+			finally {
+				DisposeModules(assembly);
+			}
+		}
+
 		// An assembly that's loaded from memory has no directory, so no other module is loaded
 		[Fact]
 		public void AssemblyThatIsLoadedFromMemoryOnlyHasItsMainModule() {

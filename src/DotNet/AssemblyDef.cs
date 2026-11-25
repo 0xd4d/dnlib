@@ -539,6 +539,8 @@ namespace dnlib.DotNet {
 				var module = modules[i];
 				if (module is null)
 					continue;
+				if (i == 1 && TryFindExportedTypeInFile(modules[0], fullName, isReflectionName, out var exportedType))
+					return exportedType;
 				var type = module.Find(fullName, isReflectionName);
 				if (type is not null)
 					return type;
@@ -560,9 +562,78 @@ namespace dnlib.DotNet {
 				var module = modules[i];
 				if (module is null)
 					continue;
+				if (i == 1 && typeRef is not null && TryFindExportedTypeInFile(modules[0], typeRef.FullName, false, out var exportedType))
+					return exportedType;
 				var type = module.Find(typeRef);
 				if (type is not null)
 					return type;
+			}
+			return null;
+		}
+
+		// The CLR finds a type of another module of the assembly through the ExportedType table of the manifest
+		// module. If the row has the token of the type in that module (TypeDefId), the CLR uses the type with that
+		// token and doesn't check its name; a token that doesn't exist is no type. Without a token the type is
+		// found by its name in that module. Only if no row has the name, the types of the other modules are
+		// searched (the caller does that). A row of a type in another assembly (a type forwarder) with the name
+		// means that this assembly doesn't have the type.
+		// Returns true if a row with the name was found, type is then the type or null.
+		bool TryFindExportedTypeInFile(ModuleDef? manifestModule, string fullName, bool isReflectionName, out TypeDef? type) {
+			type = null;
+			if (manifestModule is null)
+				return false;
+			var exportedTypes = manifestModule.ExportedTypes;
+			int count = exportedTypes.Count;
+			for (int i = 0; i < count; i++) {
+				var exportedType = exportedTypes[i];
+				if (exportedType is null)
+					continue;
+				var implementation = GetImplementation(exportedType);
+				// A row without a file or an assembly is ignored
+				if (implementation is not FileDef && implementation is not AssemblyRef)
+					continue;
+				if ((isReflectionName ? exportedType.ReflectionFullName : exportedType.FullName) != fullName)
+					continue;
+				// The type is in another assembly: it's not a type of this assembly, also if a module has a
+				// type with that name
+				if (implementation is not FileDef file)
+					return true;
+				var module = FindModuleOfFile(file);
+				if (module is null)
+					return true;
+				uint typeDefId = exportedType.TypeDefId;
+				if (typeDefId == 0 || module is not ModuleDefMD moduleMD)
+					type = module.Find(fullName, isReflectionName);
+				else if (MDToken.ToTable(typeDefId) == Table.TypeDef)
+					type = moduleMD.ResolveTypeDef(MDToken.ToRID(typeDefId));
+				return true;
+			}
+			return false;
+		}
+
+		// Where the type is, or the type that it's nested in: a file or an assembly
+		static IImplementation? GetImplementation(ExportedType exportedType) {
+			IImplementation? implementation = exportedType.Implementation;
+			for (int i = 0; i < 100 && implementation is ExportedType declaringType; i++)
+				implementation = declaringType.Implementation;
+			return implementation;
+		}
+
+		// The module (not the manifest module) that was loaded from the file
+		private protected virtual ModuleDef? FindModuleOfFile(FileDef file) {
+			if (!file.ContainsMetadata)
+				return null;
+			var modules = Modules;
+			int count = modules.Count;
+			string fileName = UTF8String.ToSystemStringOrEmpty(file.Name);
+			for (int i = 1; i < count; i++) {
+				var module = modules[i];
+				if (module is null)
+					continue;
+				string location = module.Location;
+				string moduleFileName = string.IsNullOrEmpty(location) ? UTF8String.ToSystemStringOrEmpty(module.Name) : Path.GetFileName(location);
+				if (StringComparer.OrdinalIgnoreCase.Equals(moduleFileName, fileName))
+					return module;
 			}
 			return null;
 		}
@@ -860,6 +931,19 @@ namespace dnlib.DotNet {
 			var list = readerModule.Metadata.GetDeclSecurityRidList(Table.Assembly, origRid);
 			var tmp = readerModule.CreateDeclSecurityList(list, null);
 			Interlocked.CompareExchange(ref declSecurities, tmp, null);
+		}
+
+		// The modules after the manifest module are in the order of their rows in the File table
+		private protected override ModuleDef? FindModuleOfFile(FileDef file) {
+			if (!file.ContainsMetadata)
+				return null;
+			var list = readerModule.GetModuleRidList();
+			var modules = Modules;
+			for (int i = 0; i < list.Count && i + 1 < modules.Count; i++) {
+				if (list[i] == file.Rid && readerModule.ResolveFile(file.Rid) == file)
+					return modules[i + 1];
+			}
+			return base.FindModuleOfFile(file);
 		}
 
 		/// <inheritdoc/>
