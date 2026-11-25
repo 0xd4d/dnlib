@@ -67,11 +67,19 @@ namespace dnlib.Tests.Loading {
 		public void FileThatIsInUseThrowsAnIOException(FileAccess access, FileShare share, bool throwsOnEverySystem) {
 			var file = WriteFile(image);
 			using (new FileStream(file, FileMode.Open, access, share)) {
-				if (throwsOnEverySystem || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || (throwsOnEverySystem && !Reading.ClrReaderComparison.IsMono))
 					Assert.ThrowsAny<IOException>(() => ModuleDefMD.Load(file));
-				else {
+				else if (!throwsOnEverySystem) {
 					using (var module = ModuleDefMD.Load(file))
 						Assert.NotNull(module.Find("C", isReflectionName: true));
+				}
+				else {
+					// Mono doesn't always know that the file is in use: it's loaded or it's an IOException
+					try {
+						ModuleDefMD.Load(file).Dispose();
+					}
+					catch (IOException) {
+					}
 				}
 			}
 
