@@ -161,6 +161,26 @@ namespace dnlib.Tests.Names {
 			Assert.True(comparer.CompareTo(Create(version: "2.0.0.0"), Create(version: "1.0.0.0")) > 0);
 		}
 
+		// Fixed in this commit: a missing third or fourth number was the same as 0. The metadata has 65535 for a
+		// number without a value, and the CLR doesn't read that as 0.
+		[Theory]
+		[InlineData("1.2", "1.2.65535.65535", true)]
+		[InlineData("1.2.3", "1.2.3.65535", true)]
+		[InlineData("1.2", "1.2", true)]
+		[InlineData("1.2", "1.2.0.0", false)]
+		[InlineData("1.2.3", "1.2.3.0", false)]
+		[InlineData("1.2", "1.2.3", false)]
+		public void VersionNumberWithoutValueIs65535(string version, string otherVersion, bool expectedSame) {
+			var comparer = AssemblyNameComparer.CompareAll;
+			var assembly = Create(version: version);
+			var other = Create(version: otherVersion);
+
+			Assert.Equal(expectedSame, comparer.Equals(assembly, other));
+			Assert.Equal(expectedSame, comparer.CompareTo(assembly, other) == 0);
+			if (expectedSame)
+				Assert.Equal(comparer.GetHashCode(assembly), comparer.GetHashCode(other));
+		}
+
 		[Fact]
 		public void PredefinedComparers() {
 			Assert.True(AssemblyNameComparer.NameOnly.Equals(Create(), Create(version: "9.9.9.9", token: OtherToken, culture: "de")));
@@ -212,6 +232,21 @@ namespace dnlib.Tests.Names {
 		[InlineData("5.0.0.0", "4.0.0.0", "3.0.0.0", 0)]
 		[InlineData("0.0.0.0", "1.0.0.0", "2.0.0.0", 1)]    // no version is requested: the highest one
 		[InlineData("0.0.0.0", "2.0.0.0", "1.0.0.0", 0)]
+		// Fixed in this commit: a number of the requested version that has no value (it's missing or it's 65535)
+		// can be any number, and so can the numbers after it. That's how the CLR picks an assembly.
+		[InlineData("1.2", "1.2.3.4", "1.3.0.0", 0)]
+		[InlineData("1.2", "1.3.0.0", "1.2.3.4", 1)]
+		[InlineData("1.2.3", "1.2.3.9", "1.2.4.0", 0)]
+		[InlineData("1.2.65535.65535", "1.2.3.4", "1.3.0.0", 0)]
+		[InlineData("1.2.65535.7", "1.2.3.4", "1.3.0.0", 0)]
+		[InlineData("2.65535.0.0", "2.5.0.0", "3.0.0.0", 0)]
+		[InlineData("1.2", "1.2.3.4", "1.2.5.0", 1)]    // both are a requested version: the highest one
+		[InlineData("1.2", "1.2.5.0", "1.2.3.4", 0)]
+		[InlineData("65535.65535.65535.65535", "1.0.0.0", "2.0.0.0", 1)]
+		[InlineData("65535.0.0.0", "2.0.0.0", "1.0.0.0", 0)]
+		[InlineData("1.2", "1.1.0.0", "1.3.0.0", 1)]    // none is a requested version: as above
+		[InlineData("1.2", "1.3.0.0", "1.4.0.0", 0)]
+		[InlineData("1.2", "1.0.0.0", "1.1.0.0", 1)]
 		public void AssemblyWithTheClosestVersionIsCloser(string requestedVersion, string firstVersion, string secondVersion, int expected) =>
 			Assert.Equal(expected, Closest(Create(version: requestedVersion), Create(version: firstVersion), Create(version: secondVersion)));
 

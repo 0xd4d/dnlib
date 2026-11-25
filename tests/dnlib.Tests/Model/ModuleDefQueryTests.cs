@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
+using dnlib.TestUtils;
 using Xunit;
 
 namespace dnlib.Tests.Model {
@@ -68,6 +69,33 @@ namespace dnlib.Tests.Model {
 				Assert.Null(module.GetAssemblyRef("Missing"));
 				Assert.Null(module.GetAssemblyRef(null));
 			}
+		}
+
+		// Fixed in this commit (issue 349): a version number that is 65535 has no value. The CLR then takes an
+		// assembly with any number there, so such a reference isn't the one with the highest version: the
+		// number and the numbers after it are compared as 0.
+		[Theory]
+		[InlineData("65535.65535.65535.65535", "2.0.0.0")]
+		[InlineData("65535.0.0.0", "2.0.0.0")]
+		[InlineData("2.65535.65535.65535", "2.0.0.0")]
+		[InlineData("2.0.65535.9", "2.0.0.0")]
+		[InlineData("3.65535.65535.65535", "3.65535.65535.65535")]
+		[InlineData("2.1.65535.65535", "2.1.65535.65535")]
+		[InlineData("2.0.0.65535", "2.0.0.0")]
+		[InlineData("2.0.1.65535", "2.0.1.65535")]
+		public void VersionNumberWithoutValueIsNotTheHighest(string versionOfTheFirst, string expectedVersion) {
+			var patcher = new MetadataPatcher(image.Value);
+			uint rid;
+			using (var module = ModuleDefMD.Load(image.Value))
+				rid = module.GetAssemblyRefs().Single(a => a.Name == "Library" && a.Version.Major == 1).Rid;
+			var numbers = versionOfTheFirst.Split('.').Select(uint.Parse).ToArray();
+			patcher.SetCell(Table.AssemblyRef, rid, "MajorVersion", numbers[0]);
+			patcher.SetCell(Table.AssemblyRef, rid, "MinorVersion", numbers[1]);
+			patcher.SetCell(Table.AssemblyRef, rid, "BuildNumber", numbers[2]);
+			patcher.SetCell(Table.AssemblyRef, rid, "RevisionNumber", numbers[3]);
+
+			using (var module = ModuleDefMD.Load(patcher.ToArray()))
+				Assert.Equal(expectedVersion, module.GetAssemblyRef("Library")!.Version.ToString());
 		}
 
 		// A module that isn't read from a file has no tables to list

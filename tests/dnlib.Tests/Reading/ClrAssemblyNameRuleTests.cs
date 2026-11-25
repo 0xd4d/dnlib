@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using dnlib.DotNet;
@@ -68,8 +69,11 @@ namespace dnlib.Tests.Reading {
 		[InlineData("", "TestAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "TestAssembly, Culture=neutral, PublicKeyToken=null", "TestAssembly, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("MajorVersion = 65535", "TestAssembly, Culture=neutral, PublicKeyToken=null", "TestAssembly, Culture=neutral, PublicKeyToken=null")]
-		// Assembly.FullName has the 65535 if it's the last part, AssemblyName.FullName (and dnlib) leaves it out
+		// Assembly.FullName has a 65535 that comes after a number, AssemblyName.FullName (and dnlib) ends the
+		// version before it
 		[InlineData("RevisionNumber = 65535", "TestAssembly, Version=0.0.0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.0.0.65535, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("MinorVersion = 65535", "TestAssembly, Version=0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.65535.0.0, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("BuildNumber = 65535", "TestAssembly, Version=0.0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.0.65535.0, Culture=neutral, PublicKeyToken=null")]
 		// The name
 		[InlineData("Name = 'A B'", "A B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("Name = 'A,B'", "A\\,B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A\\,B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
@@ -119,6 +123,10 @@ namespace dnlib.Tests.Reading {
 		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "Ref, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Culture=neutral, PublicKeyToken=0102030405060708")]
 		[InlineData("MajorVersion = 65535", "Ref, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Culture=neutral, PublicKeyToken=0102030405060708")]
 		[InlineData("RevisionNumber = 65535", "Ref, Version=1.2.3, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3, Culture=neutral, PublicKeyToken=0102030405060708")]
+		[InlineData("BuildNumber = 65535", "Ref, Version=1.2, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Version=1.2, Culture=neutral, PublicKeyToken=0102030405060708")]
+		// Fixed in this commit: a reference has no version if its second number is 65535. dnlib had "Version=1",
+		// which is what the runtime has for the assembly itself (see above).
+		[InlineData("MinorVersion = 65535", "Ref, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Culture=neutral, PublicKeyToken=0102030405060708")]
 		// The name
 		[InlineData("Name = 'A B'", "A B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "A B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
 		[InlineData("Name = 'A,B'", "A\\,B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "A\\,B, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
@@ -160,6 +168,41 @@ namespace dnlib.Tests.Reading {
 			ClrReaderComparison.AssertRead(expectedDnlib, dnlib, expectedRuntime, () => {
 				using (var loaded = new LoadedAssembly(image))
 					return loaded.Assembly.GetReferencedAssemblies()[0].FullName;
+			});
+		}
+
+		// Fixed in this commit: dnlib wrote 0 for a number that a System.Version doesn't have. The runtime (and
+		// System.Reflection.Metadata) writes 65535, "no value", and reads the same version again from that.
+		[Theory]
+		[InlineData("1.2", "1.2.65535.65535")]
+		[InlineData("1.2.3", "1.2.3.65535")]
+		[InlineData("1.2.3.4", "1.2.3.4")]
+		public void MissingVersionNumberIsWrittenAs65535(string version, string expectedInTheFile) {
+			var stream = new MemoryStream();
+			using (var module = ModuleDefMD.Load(baseImage)) {
+				module.Assembly!.Version = new Version(version);
+				module.ResolveAssemblyRef(1)!.Version = new Version(version);
+				module.Write(stream);
+			}
+			var image = stream.ToArray();
+
+			var patcher = new MetadataPatcher(image);
+			foreach (var table in new[] { Table.Assembly, Table.AssemblyRef }) {
+				var written = new[] { "MajorVersion", "MinorVersion", "BuildNumber", "RevisionNumber" }.Select(a => patcher.GetCell(table, 1, a));
+				Assert.Equal(expectedInTheFile, string.Join(".", written));
+			}
+			using (var module = ModuleDefMD.Load(image)) {
+				Assert.Equal(new Version(expectedInTheFile), module.Assembly!.Version);
+				Assert.Equal(new Version(expectedInTheFile), module.ResolveAssemblyRef(1)!.Version);
+				// A full name ends before the first number that has no value
+				Assert.StartsWith("TestAssembly, Version=" + version + ", Culture=", module.Assembly.FullName);
+				Assert.Contains(", Version=" + version + ", Culture=", module.ResolveAssemblyRef(1)!.FullName);
+			}
+
+			// The version of the reference is the System.Version that dnlib got
+			ClrReaderComparison.AssertSameAsTheRuntime(version, () => {
+				using (var loaded = new LoadedAssembly(image))
+					return loaded.Assembly.GetReferencedAssemblies()[0].Version!.ToString();
 			});
 		}
 	}

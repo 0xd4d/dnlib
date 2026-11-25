@@ -1466,7 +1466,9 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
-		/// Compare asm refs' version
+		/// Compare asm refs' version. A version number that is 65535 has no value, like in the CLR: that number
+		/// and the numbers after it are compared as 0, so a reference without a version (65535.65535.65535.65535)
+		/// is never greater than a reference with a version.
 		/// </summary>
 		/// <param name="found">First asm ref</param>
 		/// <param name="newOne">New asm ref</param>
@@ -1476,7 +1478,13 @@ namespace dnlib.DotNet {
 				return true;
 			var foundVer = found.Version;
 			var newVer = newOne.Version;
-			return foundVer is null || (newVer is not null && newVer >= foundVer);
+			if (foundVer is null)
+				return true;
+			if (newVer is null)
+				return false;
+			Utils.GetRequestedVersionRange(foundVer, out foundVer, out _);
+			Utils.GetRequestedVersionRange(newVer, out newVer, out _);
+			return newVer >= foundVer;
 		}
 
 		ITypeDefOrRef? ISignatureReaderHelper.ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext) {

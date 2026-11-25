@@ -1723,8 +1723,12 @@ namespace dnlib.DotNet {
 
 			AddAssemblyNamePart(UTF8String.ToSystemStringOrEmpty(assembly.Name), escapeClosingBracket);
 
-			if (assembly.Version is not null)
-				AddAssemblyVersion(assembly.Version);
+			if (assembly.Version is not null) {
+				// The CLR has no version for a reference if its first or second number has no value (65535)
+				bool hasVersion = !(assembly is AssemblyRef) || ((ushort)assembly.Version.Major != ushort.MaxValue && (ushort)assembly.Version.Minor != ushort.MaxValue);
+				if (hasVersion)
+					AddAssemblyVersion(assembly.Version);
+			}
 
 			if (assembly.Culture is not null) {
 				sb.Append(", Culture=");
