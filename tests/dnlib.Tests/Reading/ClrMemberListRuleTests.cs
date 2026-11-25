@@ -18,6 +18,10 @@ namespace dnlib.Tests.Reading {
 	/// that runs the tests: dnlib must read the members that the CLR reads.
 	/// </summary>
 	public class ClrMemberListRuleTests {
+		// "A|B" in the expected value of the runtime: A is what the CLR normally reads. B is what it reads if a
+		// profiler is attached (the tests run with one when the code coverage is measured): the CLR then uses
+		// its reader for metadata that can be changed, and that reader has other rules for a list that starts
+		// at row 0.
 		// Static classes: they have no constructor. The Field and the Method table have 6 rows (2 of every
 		// class), the Param table has 12 rows (2 of every method).
 		const string Source = @"
@@ -159,13 +163,13 @@ public static class C {
 		[InlineData("TypeDef.MethodList of A = 3,TypeDef.MethodList of B = 1", "<Module>[; MA1 MA2] A[a1 a2; ] B[b1 b2; MA1 MA2 MB1 MB2]", "throws TypeLoadException")]
 		// Row 0, the row after the last row, and a row that doesn't exist
 		[InlineData("TypeDef.MethodList of B = 0", "A[a1 a2; ] B[b1 b2; ]", "throws TypeLoadException")]
-		[InlineData("TypeDef.MethodList of C = 0", "B[b1 b2; ] C[c1 c2; ]", "throws TypeLoadException")]
+		[InlineData("TypeDef.MethodList of C = 0", "B[b1 b2; ] C[c1 c2; ]", "throws TypeLoadException|B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]")]
 		[InlineData("TypeDef.MethodList of C = 7", "B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]", "B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]")]
 		[InlineData("TypeDef.MethodList of C = 100", "B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]", "throws TypeLoadException")]
 		[InlineData("TypeDef.MethodList of B = 7", "A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[b1 b2; ]", "throws TypeLoadException")]
 		[InlineData("TypeDef.MethodList of B = 100", "A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[b1 b2; ]", "throws TypeLoadException")]
 		[InlineData("TypeDef.FieldList of B = 0", "A[; MA1 MA2] B[; MB1 MB2]", "throws TypeLoadException")]
-		[InlineData("TypeDef.FieldList of C = 0", "B[; MB1 MB2] C[; MC1 MC2]", "throws TypeLoadException")]
+		[InlineData("TypeDef.FieldList of C = 0", "B[; MB1 MB2] C[; MC1 MC2]", "throws TypeLoadException|B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]")]
 		[InlineData("TypeDef.FieldList of C = 7", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]")]
 		[InlineData("TypeDef.FieldList of C = 100", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]", "throws TypeLoadException")]
 		[InlineData("TypeDef.FieldList of B = 100", "A[a1 a2 b1 b2 c1 c2; MA1 MA2] B[; MB1 MB2]", "throws TypeLoadException")]
@@ -233,7 +237,7 @@ public static class C {
 		// Row 0, the row after the last row, and a row that doesn't exist
 		[InlineData("Method.ParamList of MA1 = 0", "MA1(,)", "MA1(throws)")]
 		[InlineData("Method.ParamList of MA2 = 0", "MA1(,) MA2(,)", "MA1(throws) MA2(throws)")]
-		[InlineData("Method.ParamList of MC2 = 0", "MC1(,) MC2(,)", "MC1(throws) MC2(throws)")]
+		[InlineData("Method.ParamList of MC2 = 0", "MC1(,) MC2(,)", "MC1(throws) MC2(throws)|MC1(throws) MC2(,)")]
 		[InlineData("Method.ParamList of MC2 = 13", "MC2(,)", "MC1(throws) MC2(,)")]
 		[InlineData("Method.ParamList of MC2 = 100", "MC2(,)", "MC1(throws) MC2(throws)")]
 		[InlineData("Method.ParamList of MB2 = 13", "MB2(,)", "MB1(throws) MB2(throws)")]
@@ -294,14 +298,14 @@ public static class C {
 		[InlineData("EventMap.EventList of 2 = 6", "A[PA1 PA2; EA1 EA2 EB1 EB2 EC1] B[PB1 PB2; ]", "A[PA1 PA2; throws ArgumentException] B[PB1 PB2; ]")]
 		// Row 0, the row after the last row, and a row that doesn't exist
 		[InlineData("PropertyMap.PropertyList of 1 = 0", "normal", "normal")]
-		[InlineData("PropertyMap.PropertyList of 2 = 0", "A[; EA1 EA2] B[PA1 PA2 PB1 PB2; EB1 EB2]", "A[; EA1 EA2] B[throws ArgumentException; EB1 EB2]")]
-		[InlineData("PropertyMap.PropertyList of 3 = 0", "B[; EB1 EB2] C[PA1 PA2 PB1 PB2 PC1 PC2; EC1 EC2]", "B[; EB1 EB2] C[throws ArgumentException; EC1 EC2]")]
+		[InlineData("PropertyMap.PropertyList of 2 = 0", "A[; EA1 EA2] B[PA1 PA2 PB1 PB2; EB1 EB2]", "A[; EA1 EA2] B[throws ArgumentException; EB1 EB2]|A[throws ArgumentException; EA1 EA2] B[throws ArgumentException; EB1 EB2]")]
+		[InlineData("PropertyMap.PropertyList of 3 = 0", "B[; EB1 EB2] C[PA1 PA2 PB1 PB2 PC1 PC2; EC1 EC2]", "B[; EB1 EB2] C[throws ArgumentException; EC1 EC2]|B[throws ArgumentException; EB1 EB2] C[; EC1 EC2]")]
 		[InlineData("PropertyMap.PropertyList of 3 = 7", "B[PB1 PB2 PC1 PC2; EB1 EB2] C[; EC1 EC2]", "B[throws ArgumentException; EB1 EB2] C[; EC1 EC2]")]
 		[InlineData("PropertyMap.PropertyList of 3 = 100", "B[PB1 PB2 PC1 PC2; EB1 EB2] C[; EC1 EC2]", "B[throws ArgumentException; EB1 EB2] C[; EC1 EC2]")]
 		[InlineData("PropertyMap.PropertyList of 2 = 100", "A[PA1 PA2 PB1 PB2 PC1 PC2; EA1 EA2] B[; EB1 EB2]", "A[throws ArgumentException; EA1 EA2] B[; EB1 EB2]")]
 		[InlineData("EventMap.EventList of 1 = 0", "normal", "normal")]
-		[InlineData("EventMap.EventList of 2 = 0", "A[PA1 PA2; ] B[PB1 PB2; EA1 EA2 EB1 EB2]", "A[PA1 PA2; ] B[PB1 PB2; throws ArgumentException]")]
-		[InlineData("EventMap.EventList of 3 = 0", "B[PB1 PB2; ] C[PC1 PC2; EA1 EA2 EB1 EB2 EC1 EC2]", "B[PB1 PB2; ] C[PC1 PC2; throws ArgumentException]")]
+		[InlineData("EventMap.EventList of 2 = 0", "A[PA1 PA2; ] B[PB1 PB2; EA1 EA2 EB1 EB2]", "A[PA1 PA2; ] B[PB1 PB2; throws ArgumentException]|A[PA1 PA2; throws ArgumentException] B[PB1 PB2; throws ArgumentException]")]
+		[InlineData("EventMap.EventList of 3 = 0", "B[PB1 PB2; ] C[PC1 PC2; EA1 EA2 EB1 EB2 EC1 EC2]", "B[PB1 PB2; ] C[PC1 PC2; throws ArgumentException]|B[PB1 PB2; throws ArgumentException] C[PC1 PC2; ]")]
 		[InlineData("EventMap.EventList of 3 = 7", "B[PB1 PB2; EB1 EB2 EC1 EC2] C[PC1 PC2; ]", "B[PB1 PB2; throws ArgumentException] C[PC1 PC2; ]")]
 		[InlineData("EventMap.EventList of 3 = 100", "B[PB1 PB2; EB1 EB2 EC1 EC2] C[PC1 PC2; ]", "B[PB1 PB2; throws ArgumentException] C[PC1 PC2; ]")]
 		[InlineData("EventMap.EventList of 2 = 100", "A[PA1 PA2; EA1 EA2 EB1 EB2 EC1 EC2] B[PB1 PB2; ]", "A[PA1 PA2; throws ArgumentException] B[PB1 PB2; ]")]
