@@ -146,7 +146,7 @@ namespace dnlib.Tests.Pdb {
 
 			// dnlib only uses a PDB that has the ID that's stored in the PE file
 			BlobContentId pdbId;
-			using (var originalPdb = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(compiled.Pdb!)))
+			using (var originalPdb = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(compiled.Pdb)))
 				pdbId = new BlobContentId(originalPdb.GetMetadataReader().DebugMetadataHeader!.Id);
 
 			var pdbBuilder = new PortablePdbBuilder(builder, moduleRowCounts, entryPoint: default, idProvider: _ => pdbId);

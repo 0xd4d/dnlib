@@ -444,7 +444,7 @@ namespace dnlib.Tests.Importing {
 
 		[Fact]
 		public void GenericMethodDefinitionIsNotAMethodSpec() {
-			var method = typeof(GenericMethods).GetMethod(nameof(GenericMethods.Create))!;
+			var method = typeof(GenericMethods).GetMethod(nameof(GenericMethods.Create));
 
 			var imported = new Importer(CreateModule("Target")).ImportOrNull(method);
 

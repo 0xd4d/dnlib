@@ -95,7 +95,7 @@ namespace dnlib.Tests.Pdb {
 		public void WrittenImportsAreReadBySystemReflectionMetadata() {
 			var written = WriteWithEveryKindOfImport();
 
-			using (var provider = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(written.Pdb!))) {
+			using (var provider = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(written.Pdb))) {
 				var reader = provider.GetMetadataReader();
 				var scope = reader.ImportScopes.Select(reader.GetImportScope).Single(a => a.GetImports().Count() == 9);
 				var texts = new List<string>();

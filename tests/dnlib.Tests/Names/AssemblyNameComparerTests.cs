@@ -187,7 +187,7 @@ namespace dnlib.Tests.Names {
 		public void NameWithoutAVersionIsNotVersionZero() {
 			var comparer = AssemblyNameComparer.CompareAll;
 			var noVersion = Create();
-			noVersion.Version = null!;
+			noVersion.Version = null;
 			var noVersionInMetadata = Create(version: "65535.65535.65535.65535");
 
 			Assert.True(comparer.Equals(noVersion, noVersionInMetadata));

@@ -52,7 +52,7 @@ namespace dnlib.Tests.RoundTrips {
 				Assert.All(nativeMethods, a => {
 					Assert.Null(a.Body);
 					Assert.NotNull(a.NativeBody);
-					Assert.NotEqual((dnlib.PE.RVA)0, a.NativeBody!.RVA);
+					Assert.NotEqual((dnlib.PE.RVA)0, a.NativeBody.RVA);
 				});
 				Assert.Contains(nativeMethods, a => a.Name.Contains("NativeAdd"));
 			}

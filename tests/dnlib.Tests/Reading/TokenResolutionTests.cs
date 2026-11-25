@@ -168,7 +168,7 @@ namespace dnlib.Tests.Reading {
 			Assert.True(count > 50);
 
 			// Without the method, a generic parameter in an operand has no owner: it's only a number
-			var genericMethod = module.GetTypes().SelectMany(a => a.Methods).First(a => a.HasBody && a.Body!.Instructions.Any(i => i.Operand is IField field && field.DeclaringType!.FullName.Contains("<T>")));
+			var genericMethod = module.GetTypes().SelectMany(a => a.Methods).First(a => a.HasBody && a.Body.Instructions.Any(i => i.Operand is IField field && field.DeclaringType!.FullName.Contains("<T>")));
 			var bodyWithoutOwner = module.ReadCilBody(genericMethod.Parameters, genericMethod.RVA);
 			Assert.Contains(bodyWithoutOwner.Instructions, a => a.Operand is IField field && field.DeclaringType!.FullName.Contains("<!0>"));
 

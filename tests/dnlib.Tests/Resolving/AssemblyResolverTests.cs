@@ -452,7 +452,7 @@ namespace dnlib.Tests.Resolving {
 			var libraryFile = WriteLibrary("libs", LibraryName, "1.0.0.0");
 			var resolver = CreateResolver(Path.GetDirectoryName(libraryFile)!);
 			try {
-				var module = new ModuleDefUser("User.dll") { Context = resolver.DefaultModuleContext! };
+				var module = new ModuleDefUser("User.dll") { Context = resolver.DefaultModuleContext };
 				new AssemblyDefUser("DnlibTestUser").Modules.Add(module);
 				var typeRef = new TypeRefUser(module, string.Empty, "LibraryClass", CreateReference(LibraryName, "1.0.0.0"));
 

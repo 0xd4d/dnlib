@@ -179,8 +179,8 @@ public sealed class SealedClass { public class Nested { } }
 			var derived = Find("Derived");
 			var number = derived.FindProperty("Number")!;
 			var changed = derived.FindEvent("Changed")!;
-			var getter = number.GetMethod!;
-			var setter = number.SetMethod!;
+			var getter = number.GetMethod;
+			var setter = number.SetMethod;
 
 			derived.Remove(getter);
 			Assert.DoesNotContain(getter, derived.Methods);

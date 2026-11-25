@@ -31,9 +31,9 @@ public class Box<T> { }
 
 		public void Dispose() => library.Dispose();
 
-		TypeSig Thing => library.Find("Thing", isReflectionName: true)!.ToTypeSig()!;
-		TypeSig Value => library.Find("Value", isReflectionName: true)!.ToTypeSig()!;
-		ClassOrValueTypeSig Box => (ClassOrValueTypeSig)library.Find("Box`1", isReflectionName: true)!.ToTypeSig()!;
+		TypeSig Thing => library.Find("Thing", isReflectionName: true).ToTypeSig()!;
+		TypeSig Value => library.Find("Value", isReflectionName: true).ToTypeSig()!;
+		ClassOrValueTypeSig Box => (ClassOrValueTypeSig)library.Find("Box`1", isReflectionName: true).ToTypeSig()!;
 		ICorLibTypes SourceTypes => library.CorLibTypes;
 
 		// All type definitions and references a signature is made of
@@ -151,7 +151,7 @@ public class Box<T> { }
 
 		[Fact]
 		public void CustomModifiers() {
-			var thingRef = library.Find("Thing", isReflectionName: true)!;
+			var thingRef = library.Find("Thing", isReflectionName: true);
 			AssertImported(new CModReqdSig(thingRef, Value));
 			AssertImported(new CModOptSig(thingRef, new PtrSig(Thing)));
 		}
@@ -219,7 +219,7 @@ public class Box<T> { }
 			var imported = Assert.IsType<SZArraySig>(new Importer(target, ImporterOptions.TryToUseTypeDefs).Import(original));
 
 			Assert.NotSame(original, imported);
-			Assert.Same(targetType, imported.Next!.ToTypeDefOrRef());
+			Assert.Same(targetType, imported.Next.ToTypeDefOrRef());
 		}
 
 		[Fact]

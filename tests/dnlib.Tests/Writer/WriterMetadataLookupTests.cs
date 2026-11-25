@@ -148,7 +148,7 @@ namespace dnlib.Tests.Writer {
 
 			Assert.NotEmpty(locals);
 			Assert.NotEmpty(constants);
-			using (var provider = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(written.Pdb!))) {
+			using (var provider = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(written.Pdb))) {
 				var reader = provider.GetMetadataReader();
 				Assert.All(documents, a => Assert.Equal(a.Value, reader.GetString(reader.GetDocument(MetadataTokens.DocumentHandle((int)a.Key)).Name)));
 				Assert.All(locals, a => Assert.Equal(a.Value, reader.GetString(reader.GetLocalVariable(MetadataTokens.LocalVariableHandle((int)a.Key)).Name)));

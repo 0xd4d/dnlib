@@ -73,7 +73,7 @@ namespace dnlib.Tests.RoundTrips {
 			using (var module = ModuleDefMD.Load(GetImage(is32Bit))) {
 				var fixups = module.VTableFixups;
 				Assert.NotNull(fixups);
-				Assert.NotEmpty(fixups!.VTables);
+				Assert.NotEmpty(fixups.VTables);
 				var methodsInSlots = fixups.VTables.SelectMany(a => a.Methods).Where(a => a is not null).Select(a => a!.Name.String).ToList();
 				foreach (var name in managedExports)
 					Assert.Contains(name, methodsInSlots);

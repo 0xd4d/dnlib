@@ -233,8 +233,8 @@ namespace dnlib.Tests.Comparing {
 		[Fact]
 		public void NullNamespaceEqualsAnEmptyNamespace() {
 			var module = CreateModule("A");
-			var noNamespace = new TypeRefUser(module, null, "Type", module.Assembly!.ToAssemblyRef());
-			var emptyNamespace = new TypeRefUser(module, "", "Type", module.Assembly!.ToAssemblyRef());
+			var noNamespace = new TypeRefUser(module, null, "Type", module.Assembly.ToAssemblyRef());
+			var emptyNamespace = new TypeRefUser(module, "", "Type", module.Assembly.ToAssemblyRef());
 			Assert.Equal(UTF8String.Empty, noNamespace.Namespace);
 			var comparer = new SigComparer();
 
@@ -419,7 +419,7 @@ namespace dnlib.Tests.Comparing {
 		[Fact]
 		public void GenericTypeDefinitionDoesNotEqualAGenericInstanceType() {
 			using (var coreLibrary = ModuleDefMD.Load(File.ReadAllBytes(typeof(object).Assembly.Location))) {
-				var list = coreLibrary.Find("System.Collections.Generic.List`1", isReflectionName: true)!;
+				var list = coreLibrary.Find("System.Collections.Generic.List`1", isReflectionName: true);
 				var comparer = new SigComparer();
 
 				Assert.True(comparer.Equals(list, typeof(List<>)));

@@ -83,7 +83,7 @@ namespace dnlib.Tests.Importing {
 		// instantiated: 'instance !0 Generic`1<int32>::Echo(!0)'
 		[Fact]
 		public void MethodOfAGenericType() {
-			var imported = CreateImporter().Import(typeof(Generic<int>).GetMethod("Echo")!);
+			var imported = CreateImporter().Import(typeof(Generic<int>).GetMethod("Echo"));
 
 			var memberRef = Assert.IsAssignableFrom<MemberRef>(imported);
 			Assert.Equal("dnlib.Tests.Importing.ReflectionImporterTests/Generic`1<System.Int32>", Assert.IsAssignableFrom<TypeSpec>(memberRef.Class).FullName);
@@ -97,7 +97,7 @@ namespace dnlib.Tests.Importing {
 		// through 'Generic`1<!0>'
 		[Fact]
 		public void MethodOfAGenericTypeDefinition() {
-			var imported = CreateImporter().Import(typeof(Generic<>).GetMethod("Echo")!);
+			var imported = CreateImporter().Import(typeof(Generic<>).GetMethod("Echo"));
 
 			var memberRef = Assert.IsAssignableFrom<MemberRef>(imported);
 			Assert.Equal("dnlib.Tests.Importing.ReflectionImporterTests/Generic`1", Assert.IsAssignableFrom<TypeRef>(memberRef.Class).FullName);
@@ -129,8 +129,8 @@ namespace dnlib.Tests.Importing {
 		[Fact]
 		public void MemberOfAGenericTypeDefinitionAsAnOperandIsAMemberOfTheInstance() {
 			var importer = CreateImporter();
-			var method = typeof(Generic<>).GetMethod("Echo")!;
-			var field = typeof(KeyValuePairHolder<>).GetField("Value")!;
+			var method = typeof(Generic<>).GetMethod("Echo");
+			var field = typeof(KeyValuePairHolder<>).GetField("Value");
 
 			var methodRef = Assert.IsAssignableFrom<MemberRef>(importer.ImportAsOperand(method));
 			var methodOwner = Assert.IsAssignableFrom<TypeSpec>(methodRef.Class);
@@ -174,7 +174,7 @@ namespace dnlib.Tests.Importing {
 		public void DeclaringTypeInASignatureOfItsOwnMemberIsAGenericInstance() {
 			var importer = CreateImporter();
 
-			var create = Assert.IsAssignableFrom<MemberRef>(importer.Import(typeof(Generic<>).GetMethod("Create")!));
+			var create = Assert.IsAssignableFrom<MemberRef>(importer.Import(typeof(Generic<>).GetMethod("Create")));
 			var returnType = Assert.IsType<GenericInstSig>(create.MethodSig!.RetType);
 			Assert.Equal(ElementType.Var, Assert.Single(returnType.GenericArguments)!.ElementType);
 
@@ -194,7 +194,7 @@ namespace dnlib.Tests.Importing {
 
 		[Fact]
 		public void Constructor() {
-			var imported = CreateImporter().Import(typeof(Uri).GetConstructor(new[] { typeof(string) })!);
+			var imported = CreateImporter().Import(typeof(Uri).GetConstructor(new[] { typeof(string) }));
 
 			var memberRef = Assert.IsAssignableFrom<MemberRef>(imported);
 			Assert.Equal(".ctor", memberRef.Name);
@@ -206,7 +206,7 @@ namespace dnlib.Tests.Importing {
 		// metadata token
 		[Fact]
 		public void MethodOfAMultiDimensionalArray() {
-			var imported = CreateImporter().Import(typeof(int[,]).GetMethod("Get")!);
+			var imported = CreateImporter().Import(typeof(int[,]).GetMethod("Get"));
 
 			var memberRef = Assert.IsAssignableFrom<MemberRef>(imported);
 			Assert.Equal("System.Int32 System.Int32[0...,0...]::Get(System.Int32,System.Int32)", memberRef.FullName);
@@ -304,7 +304,7 @@ namespace dnlib.Tests.Importing {
 			genericMethod.Body = new CilBody();
 			genericMethod.Body.Instructions.Add(OpCodes.Ldarg_0.ToInstruction());
 			genericMethod.Body.Instructions.Add(OpCodes.Ret.ToInstruction());
-			created.Module.GlobalType!.Methods.Add(genericMethod);
+			created.Module.GlobalType.Methods.Add(genericMethod);
 			return created.Write();
 		}
 
@@ -358,7 +358,7 @@ namespace dnlib.Tests.Importing {
 		public void GlobalMethodOfAnotherAssemblyCanNotBeImported() {
 			SkipOnMono();
 			using (var loaded = new LoadedAssembly(CreateImageWithGlobalMethod())) {
-				var reflectionMethod = loaded.Assembly.ManifestModule.GetMethod("GlobalMethod")!;
+				var reflectionMethod = loaded.Assembly.ManifestModule.GetMethod("GlobalMethod");
 
 				Assert.Throws<ImportException>(() => CreateImporter().Import(reflectionMethod));
 			}

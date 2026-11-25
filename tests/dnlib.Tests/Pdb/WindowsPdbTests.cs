@@ -277,7 +277,7 @@ namespace dnlib.Tests.Pdb {
 				Write(module, PdbFileKind.WindowsPDB);
 
 				Assert.Null(withoutDebugInfo.Body.PdbMethod);
-				Assert.Null(withoutScope.Body.PdbMethod!.Scope);
+				Assert.Null(withoutScope.Body.PdbMethod.Scope);
 			}
 		}
 
@@ -739,7 +739,7 @@ public class Program {
 				Assert.Equal("/_/src/Program.cs", document.Url);
 				Assert.Equal(PdbDocumentConstants.LanguageCSharp, document.Language);
 				Assert.Equal(PdbDocumentConstants.HashSHA1, document.CheckSumAlgorithmId);
-				Assert.Equal(20, document.CheckSum!.Length);
+				Assert.Equal(20, document.CheckSum.Length);
 			}
 		}
 
@@ -803,7 +803,7 @@ public class Program {
 			List<string> expectedSteps;
 			var written = new MemoryStream();
 			var writtenPdb = new MemoryStream();
-			string DescribeStep(PdbAsyncStepInfo step) => $"{step.YieldInstruction!.Offset:X} {step.BreakpointMethod!.FullName} {step.BreakpointInstruction!.Offset:X}";
+			string DescribeStep(PdbAsyncStepInfo step) => $"{step.YieldInstruction.Offset:X} {step.BreakpointMethod.FullName} {step.BreakpointInstruction.Offset:X}";
 			using (var module = Load(Windows)) {
 				var method = module.GetTypes().SelectMany(a => a.Methods).First(a => a.CustomDebugInfos.OfType<PdbAsyncMethodCustomDebugInfo>().Any(b => b.StepInfos.Count >= 2));
 				methodName = method.FullName;
@@ -818,7 +818,7 @@ public class Program {
 					steps.Clear();
 					break;
 				case "same yield instruction":
-					steps[1] = new PdbAsyncStepInfo(steps[0].YieldInstruction!, steps[1].BreakpointMethod!, steps[1].BreakpointInstruction!);
+					steps[1] = new PdbAsyncStepInfo(steps[0].YieldInstruction, steps[1].BreakpointMethod, steps[1].BreakpointInstruction);
 					break;
 				}
 				expectedSteps = steps.Select(DescribeStep).OrderBy(a => a, System.StringComparer.Ordinal).ToList();

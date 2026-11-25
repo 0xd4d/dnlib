@@ -156,7 +156,7 @@ namespace dnlib.Tests.Model {
 		[Fact]
 		public void EntryPointCanBeChangedAndRemoved() {
 			using (var module = Load()) {
-				var other = module.Find("Program", isReflectionName: true)!.FindMethod("Other")!;
+				var other = module.Find("Program", isReflectionName: true)!.FindMethod("Other");
 				module.EntryPoint = other;
 				using (var written = ModuleDefMD.Load(Write(module)))
 					Assert.Equal("Other", written.EntryPoint!.Name);

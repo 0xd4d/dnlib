@@ -103,7 +103,7 @@ namespace dnlib.Tests.Model {
 				var readProperty = GetType(read).FindProperty("Property")!;
 
 				Assert.True(readProperty.HasConstant);
-				Assert.Equal(123, readProperty.Constant!.Value);
+				Assert.Equal(123, readProperty.Constant.Value);
 				Assert.Equal(ElementType.I4, readProperty.ElementType);
 				// A new constant replaces the one that was read
 				readProperty.Constant = new ConstantUser("text");

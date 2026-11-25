@@ -63,7 +63,7 @@ namespace dnlib.Tests.Names {
 			var info = new AssemblyNameInfo("Lib, Version=1.0.0.0, PublicKey=" + publicKey);
 
 			Assert.IsType<PublicKey>(info.PublicKeyOrToken);
-			Assert.Equal(publicKey.Data, info.PublicKeyOrToken!.Data);
+			Assert.Equal(publicKey.Data, info.PublicKeyOrToken.Data);
 			Assert.Equal("Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + publicKey.Token, info.FullName);
 		}
 

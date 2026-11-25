@@ -61,7 +61,7 @@ public class Target { }
 
 		ICorLibTypes Types => module.CorLibTypes;
 		TypeSig SystemType => new ClassSig(Types.GetTypeRef("System", "Type"));
-		TypeSig LevelType => module.Find("Level", isReflectionName: true)!.ToTypeSig()!;
+		TypeSig LevelType => module.Find("Level", isReflectionName: true).ToTypeSig()!;
 
 		// The constructor of ValuesAttribute whose first parameter has this type (null: no parameters)
 		MethodDef GetConstructor(string? firstParameterType) =>

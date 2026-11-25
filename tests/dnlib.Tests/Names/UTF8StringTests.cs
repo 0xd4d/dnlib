@@ -81,7 +81,7 @@ namespace dnlib.Tests.Names {
 			UTF8String? fromNull = (string?)null;
 			string? toNull = (UTF8String?)null;
 
-			Assert.Equal("text", fromString!.String);
+			Assert.Equal("text", fromString.String);
 			Assert.Equal("text", toString);
 			Assert.Null(fromNull);
 			Assert.Null(toNull);

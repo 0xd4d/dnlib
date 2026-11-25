@@ -45,8 +45,8 @@ public class Outer {
 			var classType = Find("C");
 			var inner = Find("Outer+Inner");
 			var valueField = enumType.Fields.Single(a => !a.IsStatic);
-			var valueTypeRef = structType.BaseType!;
-			var enumRef = enumType.BaseType!;
+			var valueTypeRef = structType.BaseType;
+			var enumRef = enumType.BaseType;
 			switch (change) {
 			case "enum": return "E";
 			case "enum with two instance fields":

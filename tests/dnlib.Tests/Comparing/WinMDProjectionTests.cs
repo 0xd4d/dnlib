@@ -150,7 +150,7 @@ namespace dnlib.Tests.Comparing {
 		public void SigComparerComparesCloseWithDispose() {
 			var signature = MethodSig.CreateInstance(module.CorLibTypes.Void);
 			var closeRef = new MemberRefUser(module, "Close", signature, WindowsRuntimeType("Windows.Foundation", "IClosable"));
-			var disposable = WinMDHelpers.ToCLR(module, WindowsRuntimeType("Windows.Foundation", "IClosable"))!;
+			var disposable = WinMDHelpers.ToCLR(module, WindowsRuntimeType("Windows.Foundation", "IClosable"));
 			var disposeRef = new MemberRefUser(module, "Dispose", signature, disposable);
 			const SigComparerOptions options = SigComparerOptions.CompareMethodFieldDeclaringType;
 

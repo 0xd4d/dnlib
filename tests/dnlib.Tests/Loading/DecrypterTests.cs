@@ -147,7 +147,7 @@ public abstract class Program {
 		public void DecrypterMustBeSetBeforeTheBodiesAreRead() {
 			using (var module = ModuleDefMD.Load(image)) {
 				var number = GetProgram(module).FindMethod("Number")!;
-				var bodyOfTheFile = number.Body!;
+				var bodyOfTheFile = number.Body;
 				var decrypter = new MethodDecrypter(number.Rid);
 				module.MethodDecrypter = decrypter;
 

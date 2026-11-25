@@ -66,7 +66,7 @@ public class Plain {
 
 		[Fact]
 		public void TypesOfAnotherModule() {
-			var typeRef = module.Import(Plain)!;
+			var typeRef = module.Import(Plain);
 			Assert.Equal("Plain", typeRef.FullName);
 			Assert.Same(module, typeRef.Module);
 			Assert.Equal("Library", typeRef.DefinitionAssembly!.Name);
@@ -75,7 +75,7 @@ public class Plain {
 			// A reference of the other module becomes a reference of this module
 			var referenceOfTheLibrary = Plain.BaseType as TypeRef;
 			Assert.NotNull(referenceOfTheLibrary);
-			var importedReference = module.Import(referenceOfTheLibrary)!;
+			var importedReference = module.Import(referenceOfTheLibrary);
 			Assert.NotSame(referenceOfTheLibrary, importedReference);
 			Assert.Equal("System.Object", importedReference.FullName);
 			Assert.Same(module, importedReference.Module);
@@ -84,9 +84,9 @@ public class Plain {
 			var importedSig = Assert.IsType<GenericInstSig>(module.Import((TypeSig)instance));
 			Assert.Equal("Library`1<System.Int32>", importedSig.FullName);
 			Assert.Same(module, importedSig.GenericType!.TypeDefOrRef!.Module);
-			var importedSpec = module.Import(new TypeSpecUser(instance))!;
+			var importedSpec = module.Import(new TypeSpecUser(instance));
 			Assert.Equal("Library`1<System.Int32>", importedSpec.FullName);
-			Assert.Equal("Plain", module.Import((IType)Plain)!.FullName);
+			Assert.Equal("Plain", module.Import((IType)Plain).FullName);
 			Assert.IsAssignableFrom<TypeRef>(module.Import((IType)Plain));
 
 			Assert.Null(module.Import((TypeDef?)null));
@@ -101,28 +101,28 @@ public class Plain {
 			var fieldDef = Plain.FindField("Field")!;
 			var methodDef = Plain.FindMethod("Method")!;
 
-			var fieldRef = module.Import(fieldDef)!;
+			var fieldRef = module.Import(fieldDef);
 			Assert.Equal("System.Int32 Plain::Field", fieldRef.FullName);
 			Assert.Same(module, fieldRef.Module);
-			Assert.Equal(fieldRef.FullName, module.Import((IField)fieldDef)!.FullName);
+			Assert.Equal(fieldRef.FullName, module.Import((IField)fieldDef).FullName);
 
-			var methodRef = module.Import(methodDef)!;
+			var methodRef = module.Import(methodDef);
 			Assert.Equal("System.Void Plain::Method()", methodRef.FullName);
 			Assert.Same(module, methodRef.Module);
-			Assert.Equal(methodRef.FullName, module.Import((IMethod)methodDef)!.FullName);
+			Assert.Equal(methodRef.FullName, module.Import((IMethod)methodDef).FullName);
 
 			// A reference to a member of a generic instance, and a generic method with its type arguments
 			var owner = new TypeSpecUser(new GenericInstSig(new ClassSig(Generic), library.CorLibTypes.String));
 			var genericMethodDef = Generic.FindMethod("GenericMethod")!;
 			var referenceOfTheLibrary = new MemberRefUser(library, "GenericMethod", genericMethodDef.MethodSig, owner);
-			var importedReference = module.Import(referenceOfTheLibrary)!;
+			var importedReference = module.Import(referenceOfTheLibrary);
 			Assert.NotSame(referenceOfTheLibrary, importedReference);
 			// The same member (an imported generic parameter doesn't know its owner, so the texts aren't the same)
 			Assert.True(new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType).Equals(referenceOfTheLibrary, importedReference));
 			Assert.Equal("!!0 Library`1<System.String>::GenericMethod<!!0>(!!0)", importedReference.FullName);
 			Assert.Same(module, importedReference.Module);
 			var methodSpec = new MethodSpecUser(referenceOfTheLibrary, new GenericInstMethodSig(library.CorLibTypes.Int32));
-			var importedSpec = module.Import(methodSpec)!;
+			var importedSpec = module.Import(methodSpec);
 			Assert.NotSame(methodSpec, importedSpec);
 			Assert.True(new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType).Equals(methodSpec, importedSpec));
 			Assert.Equal("System.Int32", importedSpec.GenericInstMethodSig!.GenericArguments.Single()!.FullName);

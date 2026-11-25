@@ -56,7 +56,7 @@ namespace dnlib.Tests.Writer {
 			using (var module = ModuleDefMD.Load(image)) {
 				var field = CreatedModule.GetType(module).FindField("Field")!;
 				Assert.True(field.HasMarshalType);
-				var read = field.MarshalType!;
+				var read = field.MarshalType;
 				if (marshalType is RawMarshalType raw) {
 					// The reader keeps bytes that it can't read
 					Assert.Equal(raw.Data, Assert.IsType<RawMarshalType>(read).Data);

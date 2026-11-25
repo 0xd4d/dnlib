@@ -127,7 +127,7 @@ public static class Program {
 		// The embedded PDB is the PDB of the file: another PDB that's passed in isn't used
 		[Fact]
 		public void EmbeddedPdbIsPreferredToAPdbThatIsPassedIn() {
-			var otherPdb = CSharpCompiler.Compile("public class Other { public void M() { } }", new CSharpCompilerOptions { PdbKind = PdbKind.Portable, SourcePath = "/src/Other.cs" }).Pdb!;
+			var otherPdb = CSharpCompiler.Compile("public class Other { public void M() { } }", new CSharpCompilerOptions { PdbKind = PdbKind.Portable, SourcePath = "/src/Other.cs" }).Pdb;
 			var options = new ModuleCreationOptions { PdbFileOrData = otherPdb, TryToLoadPdbFromDisk = false };
 
 			using (var module = ModuleDefMD.Load(imageWithEmbeddedPdb, options)) {

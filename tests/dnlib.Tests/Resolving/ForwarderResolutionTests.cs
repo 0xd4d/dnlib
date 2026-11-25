@@ -50,7 +50,7 @@ namespace dnlib.Tests.Resolving {
 
 		// A reference from a new assembly "User" to a type in another assembly
 		TypeRefUser CreateReference(string typeName, string assemblyName) {
-			var user = assemblyResolver.Assemblies.TryGetValue("User", out var existing) ? existing.ManifestModule! : CreateAssembly("User");
+			var user = assemblyResolver.Assemblies.TryGetValue("User", out var existing) ? existing.ManifestModule : CreateAssembly("User");
 			return new TypeRefUser(user, "Ns", typeName, new AssemblyRefUser(assemblyName, new Version(1, 0, 0, 0)));
 		}
 

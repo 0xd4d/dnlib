@@ -205,7 +205,7 @@ namespace dnlib.Tests.Reading {
 					return string.Join(" ", Enumerable.Range(1, count).Select(a => {
 						var attribute = (System.Runtime.InteropServices.DllImportAttribute?)type.GetMethod("M" + a)!.GetCustomAttributes(typeof(System.Runtime.InteropServices.DllImportAttribute), false).FirstOrDefault();
 						// A method without a row has an empty entry point
-						return string.IsNullOrEmpty(attribute?.EntryPoint) ? "-" : attribute!.EntryPoint!;
+						return string.IsNullOrEmpty(attribute?.EntryPoint) ? "-" : attribute!.EntryPoint;
 					}));
 				}
 			});

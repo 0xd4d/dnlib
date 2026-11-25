@@ -305,7 +305,7 @@ namespace dnlib.Tests.Signatures {
 			Assert.Equal("System.String", method.GetParam(1)!.FullName);
 			Assert.Null(method.GetParam(2));
 			Assert.Null(method.GetParam(-1));
-			Assert.Equal(2, method.GetParams()!.Count);
+			Assert.Equal(2, method.GetParams().Count);
 			Assert.Equal(0, ((IMethod?)null).GetParamCount());
 			Assert.False(((IMethod?)null).HasParams());
 		}

@@ -247,7 +247,7 @@ namespace dnlib.Tests.Pdb {
 		[MemberData(nameof(ValuesOfTheWrongType))]
 		public void ValueOfAnotherTypeThanTheConstantIsAnError(string typeName, object value, string expectedMessage) {
 			using (var module = DebugInfoSource.Load()) {
-				var type = module.CorLibTypes.GetCorLibTypeSig(module.CorLibTypes.GetTypeRef("System", typeName))!;
+				var type = module.CorLibTypes.GetCorLibTypeSig(module.CorLibTypes.GetTypeRef("System", typeName));
 				DebugInfoSource.GetRootScope(module, "Sum").Constants.Add(new PdbConstant("Wrong", type, value));
 
 				var exception = Assert.Throws<ModuleWriterException>(() => RoundTrip.WriteWithPortablePdb(module, preserveMetadata: true));

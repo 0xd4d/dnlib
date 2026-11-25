@@ -40,7 +40,7 @@ namespace dnlib.Tests.Model {
 
 				main.FreeMethodBody();
 
-				Assert.Equal(originalCount, main.Body!.Instructions.Count);
+				Assert.Equal(originalCount, main.Body.Instructions.Count);
 			}
 		}
 

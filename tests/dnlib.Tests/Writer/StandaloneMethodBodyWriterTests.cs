@@ -65,7 +65,7 @@ namespace dnlib.Tests.Writer {
 		static string Describe(CilBody body) {
 			var lines = new List<string> { $"max stack {body.MaxStack}, init locals {body.InitLocals}" };
 			lines.AddRange(body.Variables.Select(a => $"local {a.Index}: {a.Type}"));
-			lines.AddRange(body.Instructions.Select(a => a.ToString()!));
+			lines.AddRange(body.Instructions.Select(a => a.ToString()));
 			string Offset(Instruction? instruction) => instruction is null ? "end" : instruction.Offset.ToString("X4");
 			lines.AddRange(body.ExceptionHandlers.Select(a =>
 				$"{a.HandlerType} try {Offset(a.TryStart)}-{Offset(a.TryEnd)} handler {Offset(a.HandlerStart)}-{Offset(a.HandlerEnd)} filter {Offset(a.FilterStart)} catch {a.CatchType}"));

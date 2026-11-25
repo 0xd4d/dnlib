@@ -178,7 +178,7 @@ namespace dnlib.Tests.Writer {
 			var method = created.AddMethod("Method", OpCodes.Nop.ToInstruction(), OpCodes.Ret.ToInstruction());
 			switch (what) {
 			case "exception handler": method.Body!.ExceptionHandlers.Add(null!); break;
-			case "method override": method.Overrides.Add(new MethodOverride(null!, null!)); break;
+			case "method override": method.Overrides.Add(new MethodOverride(null, null)); break;
 			case "custom attribute argument": {
 				var constructor = new MemberRefUser(module, ".ctor", MethodSig.CreateInstance(Types.Void, Types.String), Types.GetTypeRef("System", "ObsoleteAttribute"));
 				var attribute = new CustomAttribute(constructor);

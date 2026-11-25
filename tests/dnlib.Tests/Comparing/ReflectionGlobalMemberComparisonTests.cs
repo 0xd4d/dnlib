@@ -57,14 +57,14 @@ namespace dnlib.Tests.Comparing {
 			using (var module = ModuleDefMD.Load(image)) {
 				var reflectionModule = loaded.Assembly.ManifestModule;
 				var globalMethod = reflectionModule.GetMethod("GlobalMethod")!;
-				var globalField = reflectionModule.GetField("GlobalField")!;
-				var methodInClass = loaded.Assembly.GetType("Ns.C")!.GetMethod("GlobalMethod")!;
-				var fieldInClass = loaded.Assembly.GetType("Ns.C")!.GetField("GlobalField")!;
+				var globalField = reflectionModule.GetField("GlobalField");
+				var methodInClass = loaded.Assembly.GetType("Ns.C")!.GetMethod("GlobalMethod");
+				var fieldInClass = loaded.Assembly.GetType("Ns.C")!.GetField("GlobalField");
 				Assert.Null(globalMethod.DeclaringType);
 				Assert.Equal(123, globalMethod.Invoke(null, new object[] { 123 }));
 				var comparer = new SigComparer(CompareDeclaringTypes);
-				var methodDef = module.GlobalType!.FindMethod("GlobalMethod")!;
-				var fieldDef = module.GlobalType!.FindField("GlobalField")!;
+				var methodDef = module.GlobalType!.FindMethod("GlobalMethod");
+				var fieldDef = module.GlobalType.FindField("GlobalField");
 				var type = module.Find("Ns.C", isReflectionName: true)!;
 
 				Assert.True(comparer.Equals(methodDef, globalMethod));
@@ -92,9 +92,9 @@ namespace dnlib.Tests.Comparing {
 			using (var loaded = new LoadedAssembly(image))
 			using (var module = ModuleDefMD.Load(image)) {
 				var reflectionModule = loaded.Assembly.ManifestModule;
-				var globalMethod = reflectionModule.GetMethod("GlobalMethod")!;
-				var globalField = reflectionModule.GetField("GlobalField")!;
-				var methodInClass = loaded.Assembly.GetType("Ns.C")!.GetMethod("GlobalMethod")!;
+				var globalMethod = reflectionModule.GetMethod("GlobalMethod");
+				var globalField = reflectionModule.GetField("GlobalField");
+				var methodInClass = loaded.Assembly.GetType("Ns.C")!.GetMethod("GlobalMethod");
 				var comparer = new SigComparer(CompareDeclaringTypes);
 				var methodSig = MethodSig.CreateStatic(module.CorLibTypes.Int32, module.CorLibTypes.Int32);
 				var fieldSig = new FieldSig(module.CorLibTypes.Int32);
@@ -128,8 +128,8 @@ namespace dnlib.Tests.Comparing {
 		public void ReferenceWithAMethodDefParentIsInTheTypeOfThatMethod() {
 			using (var loaded = new LoadedAssembly(image))
 			using (var module = ModuleDefMD.Load(image)) {
-				var globalMethod = loaded.Assembly.ManifestModule.GetMethod("GlobalMethod")!;
-				var methodInClass = loaded.Assembly.GetType("Ns.C")!.GetMethod("GlobalMethod")!;
+				var globalMethod = loaded.Assembly.ManifestModule.GetMethod("GlobalMethod");
+				var methodInClass = loaded.Assembly.GetType("Ns.C")!.GetMethod("GlobalMethod");
 				var comparer = new SigComparer(CompareDeclaringTypes);
 				var methodDefInClass = module.Find("Ns.C", isReflectionName: true)!.FindMethod("GlobalMethod")!;
 				var methodRef = new MemberRefUser(module, "GlobalMethod", methodDefInClass.MethodSig, methodDefInClass);
@@ -147,7 +147,7 @@ namespace dnlib.Tests.Comparing {
 			using (var loaded = new LoadedAssembly(image))
 			using (var module = ModuleDefMD.Load(image)) {
 				var comparer = new SigComparer();
-				var reflectionClass = loaded.Assembly.GetType("Ns.C")!;
+				var reflectionClass = loaded.Assembly.GetType("Ns.C");
 
 				Assert.False(comparer.Equals(module.GlobalType, reflectionClass));
 				Assert.True(comparer.Equals(module.Find("Ns.C", isReflectionName: true), reflectionClass));

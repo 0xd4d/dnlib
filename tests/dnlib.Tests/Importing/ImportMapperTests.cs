@@ -66,10 +66,10 @@ public class Original {
 			var importer = CreateImporter(new ReplacingMapper(this));
 
 			Assert.Same(replacement, importer.Import(Original));
-			Assert.Same(replacementField, importer.Import(Original.FindField("Field")!));
-			Assert.Same(replacementMethod, importer.Import(Original.FindMethod("Method")!));
+			Assert.Same(replacementField, importer.Import(Original.FindField("Field")));
+			Assert.Same(replacementMethod, importer.Import(Original.FindMethod("Method")));
 			// The method isn't mapped, but its class is
-			var generic = Assert.IsAssignableFrom<MemberRef>(importer.Import(Original.FindMethod("Generic")!));
+			var generic = Assert.IsAssignableFrom<MemberRef>(importer.Import(Original.FindMethod("Generic")));
 			Assert.Same(replacement, generic.Class);
 		}
 
@@ -81,7 +81,7 @@ public class Original {
 			var imported = importer.Import(signature);
 
 			var arrayType = Assert.IsType<SZArraySig>(imported.RetType);
-			Assert.Same(replacement, arrayType.Next!.ToTypeDefOrRef());
+			Assert.Same(replacement, arrayType.Next.ToTypeDefOrRef());
 			Assert.Same(target.CorLibTypes.Int32, imported.Params[0]);
 		}
 
@@ -144,7 +144,7 @@ public class Original {
 
 			Assert.Same(replacementRef, importer.Import(typeof(Uri)));
 			// Also where the type is a part of another type
-			Assert.Same(replacementRef, importer.ImportAsTypeSig(typeof(Uri[])).Next!.ToTypeDefOrRef());
+			Assert.Same(replacementRef, importer.ImportAsTypeSig(typeof(Uri[])).Next.ToTypeDefOrRef());
 		}
 
 		// A Type is a class or a struct, and that can't be a TypeSpec: it's a mistake in the mapper
@@ -166,7 +166,7 @@ public class Original {
 		// Fixed in c510832d: the importer cast what the mapper returned and threw InvalidCastException
 		[Fact]
 		public void MethodSpecWhoseMethodIsMappedToAMethodSpecIsNotImported() {
-			var genericMethod = Original.FindMethod("Generic")!;
+			var genericMethod = Original.FindMethod("Generic");
 			var instantiation = new MethodSpecUser(genericMethod, new GenericInstMethodSig(library.CorLibTypes.Int32));
 			var mappedTo = new MethodSpecUser(replacementMethod, new GenericInstMethodSig(target.CorLibTypes.Int32));
 			var importer = CreateImporter(new MethodSpecMapper(mappedTo));

@@ -169,7 +169,7 @@ public static class Other<TC> { }
 		[Fact]
 		public void ParametersKeepTheirOrderWhenTheFileIsWritten() {
 			using (var module = ModuleDefMD.Load(CreateImage("GenericParam.Number of 3 = 1,GenericParam.Number of 4 = 0"))) {
-				var type = module.ResolveTypeDef(MarkerRid)!;
+				var type = module.ResolveTypeDef(MarkerRid);
 				Assert.Equal("TA", new GenericVar(0, type).GenericParam!.Name);
 				Assert.Equal("TB", new GenericVar(1, type).GenericParam!.Name);
 

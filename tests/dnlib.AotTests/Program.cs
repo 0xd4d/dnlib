@@ -232,10 +232,10 @@ namespace dnlib.AotTests {
 			Check(!comparer.Equals(listOfInt, typeof(List<string>)), "List<int> doesn't equal typeof(List<string>)");
 			Check(comparer.GetHashCode(listOfInt) == comparer.GetHashCode(typeof(List<int>)), "same hash code");
 
-			var concatInfo = typeof(string).GetMethod(nameof(string.Concat), new[] { typeof(string), typeof(string) })!;
+			var concatInfo = typeof(string).GetMethod(nameof(string.Concat), new[] { typeof(string), typeof(string) });
 			var concat = importer.ImportOrNull(concatInfo) as MemberRef;
 			Check(comparer.Equals(concat, concatInfo), "string.Concat equals its MethodInfo");
-			var concat3Info = typeof(string).GetMethod(nameof(string.Concat), new[] { typeof(string), typeof(string), typeof(string) })!;
+			var concat3Info = typeof(string).GetMethod(nameof(string.Concat), new[] { typeof(string), typeof(string), typeof(string) });
 			Check(!comparer.Equals(concat, concat3Info), "string.Concat(2 args) doesn't equal string.Concat(3 args)");
 		}
 

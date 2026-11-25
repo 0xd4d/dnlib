@@ -311,7 +311,7 @@ public enum CharEnum : ushort { }
 				var written = ChangeAndWrite(module => {
 					module.Context = new ModuleContext(new OneAssemblyResolver(library.Assembly!));
 					module.Context.Resolver = new Resolver(module.Context.AssemblyResolver);
-					var enumType = new TypeRefUser(module, string.Empty, enumName, library.Assembly!.ToAssemblyRef());
+					var enumType = new TypeRefUser(module, string.Empty, enumName, library.Assembly.ToAssemblyRef());
 					DebugInfoSource.GetRootScope(module, "Sum").Constants.Add(new PdbConstant("EnumConstant", new ValueTypeSig(enumType), valueInWindowsPdb));
 				});
 

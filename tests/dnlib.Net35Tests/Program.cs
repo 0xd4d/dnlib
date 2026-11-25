@@ -229,7 +229,7 @@ namespace dnlib.Net35Tests {
 		// Every managed DLL and EXE in the directory of the runtime: all types and method bodies are read, the
 		// module is written, and the written module has the same number of types, methods and instructions
 		static void ReadAndWriteTheRuntimesAssemblies() {
-			var directory = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+			var directory = Path.GetDirectoryName(typeof(object).Assembly.Location);
 			var files = new List<string>(Directory.GetFiles(directory, "*.dll"));
 			files.AddRange(Directory.GetFiles(directory, "*.exe"));
 			int modules = 0;

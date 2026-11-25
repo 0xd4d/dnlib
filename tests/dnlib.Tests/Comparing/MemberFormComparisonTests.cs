@@ -92,7 +92,7 @@ public class Twin {
 		[Fact]
 		public void DeclaringTypeIsOnlyComparedWithTheOption() {
 			var definition = MethodWithString;
-			var twin = library.Find("Twin", isReflectionName: true)!.FindMethod("Method")!;
+			var twin = library.Find("Twin", isReflectionName: true)!.FindMethod("Method");
 			var twinReference = CreateMethodRef("Method", MethodSig.CreateInstance(Types.Int32, Types.String), CreateTypeRef("Twin"));
 
 			Assert.True(new SigComparer().Equals(definition, twin));
@@ -122,7 +122,7 @@ public class Twin {
 			Assert.False(comparer.Equals(CreateFieldRef("Other", Types.String), definition));
 			Assert.True(comparer.Equals(members.FindField("Other"), CreateFieldRef("Other", Types.String)));
 
-			var twinField = library.Find("Twin", isReflectionName: true)!.FindField("Field")!;
+			var twinField = library.Find("Twin", isReflectionName: true)!.FindField("Field");
 			Assert.True(comparer.Equals(definition, twinField));
 			Assert.False(new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType).Equals(definition, twinField));
 		}
@@ -149,9 +149,9 @@ public class Twin {
 		[Fact]
 		public void PropertiesAndEventsAreComparedByNameAndType() {
 			var comparer = new SigComparer();
-			var property = members.FindProperty("Property")!;
+			var property = members.FindProperty("Property");
 			var sameProperty = new PropertyDefUser("Property", PropertySig.CreateInstance(Types.Int32));
-			var changed = members.FindEvent("Changed")!;
+			var changed = members.FindEvent("Changed");
 			var sameEvent = new EventDefUser("Changed", Types.GetTypeRef("System", "EventHandler"));
 
 			Assert.True(comparer.Equals(property, sameProperty));

@@ -115,7 +115,7 @@ namespace dnlib.Tests.Pdb {
 				Assert.Empty(Single<PdbUnknownCustomDebugInfo>(module.CustomDebugInfos).Data);
 			}
 			// The same row read with System.Reflection.Metadata
-			using (var provider = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(written.Pdb!))) {
+			using (var provider = MetadataReaderProvider.FromPortablePdbImage(ImmutableArray.Create(written.Pdb))) {
 				var reader = provider.GetMetadataReader();
 				var rows = reader.CustomDebugInformation.Select(reader.GetCustomDebugInformation).Where(a => reader.GetGuid(a.Kind) == guid).ToList();
 				Assert.Equal(2, rows.Count);

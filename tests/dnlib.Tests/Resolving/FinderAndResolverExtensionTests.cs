@@ -116,8 +116,8 @@ namespace Ns {
 			var outerRef = new TypeRefUser(module, "Ns", "Outer", module);
 			var fieldRef = new MemberRefUser(module, "Field", new FieldSig(module.CorLibTypes.Int32), outerRef);
 			var methodRef = new MemberRefUser(module, "Method", MethodSig.CreateInstance(module.CorLibTypes.Void), outerRef);
-			var field = outer.FindField("Field")!;
-			var method = outer.FindMethod("Method")!;
+			var field = outer.FindField("Field");
+			var method = outer.FindMethod("Method");
 
 			Assert.Same(field, resolver.ResolveField(fieldRef));
 			Assert.Same(field, resolver.ResolveFieldOrThrow(fieldRef));

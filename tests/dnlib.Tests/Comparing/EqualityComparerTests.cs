@@ -124,7 +124,7 @@ public class Twin {
 			Assert.Contains(method, new HashSet<MethodDef>(MethodEqualityComparer.CompareDeclaringTypes) { method });
 			Assert.Contains(reference, new HashSet<MemberRef>(MethodEqualityComparer.CompareDeclaringTypes) { new MemberRefUser(user, "Method", signature, CreateTypeRef("Members")) });
 
-			var generic = members.FindMethod("Generic")!;
+			var generic = members.FindMethod("Generic");
 			var withInt = new MethodSpecUser(generic, new GenericInstMethodSig(Types.Int32));
 			var specs = new HashSet<MethodSpec>(MethodEqualityComparer.CompareDeclaringTypes) { withInt };
 			Assert.Contains(new MethodSpecUser(generic, new GenericInstMethodSig(Types.Int32)), specs);

@@ -52,8 +52,8 @@ namespace N {
 		static string ReadWithDnlib(byte[] imageA, byte[] imageB, string typeName) {
 			using (var moduleA = ModuleDefMD.Load(imageA))
 			using (var moduleB = ModuleDefMD.Load(imageB)) {
-				var a = moduleA.Find(typeName, isReflectionName: true)!;
-				var b = moduleB.Find(typeName, isReflectionName: true)!;
+				var a = moduleA.Find(typeName, isReflectionName: true);
+				var b = moduleB.Find(typeName, isReflectionName: true);
 				return ToText(() => new SigComparer().Equals(a, b)) + ", " + ToText(() => new SigComparer().Equals(b, a));
 			}
 		}

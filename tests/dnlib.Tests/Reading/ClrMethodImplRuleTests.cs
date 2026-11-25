@@ -56,7 +56,7 @@ public class D {
 		// Every method of C and D that implements a method: "body => declaration"
 		static string ReadWithDnlib(byte[] image) {
 			using (var module = ModuleDefMD.Load(image)) {
-				var all = from type in new[] { module.Find("C", false)!, module.Find("D", false)! }
+				var all = from type in new[] { module.Find("C", false), module.Find("D", false) }
 						  from method in type.Methods
 						  from methodOverride in method.Overrides
 						  select Name(methodOverride.MethodBody) + " => " + Name(methodOverride.MethodDeclaration);

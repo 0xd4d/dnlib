@@ -148,8 +148,8 @@ namespace dnlib.Tests.Comparing {
 		[Fact]
 		public void EveryFormOfAMemberEqualsTheReflectionMemberOfTheSameType() {
 			var comparer = new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
-			var isFile = typeof(Uri).GetMethod("get_IsFile")!;
-			var schemeDelimiter = typeof(Uri).GetField("SchemeDelimiter")!;
+			var isFile = typeof(Uri).GetMethod("get_IsFile");
+			var schemeDelimiter = typeof(Uri).GetField("SchemeDelimiter");
 			// T Interlocked.Exchange<T>(ref T, T), called with a string
 			var exchange = typeof(System.Threading.Interlocked).GetMethods().Single(a => a.Name == "Exchange" && a.IsGenericMethodDefinition).MakeGenericMethod(typeof(string));
 
@@ -198,9 +198,9 @@ namespace dnlib.Tests.Comparing {
 			var comparer = new SigComparer();
 			using (var testModule = ModuleDefMD.Load(typeof(Holder<>).Module)) {
 				var holder = testModule.Find(typeof(Holder<>).FullName!, isReflectionName: true)!;
-				var value = holder.FindProperty("Value")!;
-				var indexer = holder.FindProperty("Item")!;
-				var changed = holder.FindEvent("Changed")!;
+				var value = holder.FindProperty("Value");
+				var indexer = holder.FindProperty("Item");
+				var changed = holder.FindEvent("Changed");
 
 				foreach (var type in new[] { typeof(Holder<>), typeof(Holder<int>), typeof(Holder<string[]>) }) {
 					Assert.True(comparer.Equals(value, type.GetProperty("Value")), type.ToString());
