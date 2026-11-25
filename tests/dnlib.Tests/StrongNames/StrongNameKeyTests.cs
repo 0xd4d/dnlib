@@ -17,7 +17,7 @@ namespace dnlib.Tests.StrongNames {
 	public class StrongNameKeyTests {
 		// A new key pair as a .snk file would have it
 		static byte[] CreateKeyPair() {
-			using (var rsa = new RSACryptoServiceProvider(1024)) {
+			using (var rsa = new RSACryptoServiceProvider(2048)) {
 				var blob = rsa.ExportCspBlob(includePrivateParameters: true);
 				// .NET exports a "key exchange" key (0xA400), strong name keys are signature keys (0x2400)
 				blob[4] = 0x00;
@@ -33,18 +33,18 @@ namespace dnlib.Tests.StrongNames {
 			var key = new StrongNameKey(keyPair);
 
 			Assert.Equal(keyPair, key.CreateStrongName());
-			Assert.Equal(1024 / 8, key.SignatureSize);
+			Assert.Equal(2048 / 8, key.SignatureSize);
 			// A key pair has no hash algorithm (a public key has): None means SHA-1
 			Assert.Equal(AssemblyHashAlgorithm.None, key.HashAlgorithm);
 			Assert.Equal(AssemblyHashAlgorithm.SHA1, new StrongNamePublicKey(key.PublicKey).HashAlgorithm);
 			// The numbers of the key: the two primes are half as long as the modulus
-			Assert.Equal(128, key.Modulus.Length);
-			Assert.Equal(64, key.Prime1.Length);
-			Assert.Equal(64, key.Prime2.Length);
-			Assert.Equal(64, key.Exponent1.Length);
-			Assert.Equal(64, key.Exponent2.Length);
-			Assert.Equal(64, key.Coefficient.Length);
-			Assert.Equal(128, key.PrivateExponent.Length);
+			Assert.Equal(256, key.Modulus.Length);
+			Assert.Equal(128, key.Prime1.Length);
+			Assert.Equal(128, key.Prime2.Length);
+			Assert.Equal(128, key.Exponent1.Length);
+			Assert.Equal(128, key.Exponent2.Length);
+			Assert.Equal(128, key.Coefficient.Length);
+			Assert.Equal(256, key.PrivateExponent.Length);
 			Assert.Equal(new byte[] { 0, 1, 0, 1 }, key.PublicExponent);
 		}
 

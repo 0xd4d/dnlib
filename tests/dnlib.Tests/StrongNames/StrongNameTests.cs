@@ -16,7 +16,7 @@ namespace dnlib.Tests.StrongNames {
 	/// </summary>
 	public class StrongNameTests {
 		// A new key pair in the format of an .snk file
-		static byte[] CreateKeyPair(int bits = 1024) {
+		static byte[] CreateKeyPair(int bits = 2048) {
 			using (var rsa = new RSACryptoServiceProvider(bits)) {
 				var blob = rsa.ExportCspBlob(includePrivateParameters: true);
 				// The key's algorithm id is at offset 4. .NET exports a "key exchange" key (CALG_RSA_KEYX, 0xA400),
@@ -45,7 +45,7 @@ namespace dnlib.Tests.StrongNames {
 			var key = new StrongNameKey(keyPair);
 
 			// The public key blob: 12 bytes header + 20 bytes key header + the modulus
-			Assert.Equal(12 + 20 + 1024 / 8, key.PublicKey.Length);
+			Assert.Equal(12 + 20 + 2048 / 8, key.PublicKey.Length);
 			var publicKey = new StrongNamePublicKey(key.PublicKey);
 			Assert.Equal(key.Modulus, publicKey.Modulus);
 			Assert.Equal(key.PublicExponent, publicKey.PublicExponent);
@@ -174,8 +174,8 @@ namespace dnlib.Tests.StrongNames {
 				Assert.Equal(new StrongNameKey(keyPair).PublicKey, module.Assembly!.PublicKey.Data);
 				Assert.True(module.Assembly.HasPublicKey);
 				Assert.Equal((ComImageFlags)0, module.Cor20HeaderFlags & ComImageFlags.StrongNameSigned);
-				// A 1024-bit key has a signature of 128 bytes
-				Assert.Equal(128U, module.Metadata.ImageCor20Header.StrongNameSignature.Size);
+				// A 2048-bit key has a signature of 256 bytes
+				Assert.Equal(256U, module.Metadata.ImageCor20Header.StrongNameSignature.Size);
 			}
 			Assert.False(StrongNameVerifier.IsValid(written));
 		}

@@ -67,7 +67,7 @@ public class Program {
 
 		// A new key pair in the format of an .snk file
 		static StrongNameKey CreateKey() {
-			using (var rsa = new System.Security.Cryptography.RSACryptoServiceProvider(1024)) {
+			using (var rsa = new System.Security.Cryptography.RSACryptoServiceProvider(2048)) {
 				var blob = rsa.ExportCspBlob(includePrivateParameters: true);
 				// The key's algorithm id is at offset 4. .NET exports a "key exchange" key (CALG_RSA_KEYX, 0xA400),
 				// strong name keys (sn.exe -k) are signature keys (CALG_RSA_SIGN, 0x2400). The key is the same.
