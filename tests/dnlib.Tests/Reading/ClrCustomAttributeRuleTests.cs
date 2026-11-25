@@ -28,6 +28,13 @@ public class A : Attribute {
 	public int Field;
 	public object Any { get; set; }
 	public A(object value) => Value = value;
+	public void NotAConstructor(object value) { }
+}
+public class B : Attribute {
+	public B(object value) { }
+}
+public class NotAnAttribute {
+	public NotAnAttribute(object value) { }
 }
 [A(1)]
 public class Marker { }
@@ -226,6 +233,71 @@ public class Marker { }
 				Assert.Equal(expectedDnlib, ReadWithDnlib(image));
 			else
 				ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+		}
+
+		// The Type column of the attribute's row is the token of its constructor: the row * 8 + the table
+		// (2: Method, 3: MemberRef)
+		static byte[] CreateImageWithConstructor(string constructor) {
+			var patcher = new MetadataPatcher(baseImage);
+			uint normal = patcher.GetCell(Table.CustomAttribute, attributeRid, "Type");
+			Assert.Equal(2U, normal & 7);
+			uint value;
+			using (var module = ModuleDefMD.Load(baseImage)) {
+				uint Method(string typeName, string name) => module.Find(typeName, isReflectionName: true)!.FindMethod(name)!.Rid << 3 | 2;
+				switch (constructor) {
+				case "constructor of A": value = normal; break;
+				case "constructor of B": value = Method("B", ".ctor"); break;
+				case "constructor of a class that isn't an attribute": value = Method("NotAnAttribute", ".ctor"); break;
+				case "method that isn't a constructor": value = Method("A", "NotAConstructor"); break;
+				case "reference to the constructor of System.Attribute":
+					value = module.GetMemberRefs().First(a => a.FullName.Contains("System.Attribute::.ctor")).Rid << 3 | 3;
+					break;
+				case "method row 0": value = 2; break;
+				case "method row that doesn't exist": value = 1000 << 3 | 2; break;
+				case "reference row that doesn't exist": value = 1000 << 3 | 3; break;
+				case "table 0": value = (normal & ~7U) | 0; break;
+				case "table 1": value = (normal & ~7U) | 1; break;
+				case "table 4": value = (normal & ~7U) | 4; break;
+				case "table 7": value = (normal & ~7U) | 7; break;
+				default: throw new ArgumentException(constructor);
+				}
+			}
+			return patcher.SetCell(Table.CustomAttribute, attributeRid, "Type", value).ToArray();
+		}
+
+		// The type of the attribute, and its value if dnlib could read it
+		static string ReadTypeWithDnlib(byte[] image) {
+			using (var module = ModuleDefMD.Load(image)) {
+				var attributes = module.ResolveTypeDef(markerRid)!.CustomAttributes;
+				return string.Join(" ", attributes.Select(a => (a.AttributeType?.Name.String ?? "no type") + (a.IsRawBlob ? "" : $"({string.Join(",", a.ConstructorArguments.Select(b => DescribeDnlibValue(b)))})")));
+			}
+		}
+
+		static string ReadTypeWithTheRuntime(byte[] image) {
+			using (var loaded = new LoadedAssembly(image)) {
+				var type = loaded.Assembly.ManifestModule.ResolveType(new MDToken(Table.TypeDef, markerRid).ToInt32());
+				return string.Join(" ", type.GetCustomAttributes(false).Select(a => a.GetType().Name));
+			}
+		}
+
+		[Theory]
+		[InlineData("constructor of A", "A(Int32:1)", "A")]
+		[InlineData("constructor of B", "B(Int32:1)", "B")]
+		[InlineData("constructor of a class that isn't an attribute", "NotAnAttribute(Int32:1)", "NotAnAttribute")]
+		[InlineData("method that isn't a constructor", "A(Int32:1)", "A")]
+		// System.Attribute is abstract: the runtime doesn't create it and returns no attribute
+		[InlineData("reference to the constructor of System.Attribute", "Attribute()", "")]
+		[InlineData("method row 0", "no type", "throws ArgumentOutOfRangeException")]
+		[InlineData("method row that doesn't exist", "no type", "throws BadImageFormatException")]
+		[InlineData("reference row that doesn't exist", "no type", "throws BadImageFormatException")]
+		[InlineData("table 0", "no type", "throws BadImageFormatException")]
+		[InlineData("table 1", "no type", "throws BadImageFormatException")]
+		[InlineData("table 4", "no type", "throws BadImageFormatException")]
+		[InlineData("table 7", "no type", "throws BadImageFormatException")]
+		public void AttributeConstructor(string constructor, string expectedDnlib, string expectedRuntime) {
+			var image = CreateImageWithConstructor(constructor);
+
+			ClrReaderComparison.AssertRead(expectedDnlib, ReadTypeWithDnlib(image), expectedRuntime, () => ReadTypeWithTheRuntime(image));
 		}
 	}
 }
