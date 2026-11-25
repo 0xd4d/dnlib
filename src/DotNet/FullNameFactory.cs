@@ -1678,10 +1678,10 @@ namespace dnlib.DotNet {
 
 		static bool IsAssemblyNameWhiteSpace(char c) => c == ' ' || c == '\t' || c == '\r' || c == '\n';
 
-		// Same as System.Reflection.AssemblyName.FullName: 65535 is "no value", and the version ends before
-		// the first part that has no value
+		// Same as System.Reflection.AssemblyName.FullName: 65535 and -1 (a System.Version without that part)
+		// are "no value", and the version ends before the first part that has no value
 		void AddAssemblyVersion(System.Version version) {
-			var parts = new int[] { version.Major, version.Minor, version.Build == -1 ? 0 : version.Build, version.Revision == -1 ? 0 : version.Revision };
+			var parts = new int[] { version.Major, version.Minor, version.Build, version.Revision };
 			for (int i = 0; i < parts.Length; i++) {
 				if ((ushort)parts[i] == ushort.MaxValue)
 					break;

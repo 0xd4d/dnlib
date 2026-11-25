@@ -199,5 +199,66 @@ namespace dnlib.Tests.Names {
 				Assert.Equal(reflectionName.FullName, info.FullName);
 			}
 		}
+
+		// Fixed in this commit: the parser reads a version like System.Reflection.AssemblyName does. A third
+		// or fourth number that is missing or 65535 has no value (it was 0), and a version with one number,
+		// with more than four numbers or with a number that isn't 0-65535 is an invalid name.
+		[Theory]
+		[InlineData("1.2.3.4", "1.2.3.4")]
+		[InlineData("1.2.3", "1.2.3")]
+		[InlineData("1.2", "1.2")]
+		[InlineData("1.2.3.65535", "1.2.3")]
+		[InlineData("1.2.65535.4", "1.2")]
+		[InlineData("1.2.65535", "1.2")]
+		[InlineData("0.0.0.0", "0.0.0.0")]
+		[InlineData("65534.65534.65534.65534", "65534.65534.65534.65534")]
+		[InlineData("01.002", "1.2")]
+		[InlineData("1", "invalid")]
+		[InlineData("1.2.3.4.5", "invalid")]
+		[InlineData("65535.2", "invalid")]
+		[InlineData("1.65535", "invalid")]
+		[InlineData("1.2.65536", "invalid")]
+		[InlineData("1.2.-3", "invalid")]
+		[InlineData("1.+2", "invalid")]
+		[InlineData("1.2.x", "invalid")]
+		[InlineData("1..2", "invalid")]
+		public void VersionIsParsedLikeSystemReflectionDoes(string version, string expected) {
+			string text = "Lib, Version=" + version;
+
+			var assemblyRef = ReflectionTypeNameParser.ParseAssemblyRef(text);
+			Assert.Equal(expected, assemblyRef is null ? "invalid" : assemblyRef.Version.ToString());
+
+			// .NET Framework and Mono parse some of these versions in another way
+			if (typeof(object).Assembly.GetName().Name == "System.Private.CoreLib") {
+				string reflectionVersion;
+				try {
+					reflectionVersion = new AssemblyName(text).Version!.ToString();
+				}
+				catch (System.IO.FileLoadException) {
+					reflectionVersion = "invalid";
+				}
+				Assert.Equal(reflectionVersion, expected);
+			}
+
+			// The full name has the parts that have a value
+			if (assemblyRef is not null)
+				Assert.Equal($"Lib, Version={expected}, Culture=neutral, PublicKeyToken=null", assemblyRef.FullName);
+		}
+
+		// A System.Version without its third or fourth number is written like System.Reflection does
+		[Theory]
+		[InlineData(1, 2, -1, -1, "Lib, Version=1.2, Culture=neutral, PublicKeyToken=null")]
+		[InlineData(1, 2, 3, -1, "Lib, Version=1.2.3, Culture=neutral, PublicKeyToken=null")]
+		public void VersionWithoutAllItsNumbersIsNotFilledWithZeros(int major, int minor, int build, int revision, string expected) {
+			var version = build == -1 ? new Version(major, minor) : revision == -1 ? new Version(major, minor, build) : new Version(major, minor, build, revision);
+			var info = new AssemblyNameInfo { Name = "Lib", Version = version, Culture = "" };
+
+			Assert.Equal(expected, info.FullName);
+			if (typeof(object).Assembly.GetName().Name == "System.Private.CoreLib") {
+				var reflectionName = new AssemblyName { Name = "Lib", Version = version, CultureInfo = System.Globalization.CultureInfo.InvariantCulture };
+				reflectionName.SetPublicKeyToken(new byte[0]);
+				Assert.Equal(reflectionName.FullName, info.FullName);
+			}
+		}
 	}
 }

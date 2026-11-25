@@ -224,18 +224,29 @@ namespace dnlib.DotNet {
 		static int GetDefaultVersionValue(int val) => val == -1 ? 0 : val;
 
 		/// <summary>
-		/// Parses a version string
+		/// Parses the version of an assembly name like System.Reflection.AssemblyName does: 2 to 4 numbers from
+		/// 0 to 65535. The third and fourth number have no value (-1 in the returned <see cref="Version"/>) if
+		/// they're missing or 65535.
 		/// </summary>
 		/// <param name="versionString">Version string</param>
 		/// <returns>A new <see cref="Version"/> or <c>null</c> if <paramref name="versionString"/>
 		/// is an invalid version</returns>
 		internal static Version? ParseVersion(string versionString) {
-			try {
-				return Utils.CreateVersionWithNoUndefinedValues(new Version(versionString));
-			}
-			catch {
+			var parts = versionString.Split('.');
+			if (parts.Length < 2 || parts.Length > 4)
 				return null;
+			var numbers = new ushort[] { ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, ushort.MaxValue };
+			for (int i = 0; i < parts.Length; i++) {
+				if (!ushort.TryParse(parts[i], System.Globalization.NumberStyles.None, System.Globalization.NumberFormatInfo.InvariantInfo, out numbers[i]))
+					return null;
 			}
+			if (numbers[0] == ushort.MaxValue || numbers[1] == ushort.MaxValue)
+				return null;
+			if (numbers[2] == ushort.MaxValue)
+				return new Version(numbers[0], numbers[1]);
+			if (numbers[3] == ushort.MaxValue)
+				return new Version(numbers[0], numbers[1], numbers[2]);
+			return new Version(numbers[0], numbers[1], numbers[2], numbers[3]);
 		}
 
 		/// <summary>
