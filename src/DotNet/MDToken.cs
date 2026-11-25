@@ -65,18 +65,18 @@ namespace dnlib.DotNet {
 		/// Constructor
 		/// </summary>
 		/// <param name="table">The table type</param>
-		/// <param name="rid">Row id</param>
+		/// <param name="rid">Row id. Only the lower 24 bits are used.</param>
 		public MDToken(Table table, uint rid)
-			: this(((uint)table << TABLE_SHIFT) | rid) {
+			: this(((uint)table << TABLE_SHIFT) | (rid & RID_MASK)) {
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="table">The table type</param>
-		/// <param name="rid">Row id</param>
+		/// <param name="rid">Row id. Only the lower 24 bits are used.</param>
 		public MDToken(Table table, int rid)
-			: this(((uint)table << TABLE_SHIFT) | (uint)rid) {
+			: this(((uint)table << TABLE_SHIFT) | ((uint)rid & RID_MASK)) {
 		}
 
 		/// <summary>

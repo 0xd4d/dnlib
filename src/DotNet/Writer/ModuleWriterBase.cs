@@ -745,9 +745,60 @@ namespace dnlib.DotNet.Writer {
 			}
 			catch (UnauthorizedAccessException) {
 			}
+#else
+			// There's no .NET method that does it. On Windows, truncating the mapped file fails, but on Unix
+			// the process would crash.
+			if (UnixRealPath.TryGet(fileName) is string realPath)
+				fileName = realPath;
 #endif
 			return fileName;
 		}
+
+#if !NET6_0_OR_GREATER
+		static class UnixRealPath {
+			[DllImport("libc")]
+			static extern IntPtr realpath(string path, IntPtr resolvedPath);
+
+			[DllImport("libc")]
+			static extern void free(IntPtr ptr);
+
+			/// <summary>
+			/// Returns the full path of a file without any symbolic links, or <c>null</c> if that failed (eg. the
+			/// file doesn't exist or this isn't Unix)
+			/// </summary>
+			public static string? TryGet(string fileName) {
+				if (Path.DirectorySeparatorChar != '/')
+					return null;
+				try {
+					return Get(fileName);
+				}
+				catch (DllNotFoundException) {
+				}
+				catch (EntryPointNotFoundException) {
+				}
+				return null;
+			}
+
+			// A separate method: the exceptions above are thrown when a method that calls a native method is compiled
+			static string? Get(string fileName) {
+				// It allocates the returned string
+				var resolved = realpath(fileName, IntPtr.Zero);
+				if (resolved == IntPtr.Zero)
+					return null;
+				try {
+					int length = 0;
+					while (Marshal.ReadByte(resolved, length) != 0)
+						length++;
+					var bytes = new byte[length];
+					Marshal.Copy(resolved, bytes, 0, length);
+					return Encoding.UTF8.GetString(bytes);
+				}
+				finally {
+					free(resolved);
+				}
+			}
+		}
+#endif
 
 		static void DeleteFileNoThrow(string? fileName) {
 			if (String2.IsNullOrEmpty(fileName))
@@ -1077,7 +1128,6 @@ namespace dnlib.DotNet.Writer {
 		const uint PdbAge = 1;
 		void WriteWindowsPdb(PdbState pdbState) {
 			bool addPdbChecksumDebugDirectoryEntry = (TheOptions.PdbOptions & PdbWriterOptions.PdbChecksum) != 0;
-			addPdbChecksumDebugDirectoryEntry = false;//TODO: If this is true, get the checksum from the PDB writer
 			var symWriter = GetWindowsPdbSymbolWriter(TheOptions.PdbOptions, out var pdbFilename);
 			if (symWriter is null) {
 				Error("Could not create a PDB symbol writer. A Windows OS might be required.");
@@ -1106,8 +1156,15 @@ namespace dnlib.DotNet.Writer {
 					entry.DebugDirectory.TimeDateStamp = GetTimeDateStamp();
 				}
 
-				//TODO: Only do this if symWriter supports PDB checksums
-				if (addPdbChecksumDebugDirectoryEntry) { }//TODO: AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);, and verify that the order of the debug dir entries is the same as Roslyn created binaries
+				// Same order as the entries of a file with a portable PDB: CodeView, PDB checksum, reproducible.
+				// The checksum is of the whole file (without its GUID and timestamp), so the PDB is closed first.
+				if (addPdbChecksumDebugDirectoryEntry) {
+					var checksumBytes = pdbWriter.CloseAndGetPdbChecksum(TheOptions.PdbChecksumAlgorithm);
+					if (checksumBytes is not null)
+						AddPdbChecksumDebugDirectoryEntry(checksumBytes, TheOptions.PdbChecksumAlgorithm);
+					else
+						Error("Could not calculate the checksum of the PDB file");
+				}
 				if (symWriter.IsDeterministic)
 					AddReproduciblePdbDebugDirectoryEntry();
 			}
@@ -1465,8 +1522,15 @@ namespace dnlib.DotNet.Writer {
 			var nextProgress = eventToProgress[(int)nextEvt];
 			var progress = baseProgress + (nextProgress - baseProgress) * subProgress;
 			progress = Math.Min(1, Math.Max(0, progress));
+			// The progress of the metadata writer is mapped to a range of this writer's progress, and the two
+			// tables aren't exactly the same: never report less than what was already reported
+			if (evt == ModuleWriterEvent.Begin)
+				lastProgress = 0;
+			progress = Math.Max(progress, lastProgress);
+			lastProgress = progress;
 			TheOptions.RaiseEvent(this, new ModuleWriterProgressEventArgs(this, progress));
 		}
+		double lastProgress;
 
 		ILogger GetLogger() => TheOptions.Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 

@@ -253,8 +253,33 @@ namespace dnlib.DotNet.Pdb.Portable {
 		void WriteEnumValue(DataWriter writer, ElementType underlyingEt, object? value, ITypeDefOrRef? enumType) {
 			writer.Position--;
 			writer.WriteByte((byte)underlyingEt);
-			WritePrimitiveValue(writer, underlyingEt, value);
+			WritePrimitiveValue(writer, underlyingEt, FixWindowsPdbEnumValue(underlyingEt, value));
 			WriteTypeDefOrRef(writer, enumType);
+		}
+
+		// A Windows PDB stores a Boolean, Char, SByte or Byte constant as an Int16 or UInt16. PdbState converts the
+		// value when it reads the PDB, but it doesn't resolve types, so it can't convert the value of an enum that's
+		// defined in another assembly. Here the enum's underlying type is known.
+		static object? FixWindowsPdbEnumValue(ElementType underlyingEt, object? value) {
+			switch (underlyingEt) {
+			case ElementType.Boolean:
+				if (value is short)
+					return (short)value != 0;
+				break;
+			case ElementType.Char:
+				if (value is ushort)
+					return (char)(ushort)value;
+				break;
+			case ElementType.I1:
+				if (value is short)
+					return (sbyte)(short)value;
+				break;
+			case ElementType.U1:
+				if (value is short)
+					return (byte)(short)value;
+				break;
+			}
+			return value;
 		}
 
 		static bool IsPrimitive(ElementType et) {

@@ -186,15 +186,20 @@ namespace dnlib.DotNet {
 			}
 
 			if (CompareVersion && !Utils.Equals(a.Version, b.Version)) {
-				var rv = Utils.CreateVersionWithNoUndefinedValues(requested.Version);
-				if (rv == new Version(0, 0, 0, 0))
-					rv = new Version(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, ushort.MaxValue);
-				int va = Utils.CompareTo(a.Version, rv);
-				int vb = Utils.CompareTo(b.Version, rv);
-				if (va == 0)
-					return 0;   // vb != 0 so return 0
-				if (vb == 0)
-					return 1;   // va != 0 so return 1
+				// A requested version can be more than one version if some of its numbers have no value
+				Utils.GetRequestedVersionRange(requested.Version, out var lowest, out var highest);
+				int va = Utils.CompareTo(a.Version, lowest);
+				int vb = Utils.CompareTo(b.Version, lowest);
+				bool isA = va >= 0 && Utils.CompareTo(a.Version, highest) <= 0;
+				bool isB = vb >= 0 && Utils.CompareTo(b.Version, highest) <= 0;
+				if (isA && isB) {
+					// Both are a requested version. Pick the highest one.
+					return Utils.CompareTo(a.Version, b.Version) > 0 ? 0 : 1;
+				}
+				if (isA)
+					return 0;
+				if (isB)
+					return 1;
 				if (va > 0 && vb < 0)
 					return 0;
 				if (va < 0 && vb > 0)
@@ -242,8 +247,9 @@ namespace dnlib.DotNet {
 
 			int hash = 0;
 
+			// The name is compared without case
 			if (CompareName)
-				hash += UTF8String.GetHashCode(a.Name);
+				hash += StringComparer.OrdinalIgnoreCase.GetHashCode(UTF8String.ToSystemStringOrEmpty(a.Name));
 			if (CompareVersion)
 				hash += Utils.CreateVersionWithNoUndefinedValues(a.Version).GetHashCode();
 			if (ComparePublicKeyToken)

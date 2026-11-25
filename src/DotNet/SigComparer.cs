@@ -1569,6 +1569,14 @@ exit:;
 			return GetHashCode(a);
 		}
 
+		// Hashes the declaring type of a reflection member: only the generic type of a generic instance is used,
+		// see GetHashCode(IMemberRefParent)
+		int GetHashCode_DeclaringType(Type? a) {
+			if (a is not null && a.IsGenericType && !a.IsGenericTypeDefinition)
+				a = a.GetGenericTypeDefinition();
+			return GetHashCode(a);
+		}
+
 		// The hash code of a nested type includes its enclosing types. If it didn't, all nested types
 		// with the same name (eg. compiler generated types) would get the same hash code.
 		// All four methods must return the same value for the same enclosing type.
@@ -3289,6 +3297,11 @@ exit:;
 
 			if (a is TypeDef td)
 				hash = GetHashCode_DeclaringType(td);
+			// Only the generic type of a generic instance is used: a generic type instantiated with its own generic
+			// parameters (the code of a generic type uses its own members like that) is equal to the generic type
+			// definition, which is the declaring type of the reflection member. See Equals(IMemberRefParent, Type, Module).
+			else if (a is TypeSpec ts && ts.TypeSig.RemovePinnedAndModifiers() is GenericInstSig gis)
+				hash = GetHashCode((IType?)gis.GenericType?.TypeDefOrRef);
 			else if ((ita = a as ITypeDefOrRef) is not null)
 				hash = GetHashCode((IType?)ita);
 			else if (a is ModuleRef)
@@ -4701,8 +4714,15 @@ exit:;
 			MethodDef? ma;
 			TypeDef? td;
 
-			if ((ita = a as ITypeDefOrRef) is not null)
-				result = Equals((IType?)ita, b);
+			if ((ita = a as ITypeDefOrRef) is not null) {
+				// The code of a generic type uses the type's own members through the type instantiated with its own
+				// generic parameters (eg. List<!0>). System.Reflection has no such type: the declaring type of the
+				// member is the generic type definition, which is the same type.
+				if (b is not null && b.IsGenericTypeDefinition && ita is TypeSpec ts && ts.TypeSig.RemovePinnedAndModifiers() is GenericInstSig gis)
+					result = Equals(gis, b, null, true);
+				else
+					result = Equals((IType?)ita, b);
+			}
 			else if ((moda = a as ModuleRef) is not null) {
 				var omoda = moda.Module;
 				result = b is null &&   // b is null => it's the global type
@@ -4778,7 +4798,7 @@ exit:;
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode_MethodSig(a);
 			if (HashMethodFieldDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 			if (a.IsGenericMethod && !a.IsGenericMethodDefinition) {
 				// Must match GetHashCode(MethodSpec)
 				var genArgs = a.GetGenericArguments();
@@ -5222,7 +5242,7 @@ exit:;
 			int hash = GetHashCode_MethodFieldName(a.Name) +
 					GetHashCode_FieldSig(a);
 			if (HashMethodFieldDeclaringType)
-				hash += GetHashCode(a.DeclaringType);
+				hash += GetHashCode_DeclaringType(a.DeclaringType);
 
 			recursionCounter.Decrement();
 			return hash;

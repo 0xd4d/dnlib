@@ -119,7 +119,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 	InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	interface ISymUnmanagedMethod {
 		void GetToken([Out] out uint pToken);
-		void GetSequencePointCount([Out] out uint pRetVal);
+		[PreserveSig]
+		int GetSequencePointCount([Out] out uint pRetVal);
 		void GetRootScope([Out] out ISymUnmanagedScope pRetVal);
 		void GetScopeFromOffset([In] uint offset, [Out] out ISymUnmanagedScope pRetVal);
 		void GetOffset([In] ISymUnmanagedDocument document, [In] uint line, [In] uint column, [Out] out uint pRetVal);
@@ -127,7 +128,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 		void GetParameters([In] uint cParams, [Out] out uint pcParams, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[]? parameters);
 		void GetNamespace([Out] out ISymUnmanagedNamespace pRetVal);
 		void GetSourceStartEnd([In, MarshalAs(UnmanagedType.LPArray)] ISymUnmanagedDocument[/*2*/] docs, [In, MarshalAs(UnmanagedType.LPArray)] int[/*2*/] lines, [In, MarshalAs(UnmanagedType.LPArray)] int[/*2*/] columns, [Out][MarshalAs(UnmanagedType.Bool)] out bool pRetVal);
-		void GetSequencePoints([In] uint cPoints, [Out] out uint pcPoints, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? offsets, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedDocument[]? documents, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? lines, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? columns, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? endLines, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? endColumns);
+		[PreserveSig]
+		int GetSequencePoints([In] uint cPoints, [Out] out uint pcPoints, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? offsets, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedDocument[]? documents, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? lines, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? columns, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? endLines, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[]? endColumns);
 	}
 
 	[ComVisible(true),

@@ -31,7 +31,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			instrToOffset = new Dictionary<Instruction, uint>();
 			visitedScopes = new HashSet<PdbScope>();
 			customDebugInfoWriterContext = new PdbCustomDebugInfoWriterContext();
-			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.Compiler) ? 1 : 0;
+			localsEndScopeIncValue = PdbUtils.IsEndInclusive(PdbFileKind.WindowsPDB, pdbState.GetCompilerOfDocuments()) ? 1 : 0;
 			writer.Initialize(metadata);
 		}
 
@@ -321,7 +321,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			else
 				WriteScope(ref info, scope, 0, 0, (int)info.BodySize, isRoot: true);
 
-			GetPseudoCustomDebugInfos(method.CustomDebugInfos, cdiBuilder, out var asyncMethod);
+			GetPseudoCustomDebugInfos(method, method.CustomDebugInfos, cdiBuilder, out var asyncMethod);
 			if (cdiBuilder.Count != 0) {
 				customDebugInfoWriterContext.Logger = GetLogger();
 				var cdiData = PdbCustomDebugInfoWriter.Write(metadata, method, customDebugInfoWriterContext, cdiBuilder);
@@ -339,12 +339,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.CloseMethod();
 		}
 
-		void GetPseudoCustomDebugInfos(IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo? asyncMethod) {
+		void GetPseudoCustomDebugInfos(MethodDef method, IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo? asyncMethod) {
 			cdiBuilder.Clear();
 			asyncMethod = null;
 			int count = customDebugInfos.Count;
 			for (int i = 0; i < count; i++) {
 				var cdi = customDebugInfos[i];
+				if (cdi is null) {
+					Error("Custom debug info is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
+					continue;
+				}
 				switch (cdi.Kind) {
 				case PdbCustomDebugInfoKind.AsyncMethod:
 					if (asyncMethod is not null)
@@ -406,7 +410,38 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				breakpointOffset[i] = (uint)GetExternalInstructionOffset(ref info, stepInfo.BreakpointMethod, stepInfo.BreakpointInstruction);
 				breakpointMethods[i] = GetMethodToken(stepInfo.BreakpointMethod);
 			}
+			// The native writer only accepts steps whose yield offsets get bigger (else it fails with E_INVALIDARG).
+			// They can be in another order if the code of the method was moved.
+			if (!IsStrictlyIncreasing(yieldOffsets)) {
+				var order = new int[yieldOffsets.Length];
+				for (int i = 0; i < order.Length; i++)
+					order[i] = i;
+				// The index makes the sort stable
+				Array.Sort(order, (a, b) => yieldOffsets[a] != yieldOffsets[b] ? yieldOffsets[a].CompareTo(yieldOffsets[b]) : a.CompareTo(b));
+				yieldOffsets = Reorder(yieldOffsets, order);
+				breakpointOffset = Reorder(breakpointOffset, order);
+				breakpointMethods = Reorder(breakpointMethods, order);
+				if (!IsStrictlyIncreasing(yieldOffsets)) {
+					Error("Two steps of an async method have the same yield instruction. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+					return;
+				}
+			}
 			writer.DefineAsyncStepInfo(yieldOffsets, breakpointOffset, breakpointMethods);
+		}
+
+		static bool IsStrictlyIncreasing(uint[] values) {
+			for (int i = 1; i < values.Length; i++) {
+				if (values[i] <= values[i - 1])
+					return false;
+			}
+			return true;
+		}
+
+		static uint[] Reorder(uint[] values, int[] order) {
+			var result = new uint[values.Length];
+			for (int i = 0; i < result.Length; i++)
+				result[i] = values[order[i]];
+			return result;
 		}
 
 		int GetExternalInstructionOffset(ref CurrentMethod info, MethodDef method, Instruction instr) {
@@ -555,6 +590,15 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.GetDebugInfo(pdbChecksumAlgorithm, ref pdbAge, out guid, out stamp, out idd, out codeViewData);
 
 		public void Close() => writer.Close();
+
+		/// <summary>
+		/// Closes the PDB and returns its checksum for a PDB checksum debug directory entry, or <c>null</c> if
+		/// it can't be calculated
+		/// </summary>
+		public byte[]? CloseAndGetPdbChecksum(ChecksumAlgorithm pdbChecksumAlgorithm) {
+			Close();
+			return writer.GetPdbChecksum(pdbChecksumAlgorithm);
+		}
 		ILogger GetLogger() => Logger ?? DummyLogger.ThrowModuleWriterExceptionOnErrorInstance;
 		void Error(string message, params object?[] args) => GetLogger().Log(this, LoggerEvent.Error, message, args);
 

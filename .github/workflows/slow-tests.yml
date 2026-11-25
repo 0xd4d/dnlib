@@ -1,0 +1,44 @@
+name: Slow tests
+# The tests with the trait Category=Slow: every assembly of the runtime is read, written and compared, and
+# every table row and every byte of the test files is changed. They take too long for every push.
+on:
+  schedule:
+    # Every Monday at 04:30 UTC
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  slow-tests:
+    name: Slow tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            legs: net10.0 net10.0-nts netstandard2.0
+          # The .NET Framework builds (net45, net35) are tested on Windows
+          - os: windows-latest
+            legs: net10.0 net45 net35
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Test
+        shell: bash
+        run: tests/test.sh --slow ${{ matrix.legs }}

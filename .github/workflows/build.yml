@@ -6,6 +6,7 @@ on:
       - '.editorconfig'
       - 'Examples/**'
       - 'src/**'
+      - 'tests/**'
       - 'build.sh'
       - 'update-banned-symbols.sh'
       - 'dnlib.sln'
@@ -52,6 +53,25 @@ jobs:
         shell: bash
         run: ./build.sh
 
+      # The .NET Framework builds (net45, net35) are tested on Windows
+      - name: Test
+        shell: bash
+        run: tests/test.sh net10.0 net10.0-nts netstandard2.0
+
+      # dnlib can read a file like the Mono runtime does. The tests that compare that with the mono command
+      # need a test run on Mono (the net45 leg, if it's not Windows).
+      - name: Install Mono
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mono-devel
+
+      - name: Test the rules of the Mono runtime
+        shell: bash
+        run: tests/test.sh net45 -- -class "*.MonoMetadataStreamRuleTests" -class "*.MonoMemberListRuleTests"
+
+      - name: Test NativeAOT and trimmed programs
+        shell: bash
+        run: tests/test-aot.sh
+
       - name: Check formatting
         shell: bash
         run: |
@@ -80,7 +100,51 @@ jobs:
           if-no-files-found: error
           compression-level: 0 # .nupkg/.snupkg files are already zip files
 
-  # Make sure it builds on Windows too
+  # Fails if the tests execute less of dnlib's code than they used to: tests were removed, or a lot of code was
+  # added without tests. On Windows too: the Windows PDB code only runs there. The publish job doesn't wait
+  # for this job.
+  coverage:
+    name: Test coverage (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The minimum is a bit below what's measured (81.4% and 87.0%). Raise it when the coverage grows.
+          - name: Ubuntu
+            os: ubuntu-latest
+            minimum: 79
+          - name: Windows
+            os: windows-latest
+            minimum: 85
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Install dotnet-coverage
+        shell: bash
+        run: dotnet tool install --global dotnet-coverage --version 18.12.0
+
+      - name: Test with coverage
+        shell: bash
+        run: tests/coverage.sh --minimum ${{ matrix.minimum }} net10.0
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: coverage-${{ matrix.name }}
+          path: tests/coverage/
+          if-no-files-found: warn
+
+  # Make sure it builds on Windows too, and test the code that only runs on Windows or .NET Framework
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
@@ -99,6 +163,24 @@ jobs:
       - name: Build
         shell: bash
         run: ./build.sh
+
+      - name: Test
+        shell: bash
+        run: tests/test.sh net10.0 net45 net35
+
+      # The tests above run dnlib's net35 build on .NET Framework 4.8. This runs it on .NET Framework 3.5,
+      # which is a Windows feature that isn't turned on.
+      - name: Turn on .NET Framework 3.5
+        shell: pwsh
+        run: Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All -NoRestart
+
+      - name: Test on .NET Framework 3.5
+        shell: bash
+        run: tests/test-net35.sh --required
+
+      - name: Test NativeAOT and trimmed programs
+        shell: bash
+        run: tests/test-aot.sh
 
   # Publishing is kept in its own job so that no build code runs with id-token: write.
   # The packages come from build-ubuntu, but don't publish if the Windows build fails.

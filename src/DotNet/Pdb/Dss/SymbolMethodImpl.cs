@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.Runtime.Versioning;
@@ -43,7 +44,10 @@ namespace dnlib.DotNet.Pdb.Dss {
 		public override IList<SymbolSequencePoint> SequencePoints {
 			get {
 				if (sequencePoints is null) {
-					method.GetSequencePointCount(out uint seqPointCount);
+					// Both calls fail if the PDB is invalid (eg. all methods have a code size of 0): the method has
+					// no sequence points then
+					if (method.GetSequencePointCount(out uint seqPointCount) < 0)
+						seqPointCount = 0;
 					var seqPoints = new SymbolSequencePoint[seqPointCount];
 
 					var offsets = new int[seqPoints.Length];
@@ -53,8 +57,8 @@ namespace dnlib.DotNet.Pdb.Dss {
 					var endLines = new int[seqPoints.Length];
 					var endColumns = new int[seqPoints.Length];
 					var unDocs = new ISymUnmanagedDocument[seqPoints.Length];
-					if (seqPoints.Length != 0)
-						method.GetSequencePoints((uint)seqPoints.Length, out uint size, offsets, unDocs, lines, columns, endLines, endColumns);
+					if (seqPoints.Length != 0 && method.GetSequencePoints((uint)seqPoints.Length, out uint size, offsets, unDocs, lines, columns, endLines, endColumns) < 0)
+						seqPoints = Array2.Empty<SymbolSequencePoint>();
 					for (int i = 0; i < seqPoints.Length; i++) {
 						seqPoints[i] = new SymbolSequencePoint {
 							Offset = offsets[i],

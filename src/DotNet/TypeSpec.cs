@@ -129,7 +129,7 @@ namespace dnlib.DotNet {
 		public string FullName => FullNameFactory.FullName(this, false, null, null);
 
 		/// <inheritdoc/>
-		public string ReflectionFullName => FullNameFactory.FullName(this, true, null, null);
+		public string ReflectionFullName => TypeSig.IsOrIsMadeOfGenericParameter(TypeSig) ? string.Empty : FullNameFactory.FullName(this, true, null, null);
 
 		/// <inheritdoc/>
 		public string AssemblyQualifiedName => FullNameFactory.AssemblyQualifiedName(this, null, null);

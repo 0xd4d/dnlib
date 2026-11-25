@@ -66,13 +66,27 @@ namespace dnlib.DotNet.Pdb {
 			// The readers have already compared the GUID and age, but not always the timestamp.
 			if (pdbContext.CodeViewDebugDirectory is not ImageDebugDirectory codeViewDir || codeViewDir.TimeDateStamp != timestamp)
 				return false;
-			// PDB info stream: uint version, uint timestamp, uint age, Guid guid. The age isn't zeroed.
-			var ranges = new[] {
+			return ChecksumMatches(checksums, pdbData, GetWindowsPdbZeroedRanges(signatureOffset));
+		}
+
+		/// <summary>
+		/// Calculates the checksum of a Windows PDB file like <see cref="IsValidWindowsPdb"/> expects it: the GUID
+		/// and the timestamp in the PDB info stream are hashed as zeros. Returns <c>null</c> if it's not a Windows PDB.
+		/// </summary>
+		/// <param name="pdbData">The whole PDB file</param>
+		/// <param name="algorithm">Checksum algorithm</param>
+		public static byte[]? TryComputeWindowsPdbChecksum(DataReader pdbData, ChecksumAlgorithm algorithm) {
+			if (!TryGetWindowsPdbSignature(pdbData, out uint signatureOffset, out _))
+				return null;
+			return Hash(algorithm, pdbData, GetWindowsPdbZeroedRanges(signatureOffset));
+		}
+
+		// PDB info stream: uint version, uint timestamp, uint age, Guid guid. The age isn't zeroed.
+		static ZeroedRange[] GetWindowsPdbZeroedRanges(uint signatureOffset) =>
+			new[] {
 				new ZeroedRange(signatureOffset + 4, 4),
 				new ZeroedRange(signatureOffset + 12, 16),
 			};
-			return ChecksumMatches(checksums, pdbData, ranges);
-		}
 
 		// Returns false if it's not enabled or if there are no PDB checksum entries with a supported algorithm
 		static bool TryGetChecksums(PdbReaderContext pdbContext, [NotNullWhen(true)] out List<PdbChecksum>? checksums) {

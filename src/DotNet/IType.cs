@@ -26,12 +26,17 @@ namespace dnlib.DotNet {
 		string Namespace { get; }
 
 		/// <summary>
-		/// Returns the reflection namespace of this type
+		/// Returns the reflection namespace of this type. Like <see cref="System.Type.Namespace"/>, the namespace of a
+		/// nested type is the namespace of its outermost declaring type, and the namespace of a generic parameter with
+		/// a known owner is the namespace of the type that declares it. It's an empty string if there's no namespace
+		/// (<see cref="System.Type.Namespace"/> is <c>null</c> then).
 		/// </summary>
 		string ReflectionNamespace { get; }
 
 		/// <summary>
-		/// Returns the reflection name of this type. See also <see cref="AssemblyQualifiedName"/>.
+		/// Returns the reflection full name of this type. It's an empty string if it's a generic parameter or an
+		/// array, pointer or by-ref type of one (<see cref="System.Type.FullName"/> is <c>null</c> then).
+		/// See also <see cref="AssemblyQualifiedName"/>.
 		/// </summary>
 		string ReflectionFullName { get; }
 

@@ -95,9 +95,9 @@ namespace dnlib.DotNet.Pdb.Managed {
 				reader.Position = end;
 			}
 
-			// A stable sort (Array.Sort() isn't): if functions have the same address, ReadLines() gives the 1st
-			// line block to the 1st one, the 2nd block to the 2nd one, etc
+			// A stable sort (Array.Sort() isn't): functions with the same address keep the order of the symbols
 			var sortedFuncs = Functions.OrderBy(a => a.Address).ToArray();
+			Dictionary<PdbAddress, int>? nextFuncs = null;
 
 			reader.Position = 0;
 			while (reader.Position < reader.Length) {
@@ -107,7 +107,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var end = GetEnd(ref reader, begin, size, align: false);
 
 				if (sig == ModuleStreamType.Lines)
-					ReadLines(sortedFuncs, docs, ref reader, end);
+					ReadLines(sortedFuncs, ref nextFuncs, docs, ref reader, end);
 
 				reader.Position = end;
 			}
@@ -140,48 +140,36 @@ namespace dnlib.DotNet.Pdb.Managed {
 			}
 		}
 
-		void ReadLines(DbiFunction[] funcs, Dictionary<uint, DbiDocument> documents, ref DataReader reader, uint end) {
+		// A line block only has the address of its function. Normally every function has its own address, but if
+		// several functions have the same one (the native PDB writer does that if a method's code size is 0), the
+		// 1st block with that address is the 1st function's block, the 2nd block is the 2nd function's, etc.
+		// nextFuncs has the index of the next function of such an address.
+		void ReadLines(DbiFunction[] funcs, ref Dictionary<PdbAddress, int>? nextFuncs, Dictionary<uint, DbiDocument> documents, ref DataReader reader, uint end) {
 			var address = PdbAddress.ReadAddress(ref reader);
 
-			int first = 0;
-			int last = funcs.Length - 1;
-			int found = -1;
-			while (first <= last) {
-				var index = first + ((last - first) >> 1);
-				var addr = funcs[index].Address;
-				if (addr < address) {
-					first = index + 1;
+			if (nextFuncs is null || !nextFuncs.TryGetValue(address, out int found)) {
+				// Find the first function with this address, or with the next higher address if there's none
+				int first = 0;
+				int last = funcs.Length - 1;
+				while (first <= last) {
+					var index = first + ((last - first) >> 1);
+					if (funcs[index].Address < address)
+						first = index + 1;
+					else
+						last = index - 1;
 				}
-				else if (addr > address) {
-					last = index - 1;
-				}
-				else {
-					found = index;
-					break;
-				}
+				found = first;
 			}
-			if (found == -1)
+			if (found >= funcs.Length || funcs[found].Address != address)
 				return;
+			// Only addresses that several functions have are remembered
+			bool nextHasSameAddress = found + 1 < funcs.Length && funcs[found + 1].Address == address;
+			if (nextHasSameAddress || (nextFuncs is not null && nextFuncs.ContainsKey(address)))
+				(nextFuncs ??= new Dictionary<PdbAddress, int>())[address] = found + 1;
 
 			var flags = reader.ReadUInt16();
 			reader.Position += 4;
 
-			if (funcs[found].Lines is null) {
-				while (found > 0) {
-					var prevFunc = funcs[found - 1];
-					if (prevFunc is not null && prevFunc.Address != address)
-						break;
-					found--;
-				}
-			}
-			else {
-				while (found < funcs.Length - 1 && funcs[found] is not null) {
-					var nextFunc = funcs[found + 1];
-					if (nextFunc.Address != address)
-						break;
-					found++;
-				}
-			}
 			var func = funcs[found];
 			if (func.Lines is not null)
 				return;

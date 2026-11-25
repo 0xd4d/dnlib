@@ -413,10 +413,10 @@ namespace dnlib.DotNet {
 		public DummyLogger([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type? exceptionToThrow) {
 			if (exceptionToThrow is not null) {
 				if (!exceptionToThrow.IsSubclassOf(typeof(Exception)))
-					throw new ArgumentException($"Not a System.Exception sub class: {exceptionToThrow.GetType()}");
+					throw new ArgumentException($"Not a System.Exception sub class: {exceptionToThrow}");
 				ctor = exceptionToThrow.GetConstructor(new Type[] { typeof(string) });
 				if (ctor is null)
-					throw new ArgumentException($"Exception type {exceptionToThrow.GetType()} doesn't have a public constructor that takes a string as the only argument");
+					throw new ArgumentException($"Exception type {exceptionToThrow} doesn't have a public constructor that takes a string as the only argument");
 			}
 		}
 

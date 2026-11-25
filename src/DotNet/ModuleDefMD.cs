@@ -358,6 +358,13 @@ namespace dnlib.DotNet {
 		internal static ModuleDefMD Load(MetadataBase metadata, ModuleCreationOptions? options) => new ModuleDefMD(metadata, options);
 
 		/// <summary>
+		/// <c>true</c> if the module was read with <see cref="CLRRuntimeReaderKind.Mono"/>: where Mono and the CLR
+		/// use metadata in another way, Mono's way is used
+		/// </summary>
+		internal bool IsReadLikeMono => isReadLikeMono;
+		readonly bool isReadLikeMono;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="metadata">The metadata</param>
@@ -374,6 +381,7 @@ namespace dnlib.DotNet {
 			this.metadata = metadata;
 			context = options.Context;
 			methodBodyReaderOptions = options.MethodBodyReaderOptions;
+			isReadLikeMono = options.Runtime == CLRRuntimeReaderKind.Mono;
 
 			var ts = metadata.TablesStream;
 
@@ -1715,9 +1723,17 @@ namespace dnlib.DotNet {
 			try {
 				if (name.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
 					return null;
-				pathName = Path.Combine(baseDir, name);
-				if (pathName != Path.GetFullPath(pathName))
+				// The CLR only loads a file that's in the directory of the assembly: a name with a directory (it
+				// could also be a full path or a path to another computer) isn't loaded
+				if (name.IndexOf('/') >= 0 || name.IndexOf('\\') >= 0)
 					return null;
+				pathName = Path.Combine(baseDir, name);
+				var fullPath = Path.GetFullPath(pathName);
+				if (pathName != fullPath) {
+					// Windows ignores dots and spaces at the end of a file name, and the CLR loads that file
+					if (!IsWindows() || pathName.TrimEnd(dotsAndSpaces) != fullPath)
+						return null;
+				}
 				if (!File2.Exists(pathName))
 					return null;
 			}
@@ -1727,6 +1743,15 @@ namespace dnlib.DotNet {
 
 			return pathName;
 		}
+
+		static readonly char[] dotsAndSpaces = { '.', ' ' };
+
+		static bool IsWindows() =>
+#if NETSTANDARD || NETCOREAPP
+			RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#else
+			Path.DirectorySeparatorChar == '\\';
+#endif
 
 		/// <summary>
 		/// Gets the base directory where this .NET module is located on disk

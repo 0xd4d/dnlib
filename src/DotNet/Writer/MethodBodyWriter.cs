@@ -123,6 +123,7 @@ namespace dnlib.DotNet.Writer {
 		/// Writes the method body
 		/// </summary>
 		public void Write() {
+			RemoveNullExceptionHandlers();
 			codeSize = InitializeInstructionOffsets();
 			maxStack = keepMaxStack ? cilBody.MaxStack : GetMaxStack();
 			if (NeedFatHeader())
@@ -209,6 +210,23 @@ namespace dnlib.DotNet.Writer {
 				extraSections = WriteFatExceptionClauses();
 			else
 				extraSections = WriteSmallExceptionClauses();
+		}
+
+		// null in the list of exception handlers is an error. The other handlers are written.
+		void RemoveNullExceptionHandlers() {
+			var exceptionHandlers = this.exceptionHandlers;
+			for (int i = 0; i < exceptionHandlers.Count; i++) {
+				if (exceptionHandlers[i] is not null)
+					continue;
+				Error("Exception handler is null");
+				var newList = new List<ExceptionHandler>(exceptionHandlers.Count);
+				for (int j = 0; j < exceptionHandlers.Count; j++) {
+					if (exceptionHandlers[j] is { } exceptionHandler)
+						newList.Add(exceptionHandler);
+				}
+				this.exceptionHandlers = newList;
+				return;
+			}
 		}
 
 		bool NeedFatExceptionClauses() {

@@ -670,7 +670,7 @@ namespace dnlib.DotNet {
 		void Add(TypeSig? ts) {
 			if (ts is null || TypeSigs.ContainsKey(ts))
 				return;
-			if (ts.Module != validModule)
+			if (!CanBeInValidModule(ts.Module))
 				return;
 			TypeSigs[ts] = true;
 
@@ -737,10 +737,14 @@ namespace dnlib.DotNet {
 			}
 		}
 
+		// A signature has no owner module if it's eg. a generic parameter or a function pointer, but the types
+		// it's made of can have one (a custom modifier, the function pointer's parameter types)
+		bool CanBeInValidModule(ModuleDef? module) => module is null || module == validModule;
+
 		void Add(TypeSpec? ts) {
 			if (ts is null || TypeSpecs.ContainsKey(ts))
 				return;
-			if (ts.Module != validModule)
+			if (!CanBeInValidModule(ts.Module))
 				return;
 			TypeSpecs[ts] = true;
 			Add(ts.TypeSig);

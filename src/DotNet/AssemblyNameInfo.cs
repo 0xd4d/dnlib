@@ -223,13 +223,13 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="asm">The assembly</param>
+		/// <param name="asm">The assembly. A missing version becomes 65535.65535.65535.65535: no version, a reference to any version of the assembly.</param>
 		public AssemblyNameInfo(IAssembly? asm) {
 			if (asm is null)
 				return;
 			var asmDef = asm as AssemblyDef;
 			hashAlgId = asmDef is null ? 0 : asmDef.HashAlgorithm;
-			version = asm.Version ?? new Version(0, 0, 0, 0);
+			version = asm.Version ?? Utils.NoAssemblyVersion;
 			flags = asm.Attributes;
 			publicKeyOrToken = asm.PublicKeyOrToken;
 			name = UTF8String.IsNullOrEmpty(asm.Name) ? UTF8String.Empty : asm.Name;
@@ -239,12 +239,12 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="asmName">Assembly name info</param>
+		/// <param name="asmName">Assembly name info. A missing version becomes 65535.65535.65535.65535: no version, a reference to any version of the assembly.</param>
 		public AssemblyNameInfo(AssemblyName? asmName) {
 			if (asmName is null)
 				return;
 			hashAlgId = (AssemblyHashAlgorithm)asmName.HashAlgorithm;
-			version = asmName.Version ?? new Version(0, 0, 0, 0);
+			version = asmName.Version ?? Utils.NoAssemblyVersion;
 			flags = GetAttributes(asmName);
 			publicKeyOrToken = (PublicKeyBase?)PublicKeyBase.CreatePublicKey(asmName.GetPublicKey()) ??
 							PublicKeyBase.CreatePublicKeyToken(asmName.GetPublicKeyToken());

@@ -193,14 +193,14 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Converts <paramref name="asm"/> to a <see cref="AssemblyRef"/> instance
 		/// </summary>
-		/// <param name="asm">The assembly</param>
+		/// <param name="asm">The assembly. A missing version becomes 65535.65535.65535.65535: no version, a reference to any version of the assembly.</param>
 		/// <returns>A new <see cref="AssemblyRef"/> instance</returns>
 		[return: NotNullIfNotNull(nameof(asm))]
 		public static AssemblyRef? ToAssemblyRef(this IAssembly? asm) {
 			if (asm is null)
 				return null;
 			// Always create a new one, even if it happens to be an AssemblyRef
-			return new AssemblyRefUser(asm.Name, asm.Version ?? new Version(0, 0, 0, 0), asm.PublicKeyOrToken, asm.Culture) { Attributes = asm.Attributes };
+			return new AssemblyRefUser(asm.Name, asm.Version ?? Utils.NoAssemblyVersion, asm.PublicKeyOrToken, asm.Culture) { Attributes = asm.Attributes };
 		}
 
 		/// <summary>

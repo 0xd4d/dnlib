@@ -153,6 +153,10 @@ namespace dnlib.DotNet {
 		/// <c>false</c> if it first tries to match exactly, and if that fails, it picks an
 		/// assembly that is closest to the requested assembly.
 		/// </summary>
+		/// <remarks>A version number of the requested assembly that is 65535 (or that is missing in its
+		/// <see cref="Version"/>) has no value: like in the CLR, an assembly with any number there, and with
+		/// any numbers after it, matches exactly. Eg. a reference with version 1.2.65535.65535 matches
+		/// assemblies with version 1.2.0.0 and 1.2.3.4, and 65535.65535.65535.65535 matches every version.</remarks>
 		public bool FindExactMatch {
 			get => findExactMatch;
 			set => findExactMatch = value;
@@ -457,9 +461,18 @@ namespace dnlib.DotNet {
 			if (moduleContext is null && sourceModule is not null)
 				moduleContext = sourceModule.Context;
 
-			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, true), moduleContext) ??
-					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, true), moduleContext) ??
-					FindExactAssembly(assembly, PostFindAssemblies(assembly, sourceModule, true), moduleContext);
+			// If a version number of the requested assembly has no value, more than one version matches
+			// exactly: it can then be an assembly that's already cached or one in another directory of the GAC
+			bool hasOneVersion = !Utils.HasVersionNumberWithoutValue(assembly.Version);
+			if (!hasOneVersion) {
+				foreach (var kv in cachedAssemblies) {
+					if (kv.Value is { } asm && IsExactMatch(assembly, asm))
+						return asm;
+				}
+			}
+			resolvedAssembly = FindExactAssembly(assembly, PreFindAssemblies(assembly, sourceModule, hasOneVersion), moduleContext) ??
+					FindExactAssembly(assembly, FindAssemblies(assembly, sourceModule, hasOneVersion), moduleContext) ??
+					FindExactAssembly(assembly, PostFindAssemblies(assembly, sourceModule, hasOneVersion), moduleContext);
 			if (resolvedAssembly is not null)
 				return resolvedAssembly;
 
@@ -484,13 +497,12 @@ namespace dnlib.DotNet {
 		AssemblyDef? FindExactAssembly(IAssembly assembly, IEnumerable<string>? paths, ModuleContext? moduleContext) {
 			if (paths is null)
 				return null;
-			var asmComparer = AssemblyNameComparer.CompareAll;
 			foreach (var path in paths) {
 				ModuleDefMD? mod = null;
 				try {
 					mod = ModuleDefMD.Load(path, moduleContext);
 					var asm = mod.Assembly;
-					if (asm is not null && asmComparer.Equals(assembly, asm)) {
+					if (asm is not null && IsExactMatch(assembly, asm)) {
 						mod = null;
 						return asm;
 					}
@@ -504,6 +516,18 @@ namespace dnlib.DotNet {
 			}
 			return null;
 		}
+
+		// A requested version number that has no value (65535) matches any number, and so do the numbers
+		// after it, like in the CLR
+		static bool IsExactMatch(IAssembly requested, AssemblyDef assembly) {
+			if (!Utils.HasVersionNumberWithoutValue(requested.Version))
+				return AssemblyNameComparer.CompareAll.Equals(requested, assembly);
+			if (!allExceptVersionComparer.Equals(requested, assembly))
+				return false;
+			Utils.GetRequestedVersionRange(requested.Version, out var lowest, out var highest);
+			return Utils.CompareTo(assembly.Version, lowest) >= 0 && Utils.CompareTo(assembly.Version, highest) <= 0;
+		}
+		static readonly AssemblyNameComparer allExceptVersionComparer = new AssemblyNameComparer(AssemblyNameComparerFlags.All & ~AssemblyNameComparerFlags.Version);
 
 		/// <summary>
 		/// Finds the closest assembly from the already cached assemblies
@@ -567,19 +591,25 @@ namespace dnlib.DotNet {
 		IEnumerable<string> FindAssemblies2(IAssembly assembly, IEnumerable<string>? paths) {
 			if (paths is not null) {
 				var asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
+				if (!IsFileName(asmSimpleName))
+					yield break;
 				var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
+				// An assembly with a culture is in a directory with the name of the culture
+				var culture = GetCultureDirectory(assembly);
 				foreach (var ext in exts) {
 					foreach (var path in paths) {
-						string fullPath;
-						try {
-							fullPath = Path.Combine(path, asmSimpleName + ext);
+						for (int i = culture is null ? 1 : 0; i < 2; i++) {
+							string fullPath;
+							try {
+								fullPath = Path.Combine(i == 0 ? Path.Combine(path, culture!) : path, asmSimpleName + ext);
+							}
+							catch (ArgumentException) {
+								// Invalid path chars
+								yield break;
+							}
+							if (File2.Exists(fullPath))
+								yield return fullPath;
 						}
-						catch (ArgumentException) {
-							// Invalid path chars
-							yield break;
-						}
-						if (File2.Exists(fullPath))
-							yield return fullPath;
 					}
 				}
 			}
@@ -617,6 +647,8 @@ namespace dnlib.DotNet {
 		/// <param name="matchExactly">We're trying to find an exact match</param>
 		/// <returns><c>null</c> or an enumerable of full paths to try</returns>
 		protected virtual IEnumerable<string>? FindAssemblies(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
+			if (!IsFileName(UTF8String.ToSystemStringOrEmpty(assembly.Name)))
+				yield break;
 			if (assembly.IsContentTypeWindowsRuntime) {
 				string? path;
 				try {
@@ -757,19 +789,52 @@ namespace dnlib.DotNet {
 			return dirs;
 		}
 
+		// The name of an assembly is used as the name of its file. Returns false if the name has a directory or
+		// is a full path (it could also be a path to another computer): the CLR never loads such a file, and no
+		// file outside the search paths must be opened.
+		static bool IsFileName(string asmSimpleName) {
+			if (asmSimpleName.IndexOf('/') >= 0 || asmSimpleName.IndexOf('\\') >= 0)
+				return false;
+			try {
+				return !Path.IsPathRooted(asmSimpleName);
+			}
+			catch (ArgumentException) {
+				// Invalid path chars
+				return false;
+			}
+		}
+
+		// Returns the culture of the assembly if it has one and it can be the name of a directory, else null
+		static string? GetCultureDirectory(IAssembly assembly) {
+			var culture = UTF8String.ToSystemStringOrEmpty(assembly.Culture);
+			if (culture.Length == 0 || culture.Equals("neutral", StringComparison.OrdinalIgnoreCase))
+				return null;
+			foreach (char c in culture) {
+				if (!(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') && !(c >= '0' && c <= '9') && c != '-' && c != '_')
+					return null;
+			}
+			return culture;
+		}
+
 		IEnumerable<string> FindAssembliesModuleSearchPaths(IAssembly assembly, ModuleDef? sourceModule, bool matchExactly) {
 			string asmSimpleName = UTF8String.ToSystemStringOrEmpty(assembly.Name);
+			if (!IsFileName(asmSimpleName))
+				yield break;
 			var searchPaths = GetSearchPaths(sourceModule);
 			var exts = assembly.IsContentTypeWindowsRuntime ? winMDAssemblyExtensions : assemblyExtensions;
+			// The CLR looks for an assembly with a culture (eg. a satellite assembly with resources) in a directory
+			// with the name of the culture
+			var culture = GetCultureDirectory(assembly);
 			foreach (var ext in exts) {
 				foreach (var path in searchPaths) {
-					for (int i = 0; i < 2; i++) {
+					for (int i = culture is null ? 2 : 0; i < 4; i++) {
 						string path2;
 						try {
-							if (i == 0)
-								path2 = Path.Combine(path, asmSimpleName + ext);
+							var path1 = i < 2 ? Path.Combine(path, culture!) : path;
+							if ((i & 1) == 0)
+								path2 = Path.Combine(path1, asmSimpleName + ext);
 							else
-								path2 = Path.Combine(Path.Combine(path, asmSimpleName), asmSimpleName + ext);
+								path2 = Path.Combine(Path.Combine(path1, asmSimpleName), asmSimpleName + ext);
 						}
 						catch (ArgumentException) {
 							// Invalid path chars

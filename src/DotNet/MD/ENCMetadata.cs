@@ -554,6 +554,17 @@ namespace dnlib.DotNet.MD {
 			return sortedTable.FindAllRows(key);
 		}
 
+		// Mono does a binary search in the EventMap and the PropertyMap table too. The CLR doesn't: it uses the
+		// first row of a type.
+		// See mono: metadata/metadata.c / mono_metadata_events_from_typedef(), mono_metadata_properties_from_typedef()
+		/// <inheritdoc/>
+		public override uint GetEventMapRid(uint typeDefRid) =>
+			runtime == CLRRuntimeReaderKind.Mono ? MonoBinarySearch(tablesStream.EventMapTable, 0, typeDefRid) : base.GetEventMapRid(typeDefRid);
+
+		/// <inheritdoc/>
+		public override uint GetPropertyMapRid(uint typeDefRid) =>
+			runtime == CLRRuntimeReaderKind.Mono ? MonoBinarySearch(tablesStream.PropertyMapTable, 0, typeDefRid) : base.GetPropertyMapRid(typeDefRid);
+
 		/// <inheritdoc/>
 		protected override uint FindRowUnsorted(MDTable tableSource, int keyColIndex, uint key) {
 			// Mono always does a binary search, even if it's the #- stream and the table isn't sorted

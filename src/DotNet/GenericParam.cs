@@ -431,8 +431,23 @@ namespace dnlib.DotNet {
 			attributes = row.Flags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			owner = readerModule.GetOwner(this);
+			InitializeNumber();
 			if (row.Kind != 0)
 				kind = readerModule.ResolveTypeDefOrRef(row.Kind, GetGenericParamContext(owner));
+		}
+
+		// The CLR doesn't use the Number column: the number of a generic parameter is its index in the
+		// rows of its owner. The numbers are the same in a file that a compiler wrote.
+		void InitializeNumber() {
+			if (owner is not IMDTokenProviderMD ownerMD)
+				return;
+			var list = readerModule.Metadata.GetGenericParamRidList(owner is TypeDef ? Table.TypeDef : Table.Method, ownerMD.OrigRid);
+			for (int i = 0; i < list.Count; i++) {
+				if (list[i] == origRid) {
+					number = (ushort)i;
+					return;
+				}
+			}
 		}
 
 		internal GenericParamMD InitializeAll() {

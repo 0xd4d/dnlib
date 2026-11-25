@@ -179,63 +179,119 @@ namespace dnlib.DotNet {
 		/// Compares two versions
 		/// </summary>
 		/// <remarks>This differs from <see cref="System.Version.CompareTo(Version)"/> if the build
-		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>.
-		/// </remarks>
-		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
-		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>: a number
+		/// that hasn't been initialized (-1) is the same as 65535, which is how "no value" is stored in the
+		/// metadata.</remarks>
+		/// <param name="a">Version #1 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
+		/// <param name="b">Version #2 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
 		/// <returns>&lt; 0 if a &lt; b, 0 if a == b, &gt; 0 if a &gt; b</returns>
 		internal static int CompareTo(Version? a, Version? b) {
 			if (a is null)
-				a = new Version();
+				a = NoAssemblyVersion;
 			if (b is null)
-				b = new Version();
+				b = NoAssemblyVersion;
 			if (a.Major != b.Major)
 				return a.Major.CompareTo(b.Major);
 			if (a.Minor != b.Minor)
 				return a.Minor.CompareTo(b.Minor);
-			if (GetDefaultVersionValue(a.Build) != GetDefaultVersionValue(b.Build))
-				return GetDefaultVersionValue(a.Build).CompareTo(GetDefaultVersionValue(b.Build));
-			return GetDefaultVersionValue(a.Revision).CompareTo(GetDefaultVersionValue(b.Revision));
+			if (GetMetadataVersionValue(a.Build) != GetMetadataVersionValue(b.Build))
+				return GetMetadataVersionValue(a.Build).CompareTo(GetMetadataVersionValue(b.Build));
+			return GetMetadataVersionValue(a.Revision).CompareTo(GetMetadataVersionValue(b.Revision));
 		}
 
 		/// <summary>
 		/// Checks whether two versions are the same
 		/// </summary>
 		/// <remarks>This differs from <see cref="System.Version.Equals(Version)"/> if the build
-		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>.
-		/// </remarks>
-		/// <param name="a">Version #1 or <c>null</c> to be treated as v0.0.0.0</param>
-		/// <param name="b">Version #2 or <c>null</c> to be treated as v0.0.0.0</param>
+		/// and/or revision numbers haven't been initialized or if one of the args is <c>null</c>, see
+		/// <see cref="CompareTo(Version, Version)"/>.</remarks>
+		/// <param name="a">Version #1 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
+		/// <param name="b">Version #2 or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
 		/// <returns><c>true</c> if same, <c>false</c> otherwise</returns>
 		internal static bool Equals(Version? a, Version? b) => CompareTo(a, b) == 0;
 
 		/// <summary>
-		/// Creates a new <see cref="Version"/> instance with no undefined version values (eg.
-		/// the build and revision values won't be -1).
+		/// Creates a new <see cref="Version"/> instance with no undefined version values: a build or
+		/// revision number that is -1 becomes 65535, which is how "no value" is stored in the metadata
+		/// (the CLR and <c>System.Reflection.Metadata</c> do the same).
 		/// </summary>
-		/// <param name="a">A <see cref="Version"/> instance</param>
+		/// <param name="a">A <see cref="Version"/> instance or <c>null</c> to be treated as no version
+		/// (65535.65535.65535.65535)</param>
 		/// <returns>A new <see cref="Version"/> instance</returns>
 		internal static Version CreateVersionWithNoUndefinedValues(Version? a) {
 			if (a is null)
-				return new Version(0, 0, 0, 0);
-			return new Version(a.Major, a.Minor, GetDefaultVersionValue(a.Build), GetDefaultVersionValue(a.Revision));
+				return NoAssemblyVersion;
+			return new Version(a.Major, a.Minor, GetMetadataVersionValue(a.Build), GetMetadataVersionValue(a.Revision));
 		}
 
-		static int GetDefaultVersionValue(int val) => val == -1 ? 0 : val;
+		static int GetMetadataVersionValue(int val) => val == -1 ? ushort.MaxValue : val;
 
 		/// <summary>
-		/// Parses a version string
+		/// Gets the lowest and the highest version that a requested version is: a number of 65535 (or -1)
+		/// has no value, and the CLR then accepts any value for that number and for the numbers after it.
+		/// No version at all (<c>null</c> or 0.0.0.0) is any version.
+		/// </summary>
+		/// <param name="requested">The version of an assembly reference</param>
+		/// <param name="lowest">The lowest version that it is</param>
+		/// <param name="highest">The highest version that it is</param>
+		internal static void GetRequestedVersionRange(Version? requested, out Version lowest, out Version highest) {
+			var low = new int[4];
+			var high = new int[4];
+			int count = 0;
+			if (requested is not null && requested != zeroVersion) {
+				var parts = new int[] { requested.Major, requested.Minor, requested.Build, requested.Revision };
+				while (count < parts.Length && GetMetadataVersionValue(parts[count]) != ushort.MaxValue) {
+					low[count] = high[count] = parts[count];
+					count++;
+				}
+			}
+			for (int i = count; i < high.Length; i++)
+				high[i] = ushort.MaxValue;
+			lowest = new Version(low[0], low[1], low[2], low[3]);
+			highest = new Version(high[0], high[1], high[2], high[3]);
+		}
+		static readonly Version zeroVersion = new Version(0, 0, 0, 0);
+
+		/// <summary>
+		/// The version of a reference to an assembly that has no version: every number is 65535, "no value".
+		/// The CLR does the same with a <c>System.Reflection.AssemblyName</c> without a version, and such a
+		/// reference is then a reference to any version of the assembly.
+		/// </summary>
+		internal static readonly Version NoAssemblyVersion = new Version(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, ushort.MaxValue);
+
+		/// <summary>
+		/// Checks whether a number of a version has no value: it's 65535, or the <see cref="Version"/>
+		/// doesn't have it (-1)
+		/// </summary>
+		/// <param name="version">A version or <c>null</c> to be treated as no version (65535.65535.65535.65535)</param>
+		internal static bool HasVersionNumberWithoutValue(Version? version) =>
+			version is null || (version.Major == ushort.MaxValue || version.Minor == ushort.MaxValue ||
+			GetMetadataVersionValue(version.Build) == ushort.MaxValue || GetMetadataVersionValue(version.Revision) == ushort.MaxValue);
+
+		/// <summary>
+		/// Parses the version of an assembly name like System.Reflection.AssemblyName does: 2 to 4 numbers from
+		/// 0 to 65535. The third and fourth number have no value (-1 in the returned <see cref="Version"/>) if
+		/// they're missing or 65535.
 		/// </summary>
 		/// <param name="versionString">Version string</param>
 		/// <returns>A new <see cref="Version"/> or <c>null</c> if <paramref name="versionString"/>
 		/// is an invalid version</returns>
 		internal static Version? ParseVersion(string versionString) {
-			try {
-				return Utils.CreateVersionWithNoUndefinedValues(new Version(versionString));
-			}
-			catch {
+			var parts = versionString.Split('.');
+			if (parts.Length < 2 || parts.Length > 4)
 				return null;
+			var numbers = new ushort[] { ushort.MaxValue, ushort.MaxValue, ushort.MaxValue, ushort.MaxValue };
+			for (int i = 0; i < parts.Length; i++) {
+				if (!ushort.TryParse(parts[i], System.Globalization.NumberStyles.None, System.Globalization.NumberFormatInfo.InvariantInfo, out numbers[i]))
+					return null;
 			}
+			if (numbers[0] == ushort.MaxValue || numbers[1] == ushort.MaxValue)
+				return null;
+			if (numbers[2] == ushort.MaxValue)
+				return new Version(numbers[0], numbers[1]);
+			if (numbers[3] == ushort.MaxValue)
+				return new Version(numbers[0], numbers[1], numbers[2]);
+			return new Version(numbers[0], numbers[1], numbers[2], numbers[3]);
 		}
 
 		/// <summary>
@@ -279,7 +335,12 @@ namespace dnlib.DotNet {
 
 		static string GetCanonicalLocale(UTF8String? locale) => GetCanonicalLocale(UTF8String.ToSystemStringOrEmpty(locale));
 
+		// The CLR's binder only uses the text before the first ';' of an assembly's culture
+		// (AssemblyName::Init() in the runtime's binder/assemblyname.cpp)
 		static string GetCanonicalLocale(string locale) {
+			int index = locale.IndexOf(';');
+			if (index >= 0)
+				locale = locale.Substring(0, index);
 			var s = locale.ToUpperInvariant();
 			if (s == "NEUTRAL")
 				s = string.Empty;

@@ -1161,11 +1161,11 @@ namespace dnlib.DotNet {
 
 		/// <inheritdoc/>
 		protected override void InitializeCustomDebugInfos() {
+			// The list must be complete before other threads can see it
 			var list = new List<PdbCustomDebugInfo>();
-			if (Interlocked.CompareExchange(ref customDebugInfos, list, null) is null) {
-				var body = Body;
-				readerModule.InitializeCustomDebugInfos(this, body, list);
-			}
+			var body = Body;
+			readerModule.InitializeCustomDebugInfos(this, body, list);
+			Interlocked.CompareExchange(ref customDebugInfos, list, null);
 		}
 
 		/// <inheritdoc/>

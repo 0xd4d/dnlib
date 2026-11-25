@@ -134,7 +134,8 @@ namespace dnlib.IO {
 						creator.data = MapViewOfFile(fileMapping, FILE_MAP_READ, 0, 0, UIntPtr.Zero);
 						if (creator.data == IntPtr.Zero)
 							throw new MemoryMappedIONotSupportedException($"Could not map file {creator.filename}. Error: {Marshal.GetLastWin32Error():X8}");
-						creator.length = (uint)fileSize;
+						// A reader has 32-bit offsets: only the first 4 GB of a bigger file can be read (a PE file isn't bigger)
+						creator.length = (uint)Math.Min(fileSize, uint.MaxValue);
 						creator.osType = OSType.Windows;
 						creator.stream = DataStreamFactory.Create((byte*)creator.data);
 					}
@@ -204,7 +205,8 @@ namespace dnlib.IO {
 					}
 
 					creator.data = data;
-					creator.length = (uint)size;
+					// A reader has 32-bit offsets: only the first 4 GB of a bigger file can be read (a PE file isn't bigger)
+					creator.length = (uint)Math.Min(size, uint.MaxValue);
 					creator.origDataLength = size;
 					creator.osType = OSType.Unix;
 					creator.stream = DataStreamFactory.Create((byte*)creator.data);
@@ -307,7 +309,8 @@ namespace dnlib.IO {
 				creator = new MemoryMappedDataReaderFactory(fullPath) {
 					viewAccessor = viewAccessor,
 					data = (IntPtr)p,
-					length = (uint)size,
+					// A reader has 32-bit offsets: only the first 4 GB of a bigger file can be read (a PE file isn't bigger)
+					length = (uint)Math.Min(size, uint.MaxValue),
 				};
 				creator.stream = DataStreamFactory.Create(p);
 				return creator;

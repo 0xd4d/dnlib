@@ -232,6 +232,16 @@ namespace dnlib.DotNet {
 
 			var paramDefs = method.ParamDefs;
 			int count = paramDefs.Count;
+			// If more than one row has the number, the CLR uses the first row and Mono the last one
+			// See mono: metadata/loader.c / mono_method_get_param_names(), mono_method_get_marshal_info()
+			if (method.Module is ModuleDefMD module && module.IsReadLikeMono) {
+				for (int i = count - 1; i >= 0; i--) {
+					var paramDef = paramDefs[i];
+					if (paramDef is not null && paramDef.Sequence == seq)
+						return paramDef;
+				}
+				return null;
+			}
 			for (int i = 0; i < count; i++) {
 				var paramDef = paramDefs[i];
 				if (paramDef is not null && paramDef.Sequence == seq)

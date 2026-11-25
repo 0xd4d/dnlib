@@ -684,7 +684,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsDelegate {
 			get {
-				if ((Attributes & (TypeAttributes.Abstract | TypeAttributes.ClassSemanticsMask)) != TypeAttributes.Class)
+				// Don't check for abstract: for the CLR every class whose base type is System.MulticastDelegate
+				// is a delegate, and it loads an abstract one
+				if ((Attributes & TypeAttributes.ClassSemanticsMask) != TypeAttributes.Class)
 					return false;
 				var baseType = BaseType;
 				if (baseType is null)
@@ -2743,7 +2745,7 @@ namespace dnlib.DotNet {
 				if (method is null || method.DeclaringType != prop.DeclaringType)
 					continue;
 
-				// It's documented to be flags, but ignore those with more than one bit set
+				// It's documented to be flags, but the CLR compares the whole value
 				switch ((MethodSemanticsAttributes)row.Semantic) {
 				case MethodSemanticsAttributes.Setter:
 					if (!setMethods.Contains(method))
@@ -2755,13 +2757,16 @@ namespace dnlib.DotNet {
 						getMethods.Add(method);
 					break;
 
-				case MethodSemanticsAttributes.Other:
-					if (!otherMethods.Contains(method))
-						otherMethods.Add(method);
+				case MethodSemanticsAttributes.AddOn:
+				case MethodSemanticsAttributes.RemoveOn:
+				case MethodSemanticsAttributes.Fire:
+					// Not a method of a property
 					break;
 
 				default:
-					// Ignore anything else
+					// Other, no bit or more than one bit: System.Reflection returns it as an other method
+					if (!otherMethods.Contains(method))
+						otherMethods.Add(method);
 					break;
 				}
 			}
@@ -2791,30 +2796,30 @@ namespace dnlib.DotNet {
 				if (method is null || method.DeclaringType != evt.DeclaringType)
 					continue;
 
-				// It's documented to be flags, but ignore those with more than one bit set
+				// It's documented to be flags, but the CLR compares the whole value. If there's more than
+				// one method of a kind, System.Reflection uses the last one.
 				switch ((MethodSemanticsAttributes)row.Semantic) {
 				case MethodSemanticsAttributes.AddOn:
-					if (addMethod is null)
-						addMethod = method;
+					addMethod = method;
 					break;
 
 				case MethodSemanticsAttributes.RemoveOn:
-					if (removeMethod is null)
-						removeMethod = method;
+					removeMethod = method;
 					break;
 
 				case MethodSemanticsAttributes.Fire:
-					if (invokeMethod is null)
-						invokeMethod = method;
+					invokeMethod = method;
 					break;
 
-				case MethodSemanticsAttributes.Other:
-					if (!otherMethods.Contains(method))
-						otherMethods.Add(method);
+				case MethodSemanticsAttributes.Getter:
+				case MethodSemanticsAttributes.Setter:
+					// Not a method of an event
 					break;
 
 				default:
-					// Ignore anything else
+					// Other, no bit or more than one bit: System.Reflection returns it as an other method
+					if (!otherMethods.Contains(method))
+						otherMethods.Add(method);
 					break;
 				}
 			}

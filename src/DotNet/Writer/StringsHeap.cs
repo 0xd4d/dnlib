@@ -81,16 +81,44 @@ namespace dnlib.DotNet.Writer {
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			SetReadOnly();
 
-			stringsOffsetInfos.Sort(Comparison_StringsOffsetInfoSorter);
+			// A string that's the end of another string isn't stored, it uses the end of the other string. Sorted
+			// by their bytes read from the end, a string comes right after the strings that end with it. The
+			// strings that already have an offset (those of the original heap if Populate() was called, and the
+			// ones added by Create()) are sorted with the new strings so their ends are used too.
+			var sortedStrings = new List<SortedString>(cachedDict.Count + stringsOffsetInfos.Count);
+			foreach (var kv in cachedDict)
+				sortedStrings.Add(new SortedString(kv.Key, kv.Value, null));
+			foreach (var info in stringsOffsetInfos)
+				sortedStrings.Add(new SortedString(info.Value, 0, info));
+			sortedStrings.Sort(Comparison_SortedStringSorter);
 
-			StringsOffsetInfo? prevInfo = null;
-			foreach (var info in stringsOffsetInfos) {
-				if (prevInfo is not null && EndsWith(prevInfo.Value, info.Value))
-					info.StringsOffset = prevInfo.StringsOffset + (uint)(prevInfo.Value.Data.Length - info.Value.Data.Length);
-				else
-					info.StringsOffset = AddToCache(info.Value);
-				prevInfo = info;
+			UTF8String? prevValue = null;
+			uint prevOffset = 0;
+			foreach (var sortedString in sortedStrings) {
+				uint offset = sortedString.Offset;
+				var info = sortedString.Info;
+				if (info is not null) {
+					if (prevValue is not null && EndsWith(prevValue, info.Value))
+						offset = prevOffset + (uint)(prevValue.Data.Length - info.Value.Data.Length);
+					else
+						offset = AddToCache(info.Value);
+					info.StringsOffset = offset;
+				}
+				prevValue = sortedString.Value;
+				prevOffset = offset;
 			}
+		}
+
+		// A string that has an offset in the heap (Info is null) or a new string that needs one
+		readonly struct SortedString {
+			public SortedString(UTF8String value, uint offset, StringsOffsetInfo? info) {
+				Value = value;
+				Offset = offset;
+				Info = info;
+			}
+			public readonly UTF8String Value;
+			public readonly uint Offset;
+			public readonly StringsOffsetInfo? Info;
 		}
 
 		static bool EndsWith(UTF8String s, UTF8String value) {
@@ -107,8 +135,8 @@ namespace dnlib.DotNet.Writer {
 			return true;
 		}
 
-		static readonly Comparison<StringsOffsetInfo> Comparison_StringsOffsetInfoSorter = StringsOffsetInfoSorter;
-		static int StringsOffsetInfoSorter(StringsOffsetInfo a, StringsOffsetInfo b) {
+		static readonly Comparison<SortedString> Comparison_SortedStringSorter = SortedStringSorter;
+		static int SortedStringSorter(SortedString a, SortedString b) {
 			var da = a.Value.Data;
 			var db = b.Value.Data;
 			int ai = da.Length - 1;
@@ -122,7 +150,10 @@ namespace dnlib.DotNet.Writer {
 				bi--;
 				len--;
 			}
-			return db.Length - da.Length;
+			if (da.Length != db.Length)
+				return db.Length - da.Length;
+			// The same string: the one that has an offset is first so the new one uses it
+			return (a.Info is null ? 0 : 1) - (b.Info is null ? 0 : 1);
 		}
 
 		/// <summary>

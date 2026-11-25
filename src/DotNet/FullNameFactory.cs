@@ -1193,6 +1193,11 @@ namespace dnlib.DotNet {
 				AppendNullValue();
 				return;
 			}
+			// Like System.Type.Namespace, a nested type's namespace is the namespace of its outermost declaring type
+			if (isReflection) {
+				for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && typeRef.ResolutionScope is TypeRef declaringType; i++)
+					typeRef = declaringType;
+			}
 			AddNamespace(typeRef.Namespace, onlyNamespace);
 		}
 
@@ -1250,6 +1255,11 @@ namespace dnlib.DotNet {
 			if (typeDef is null) {
 				AppendNullValue();
 				return;
+			}
+			// Like System.Type.Namespace, a nested type's namespace is the namespace of its outermost declaring type
+			if (isReflection) {
+				for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && typeDef.DeclaringType is TypeDef declaringType; i++)
+					typeDef = declaringType;
 			}
 			AddNamespace(typeDef.Namespace, onlyNamespace);
 		}
@@ -1524,6 +1534,14 @@ namespace dnlib.DotNet {
 
 			case ElementType.Var:
 			case ElementType.MVar:
+				if (isReflection && (flags & TYPESIG_ONLY_NAMESPACE) != 0) {
+					// Like System.Type.Namespace, a generic parameter's namespace is the namespace of the type that
+					// declares it, or that declares its method. It's only known if the signature has an owner.
+					var gs = (GenericSig)typeSig;
+					var ownerType = gs.OwnerType ?? gs.OwnerMethod?.DeclaringType;
+					if (ownerType is not null)
+						CreateNamespace(ownerType, true);
+				}
 				if (createName) {
 					var gs = (GenericSig)typeSig;
 					var gp = gs.GenericParam;
@@ -1604,6 +1622,11 @@ namespace dnlib.DotNet {
 				AppendNullValue();
 				return;
 			}
+			// Like System.Type.Namespace, a nested type's namespace is the namespace of its outermost declaring type
+			if (isReflection) {
+				for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && exportedType.Implementation is ExportedType declaringType; i++)
+					exportedType = declaringType;
+			}
 			AddNamespace(exportedType.TypeNamespace, onlyNamespace);
 		}
 
@@ -1617,11 +1640,53 @@ namespace dnlib.DotNet {
 
 		// Escapes the chars that end an assembly name or a value (TypeNameParser reads them). ']' is only escaped in a
 		// bracketed generic argument's assembly name: the CLR doesn't support escaping it in a top-level assembly name.
+		// Same as System.Reflection.AssemblyName.FullName: a name that starts or ends with white space or that
+		// has a quote is put in double quotes
 		void AddAssemblyNamePart(string s, bool escapeClosingBracket) {
+			bool needsQuoting = s.Length != 0 && (IsAssemblyNameWhiteSpace(s[0]) || IsAssemblyNameWhiteSpace(s[s.Length - 1]) || s.IndexOfAny(assemblyNameQuotes) >= 0);
+			if (needsQuoting)
+				sb.Append('"');
 			foreach (var c in s) {
-				if (c == '\\' || c == ',' || c == '=' || (escapeClosingBracket && c == ']'))
+				switch (c) {
+				case '\\':
+				case ',':
+				case '=':
+				case '\'':
+				case '"':
 					sb.Append('\\');
+					break;
+				case ']':
+					if (escapeClosingBracket)
+						sb.Append('\\');
+					break;
+				case '\t':
+					sb.Append("\\t");
+					continue;
+				case '\r':
+					sb.Append("\\r");
+					continue;
+				case '\n':
+					sb.Append("\\n");
+					continue;
+				}
 				sb.Append(c);
+			}
+			if (needsQuoting)
+				sb.Append('"');
+		}
+		static readonly char[] assemblyNameQuotes = new char[] { '"', '\'' };
+
+		static bool IsAssemblyNameWhiteSpace(char c) => c == ' ' || c == '\t' || c == '\r' || c == '\n';
+
+		// Same as System.Reflection.AssemblyName.FullName: 65535 and -1 (a System.Version without that part)
+		// are "no value", and the version ends before the first part that has no value
+		void AddAssemblyVersion(System.Version version) {
+			var parts = new int[] { version.Major, version.Minor, version.Build, version.Revision };
+			for (int i = 0; i < parts.Length; i++) {
+				if ((ushort)parts[i] == ushort.MaxValue)
+					break;
+				sb.Append(i == 0 ? ", Version=" : ".");
+				sb.Append((ushort)parts[i]);
 			}
 		}
 
@@ -1659,8 +1724,10 @@ namespace dnlib.DotNet {
 			AddAssemblyNamePart(UTF8String.ToSystemStringOrEmpty(assembly.Name), escapeClosingBracket);
 
 			if (assembly.Version is not null) {
-				sb.Append(", Version=");
-				sb.Append(Utils.CreateVersionWithNoUndefinedValues(assembly.Version));
+				// The CLR has no version for a reference if its first or second number has no value (65535)
+				bool hasVersion = !(assembly is AssemblyRef) || ((ushort)assembly.Version.Major != ushort.MaxValue && (ushort)assembly.Version.Minor != ushort.MaxValue);
+				if (hasVersion)
+					AddAssemblyVersion(assembly.Version);
 			}
 
 			if (assembly.Culture is not null) {

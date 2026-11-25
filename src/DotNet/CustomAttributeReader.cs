@@ -283,7 +283,11 @@ namespace dnlib.DotNet {
 			for (int i = 0; i < count; i++)
 				ctorArgs.Add(ReadFixedArg(FixTypeSig(methodSigParams[i])));
 
-			// Some tools don't write the next ushort if there are no named arguments.
+			// Some tools don't write the next ushort if there are no named arguments. That's not accepted if the
+			// underlying type of an enum was guessed: a 16-bit enum value followed by the ushort is also 4 bytes,
+			// and would be read as an Int32 enum value without the ushort.
+			if (verifyReadAllBytes && reader.Position == reader.Length)
+				throw new CABlobParserException("The enum type is unknown and there's no named argument count");
 			int numNamedArgs = reader.Position == reader.Length ? 0 : reader.ReadUInt16();
 			var namedArgs = ReadNamedArguments(numNamedArgs);
 
