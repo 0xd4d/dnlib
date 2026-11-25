@@ -212,6 +212,36 @@ namespace dnlib.TestUtils {
 			return SetBytes(offset, (byte)rowCount, (byte)(rowCount >> 8), (byte)(rowCount >> 16), (byte)(rowCount >> 24));
 		}
 
+		/// <summary>
+		/// Adds a row to the end of a table: a copy of one of its rows. The tables stream gets bigger, so the
+		/// file must have a stream that can be removed to make room.
+		/// </summary>
+		/// <param name="image">A valid PE file with .NET metadata. The array isn't modified.</param>
+		/// <param name="table">The table. It must have rows and not so many that another table needs bigger
+		/// columns for the new row number.</param>
+		/// <param name="rid">The row to copy</param>
+		/// <param name="streamToRemove">Name of a stream that is removed if it exists, or <c>null</c></param>
+		/// <returns>The new PE file</returns>
+		public static byte[] AddCopyOfRow(byte[] image, Table table, uint rid, string? streamToRemove) {
+			var patcher = new MetadataPatcher(image);
+			var mdTable = patcher.GetTable(table);
+			var tablesStream = patcher.metadata.TablesStream;
+			if (mdTable.IsInvalidRID(rid))
+				throw new ArgumentOutOfRangeException(nameof(rid), $"{table} has {mdTable.Rows} row(s), rid {rid} doesn't exist");
+			int tableOffset = checked((int)((long)mdTable.StartOffset - (long)tablesStream.StartOffset));
+			int rowSize = (int)mdTable.RowSize;
+			int rows = (int)mdTable.Rows;
+
+			var block = new MetadataBlock(patcher.SetRowCount(table, (uint)rows + 1).ToArray());
+			if (streamToRemove is not null && block.Streams.Any(a => a.Name == streamToRemove))
+				block.RemoveStream(streamToRemove);
+			var stream = block.Streams.First(a => a.Name == "#~" || a.Name == "#-");
+			var data = stream.Data.ToList();
+			data.InsertRange(tableOffset + rows * rowSize, stream.Data.Skip(tableOffset + ((int)rid - 1) * rowSize).Take(rowSize));
+			stream.Data = data.ToArray();
+			return block.Write();
+		}
+
 		MDTable GetTable(Table table) =>
 			metadata.TablesStream.Get(table) ?? throw new ArgumentException($"Unknown table {table}");
 
