@@ -358,6 +358,13 @@ namespace dnlib.DotNet {
 		internal static ModuleDefMD Load(MetadataBase metadata, ModuleCreationOptions? options) => new ModuleDefMD(metadata, options);
 
 		/// <summary>
+		/// <c>true</c> if the module was read with <see cref="CLRRuntimeReaderKind.Mono"/>: where Mono and the CLR
+		/// use metadata in another way, Mono's way is used
+		/// </summary>
+		internal bool IsReadLikeMono => isReadLikeMono;
+		readonly bool isReadLikeMono;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="metadata">The metadata</param>
@@ -374,6 +381,7 @@ namespace dnlib.DotNet {
 			this.metadata = metadata;
 			context = options.Context;
 			methodBodyReaderOptions = options.MethodBodyReaderOptions;
+			isReadLikeMono = options.Runtime == CLRRuntimeReaderKind.Mono;
 
 			var ts = metadata.TablesStream;
 

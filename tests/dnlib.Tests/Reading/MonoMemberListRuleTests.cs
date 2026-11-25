@@ -18,8 +18,8 @@ namespace dnlib.Tests.Reading {
 	/// uses the first row of the type), so it doesn't find a row if the table isn't sorted. Fixed in this
 	/// commit: dnlib used the first row like the CLR does.
 	///
-	/// If a method has two Param rows with the same number, Mono uses the name of the last row and dnlib the
-	/// first row (like the CLR): the cases with "Method.ParamList" where both read parameters have other names.
+	/// If a method has two Param rows with the same number, Mono uses the last row and the CLR the first one.
+	/// Fixed in a later commit than the binary search: dnlib used the first row.
 	///
 	/// Mono is only asked by the tests for .NET Framework (the files then reference mscorlib) and only if the
 	/// <c>mono</c> command exists. Every file needs a new process: Mono stops the process if it doesn't like
@@ -158,20 +158,20 @@ static class Program {
 		[InlineData("members", "TypeDef.FieldList of C = 100", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]", "stops the process")]
 		[InlineData("members", "TypeDef.FieldList of B = 100", "A[a1 a2 b1 b2 c1 c2; MA1 MA2] B[; MB1 MB2]", "stops the process")]
 		[InlineData("parameters", "nothing", "normal", "normal")]
-		[InlineData("parameters", "Method.ParamList of MA2 = 1", "MA1(,) MA2(a1x,a1y)", "MA1(,)")]
-		[InlineData("parameters", "Method.ParamList of MA2 = 5", "MA2(,)", "MA1(a2x,a2y) MA2(,)")]
-		[InlineData("parameters", "Method.ParamList of MB1 = 1", "MA2(,) MB1(a1x,a1y)", "MA2(,)")]
-		[InlineData("parameters", "Method.ParamList of MA2 = 2", "MA1(a1x,) MA2(a2x,a1y)", "MA1(a1x,)")]
-		[InlineData("parameters", "Method.ParamList of MA2 = 4", "MA2(,a2y)", "MA1(a2x,a1y) MA2(,a2y)")]
-		[InlineData("parameters", "Method.ParamList of MA2 = 7", "MA2(,)", "MA1(b1x,b1y) MA2(,)")]
-		[InlineData("parameters", "Method.ParamList of MA2 = 6", "MA2(,)", "MA1(b1x,a2y) MA2(,)")]
+		[InlineData("parameters", "Method.ParamList of MA2 = 1", "MA1(,)", "MA1(,)")]
+		[InlineData("parameters", "Method.ParamList of MA2 = 5", "MA1(a2x,a2y) MA2(,)", "MA1(a2x,a2y) MA2(,)")]
+		[InlineData("parameters", "Method.ParamList of MB1 = 1", "MA2(,)", "MA2(,)")]
+		[InlineData("parameters", "Method.ParamList of MA2 = 2", "MA1(a1x,)", "MA1(a1x,)")]
+		[InlineData("parameters", "Method.ParamList of MA2 = 4", "MA1(a2x,a1y) MA2(,a2y)", "MA1(a2x,a1y) MA2(,a2y)")]
+		[InlineData("parameters", "Method.ParamList of MA2 = 7", "MA1(b1x,b1y) MA2(,)", "MA1(b1x,b1y) MA2(,)")]
+		[InlineData("parameters", "Method.ParamList of MA2 = 6", "MA1(b1x,a2y) MA2(,)", "MA1(b1x,a2y) MA2(,)")]
 		[InlineData("parameters", "Method.ParamList of MA1 = 0", "MA1(,)", "stops the process")]
 		[InlineData("parameters", "Method.ParamList of MA2 = 0", "MA1(,) MA2(,)", "stops the process")]
 		[InlineData("parameters", "Method.ParamList of MC2 = 0", "MC1(,) MC2(,)", "stops the process")]
-		[InlineData("parameters", "Method.ParamList of MC2 = 13", "MC2(,)", "MC1(c2x,c2y) MC2(,)")]
-		[InlineData("parameters", "Method.ParamList of MC2 = 100", "MC2(,)", "stops the process")]
-		[InlineData("parameters", "Method.ParamList of MB2 = 13", "MB2(,)", "MB1(c2x,c2y) MB2(,)")]
-		[InlineData("parameters", "Method.ParamList of MB2 = 100", "MB2(,)", "stops the process")]
+		[InlineData("parameters", "Method.ParamList of MC2 = 13", "MC1(c2x,c2y) MC2(,)", "MC1(c2x,c2y) MC2(,)")]
+		[InlineData("parameters", "Method.ParamList of MC2 = 100", "MC1(c2x,c2y) MC2(,)", "stops the process")]
+		[InlineData("parameters", "Method.ParamList of MB2 = 13", "MB1(c2x,c2y) MB2(,)", "MB1(c2x,c2y) MB2(,)")]
+		[InlineData("parameters", "Method.ParamList of MB2 = 100", "MB1(c2x,c2y) MB2(,)", "stops the process")]
 		[InlineData("properties", "nothing", "normal", "normal")]
 		[InlineData("properties", "PropertyMap.PropertyList of 2 = 1", "A[; EA1 EA2] B[PA1 PA2 PB1 PB2; EB1 EB2]", "stops the process")]
 		[InlineData("properties", "PropertyMap.PropertyList of 2 = 5", "A[PA1 PA2 PB1 PB2; EA1 EA2] B[; EB1 EB2]", "stops the process")]
