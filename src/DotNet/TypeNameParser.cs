@@ -827,12 +827,8 @@ namespace dnlib.DotNet {
 
 				// "key=value". Anything else is ignored, eg. a key with a char that can't be in a type name ('*', '+',
 				// ...): the CLR ignores unknown keys too.
-				string attribute = ReadAssemblyAttribute();
-				int equalsIndex = attribute.IndexOf('=');
-				if (equalsIndex < 0)
+				if (!ReadAssemblyAttribute(out var key, out var value))
 					continue;
-				string key = attribute.Substring(0, equalsIndex).Trim();
-				string value = attribute.Substring(equalsIndex + 1).Trim();
 				Verify(value.Length > 0, "Expected a value");
 
 				switch (key.ToUpperInvariant()) {
@@ -886,13 +882,54 @@ namespace dnlib.DotNet {
 			return asmRef;
 		}
 
-		// An attribute ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'
-		string ReadAssemblyAttribute() {
+		// An attribute ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'.
+		// Its value can be in quotes, like the name of the assembly. Returns false if it has no '='.
+		bool ReadAssemblyAttribute(out string key, out string value) {
 			var sb = new StringBuilder();
 			int c;
-			while ((c = GetAsmNameChar()) != -1)
+			bool hasEqualSign = false;
+			while ((c = GetAsmNameChar(out bool isEscaped)) != -1) {
+				if (c == '=' && !isEscaped && !hasEqualSign) {
+					hasEqualSign = true;
+					break;
+				}
 				sb.Append((char)c);
-			return sb.ToString();
+			}
+			key = sb.ToString().Trim();
+			value = string.Empty;
+			if (!hasEqualSign)
+				return false;
+
+			SkipWhite();
+			sb.Length = 0;
+			c = PeekChar();
+			if (c == '"' || c == '\'') {
+				ReadQuotedAsmNameText(sb);
+				value = sb.ToString();
+				// Ignore what's between the quote and the end of the attribute
+				while (GetAsmNameChar() != -1) {
+				}
+			}
+			else {
+				while ((c = GetAsmNameChar()) != -1)
+					sb.Append((char)c);
+				value = sb.ToString().Trim();
+			}
+			return true;
+		}
+
+		// Reads text in quotes: it ends at the quote that it starts with
+		void ReadQuotedAsmNameText(StringBuilder sb) {
+			int quote = ReadChar();
+			while (true) {
+				int c = ReadChar();
+				Verify(c != -1, "Expected the end of the quoted text");
+				if (c == quote)
+					break;
+				if (c == '\\')
+					c = ReadEscapedAsmNameChar();
+				sb.Append((char)c);
+			}
 		}
 
 		string ReadAssemblyNameId() {
@@ -903,16 +940,7 @@ namespace dnlib.DotNet {
 			if (c == '"' || c == '\'') {
 				// A name in quotes (it has a quote, or white space at its start or end, see
 				// FullNameFactory.AssemblyFullName()): it ends at the same quote, and it isn't trimmed
-				int quote = ReadChar();
-				while (true) {
-					c = ReadChar();
-					Verify(c != -1, "Expected the end of the quoted assembly name");
-					if (c == quote)
-						break;
-					if (c == '\\')
-						c = ReadEscapedAsmNameChar();
-					sb.Append((char)c);
-				}
+				ReadQuotedAsmNameText(sb);
 				name = sb.ToString();
 			}
 			else {
@@ -936,13 +964,17 @@ namespace dnlib.DotNet {
 			}
 		}
 
-		int GetAsmNameChar() {
+		int GetAsmNameChar() => GetAsmNameChar(out _);
+
+		int GetAsmNameChar(out bool isEscaped) {
+			isEscaped = false;
 			int c = PeekChar();
 			if (c == -1)
 				return -1;
 			switch (c) {
 			case '\\':
 				ReadChar();
+				isEscaped = true;
 				return ReadEscapedAsmNameChar();
 
 			// Only a bracketed generic argument's assembly name ends with ']'. It's not escaped in a
