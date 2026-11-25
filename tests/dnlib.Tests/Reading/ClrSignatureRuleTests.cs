@@ -17,7 +17,11 @@ namespace dnlib.Tests.Reading {
 	/// no type (null).
 	/// </summary>
 	public class ClrSignatureRuleTests {
+		// Other.Method has the only row of the TypeSpec table (the type List<long>), Marker.Method is the last method
 		const string Source = @"
+public static class Other {
+	public static System.Type Method() => typeof(System.Collections.Generic.List<long>);
+}
 public static class Marker {
 	public static int Field;
 	public static System.Collections.Generic.List<int> List;
@@ -48,9 +52,10 @@ public static class Marker {
 			return token.ToString("X2");
 		}
 
-		// The bytes as hex numbers. {Object}, {List}, {DateTime} and {Marker} are the tokens of these types.
+		// The bytes as hex numbers. {Object}, {List}, {DateTime} and {Marker} are the tokens of these types,
+		// {TypeSpec} is the token of the first row of the TypeSpec table.
 		static byte[] ParseSignature(string signature) =>
-			signature.Replace("{Object}", objectToken).Replace("{List}", listToken).Replace("{DateTime}", dateTimeToken).Replace("{Marker}", markerToken)
+			signature.Replace("{Object}", objectToken).Replace("{List}", listToken).Replace("{DateTime}", dateTimeToken).Replace("{Marker}", markerToken).Replace("{TypeSpec}", "06")
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(a => Convert.ToByte(a, 16)).ToArray();
 
 		// Adds the signature to the end of the #Blob heap. The field or the method then has that signature.
@@ -279,6 +284,112 @@ public static class Marker {
 			var image = CreateImage(signature, Table.Method);
 
 			ClrReaderComparison.AssertRead(expectedDnlib, ReadMethodWithDnlib(image), expectedRuntime, () => ReadMethodWithTheRuntime(image));
+		}
+
+		// The signature is then the one of the first row of the TypeSpec table
+		static byte[] CreateImageWithTypeSpec(string signature) {
+			var bytes = ParseSignature(signature);
+			Assert.True(bytes.Length < 0x80);
+			int heapLength = new MetadataBlock(baseImage).GetStream("#Blob").Data.Length;
+			var patcher = new MetadataPatcher(baseImage);
+			Assert.Equal(1U, patcher.GetRowCount(Table.TypeSpec));
+			patcher.SetCell(Table.TypeSpec, 1, "Signature", (uint)heapLength);
+			var block = new MetadataBlock(patcher.ToArray());
+			block.RemoveStream(ClrReaderComparison.PaddingStreamName);
+			var heap = block.GetStream("#Blob");
+			heap.Data = heap.Data.Concat(new[] { (byte)bytes.Length }).Concat(bytes).ToArray();
+			return block.Write();
+		}
+
+		static string ReadTypeSpecWithDnlib(byte[] image) {
+			using (var module = ModuleDefMD.Load(image)) {
+				var type = module.ResolveTypeSpec(1)!.TypeSig;
+				if (type is null)
+					return "no type";
+				// The reflection name of a function pointer doesn't show its signature
+				if (type is FnPtrSig)
+					return type.FullName;
+				return WithoutAssemblyNames(type.ReflectionFullName);
+			}
+		}
+
+		static string ReadTypeSpecWithTheRuntime(byte[] image) {
+			try {
+				using (var loaded = new LoadedAssembly(image)) {
+					var type = loaded.Assembly.ManifestModule.ResolveType(new MDToken(Table.TypeSpec, 1).ToInt32());
+					return WithoutAssemblyNames(type.FullName ?? type.ToString());
+				}
+			}
+			catch (Exception ex) {
+				return "throws " + ex.GetType().Name;
+			}
+		}
+
+		// A row of the TypeSpec table is a type that isn't a class of the TypeDef or the TypeRef table: a generic
+		// instance, an array, a pointer. Its signature is only the type (no first byte like a field signature).
+		// {TypeSpec} is the token of the row itself.
+		[Theory]
+		[InlineData("15 12 {List} 01 0A", "System.Collections.Generic.List`1[[System.Int64]]", "System.Collections.Generic.List`1[[System.Int64]]")]
+		[InlineData("15 12 {List} 01 08", "System.Collections.Generic.List`1[[System.Int32]]", "System.Collections.Generic.List`1[[System.Int32]]")]
+		[InlineData("15 12 {List} 01 15 12 {List} 01 08", "System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Int32]]]]", "System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Int32]]]]")]
+		// Types that need no TypeSpec row
+		[InlineData("08", "System.Int32", "System.Int32")]
+		[InlineData("0E", "System.String", "System.String")]
+		[InlineData("1C", "System.Object", "System.Object")]
+		[InlineData("01", "System.Void", "System.Void")]
+		[InlineData("16", "System.TypedReference", "System.TypedReference")]
+		[InlineData("12 {Object}", "System.Object", "System.Object")]
+		[InlineData("11 {DateTime}", "System.DateTime", "System.DateTime")]
+		[InlineData("12 {DateTime}", "System.DateTime", "throws TypeLoadException")]
+		[InlineData("11 {Object}", "System.Object", "throws TypeLoadException")]
+		[InlineData("12 {Marker}", "Marker", "Marker")]
+		// Arrays, pointers, references, function pointers
+		[InlineData("1D 08", "System.Int32[]", "System.Int32[]")]
+		[InlineData("14 08 02 00 00", "System.Int32[,]", "System.Int32[,]")]
+		[InlineData("0F 08", "System.Int32*", "System.Int32*")]
+		[InlineData("0F 01", "System.Void*", "System.Void*")]
+		[InlineData("10 08", "System.Int32&", "System.Int32&")]
+		[InlineData("1B 00 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("1B 00 01 08 0E", "System.Int32 (System.String)", "System.Int32(System.String)")]
+		// Generic parameters: the row has no type or method that they belong to
+		[InlineData("13 00", "", "throws ArgumentException")]
+		[InlineData("1E 00", "", "throws ArgumentException")]
+		[InlineData("15 12 {List} 01 13 00", "System.Collections.Generic.List`1[[!0, <<<NULL>>>]]", "throws ArgumentException")]
+		// Generic instances that aren't valid
+		[InlineData("15 12 {List} 00", "System.Collections.Generic.List`1[]", "throws TypeLoadException")]
+		[InlineData("15 12 {List} 02 08 08", "System.Collections.Generic.List`1[[System.Int32],[System.Int32]]", "throws TypeLoadException")]
+		[InlineData("15 12 {List} 01", "no type", "throws ArgumentException")]
+		[InlineData("15 12 {List}", "no type", "throws ArgumentException")]
+		[InlineData("15 11 {List} 01 08", "System.Collections.Generic.List`1[[System.Int32]]", "throws TypeLoadException")]
+		[InlineData("15 12 {DateTime} 01 08", "System.DateTime[[System.Int32]]", "throws TypeLoadException")]
+		[InlineData("15 12 {Object} 01 08", "System.Object[[System.Int32]]", "throws TypeLoadException")]
+		[InlineData("15 08 01 08", "no type", "throws ArgumentException")]
+		[InlineData("15 15 12 {List} 01 08 01 08", "no type", "throws ArgumentException")]
+		[InlineData("15 12 {List} 01 01", "System.Collections.Generic.List`1[[System.Void]]", "throws TypeLoadException")]
+		[InlineData("15 12 {List} 01 10 08", "System.Collections.Generic.List`1[[System.Int32&]]", "throws TypeLoadException")]
+		[InlineData("15 12 {List} 01 0F 08", "System.Collections.Generic.List`1[[System.Int32*]]", "throws TypeLoadException")]
+		// Things before the type, and bytes that aren't a type
+		[InlineData("1F {Object} 08", "System.Int32", "System.Int32")]
+		[InlineData("20 {Object} 08", "System.Int32", "System.Int32")]
+		[InlineData("45 08", "System.Int32", "System.Int32")]
+		[InlineData("41 08", "System.Int32", "System.Int32")]
+		[InlineData("06 08", "System.Int16", "System.Int16")]
+		[InlineData("00", "no type", "throws ArgumentException")]
+		[InlineData("FF", "no type", "throws ArgumentException")]
+		[InlineData("", "no type", "throws ArgumentException")]
+		[InlineData("08 FF", "System.Int32", "System.Int32")]
+		[InlineData("15 12 {List} 01 08 FF FF", "System.Collections.Generic.List`1[[System.Int32]]", "System.Collections.Generic.List`1[[System.Int32]]")]
+		// A type that is made of itself
+		[InlineData("12 {TypeSpec}", "<<<NULL>>>", "throws ArgumentException")]
+		[InlineData("11 {TypeSpec}", "<<<NULL>>>", "throws ArgumentException")]
+		[InlineData("1D 12 {TypeSpec}", "<<<NULL>>>[]", "throws ArgumentException")]
+		[InlineData("0F 12 {TypeSpec}", "<<<NULL>>>*", "throws ArgumentException")]
+		[InlineData("15 12 {TypeSpec} 01 08", "<<<NULL>>>[[System.Int32]]", "throws ArgumentException")]
+		[InlineData("15 12 {List} 01 12 {TypeSpec}", "System.Collections.Generic.List`1[[<<<NULL>>>, <<<NULL>>>]]", "throws ArgumentException")]
+		public void TypeOfATypeSpecRow(string signature, string expectedDnlib, string expectedRuntime) {
+			var image = CreateImageWithTypeSpec(signature);
+
+			ClrReaderComparison.AssertRead(expectedDnlib, ReadTypeSpecWithDnlib(image), expectedRuntime, () => ReadTypeSpecWithTheRuntime(image));
 		}
 	}
 }
