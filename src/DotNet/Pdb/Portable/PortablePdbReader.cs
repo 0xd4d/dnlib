@@ -272,10 +272,16 @@ namespace dnlib.DotNet.Pdb.Portable {
 							column += seqPointsReader.ReadCompressedInt32();
 						}
 
+						// The deltas are 29-bit values, so nothing can overflow
+						int endLine = line + (int)dlines;
+						int endColumn = column + dcolumns;
+						if (!IsValidLine(line) || !IsValidLine(endLine) || !IsValidColumn(column) || !IsValidColumn(endColumn))
+							return null;
+
 						symSeqPoint.Line = line;
-						symSeqPoint.EndLine = line + (int)dlines;
+						symSeqPoint.EndLine = endLine;
 						symSeqPoint.Column = column;
-						symSeqPoint.EndColumn = column + dcolumns;
+						symSeqPoint.EndColumn = endColumn;
 					}
 
 					seqPointsBuilder.Add(symSeqPoint);
@@ -287,6 +293,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 
 			return ListCache<SymbolSequencePoint>.FreeAndToArray(ref seqPointsBuilder);
 		}
+
+		// The same checks as System.Reflection.Metadata: a line is in [0, 0x20000000) and isn't the line of a hidden
+		// sequence point (a reader couldn't tell them apart), a column is in [0, 0x10000). If a value is out of
+		// range, it also reads no sequence point of the method.
+		static bool IsValidLine(int line) => (uint)line <= 0x1FFFFFFF && line != SequencePointConstants.HIDDEN_LINE;
+		static bool IsValidColumn(int column) => (uint)column <= ushort.MaxValue;
 
 		SymbolScopeImpl ReadScope(uint methodRid, GenericParamContext gpContext) {
 			var scopesRidList = pdbMetadata.GetLocalScopeRidList(methodRid);
