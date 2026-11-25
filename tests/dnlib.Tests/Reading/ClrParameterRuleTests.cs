@@ -56,20 +56,9 @@ public class C {
 						patcher.SetCell(Table.Constant, constantRow, "Parent", GetConstantParent(module, parts[1]));
 				}
 			}
-			SortConstantRows(patcher);
+			// The rows of the Constant table are sorted by their parent: a reader doesn't find a row if they aren't
+			patcher.SortRows(Table.Constant, "Parent");
 			return patcher.ToArray();
-		}
-
-		// The rows of the Constant table are sorted by their parent: a reader doesn't find a row if they aren't
-		static void SortConstantRows(MetadataPatcher patcher) {
-			var columns = patcher.GetColumnNames(Table.Constant);
-			var rows = Enumerable.Range(1, (int)patcher.GetRowCount(Table.Constant))
-				.Select(rid => columns.Select(column => patcher.GetCell(Table.Constant, (uint)rid, column)).ToArray())
-				.OrderBy(row => row[columns.IndexOf("Parent")]).ToArray();
-			for (int i = 0; i < rows.Length; i++) {
-				for (int j = 0; j < columns.Count; j++)
-					patcher.SetCell(Table.Constant, (uint)i + 1, columns[j], rows[i][j]);
-			}
 		}
 
 		static string Describe(string name, bool isIn, bool isOut, bool isOptional, bool hasDefault, object? value) =>

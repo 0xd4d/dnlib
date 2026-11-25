@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using dnlib.DotNet.MD;
@@ -108,6 +109,26 @@ namespace dnlib.TestUtils {
 					return rid;
 			}
 			throw new ArgumentException($"No {table} row has {column} == \"{value}\"");
+		}
+
+		/// <summary>
+		/// Sorts the rows of a table by a column (rows with the same value stay in their order). Some tables
+		/// must be sorted, eg. the Constant table by its parent: a reader doesn't find all rows if a test
+		/// changed that column and the table is no longer sorted.
+		/// </summary>
+		/// <param name="table">Table</param>
+		/// <param name="column">Name of the column to sort by</param>
+		public MetadataPatcher SortRows(Table table, string column) {
+			var columns = GetColumnNames(table);
+			int sortColumn = columns.IndexOf(column);
+			var rows = Enumerable.Range(1, (int)GetRowCount(table))
+				.Select(rid => columns.Select(a => GetCell(table, (uint)rid, a)).ToArray())
+				.OrderBy(row => row[sortColumn]).ToArray();
+			for (int i = 0; i < rows.Length; i++) {
+				for (int j = 0; j < columns.Count; j++)
+					SetCell(table, (uint)i + 1, columns[j], rows[i][j]);
+			}
+			return this;
 		}
 
 		/// <summary>
