@@ -23,24 +23,6 @@ namespace dnlib.Tests.Reading {
 			return patcher.ToArray();
 		}
 
-		// dnlib must read what .NET reads. Another CLR (.NET Framework) may read something else: the test is
-		// then skipped with a message that says what it read. Mono isn't asked.
-		static void AssertSame(string dnlib, Func<string> readWithTheRuntime) {
-			if (ClrReaderComparison.IsMono)
-				return;
-			string runtime;
-			try {
-				runtime = readWithTheRuntime();
-			}
-			catch (Exception ex) {
-				runtime = "throws " + ex.GetType().Name;
-			}
-			if (ClrReaderComparison.IsDotNet)
-				Assert.Equal(runtime, dnlib);
-			else
-				Assert.SkipUnless(runtime == dnlib, $"This CLR reads '{runtime}', dnlib reads '{dnlib}'");
-		}
-
 		// Resources R1 .. R5 whose content is their number. Row 'row' gets the name of row 'nameOfRow'.
 		[Theory]
 		[InlineData(2, 1)]
@@ -63,7 +45,7 @@ namespace dnlib.Tests.Reading {
 			using (var module = ModuleDefMD.Load(image))
 				dnlib = ((EmbeddedResource)module.Resources.Find(name)!).CreateReader().ReadByte().ToString();
 
-			AssertSame(dnlib, () => {
+			ClrReaderComparison.AssertSameAsTheRuntime(dnlib, () => {
 				using (var loaded = new LoadedAssembly(image))
 				using (var stream = loaded.Assembly.GetManifestResourceStream(name)!)
 					return stream.ReadByte().ToString();
@@ -181,7 +163,7 @@ public static class Marker {
 				dnlib = resolved is null ? "not found" : numbers[resolved.Rid].ToString();
 			}
 
-			AssertSame(dnlib, () => {
+			ClrReaderComparison.AssertSameAsTheRuntime(dnlib, () => {
 				using (var loaded = new LoadedAssembly(image))
 					return loaded.Assembly.GetType("Marker", throwOnError: true)!.GetMethod(caller)!.Invoke(null, null)!.ToString()!;
 			});

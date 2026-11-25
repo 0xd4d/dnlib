@@ -54,9 +54,19 @@ namespace dnlib.Tests.Reading {
 		public static bool IsDotNet => typeof(object).Assembly.GetName().Name == "System.Private.CoreLib";
 
 		/// <summary>
+		/// true if the runtime isn't asked: Mono stops the process if it doesn't like the metadata. And with a
+		/// profiler (the tests run with one when the code coverage is measured) the CLR reads metadata with
+		/// its reader for metadata that can be changed, which has other rules than its normal reader: dnlib
+		/// reads a file like the CLR without a profiler.
+		/// </summary>
+		public static bool IsRuntimeNotAsked => IsMono ||
+			Environment.GetEnvironmentVariable("CORECLR_ENABLE_PROFILING") == "1" ||
+			Environment.GetEnvironmentVariable("COR_ENABLE_PROFILING") == "1";
+
+		/// <summary>
 		/// Checks what dnlib read and what the runtime reads. .NET must do what the test expects, another CLR
 		/// (.NET Framework) may do something else: the test is then skipped with a message that says what it
-		/// did. Mono isn't asked: it stops the process if it doesn't like the metadata.
+		/// did. See <see cref="IsRuntimeNotAsked"/> for when the runtime isn't asked.
 		/// </summary>
 		/// <param name="expectedDnlib">What dnlib must read</param>
 		/// <param name="dnlib">What dnlib read</param>
@@ -64,7 +74,7 @@ namespace dnlib.Tests.Reading {
 		/// <param name="readWithTheRuntime">Reads the same with the runtime</param>
 		public static void AssertRead(string expectedDnlib, string dnlib, string expectedRuntime, Func<string> readWithTheRuntime) {
 			Assert.Equal(expectedDnlib, dnlib);
-			if (IsMono)
+			if (IsRuntimeNotAsked)
 				return;
 			string runtime = readWithTheRuntime();
 			var allExpected = expectedRuntime.Split('|');
@@ -75,6 +85,28 @@ namespace dnlib.Tests.Reading {
 				bool isSame = allExpected.Contains(runtime) || (runtime.StartsWith("throws ") && allExpected.Any(a => a.StartsWith("throws ")));
 				Assert.SkipUnless(isSame, $"This CLR reads '{runtime}', .NET reads '{expectedRuntime}', dnlib reads '{expectedDnlib}'");
 			}
+		}
+
+		/// <summary>
+		/// For tests without expected values: dnlib must read what .NET reads. Another CLR (.NET Framework)
+		/// may read something else: the test is then skipped with a message that says what it read.
+		/// </summary>
+		/// <param name="dnlib">What dnlib read</param>
+		/// <param name="readWithTheRuntime">Reads the same with the runtime. An exception is "throws" and its name.</param>
+		public static void AssertSameAsTheRuntime(string dnlib, Func<string> readWithTheRuntime) {
+			if (IsRuntimeNotAsked)
+				return;
+			string runtime;
+			try {
+				runtime = readWithTheRuntime();
+			}
+			catch (Exception ex) {
+				runtime = "throws " + ex.GetType().Name;
+			}
+			if (IsDotNet)
+				Assert.Equal(runtime, dnlib);
+			else
+				Assert.SkipUnless(runtime == dnlib, $"This CLR reads '{runtime}', dnlib reads '{dnlib}'");
 		}
 	}
 }

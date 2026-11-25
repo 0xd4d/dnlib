@@ -80,19 +80,7 @@ namespace dnlib.Tests.Reading {
 				patcher.SetCell(Table.Constant, (uint)rid, "Parent", owner);
 			var image = patcher.ToArray();
 
-			AssertSame(ReadConstantsWithDnlib(image, count), () => ReadConstantsWithTheRuntime(image, count));
-		}
-
-		// dnlib must read what .NET reads. Another CLR (.NET Framework) may read something else: the test is
-		// then skipped with a message that says what it read. Mono isn't asked.
-		static void AssertSame(string dnlib, Func<string> readWithTheRuntime) {
-			if (ClrReaderComparison.IsMono)
-				return;
-			string runtime = readWithTheRuntime();
-			if (ClrReaderComparison.IsDotNet)
-				Assert.Equal(runtime, dnlib);
-			else
-				Assert.SkipUnless(runtime == dnlib, $"This CLR reads '{runtime}', dnlib reads '{dnlib}'");
+			ClrReaderComparison.AssertSameAsTheRuntime(ReadConstantsWithDnlib(image, count), () => ReadConstantsWithTheRuntime(image, count));
 		}
 
 		// Structs S1, S2, ... with the sizes 1, 2, ... The ClassLayout table then has a row for every struct.
@@ -142,7 +130,7 @@ namespace dnlib.Tests.Reading {
 				patcher.SetCell(Table.ClassLayout, (uint)rid, "Parent", owner);
 			var image = patcher.ToArray();
 
-			AssertSame(ReadLayoutsWithDnlib(image, count), () => ReadLayoutsWithTheRuntime(image, count));
+			ClrReaderComparison.AssertSameAsTheRuntime(ReadLayoutsWithDnlib(image, count), () => ReadLayoutsWithTheRuntime(image, count));
 		}
 
 		// Only the types of the source code: the compiler can add other types
@@ -185,7 +173,7 @@ namespace dnlib.Tests.Reading {
 				dnlib = string.Join(" ", Enumerable.Range(1, count).Select(a => type.FindField("F" + a)!.MarshalType is MarshalType marshalType ? ((int)marshalType.NativeType).ToString() : "-"));
 			}
 
-			AssertSame(dnlib, () => {
+			ClrReaderComparison.AssertSameAsTheRuntime(dnlib, () => {
 				using (var loaded = new LoadedAssembly(image)) {
 					var type = loaded.Assembly.GetType("Marker", throwOnError: true)!;
 					return string.Join(" ", Enumerable.Range(1, count).Select(a => {
@@ -211,7 +199,7 @@ namespace dnlib.Tests.Reading {
 				dnlib = string.Join(" ", Enumerable.Range(1, count).Select(a => type.FindMethod("M" + a)!.ImplMap?.Name.String ?? "-"));
 			}
 
-			AssertSame(dnlib, () => {
+			ClrReaderComparison.AssertSameAsTheRuntime(dnlib, () => {
 				using (var loaded = new LoadedAssembly(image)) {
 					var type = loaded.Assembly.GetType("Marker", throwOnError: true)!;
 					return string.Join(" ", Enumerable.Range(1, count).Select(a => {
@@ -263,7 +251,7 @@ public class A7 : Attribute { } public class A8 : Attribute { } public class A9 
 			using (var module = ModuleDefMD.Load(image))
 				dnlib = string.Join(" ", typeNames.Select(a => $"{a}[{string.Join(",", module.Find(a, isReflectionName: true)!.CustomAttributes.Select(b => b.TypeFullName))}]"));
 
-			AssertSame(dnlib, () => {
+			ClrReaderComparison.AssertSameAsTheRuntime(dnlib, () => {
 				using (var loaded = new LoadedAssembly(image))
 					return string.Join(" ", typeNames.Select(a => $"{a}[{string.Join(",", loaded.Assembly.GetType(a, throwOnError: true)!.GetCustomAttributes(false).Select(b => b.GetType().Name))}]"));
 			});
