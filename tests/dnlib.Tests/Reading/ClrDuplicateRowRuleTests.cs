@@ -145,12 +145,13 @@ namespace dnlib.Tests.Reading {
 			AssertSame(ReadLayoutsWithDnlib(image, count), () => ReadLayoutsWithTheRuntime(image, count));
 		}
 
-		// Only the types whose name starts with the prefix: the compiler can add other types
-		static byte[] CompileOnly(string source, string prefix) {
+		// Only the types of the source code: the compiler can add other types
+		static byte[] CompileOnly(string source, Func<string, bool> isTypeOfTheSource) {
 			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(source).Image)) {
-				foreach (var type in module.Types.Where(a => !a.IsGlobalModuleType && !a.Name.StartsWith(prefix)).ToArray())
+				foreach (var type in module.Types.Where(a => !a.IsGlobalModuleType && !isTypeOfTheSource(a.Name)).ToArray())
 					module.Types.Remove(type);
 				module.CustomAttributes.Clear();
+				module.Assembly!.CustomAttributes.Clear();
 				var stream = new MemoryStream();
 				module.Write(stream);
 				return stream.ToArray();
@@ -175,7 +176,7 @@ namespace dnlib.Tests.Reading {
 			// Native types that have no other values in the table
 			var nativeTypes = new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 19, 20, 21, 22, 25, 26, 28, 31 };
 			var fields = string.Join("\n", Enumerable.Range(1, count).Select(a => $"	[MarshalAs((UnmanagedType){nativeTypes[a - 1]})] public int F{a};"));
-			var image = CompileOnly("using System.Runtime.InteropServices;\npublic class Marker {\n" + fields + "\n}", "Marker");
+			var image = CompileOnly("using System.Runtime.InteropServices;\npublic class Marker {\n" + fields + "\n}", name => name == "Marker");
 			image = SetSameOwner(image, Table.FieldMarshal, "Parent", count, first, last);
 
 			string dnlib;
@@ -201,7 +202,7 @@ namespace dnlib.Tests.Reading {
 		[MemberData(nameof(Cases))]
 		public void EntryPointOfAMethodWithMoreThanOneRow(int count, int first, int last) {
 			var methods = string.Join("\n", Enumerable.Range(1, count).Select(a => $"	[DllImport(\"lib\", EntryPoint = \"E{a}\")] public static extern void M{a}();"));
-			var image = CompileOnly("using System.Runtime.InteropServices;\npublic class Marker {\n" + methods + "\n}", "Marker");
+			var image = CompileOnly("using System.Runtime.InteropServices;\npublic class Marker {\n" + methods + "\n}", name => name == "Marker");
 			image = SetSameOwner(image, Table.ImplMap, "MemberForwarded", count, first, last);
 
 			string dnlib;
@@ -219,6 +220,52 @@ namespace dnlib.Tests.Reading {
 						return string.IsNullOrEmpty(attribute?.EntryPoint) ? "-" : attribute!.EntryPoint!;
 					}));
 				}
+			});
+		}
+
+		// Types T1, T2 and T3 with three attributes each: the CustomAttribute table has 9 rows, sorted by
+		// the type. A reader finds one row of a type with a binary search and then the rows before and
+		// after it with the same owner.
+		static readonly byte[] attributeImage = CompileOnly(@"
+using System;
+public class A1 : Attribute { } public class A2 : Attribute { } public class A3 : Attribute { }
+public class A4 : Attribute { } public class A5 : Attribute { } public class A6 : Attribute { }
+public class A7 : Attribute { } public class A8 : Attribute { } public class A9 : Attribute { }
+[A1, A2, A3] public class T1 { }
+[A4, A5, A6] public class T2 { }
+[A7, A8, A9] public class T3 { }
+", name => name.Length == 2);
+
+		// Row 'row' gets the owner of row 'ownerOfRow' (0: no owner), and so does row 'secondRow' if it isn't 0
+		public static IEnumerable<object[]> AttributeCases() {
+			for (int row = 1; row <= 9; row++) {
+				foreach (int ownerOfRow in new[] { 0, 1, 4, 7 }) {
+					yield return new object[] { row, 0, ownerOfRow };
+					if (row <= 7)
+						yield return new object[] { row, row + 2, ownerOfRow };
+				}
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(AttributeCases))]
+		public void AttributesOfATypeIfTheRowsOfAnOwnerAreNotTogether(int row, int secondRow, int ownerOfRow) {
+			var patcher = new MetadataPatcher(attributeImage);
+			Assert.Equal(9U, patcher.GetRowCount(Table.CustomAttribute));
+			uint owner = ownerOfRow == 0 ? 0 : patcher.GetCell(Table.CustomAttribute, (uint)ownerOfRow, "Parent");
+			patcher.SetCell(Table.CustomAttribute, (uint)row, "Parent", owner);
+			if (secondRow != 0)
+				patcher.SetCell(Table.CustomAttribute, (uint)secondRow, "Parent", owner);
+			var image = patcher.ToArray();
+
+			var typeNames = new[] { "T1", "T2", "T3" };
+			string dnlib;
+			using (var module = ModuleDefMD.Load(image))
+				dnlib = string.Join(" ", typeNames.Select(a => $"{a}[{string.Join(",", module.Find(a, isReflectionName: true)!.CustomAttributes.Select(b => b.TypeFullName))}]"));
+
+			AssertSame(dnlib, () => {
+				using (var loaded = new LoadedAssembly(image))
+					return string.Join(" ", typeNames.Select(a => $"{a}[{string.Join(",", loaded.Assembly.GetType(a, throwOnError: true)!.GetCustomAttributes(false).Select(b => b.GetType().Name))}]"));
 			});
 		}
 	}
