@@ -117,15 +117,21 @@ public static class C {
 			}
 		}
 
+		// Every type is read on its own: a type that the CLR doesn't load is "throws" and the exception
 		static string[] ReadMembersWithTheRuntime(byte[] image) {
 			try {
 				using (var loaded = new LoadedAssembly(image)) {
 					var module = loaded.Assembly.ManifestModule;
 					return typeNames.Select(name => {
 						if (name == "<Module>")
-							return Describe(name, InOrder(module.GetFields(Declared)), InOrder(module.GetMethods(Declared)));
-						var type = loaded.Assembly.GetType(name, throwOnError: true)!;
-						return Describe(name, InOrder(type.GetFields(Declared)), InOrder(type.GetMethods(Declared)));
+							return $"{name}[{Names(() => module.GetFields(Declared))}; {Names(() => module.GetMethods(Declared))}]";
+						try {
+							var type = loaded.Assembly.GetType(name, throwOnError: true)!;
+							return $"{name}[{Names(() => type.GetFields(Declared))}; {Names(() => type.GetMethods(Declared))}]";
+						}
+						catch (Exception ex) {
+							return $"{name}[throws {ex.GetType().Name}]";
+						}
 					}).ToArray();
 				}
 			}
@@ -157,22 +163,22 @@ public static class C {
 		[InlineData("TypeDef.FieldList of B = 1", "A[; MA1 MA2] B[a1 a2 b1 b2; MB1 MB2]", "A[; MA1 MA2] B[a1 a2 b1 b2; MB1 MB2]")]
 		[InlineData("TypeDef.FieldList of A = 3", "<Module>[a1 a2; ] A[; MA1 MA2]", "<Module>[a1 a2; ] A[; MA1 MA2]")]
 		// A list that starts after the next list
-		[InlineData("TypeDef.MethodList of B = 6", "A[a1 a2; MA1 MA2 MB1 MB2 MC1] B[b1 b2; ]", "throws TypeLoadException")]
-		[InlineData("TypeDef.MethodList of A = 4", "<Module>[; MA1 MA2 MB1] A[a1 a2; ]", "throws TypeLoadException")]
-		[InlineData("TypeDef.FieldList of B = 6", "A[a1 a2 b1 b2 c1; MA1 MA2] B[; MB1 MB2]", "throws TypeLoadException")]
-		[InlineData("TypeDef.MethodList of A = 3,TypeDef.MethodList of B = 1", "<Module>[; MA1 MA2] A[a1 a2; ] B[b1 b2; MA1 MA2 MB1 MB2]", "throws TypeLoadException")]
+		[InlineData("TypeDef.MethodList of B = 6", "A[a1 a2; MA1 MA2 MB1 MB2 MC1] B[b1 b2; ]", "A[a1 a2; MA1 MA2 MB1 MB2 MC1] B[throws TypeLoadException]")]
+		[InlineData("TypeDef.MethodList of A = 4", "<Module>[; MA1 MA2 MB1] A[a1 a2; ]", "<Module>[; MA1 MA2 MB1] A[throws TypeLoadException]")]
+		[InlineData("TypeDef.FieldList of B = 6", "A[a1 a2 b1 b2 c1; MA1 MA2] B[; MB1 MB2]", "A[a1 a2 b1 b2 c1; MA1 MA2] B[throws TypeLoadException]")]
+		[InlineData("TypeDef.MethodList of A = 3,TypeDef.MethodList of B = 1", "<Module>[; MA1 MA2] A[a1 a2; ] B[b1 b2; MA1 MA2 MB1 MB2]", "<Module>[; MA1 MA2] A[throws TypeLoadException] B[b1 b2; MA1 MA2 MB1 MB2]")]
 		// Row 0, the row after the last row, and a row that doesn't exist
-		[InlineData("TypeDef.MethodList of B = 0", "A[a1 a2; ] B[b1 b2; ]", "throws TypeLoadException")]
-		[InlineData("TypeDef.MethodList of C = 0", "B[b1 b2; ] C[c1 c2; ]", "throws TypeLoadException|B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]")]
+		[InlineData("TypeDef.MethodList of B = 0", "A[a1 a2; ] B[b1 b2; ]", "A[throws TypeLoadException] B[throws TypeLoadException]|A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[throws TypeLoadException]")]
+		[InlineData("TypeDef.MethodList of C = 0", "B[b1 b2; ] C[c1 c2; ]", "B[throws TypeLoadException] C[throws TypeLoadException]|B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]")]
 		[InlineData("TypeDef.MethodList of C = 7", "B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]", "B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]")]
-		[InlineData("TypeDef.MethodList of C = 100", "B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]", "throws TypeLoadException")]
-		[InlineData("TypeDef.MethodList of B = 7", "A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[b1 b2; ]", "throws TypeLoadException")]
-		[InlineData("TypeDef.MethodList of B = 100", "A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[b1 b2; ]", "throws TypeLoadException")]
-		[InlineData("TypeDef.FieldList of B = 0", "A[; MA1 MA2] B[; MB1 MB2]", "throws TypeLoadException")]
-		[InlineData("TypeDef.FieldList of C = 0", "B[; MB1 MB2] C[; MC1 MC2]", "throws TypeLoadException|B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]")]
+		[InlineData("TypeDef.MethodList of C = 100", "B[b1 b2; MB1 MB2 MC1 MC2] C[c1 c2; ]", "B[throws TypeLoadException] C[throws TypeLoadException]")]
+		[InlineData("TypeDef.MethodList of B = 7", "A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[b1 b2; ]", "A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[throws TypeLoadException]")]
+		[InlineData("TypeDef.MethodList of B = 100", "A[a1 a2; MA1 MA2 MB1 MB2 MC1 MC2] B[b1 b2; ]", "A[throws TypeLoadException] B[throws TypeLoadException]")]
+		[InlineData("TypeDef.FieldList of B = 0", "A[; MA1 MA2] B[; MB1 MB2]", "A[throws TypeLoadException] B[throws TypeLoadException]|A[a1 a2 b1 b2 c1 c2; MA1 MA2] B[throws TypeLoadException]")]
+		[InlineData("TypeDef.FieldList of C = 0", "B[; MB1 MB2] C[; MC1 MC2]", "B[throws TypeLoadException] C[throws TypeLoadException]|B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]")]
 		[InlineData("TypeDef.FieldList of C = 7", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]")]
-		[InlineData("TypeDef.FieldList of C = 100", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]", "throws TypeLoadException")]
-		[InlineData("TypeDef.FieldList of B = 100", "A[a1 a2 b1 b2 c1 c2; MA1 MA2] B[; MB1 MB2]", "throws TypeLoadException")]
+		[InlineData("TypeDef.FieldList of C = 100", "B[b1 b2 c1 c2; MB1 MB2] C[; MC1 MC2]", "B[throws TypeLoadException] C[throws TypeLoadException]")]
+		[InlineData("TypeDef.FieldList of B = 100", "A[a1 a2 b1 b2 c1 c2; MA1 MA2] B[; MB1 MB2]", "A[throws TypeLoadException] B[throws TypeLoadException]")]
 		public void FieldsAndMethodsOfATypeAreTheOnesThatTheClrReads(string changes, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(changes);
 
