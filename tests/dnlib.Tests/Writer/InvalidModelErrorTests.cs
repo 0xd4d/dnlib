@@ -139,6 +139,79 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// Most lists of a module can't have null: adding it throws
+		[Fact]
+		public void NullCanNotBeAddedToTheListsOfAModule() {
+			var module = created.Module;
+			var method = created.AddMethod("Method", OpCodes.Ret.ToInstruction());
+			var parameter = new GenericParamUser(0, GenericParamAttributes.NonVariant, "T");
+
+			Assert.Throws<ArgumentNullException>(() => module.Types.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.NestedTypes.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.Fields.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.Methods.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.Events.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.Properties.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.GenericParameters.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.CustomAttributes.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => created.Type.Fields.Insert(0, null!));
+			Assert.Throws<ArgumentNullException>(() => method.ParamDefs.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => method.Body!.Variables.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => parameter.GenericParamConstraints.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => module.ExportedTypes.Add(null!));
+			Assert.Throws<ArgumentNullException>(() => module.Resources.Add(null!));
+		}
+
+		// The other lists can have null. The writer reports an error or leaves the null out, it never throws
+		// another exception (eg. a NullReferenceException), and with a logger that doesn't throw the file can be read.
+		// Fixed in this commit: null in the list of exception handlers threw a NullReferenceException.
+		[Theory]
+		[InlineData("exception handler", "Exception handler is null")]
+		[InlineData("method override", "MethodDefOrRef is null")]
+		[InlineData("custom attribute argument", "Custom attribute arguments count != method sig arguments count")]
+		[InlineData("instruction", null)]
+		[InlineData("security declaration", null)]
+		[InlineData("interface", null)]
+		[InlineData("other method of a property", null)]
+		public void NullInAListIsAnErrorOrIsLeftOut(string what, string? expectedError) {
+			var module = created.Module;
+			var method = created.AddMethod("Method", OpCodes.Nop.ToInstruction(), OpCodes.Ret.ToInstruction());
+			switch (what) {
+			case "exception handler": method.Body!.ExceptionHandlers.Add(null!); break;
+			case "method override": method.Overrides.Add(new MethodOverride(null!, null!)); break;
+			case "custom attribute argument": {
+				var constructor = new MemberRefUser(module, ".ctor", MethodSig.CreateInstance(Types.Void, Types.String), Types.GetTypeRef("System", "ObsoleteAttribute"));
+				var attribute = new CustomAttribute(constructor);
+				attribute.NamedArguments.Add(null!);
+				created.Type.CustomAttributes.Add(attribute);
+				break;
+			}
+			case "instruction": method.Body!.Instructions.Insert(0, null!); break;
+			case "security declaration": created.Type.DeclSecurities.Add(null!); break;
+			case "interface": created.Type.Interfaces.Add(null!); break;
+			case "other method of a property": {
+				var property = new PropertyDefUser("Property", PropertySig.CreateStatic(Types.Int32));
+				created.Type.Properties.Add(property);
+				property.OtherMethods.Add(null!);
+				break;
+			}
+			default: throw new ArgumentException(what);
+			}
+
+			if (expectedError is null)
+				created.Write();
+			else
+				Assert.Contains(expectedError, Assert.Throws<ModuleWriterException>(() => created.Write()).Message);
+
+			var stream = new MemoryStream();
+			module.Write(stream, new ModuleWriterOptions(module) { Logger = DummyLogger.NoThrowInstance });
+			using (var written = ModuleDefMD.Load(stream.ToArray())) {
+				var writtenMethod = CreatedModule.GetType(written).FindMethod("Method")!;
+				Assert.Equal(2, writtenMethod.Body!.Instructions.Count);
+				Assert.Empty(writtenMethod.Body.ExceptionHandlers);
+			}
+		}
+
 		// A module where almost everything is missing: the writer reports the errors, and with a logger
 		// that doesn't throw it still writes a file that dnlib reads
 		[Fact]
