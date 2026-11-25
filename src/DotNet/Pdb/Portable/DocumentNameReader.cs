@@ -32,13 +32,19 @@ namespace dnlib.DotNet.Pdb.Portable {
 			sb.Length = 0;
 			if (!blobStream.TryCreateReader(offset, out var reader))
 				return string.Empty;
+			// A document without a name: offset 0 is the empty blob. It has no separator that could be read.
+			if (reader.Length == 0)
+				return string.Empty;
 			var sepChars = ReadSeparatorChar(ref reader, out int sepCharsLength);
 			bool needSep = false;
 			while (reader.Position < reader.Length) {
+				// The name ends at an offset that is cut off or isn't a valid compressed integer
+				if (!reader.TryReadCompressedUInt32(out uint partOffset))
+					break;
 				if (needSep)
 					sb.Append(sepChars, 0, sepCharsLength);
 				needSep = !(sepCharsLength == 1 && sepChars[0] == '\0');
-				var part = ReadDocumentNamePart(reader.ReadCompressedUInt32());
+				var part = ReadDocumentNamePart(partOffset);
 				sb.Append(part);
 				if (sb.Length > MAX_NAME_LENGTH) {
 					sb.Length = MAX_NAME_LENGTH;
@@ -79,6 +85,14 @@ namespace dnlib.DotNet.Pdb.Portable {
 			var bytes = new byte[1];
 			prevSepCharBytesCount = 0;
 			for (int i = 0; ; i++) {
+				if (reader.Position >= reader.Length) {
+					// The blob ends in the middle of a char. Don't keep its bytes: they're the start of a valid
+					// separator that another name can have.
+					prevSepCharBytesCount = 0;
+					prevSepChars[0] = '\uFFFD';
+					prevSepCharsLength = 1;
+					break;
+				}
 				byte b = reader.ReadByte();
 				prevSepCharBytesCount++;
 				if (i == 0 && b == 0) {
