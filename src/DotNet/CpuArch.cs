@@ -231,17 +231,50 @@ namespace dnlib.DotNet {
 
 			// 48A1xxxxxxxxxxxxxxxx		movabs	rax,[xxxxxxxxxxxxxxxx]
 			// FFE0						jmp		rax
-			if (!reader.CanRead(12U))
+			uint startPosition = reader.Position;
+			if (reader.CanRead(12U) && reader.ReadUInt16() == 0xA148) {
+				ulong absAddr = reader.ReadUInt64();
+				if (reader.ReadUInt16() != 0xE0FF)
+					return false;
+				ulong rva = absAddr - peImage.ImageNTHeaders.OptionalHeader.ImageBase;
+				if (rva > uint.MaxValue)
+					return false;
+				funcRva = (uint)rva;
+				return true;
+			}
+			reader.Position = startPosition;
+			return TryGetExportedRvaFromMicrosoftCppStub(ref reader, peImage, out funcRva);
+		}
+
+		// The stub that Microsoft's C++ compiler writes (C++/CLI):
+		//
+		// EB08				jmp		short second
+		// 0F0B				ud2
+		// FF25xxxxxxxx		jmp		QWORD PTR [rip+xxxxxxxx]	; the slot without the flag "retain AppDomain"
+		// second:
+		// FF25xxxxxxxx		jmp		QWORD PTR [rip+xxxxxxxx]
+		static bool TryGetExportedRvaFromMicrosoftCppStub(ref DataReader reader, IPEImage peImage, out uint funcRva) {
+			funcRva = 0;
+			if (!reader.CanRead(2U))
 				return false;
-			if (reader.ReadUInt16() != 0xA148)
+			if (reader.ReadByte() == 0xEB) {
+				long target = (long)reader.Position + 1 + reader.ReadSByte();
+				if (target < 0 || target > reader.Length)
+					return false;
+				reader.Position = (uint)target;
+			}
+			else
+				reader.Position--;
+			if (!reader.CanRead(6U))
 				return false;
-			ulong absAddr = reader.ReadUInt64();
-			if (reader.ReadUInt16() != 0xE0FF)
+			if (reader.ReadUInt16() != 0x25FF)
 				return false;
-			ulong rva = absAddr - peImage.ImageNTHeaders.OptionalHeader.ImageBase;
-			if (rva > uint.MaxValue)
+			int displacement = reader.ReadInt32();
+			// The address is relative to the address of the next instruction
+			long slotRva = (long)(uint)peImage.ToRVA((FileOffset)reader.CurrentOffset) + displacement;
+			if (slotRva <= 0 || slotRva > uint.MaxValue)
 				return false;
-			funcRva = (uint)rva;
+			funcRva = (uint)slotRva;
 			return true;
 		}
 

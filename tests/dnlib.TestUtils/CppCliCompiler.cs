@@ -34,7 +34,7 @@ namespace dnlib.TestUtils {
 			}
 		}
 
-		// Returns the batch file that sets up the environment of the 64-bit compiler, or null
+		// Returns the batch file that sets up the environment of the compilers (its argument says which one), or null
 		static string? FindVcvars() {
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				return null;
@@ -48,23 +48,24 @@ namespace dnlib.TestUtils {
 			var installationPath = output.Trim();
 			if (exitCode != 0 || installationPath.Length == 0)
 				return null;
-			var vcvars = Path.Combine(installationPath, "VC", "Auxiliary", "Build", "vcvars64.bat");
+			var vcvars = Path.Combine(installationPath, "VC", "Auxiliary", "Build", "vcvarsall.bat");
 			return File.Exists(vcvars) ? vcvars : null;
 		}
 
 		/// <summary>
-		/// Compiles C++/CLI code to a 64-bit DLL. Throws if the compiler isn't available (see
+		/// Compiles C++/CLI code to a DLL. Throws if the compiler isn't available (see
 		/// <see cref="WhyNotAvailable"/>) or reports an error.
 		/// </summary>
 		/// <param name="source">C++/CLI code</param>
-		public static byte[] Compile(string source) {
+		/// <param name="is32Bit"><c>true</c> to create a 32-bit (x86) DLL, <c>false</c> to create a 64-bit (x64) DLL</param>
+		public static byte[] Compile(string source, bool is32Bit = false) {
 			if (WhyNotAvailable is string reason)
 				throw new InvalidOperationException(reason);
 
 			using (var tempDirectory = new TempDirectory()) {
 				File.WriteAllText(tempDirectory.GetPath("test.cpp"), source);
 				// /clr: C++/CLI for .NET Framework, /LD: create a DLL, /Zi isn't used: no PDB is needed
-				string command = $"\"\"{vcvarsFile.Value}\" >nul && cl /nologo /clr /LD /Fe:test.dll test.cpp\"";
+				string command = $"\"\"{vcvarsFile.Value}\" {(is32Bit ? "x64_x86" : "x64")} >nul && cl /nologo /clr /LD /Fe:test.dll test.cpp\"";
 				int exitCode = Run("cmd.exe", "/s /c " + command, tempDirectory.Path, out var output);
 				var imageFile = tempDirectory.GetPath("test.dll");
 				if (exitCode != 0 || !File.Exists(imageFile))

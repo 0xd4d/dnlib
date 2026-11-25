@@ -157,6 +157,49 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// Microsoft's C++ compiler (C++/CLI) writes another x64 stub than ilasm: a short jump over a first jump to
+		// a second one, and both jump to the address in a slot that is relative to the next instruction.
+		// Fixed in this commit: this stub wasn't read. See CppCliExportTests for files of that compiler.
+		[Theory]
+		[InlineData("EB 08 0F 0B FF 25 11 11 00 00 FF 25 RELATIVE", true)]
+		[InlineData("FF 25 RELATIVE", true)]
+		[InlineData("EB 00 FF 25 RELATIVE", true)]
+		[InlineData("EB 08 0F 0B FF 25 11 11 00 00 FF 24 RELATIVE", false)]
+		[InlineData("EB 7F", false)]
+		[InlineData("EB 80", false)]
+		[InlineData("FF 25 00 00", false)]
+		[InlineData("FF 25 00 00 00 80", false)]
+		public void StubOfMicrosoftsCppCompilerIsRead(string code, bool isRead) {
+			Assert.True(CpuArch.TryGetCpuArch(Machine.AMD64, out var cpuArch));
+			var newImage = (byte[])image.Clone();
+			uint stubRva, stubOffset;
+			using (var original = new PEImage(image)) {
+				stubRva = (uint)original.ImageSectionHeaders[0].VirtualAddress + 0x40;
+				stubOffset = (uint)original.ToFileOffset((RVA)stubRva);
+			}
+			var bytes = new System.Collections.Generic.List<byte>();
+			foreach (var word in code.Split(' ')) {
+				if (word == "RELATIVE")
+					// The slot's address minus the address of the next instruction (after these 4 bytes)
+					bytes.AddRange(BitConverter.GetBytes((int)(SlotRva - (stubRva + (uint)bytes.Count + 4))));
+				else
+					bytes.Add(Convert.ToByte(word, 16));
+			}
+			// The rest of the section isn't code that could be read as the stub
+			for (int i = 0; i < 0x200; i++)
+				newImage[stubOffset + i] = 0xCC;
+			bytes.CopyTo(newImage, (int)stubOffset);
+
+			using (var peImage = new PEImage(newImage)) {
+				var reader = peImage.CreateReader();
+				reader.Position = stubOffset;
+
+				Assert.Equal(isRead, cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out uint slotRva));
+
+				Assert.Equal(isRead ? SlotRva : 0U, slotRva);
+			}
+		}
+
 		[Theory]
 		[InlineData(Machine.ARM64)]
 		[InlineData(Machine.ARM64_Native_Linux)]
