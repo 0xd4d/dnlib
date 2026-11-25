@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A program for .NET Framework 3.5 that uses dnlib's net35 build. See ../test-net35.sh.
+       The other tests run dnlib's net35 build on .NET Framework 4.8: xunit and the test tools need it. This
+       program runs on the runtime that the build is for (CLR 2.0), so it has its own small list of checks
+       (Program.cs). -->
+  <PropertyGroup>
+    <TargetFramework>net35</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- No app.config: without one, a program for .NET Framework 3.5 only starts on CLR 2.0 -->
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+</Project>

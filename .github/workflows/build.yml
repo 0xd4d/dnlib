@@ -158,6 +158,16 @@ jobs:
         shell: bash
         run: tests/test.sh net10.0 net45 net35
 
+      # The tests above run dnlib's net35 build on .NET Framework 4.8. This runs it on .NET Framework 3.5,
+      # which is a Windows feature that isn't turned on.
+      - name: Turn on .NET Framework 3.5
+        shell: pwsh
+        run: Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All -NoRestart
+
+      - name: Test on .NET Framework 3.5
+        shell: bash
+        run: tests/test-net35.sh --required
+
       - name: Test NativeAOT and trimmed programs
         shell: bash
         run: tests/test-aot.sh
