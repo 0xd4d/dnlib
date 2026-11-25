@@ -667,5 +667,47 @@ public enum CharEnum : ushort { }
 			Assert.False(IsLoadedWithAChangedPdb(PdbReaderOptions.ValidatePdbChecksum));
 			Assert.True(IsLoadedWithAChangedPdb(PdbReaderOptions.None));
 		}
+
+		// The data of a checksum entry is the name of the algorithm, a zero byte and the checksum. An entry
+		// that can't be read (these are the ones System.Reflection.Metadata throws for, and some more) is
+		// ignored like an entry of a debug directory type that dnlib doesn't know: with no other checksum
+		// entry, there's nothing a PDB can be compared with, and a changed PDB is loaded.
+		[Theory]
+		[InlineData("no data")]
+		[InlineData("only a zero byte")]
+		[InlineData("only one byte of the name")]
+		[InlineData("name without a zero byte")]
+		[InlineData("name without a checksum")]
+		[InlineData("checksum is cut off")]
+		[InlineData("unknown algorithm")]
+		public void ChecksumEntryThatCanNotBeReadIsIgnored(string change) {
+			var written = ChangeAndWrite(module => { }, options => options.PdbOptions |= PdbWriterOptions.PdbChecksum);
+			var image = (byte[])written.Image.Clone();
+			using (var peReader = new System.Reflection.PortableExecutable.PEReader(new MemoryStream(written.Image))) {
+				var entries = peReader.ReadDebugDirectory();
+				int index = entries.IndexOf(entries.Single(a => a.Type == System.Reflection.PortableExecutable.DebugDirectoryEntryType.PdbChecksum));
+				int dataOffset = entries[index].DataPointer;
+				Assert.Equal("SHA256\0", Encoding.ASCII.GetString(image, dataOffset, 7));
+				Assert.Equal(7 + 32, entries[index].DataSize);
+				Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(peReader.PEHeaders.PEHeader!.DebugTableDirectory, out int tableOffset));
+				// An entry of the debug directory has 28 bytes, the size of its data is at offset 16
+				void SetDataSize(int size) => BitConverter.GetBytes(size).CopyTo(image, tableOffset + index * 28 + 16);
+				switch (change) {
+				case "no data": SetDataSize(0); break;
+				case "only a zero byte": image[dataOffset] = 0; SetDataSize(1); break;
+				case "only one byte of the name": SetDataSize(1); break;
+				case "name without a zero byte": SetDataSize(6); break;
+				case "name without a checksum": SetDataSize(7); break;
+				case "checksum is cut off": SetDataSize(7 + 31); break;
+				case "unknown algorithm": image[dataOffset] = (byte)'X'; break;
+				default: throw new ArgumentException(change);
+				}
+			}
+
+			var changedPdb = ChangeTheNameOfTheSourceFile(written.Pdb!);
+			var options = new ModuleCreationOptions { PdbFileOrData = changedPdb, PdbOptions = PdbReaderOptions.ValidatePdbChecksum, TryToLoadPdbFromDisk = false };
+			using (var module = ModuleDefMD.Load(image, options))
+				Assert.NotNull(module.PdbState);
+		}
 	}
 }

@@ -224,5 +224,68 @@ namespace dnlib.Tests.Loading {
 			Assert.Throws<BadImageFormatException>(() => new PEImage(new byte[10]));
 			Assert.Throws<BadImageFormatException>(() => new PEImage(new byte[0]));
 		}
+
+		// The file header says how many section headers follow the optional header. If the number is too big,
+		// dnlib reads the headers that have room before the data of the first section (like Mono): the real
+		// ones and then the zero bytes after them, as sections without a name and without data.
+		// System.Reflection.Metadata rejects a number of headers that the file has no room for.
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		[InlineData(100)]
+		[InlineData(0xFFFF - 2)]
+		public void NumberOfSectionsThatIsTooBigIsLimitedToTheSizeOfTheHeaders(int extraSections) {
+			var image = (byte[])Image.Clone();
+			string expected;
+			int extraSectionsRead;
+			using (var peReader = new PEReader(ImmutableArray.Create(Image))) {
+				var headers = peReader.PEHeaders;
+				Assert.Equal(2, headers.SectionHeaders.Length);
+				// The section headers start after the optional header and have 0x28 bytes each
+				int sectionHeadersOffset = headers.PEHeaderStartOffset + headers.CoffHeader.SizeOfOptionalHeader;
+				int room = (headers.SectionHeaders[0].PointerToRawData - sectionHeadersOffset) / 0x28;
+				Assert.Equal(3, room);
+				extraSectionsRead = Math.Min(extraSections, room - 2);
+				// The file header: the machine and then the number of sections
+				BitConverter.GetBytes((ushort)(2 + extraSections)).CopyTo(image, headers.CoffHeaderStartOffset + 2);
+			}
+			using (var original = new PEImage(Image))
+				expected = DescribeHeaders(original);
+			for (int i = 0; i < extraSectionsRead; i++)
+				expected += " |  0 0 0 0";
+
+			using (var peImage = new PEImage(image)) {
+				Assert.Equal(2 + extraSections, peImage.ImageNTHeaders.FileHeader.NumberOfSections);
+				Assert.Equal(expected, DescribeHeaders(peImage));
+			}
+			using (var original = dnlib.DotNet.ModuleDefMD.Load(Image))
+			using (var module = dnlib.DotNet.ModuleDefMD.Load(image))
+				Assert.Equal(original.GetTypes().Select(a => a.FullName), module.GetTypes().Select(a => a.FullName));
+		}
+
+		// A file that ends in its headers
+		[Theory]
+		[InlineData("in the DOS header")]
+		[InlineData("in the file header")]
+		[InlineData("in the optional header")]
+		[InlineData("in the section headers")]
+		public void FileThatEndsInItsHeadersIsRejected(string where) {
+			int length;
+			using (var peReader = new PEReader(ImmutableArray.Create(Image))) {
+				var headers = peReader.PEHeaders;
+				switch (where) {
+				case "in the DOS header": length = 0x20; break;
+				case "in the file header": length = headers.CoffHeaderStartOffset + 10; break;
+				case "in the optional header": length = headers.PEHeaderStartOffset + 0x40; break;
+				case "in the section headers": length = headers.PEHeaderStartOffset + headers.CoffHeader.SizeOfOptionalHeader + 0x28 + 0x10; break;
+				default: throw new ArgumentException(where);
+				}
+			}
+			var image = new byte[length];
+			Array.Copy(Image, image, length);
+
+			var exception = Record.Exception(() => new PEImage(image));
+			Assert.True(exception is BadImageFormatException || exception is System.IO.IOException, exception?.ToString());
+		}
 	}
 }

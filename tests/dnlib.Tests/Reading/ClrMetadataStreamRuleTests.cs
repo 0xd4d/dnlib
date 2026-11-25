@@ -357,6 +357,13 @@ public static class Marker {
 			case "more streams in the header than there are":
 				block.StreamCount = (ushort)(block.Streams.Count + 1);
 				break;
+			case "0x8000 streams in the header":
+				// A reader that reads the number as a signed value gets a negative number
+				block.StreamCount = 0x8000;
+				break;
+			case "0xFFFF streams in the header":
+				block.StreamCount = 0xFFFF;
+				break;
 			case "fewer streams in the header than there are":
 				// The last stream is the #Blob heap
 				Assert.Equal("#Blob", block.Streams.Last().Name);
@@ -403,6 +410,8 @@ public static class Marker {
 		[InlineData("stream name with 31 characters", "RRRR", "RRRR")]
 		[InlineData("stream name with 32 characters", "RRRR", "rejected")]
 		[InlineData("more streams in the header than there are", "RRRR", "rejected")]
+		[InlineData("0x8000 streams in the header", "rejected", "rejected")]
+		[InlineData("0xFFFF streams in the header", "rejected", "rejected")]
 		[InlineData("fewer streams in the header than there are", "R??R", "rejected")]
 		public void MetadataAndTablesHeader(string change, string expectedDnlib, string expectedRuntime) =>
 			AssertRead(CreateImageWithAnotherHeader(change), expectedDnlib, expectedRuntime);

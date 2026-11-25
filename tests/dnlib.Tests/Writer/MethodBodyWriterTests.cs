@@ -202,6 +202,92 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// Adds: nops; try { nops; leave } finally { nops; endfinally }. The leave has 5 bytes, the endfinally 1.
+		static void AddTryFinally(List<Instruction> instructions, List<ExceptionHandler> handlers, int nopsBefore, int tryLength, int handlerLength) {
+			Instruction Nop() {
+				var nop = OpCodes.Nop.ToInstruction();
+				instructions.Add(nop);
+				return nop;
+			}
+			for (int i = 0; i < nopsBefore; i++)
+				Nop();
+			var after = OpCodes.Nop.ToInstruction();
+			var leave = OpCodes.Leave.ToInstruction(after);
+			var tryStart = tryLength == 5 ? leave : Nop();
+			for (int i = 1; i < tryLength - 5; i++)
+				Nop();
+			instructions.Add(leave);
+			var endfinally = OpCodes.Endfinally.ToInstruction();
+			var handlerStart = handlerLength == 1 ? endfinally : Nop();
+			for (int i = 1; i < handlerLength - 1; i++)
+				Nop();
+			instructions.Add(endfinally);
+			instructions.Add(after);
+			handlers.Add(new ExceptionHandler(ExceptionHandlerType.Finally) { TryStart = tryStart, TryEnd = handlerStart, HandlerStart = handlerStart, HandlerEnd = after });
+		}
+
+		// The first byte of the exception handler section of a method with a fat header: 0x01 = it has the
+		// exception handlers, 0x40 = they're in the big format
+		static bool HasFatExceptionClauses(byte[] image, MethodDef method) {
+			using (var peImage = new dnlib.PE.PEImage(image)) {
+				int offset = (int)peImage.ToFileOffset(method.RVA);
+				Assert.Equal(0x3003, System.BitConverter.ToUInt16(image, offset) & 0xF003);
+				int codeSize = System.BitConverter.ToInt32(image, offset + 4);
+				int sectionOffset = (offset + FatHeaderSize + codeSize + 3) & ~3;
+				Assert.Equal(1, image[sectionOffset] & 0x3F);
+				return (image[sectionOffset] & 0x40) != 0;
+			}
+		}
+
+		// An exception handler is written in the small format (12 bytes) or in the big one (24 bytes). All
+		// handlers of a method have the same format. The small one has 2 bytes for an offset, 1 byte for a
+		// length, and its section has 1 byte for its size: that's enough for 20 handlers.
+		[Theory]
+		[InlineData(1, 0, 5, 1, false)]
+		[InlineData(20, 0, 5, 1, false)]
+		[InlineData(21, 0, 5, 1, true)]
+		[InlineData(1, 0, 0xFF, 1, false)]          // the length of the try block
+		[InlineData(1, 0, 0x100, 1, true)]
+		[InlineData(1, 0, 5, 0xFF, false)]          // the length of the handler
+		[InlineData(1, 0, 5, 0x100, true)]
+		[InlineData(1, 0xFFFF, 5, 1, true)]         // the offset of the try block is 0xFFFF, of the handler 0x10004
+		[InlineData(1, 0xFFFF - 5, 5, 1, false)]    // 0xFFFA and 0xFFFF
+		[InlineData(1, 0xFFFF - 4, 5, 1, true)]     // 0xFFFB and 0x10000
+		[InlineData(1, 0x10000, 5, 1, true)]
+		[InlineData(20, 0x100, 0xFF, 0xFF, false)]
+		public void ExceptionHandlersAreSmallIfTheirOffsetsLengthsAndCountAllowIt(int handlerCount, int nopsBefore, int tryLength, int handlerLength, bool fat) {
+			var created = new CreatedModule();
+			var instructions = new List<Instruction>();
+			var handlers = new List<ExceptionHandler>();
+			for (int i = 0; i < handlerCount; i++)
+				AddTryFinally(instructions, handlers, i == 0 ? nopsBefore : 0, tryLength, handlerLength);
+			instructions.Add(OpCodes.Ret.ToInstruction());
+			var method = created.AddMethod("M", instructions.ToArray());
+			foreach (var handler in handlers)
+				method.Body!.ExceptionHandlers.Add(handler);
+
+			var image = created.Write();
+
+			using (var module = ModuleDefMD.Load(image)) {
+				var written = CreatedModule.GetType(module).FindMethod("M")!;
+				Assert.Equal(fat, HasFatExceptionClauses(image, written));
+				var body = written.Body!;
+				Assert.Equal(handlerCount, body.ExceptionHandlers.Count);
+				body.UpdateInstructionOffsets();
+				method.Body!.UpdateInstructionOffsets();
+				for (int i = 0; i < handlerCount; i++) {
+					var expected = method.Body.ExceptionHandlers[i];
+					var actual = body.ExceptionHandlers[i];
+					Assert.Equal(ExceptionHandlerType.Finally, actual.HandlerType);
+					Assert.Equal((expected.TryStart!.Offset, expected.TryEnd!.Offset, expected.HandlerStart!.Offset, expected.HandlerEnd!.Offset),
+						(actual.TryStart!.Offset, actual.TryEnd!.Offset, actual.HandlerStart!.Offset, actual.HandlerEnd!.Offset));
+				}
+				Assert.Equal((uint)nopsBefore, body.ExceptionHandlers[0].TryStart!.Offset);
+				Assert.Equal((uint)tryLength, body.ExceptionHandlers[0].TryEnd!.Offset - body.ExceptionHandlers[0].TryStart!.Offset);
+				Assert.Equal((uint)handlerLength, body.ExceptionHandlers[0].HandlerEnd!.Offset - body.ExceptionHandlers[0].HandlerStart!.Offset);
+			}
+		}
+
 		[Fact]
 		public void BranchToAnInstructionThatIsNotInTheMethodIsAnError() {
 			var created = new CreatedModule();
