@@ -76,7 +76,7 @@ namespace dnlib.Tests.Reading {
 			Assert.Equal(expectedDnlib, dnlib);
 			if (IsRuntimeNotAsked)
 				return;
-			string runtime = readWithTheRuntime();
+			string runtime = ReadOrException(readWithTheRuntime);
 			var allExpected = expectedRuntime.Split('|');
 			if (IsDotNet)
 				Assert.Contains(runtime, allExpected);
@@ -96,17 +96,21 @@ namespace dnlib.Tests.Reading {
 		public static void AssertSameAsTheRuntime(string dnlib, Func<string> readWithTheRuntime) {
 			if (IsRuntimeNotAsked)
 				return;
-			string runtime;
-			try {
-				runtime = readWithTheRuntime();
-			}
-			catch (Exception ex) {
-				runtime = "throws " + ex.GetType().Name;
-			}
+			string runtime = ReadOrException(readWithTheRuntime);
 			if (IsDotNet)
 				Assert.Equal(runtime, dnlib);
 			else
 				Assert.SkipUnless(runtime == dnlib, $"This CLR reads '{runtime}', dnlib reads '{dnlib}'");
+		}
+
+		// An exception is "throws" and its name: a CLR can reject a file that another CLR loads
+		static string ReadOrException(Func<string> readWithTheRuntime) {
+			try {
+				return readWithTheRuntime();
+			}
+			catch (Exception ex) {
+				return "throws " + ex.GetType().Name;
+			}
 		}
 	}
 }
