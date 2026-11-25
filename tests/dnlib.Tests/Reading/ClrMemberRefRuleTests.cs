@@ -155,6 +155,12 @@ public class C {
 		public void CalledMethod(string changes, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(changes);
 
+			// .NET Framework isn't asked: for some of these rows its Module.ResolveMethod() stops the process with
+			// an AccessViolationException
+			if (!ClrReaderComparison.IsDotNet) {
+				Assert.Equal(expectedDnlib, ReadWithDnlib(image));
+				return;
+			}
 			ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
 		}
 	}
