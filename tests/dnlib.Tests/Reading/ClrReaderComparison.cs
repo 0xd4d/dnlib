@@ -66,6 +66,10 @@ namespace dnlib.Tests.Reading {
 			Assert.Equal(expectedDnlib, dnlib);
 			if (IsMono)
 				return;
+			// A CLR can stop the process if it doesn't like a file. On .NET Framework (only Windows CI runs
+			// it) the last of these lines in the log then says which test it was.
+			if (!IsDotNet)
+				Console.Error.WriteLine($"Asking the runtime: {TestContext.Current.Test?.TestDisplayName}");
 			string runtime = readWithTheRuntime();
 			var allExpected = expectedRuntime.Split('|');
 			if (IsDotNet)
