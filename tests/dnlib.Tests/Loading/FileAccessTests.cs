@@ -101,5 +101,26 @@ namespace dnlib.Tests.Loading {
 			File.Delete(file);
 			Assert.False(File.Exists(file));
 		}
+
+		// A PE file can't be bigger than 4 GB, but a file can have other data after it. The file of this test has no
+		// data there (a "sparse" file: the file system doesn't store it), which Windows would still reserve room for.
+		// Fixed in this commit: only the low 32 bits of the file's size were used, so a file with 4 GB and a few
+		// bytes was a file with a few bytes.
+		[Theory]
+		[InlineData(0x100000000L + 16)]
+		[InlineData(0x100000000L)]
+		[InlineData(0xFFFFFFFFL)]
+		[InlineData(0x180000000L)]
+		public void FileWithMoreThan4GBIsLoaded(long fileSize) {
+			// Set DNLIB_TESTS_BIG_FILES=1 to run it on Windows too
+			Assert.SkipWhen(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.GetEnvironmentVariable("DNLIB_TESTS_BIG_FILES") != "1", "The file would use 4 GB of the disk on Windows");
+			Assert.SkipWhen(Reading.ClrReaderComparison.IsMono, "Mono can't map a file of this size");
+			var file = WriteFile(image);
+			using (var stream = new FileStream(file, FileMode.Open, FileAccess.ReadWrite))
+				stream.SetLength(fileSize);
+
+			using (var module = ModuleDefMD.Load(file))
+				Assert.NotNull(module.Find("C", isReflectionName: true));
+		}
 	}
 }
