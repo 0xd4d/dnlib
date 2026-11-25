@@ -58,6 +58,16 @@ jobs:
         shell: bash
         run: tests/test.sh net10.0 net10.0-nts netstandard2.0
 
+      # dnlib can read a file like the Mono runtime does. The tests that compare that with the mono command
+      # need a test run on Mono (the net45 leg, if it's not Windows).
+      - name: Install Mono
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends mono-devel
+
+      - name: Test the rules of the Mono runtime
+        shell: bash
+        run: tests/test.sh net45 -- -class "*.MonoMetadataStreamRuleTests" -class "*.MonoMemberListRuleTests"
+
       - name: Test NativeAOT and trimmed programs
         shell: bash
         run: tests/test-aot.sh
