@@ -46,7 +46,7 @@ namespace dnlib.Tests.Model {
 		static TypeDef GetType(ModuleDef readModule) => readModule.Find("Ns.Type", isReflectionName: true)!;
 
 		[Fact]
-		public void GetterAndSetterAreTheFirstOfTheirLists() {
+		public void GetterAndSetterAreTheLastOfTheirLists() {
 			var property = AddProperty("Property");
 			var getter = AddMethod("get_Property");
 			var otherGetter = AddMethod("get_Other");
@@ -60,11 +60,12 @@ namespace dnlib.Tests.Model {
 			Assert.Equal(new[] { getter }, property.GetMethods);
 			Assert.Equal(new[] { setter }, property.SetMethods);
 
-			// Setting it again replaces the first one, null removes all of them
+			// Setting it again replaces the last one, null removes all of them. The last one is the getter:
+			// it's the one that System.Reflection returns.
 			property.GetMethod = otherGetter;
 			Assert.Equal(new[] { otherGetter }, property.GetMethods);
 			property.GetMethods.Add(getter);
-			Assert.Same(otherGetter, property.GetMethod);
+			Assert.Same(getter, property.GetMethod);
 			property.GetMethod = null;
 			Assert.Empty(property.GetMethods);
 			property.SetMethod = null;
@@ -84,7 +85,7 @@ namespace dnlib.Tests.Model {
 				var readProperty = GetType(read).FindProperty("Property")!;
 
 				Assert.Equal(new[] { "get_First", "get_Second" }, readProperty.GetMethods.Select(a => a.Name.String));
-				Assert.Equal("get_First", readProperty.GetMethod!.Name);
+				Assert.Equal("get_Second", readProperty.GetMethod!.Name);
 				Assert.Equal("set_Property", readProperty.SetMethod!.Name);
 				Assert.Equal(new[] { "other_1", "other_2" }, readProperty.OtherMethods.Select(a => a.Name.String));
 				Assert.True(readProperty.HasOtherMethods);

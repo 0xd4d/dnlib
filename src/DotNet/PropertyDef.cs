@@ -157,13 +157,14 @@ namespace dnlib.DotNet {
 			Interlocked.CompareExchange(ref customDebugInfos, new List<PdbCustomDebugInfo>(), null);
 
 		/// <summary>
-		/// Gets/sets the first getter method. Writing <c>null</c> will clear all get methods.
+		/// Gets/sets the getter method. If there is more than one (see <see cref="GetMethods"/>), it is the last one:
+		/// the one that System.Reflection returns. Writing <c>null</c> will clear all get methods.
 		/// </summary>
 		public MethodDef? GetMethod {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return getMethods!.Count == 0 ? null : getMethods[0];
+				return getMethods!.Count == 0 ? null : getMethods[getMethods.Count - 1];
 			}
 			set {
 				if (otherMethods is null)
@@ -173,18 +174,19 @@ namespace dnlib.DotNet {
 				else if (getMethods!.Count == 0)
 					getMethods.Add(value);
 				else
-					getMethods[0] = value;
+					getMethods[getMethods.Count - 1] = value;
 			}
 		}
 
 		/// <summary>
-		/// Gets/sets the first setter method. Writing <c>null</c> will clear all set methods.
+		/// Gets/sets the setter method. If there is more than one (see <see cref="SetMethods"/>), it is the last one:
+		/// the one that System.Reflection returns. Writing <c>null</c> will clear all set methods.
 		/// </summary>
 		public MethodDef? SetMethod {
 			get {
 				if (otherMethods is null)
 					InitializePropertyMethods();
-				return setMethods!.Count == 0 ? null : setMethods[0];
+				return setMethods!.Count == 0 ? null : setMethods[setMethods.Count - 1];
 			}
 			set {
 				if (otherMethods is null)
@@ -194,7 +196,7 @@ namespace dnlib.DotNet {
 				else if (setMethods!.Count == 0)
 					setMethods.Add(value);
 				else
-					setMethods[0] = value;
+					setMethods[setMethods.Count - 1] = value;
 			}
 		}
 
