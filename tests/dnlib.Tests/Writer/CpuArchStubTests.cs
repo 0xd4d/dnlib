@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Writer;
 using dnlib.IO;
@@ -88,6 +89,71 @@ namespace dnlib.Tests.Writer {
 				var reader = peImage.CreateReader();
 				reader.Position = (uint)peImage.ToFileOffset(peImage.ImageSectionHeaders[0].VirtualAddress) + 0x200;
 				Assert.False(cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out _));
+			}
+		}
+
+		// Every byte of the stub is changed, one at a time: the stub is then not read, or its address is another
+		// one. Nothing throws, also if the address isn't in the file anymore.
+		[Theory, MemberData(nameof(Stubs))]
+		public void StubWithAChangedByteIsNotReadOrHasAnotherAddress(Machine machine, string stubTypeName) {
+			var stubType = Parse(stubTypeName);
+			Assert.True(CpuArch.TryGetCpuArch(machine, out var cpuArch));
+
+			using (var original = WriteStubIntoTheFile(cpuArch, stubType, out uint stubOffset, out var stub)) {
+				var bytes = original.CreateReader().ToArray();
+				int notRead = 0, otherAddress = 0, sameAddress = 0;
+				for (int i = 0; i < stub.Length; i++) {
+					foreach (byte change in new byte[] { 0xFF, 0x80, 0x01 }) {
+						var changed = (byte[])bytes.Clone();
+						changed[stubOffset + i] ^= change;
+						using (var peImage = new PEImage(changed)) {
+							var reader = peImage.CreateReader();
+							reader.Position = stubOffset + cpuArch.GetStubCodeOffset(stubType);
+							if (!cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out uint slotRva)) {
+								Assert.Equal(0U, slotRva);
+								notRead++;
+							}
+							else if (slotRva == SlotRva)
+								sameAddress++;
+							else
+								otherAddress++;
+						}
+					}
+				}
+				// The instructions are checked, the bytes of the address are the address. Only bytes that aren't
+				// part of the code (before it, or padding) can be changed without a change.
+				Assert.True(notRead > 0, "No changed byte made the stub invalid");
+				Assert.True(otherAddress > 0, "No changed byte changed the address");
+				Assert.True(sameAddress <= 3 * (stub.Length - 6), $"{sameAddress} changes were ignored");
+			}
+		}
+
+		// The address in the stub is the address of the slot when the file is loaded: an address below the
+		// address of the file isn't in the file
+		[Theory]
+		[InlineData(Machine.AMD64)]
+		[InlineData(Machine.IA64)]
+		public void StubWithAnAddressBelowTheImageBaseIsNotRead(Machine machine) {
+			Assert.True(CpuArch.TryGetCpuArch(machine, out var cpuArch));
+			using (var original = WriteStubIntoTheFile(cpuArch, StubType.Export, out uint stubOffset, out var stub)) {
+				var bytes = original.CreateReader().ToArray();
+				ulong imageBase = original.ImageNTHeaders.OptionalHeader.ImageBase;
+				var slotAddress = BitConverter.GetBytes(imageBase + SlotRva);
+				// The address of the slot is somewhere in the stub
+				int index = -1;
+				for (int i = 0; i + 8 <= stub.Length; i++) {
+					if (stub.Skip(i).Take(8).SequenceEqual(slotAddress))
+						index = i;
+				}
+				Assert.True(index >= 0);
+				BitConverter.GetBytes(imageBase - 1).CopyTo(bytes, stubOffset + index);
+
+				using (var peImage = new PEImage(bytes)) {
+					var reader = peImage.CreateReader();
+					reader.Position = stubOffset + cpuArch.GetStubCodeOffset(StubType.Export);
+					Assert.False(cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out uint slotRva));
+					Assert.Equal(0U, slotRva);
+				}
 			}
 		}
 
