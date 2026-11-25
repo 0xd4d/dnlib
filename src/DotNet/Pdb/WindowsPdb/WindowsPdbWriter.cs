@@ -406,7 +406,38 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 				breakpointOffset[i] = (uint)GetExternalInstructionOffset(ref info, stepInfo.BreakpointMethod, stepInfo.BreakpointInstruction);
 				breakpointMethods[i] = GetMethodToken(stepInfo.BreakpointMethod);
 			}
+			// The native writer only accepts steps whose yield offsets get bigger (else it fails with E_INVALIDARG).
+			// They can be in another order if the code of the method was moved.
+			if (!IsStrictlyIncreasing(yieldOffsets)) {
+				var order = new int[yieldOffsets.Length];
+				for (int i = 0; i < order.Length; i++)
+					order[i] = i;
+				// The index makes the sort stable
+				Array.Sort(order, (a, b) => yieldOffsets[a] != yieldOffsets[b] ? yieldOffsets[a].CompareTo(yieldOffsets[b]) : a.CompareTo(b));
+				yieldOffsets = Reorder(yieldOffsets, order);
+				breakpointOffset = Reorder(breakpointOffset, order);
+				breakpointMethods = Reorder(breakpointMethods, order);
+				if (!IsStrictlyIncreasing(yieldOffsets)) {
+					Error("Two steps of an async method have the same yield instruction. Method {0} ({1:X8})", info.Method, info.Method.MDToken.Raw);
+					return;
+				}
+			}
 			writer.DefineAsyncStepInfo(yieldOffsets, breakpointOffset, breakpointMethods);
+		}
+
+		static bool IsStrictlyIncreasing(uint[] values) {
+			for (int i = 1; i < values.Length; i++) {
+				if (values[i] <= values[i - 1])
+					return false;
+			}
+			return true;
+		}
+
+		static uint[] Reorder(uint[] values, int[] order) {
+			var result = new uint[values.Length];
+			for (int i = 0; i < result.Length; i++)
+				result[i] = values[order[i]];
+			return result;
 		}
 
 		int GetExternalInstructionOffset(ref CurrentMethod info, MethodDef method, Instruction instr) {

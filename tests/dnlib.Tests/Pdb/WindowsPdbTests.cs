@@ -788,5 +788,57 @@ public class Program {
 				}
 			}
 		}
+
+		// The debug info of an async method has a "step" for every await: where the method yields and where it
+		// continues. The native writer only accepts steps that are sorted by where the method yields.
+		// Fixed in this commit: steps in another order (code can be moved, or the PDB had them like that) made the
+		// write throw an ArgumentException. They are sorted now, and two steps at the same instruction are an error.
+		[Theory]
+		[InlineData("other order", true)]
+		[InlineData("no steps", true)]
+		[InlineData("same yield instruction", false)]
+		public void StepsOfAnAsyncMethodAreWrittenInTheOrderOfTheCode(string change, bool isWritten) {
+			SkipUnlessWindows();
+			string methodName;
+			List<string> expectedSteps;
+			var written = new MemoryStream();
+			var writtenPdb = new MemoryStream();
+			string DescribeStep(PdbAsyncStepInfo step) => $"{step.YieldInstruction!.Offset:X} {step.BreakpointMethod!.FullName} {step.BreakpointInstruction!.Offset:X}";
+			using (var module = Load(Windows)) {
+				var method = module.GetTypes().SelectMany(a => a.Methods).First(a => a.CustomDebugInfos.OfType<PdbAsyncMethodCustomDebugInfo>().Any(b => b.StepInfos.Count >= 2));
+				methodName = method.FullName;
+				var steps = method.CustomDebugInfos.OfType<PdbAsyncMethodCustomDebugInfo>().Single().StepInfos;
+				switch (change) {
+				case "other order":
+					var first = steps[0];
+					steps.RemoveAt(0);
+					steps.Add(first);
+					break;
+				case "no steps":
+					steps.Clear();
+					break;
+				case "same yield instruction":
+					steps[1] = new PdbAsyncStepInfo(steps[0].YieldInstruction!, steps[1].BreakpointMethod!, steps[1].BreakpointInstruction!);
+					break;
+				}
+				expectedSteps = steps.Select(DescribeStep).OrderBy(a => a, System.StringComparer.Ordinal).ToList();
+				var options = new ModuleWriterOptions(module) { WritePdb = true, PdbStream = writtenPdb, PdbFileName = "written.pdb" };
+
+				if (!isWritten) {
+					var exception = Assert.Throws<ModuleWriterException>(() => module.Write(written, options));
+					Assert.Contains("same yield instruction", exception.Message);
+					return;
+				}
+				module.Write(written, options);
+			}
+
+			using (var module = Load(new CompiledAssembly(written.ToArray(), writtenPdb.ToArray()))) {
+				var method = module.GetTypes().SelectMany(a => a.Methods).Single(a => a.FullName == methodName);
+				var asyncMethod = method.CustomDebugInfos.OfType<PdbAsyncMethodCustomDebugInfo>().Single();
+				Assert.NotNull(asyncMethod.KickoffMethod);
+				// Sorted by the yield offset
+				Assert.Equal(expectedSteps, asyncMethod.StepInfos.Select(DescribeStep).ToList());
+			}
+		}
 	}
 }
