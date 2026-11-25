@@ -513,7 +513,7 @@ namespace dnlib.DotNet {
 			attributes = row.PropFlags;
 			name = readerModule.StringsStream.ReadNoNull(row.Name);
 			declaringType2 = readerModule.GetOwnerType(this);
-			type = readerModule.ReadSignature(row.Type, new GenericParamContext(declaringType2));
+			type = SignatureReader.ReadPropertySig(readerModule, row.Type, new GenericParamContext(declaringType2));
 		}
 
 		internal PropertyDefMD InitializeAll() {

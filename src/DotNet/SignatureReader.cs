@@ -78,6 +78,37 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Reads the signature of a property. The CLR reads it as a property signature whatever its calling
+		/// convention is (if it's not a field signature), so this method does the same.
+		/// </summary>
+		/// <param name="readerModule">Reader module</param>
+		/// <param name="sig">#Blob stream offset of signature</param>
+		/// <param name="gpContext">Generic parameter context</param>
+		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if
+		/// <paramref name="sig"/> is invalid.</returns>
+		internal static CallingConventionSig? ReadPropertySig(ModuleDefMD readerModule, uint sig, GenericParamContext gpContext) {
+			try {
+				var reader = new SignatureReader(readerModule, sig, gpContext);
+				if (reader.reader.Length == 0)
+					return null;
+				CallingConventionSig? csig;
+				var callingConvention = (CallingConvention)reader.reader.ReadByte();
+				if ((callingConvention & CallingConvention.Mask) == CallingConvention.Field) {
+					reader.reader.Position--;
+					csig = reader.ReadSig();
+				}
+				else
+					csig = reader.ReadProperty(callingConvention);
+				if (csig is not null)
+					csig.ExtraData = reader.GetExtraData();
+				return csig;
+			}
+			catch {
+				return null;
+			}
+		}
+
+		/// <summary>
 		/// Reads a <see cref="CallingConventionSig"/> signature
 		/// </summary>
 		/// <param name="module">The module where the signature is located in</param>
