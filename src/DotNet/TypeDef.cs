@@ -684,7 +684,9 @@ namespace dnlib.DotNet {
 		/// </summary>
 		public bool IsDelegate {
 			get {
-				if ((Attributes & (TypeAttributes.Abstract | TypeAttributes.ClassSemanticsMask)) != TypeAttributes.Class)
+				// Don't check for abstract: for the CLR every class whose base type is System.MulticastDelegate
+				// is a delegate, and it loads an abstract one
+				if ((Attributes & TypeAttributes.ClassSemanticsMask) != TypeAttributes.Class)
 					return false;
 				var baseType = BaseType;
 				if (baseType is null)
