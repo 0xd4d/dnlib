@@ -39,8 +39,8 @@ namespace dnlib.Tests.Reading {
 		/// Compiles the code and writes it with a big <see cref="PaddingStreamName"/> stream. A test removes
 		/// that stream with <see cref="MetadataBlock.RemoveStream"/> and can then add 16 KB to the metadata.
 		/// </summary>
-		public static byte[] CreateBaseImage(string source, Action<ModuleWriterOptions>? changeOptions = null) {
-			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(source).Image)) {
+		public static byte[] CreateBaseImage(string source, Action<ModuleWriterOptions>? changeOptions = null, CSharpCompilerOptions? compilerOptions = null) {
+			using (var module = ModuleDefMD.Load(CSharpCompiler.Compile(source, compilerOptions).Image)) {
 				var options = new ModuleWriterOptions(module);
 				changeOptions?.Invoke(options);
 				options.MetadataOptions.CustomHeaps.Add(new PaddingHeap());
@@ -97,6 +97,24 @@ namespace dnlib.Tests.Reading {
 				AssertRead(expectedDnlib, dnlib, expectedRuntime, readWithTheRuntime);
 			else
 				Assert.Equal(expectedDnlib, dnlib);
+		}
+
+		/// <summary>
+		/// For metadata that only .NET Framework reads (.NET has no code for it, eg. security declarations):
+		/// checks what dnlib read on every runtime, and what .NET Framework reads if it runs the tests. See
+		/// <see cref="IsRuntimeNotAsked"/> for when the runtime isn't asked.
+		/// </summary>
+		/// <param name="expectedDnlib">What dnlib must read</param>
+		/// <param name="dnlib">What dnlib read</param>
+		/// <param name="expectedNetFramework">What .NET Framework reads</param>
+		/// <param name="readWithNetFramework">Reads the same with the runtime</param>
+		public static void AssertReadOnNetFramework(string expectedDnlib, string dnlib, string expectedNetFramework, Func<string> readWithNetFramework) {
+			Assert.Equal(expectedDnlib, dnlib);
+			if (IsDotNet || IsRuntimeNotAsked)
+				return;
+			string runtime = ReadOrException(readWithNetFramework);
+			bool isSame = runtime == expectedNetFramework || (runtime.StartsWith("throws ") && expectedNetFramework.StartsWith("throws "));
+			Assert.True(isSame, $".NET Framework reads '{runtime}', expected '{expectedNetFramework}'");
 		}
 
 		// To find the test cases that make a runtime crash or hang (see AssertReadAskOnlyDotNet): if the

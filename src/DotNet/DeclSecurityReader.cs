@@ -103,12 +103,17 @@ namespace dnlib.DotNet {
 				var name = ReadUTF8String();
 				// Use CA search rules. Some tools don't write the fully qualified name.
 				var attrRef = TypeNameParser.ParseReflection(module, UTF8String.ToSystemStringOrEmpty(name), new CAAssemblyRefFinder(module), gpContext);
-				/*int blobLength = (int)*/
-				reader.ReadCompressedUInt32();
+				uint blobLength = reader.ReadCompressedUInt32();
+				ulong blobEnd = (ulong)reader.Position + blobLength;
 				int numNamedArgs = (int)reader.ReadCompressedUInt32();
 				var namedArgs = CustomAttributeReader.ReadNamedArguments(module, ref reader, numNamedArgs, gpContext);
 				if (namedArgs is null)
 					throw new ApplicationException("Could not read named arguments");
+				// The CLR reads the next attribute at the end of this one, and the length says where that is: there
+				// can be more bytes after the named arguments. A length that's too small is ignored (the CLR then
+				// fails to read the attributes).
+				if (blobEnd > reader.Position && blobEnd <= reader.Length)
+					reader.Position = (uint)blobEnd;
 				list.Add(new SecurityAttribute(attrRef, namedArgs));
 			}
 
