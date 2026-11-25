@@ -84,14 +84,18 @@ namespace dnlib.Tests.Pdb {
 		// A sequence point that a portable PDB can't store is an error: a line or column that's negative or too
 		// big, or an end before the start. If the error is ignored, the values are changed to valid ones like
 		// Microsoft's PDB converter does it.
+		// Fixed in the commit that added this test: too big values became 0xFEEFED (lines) and 0xFFFE (columns), the
+		// biggest values that System.Reflection.Metadata before .NET 12 reads. They're now the biggest valid
+		// values, so the written file is read with dnlib.
 		[Theory]
 		[InlineData(-1, 5, 10, 6, 0, 5, 10, 6)]                             // negative line
 		[InlineData(10, -3, 11, -1, 10, 0, 11, 0)]                          // negative columns
 		[InlineData(10, 5, 9, 6, 10, 5, 10, 6)]                             // ends on an earlier line
 		[InlineData(10, 9, 10, 4, 10, 9, 10, 10)]                           // ends at an earlier column
 		[InlineData(10, 5, 0xFEEFEE, 6, 10, 5, 0xFEEFED, 6)]                // the end line is the "hidden" line
-		[InlineData(0x20000000, 1, 0x20000001, 2, 0xFEEFED, 1, 0xFEEFED, 2)]    // lines are too big
-		[InlineData(10, 0x10000, 11, 0x20000, 10, 0xFFFE, 11, 0xFFFE)]      // columns are too big
+		[InlineData(0x20000000, 1, 0x20000001, 2, 0x1FFFFFFF, 1, 0x1FFFFFFF, 2)]    // lines are too big
+		[InlineData(10, 0x10000, 11, 0x20000, 10, 0xFFFF, 11, 0xFFFF)]      // columns are too big
+		[InlineData(10, 0x10000, 10, 0x20000, 10, 0xFFFE, 10, 0xFFFF)]      // and nothing is left of its width
 		public void InvalidSequencePointIsAnErrorAndIsWrittenWithValidValues(int startLine, int startColumn, int endLine, int endColumn,
 				int writtenStartLine, int writtenStartColumn, int writtenEndLine, int writtenEndColumn) {
 			void Change(ModuleDefMD module) {
@@ -106,13 +110,68 @@ namespace dnlib.Tests.Pdb {
 			Assert.Contains("Invalid sequence point", exception.Message);
 
 			var written = ChangeAndWrite(Change, options => options.Logger = DummyLogger.NoThrowInstance);
-			using (var pdb = OpenWithSrm(written.Pdb!)) {
-				var reader = pdb.GetMetadataReader();
-				var debugInformation = reader.GetMethodDebugInformation(MetadataTokens.MethodDebugInformationHandle((int)GetMethodRid("Sum")));
-				var sequencePoint = debugInformation.GetSequencePoints().First();
+			AssertFirstSequencePointOfSum(written, writtenStartLine, writtenStartColumn, writtenEndLine, writtenEndColumn);
+		}
 
-				Assert.Equal((writtenStartLine, writtenStartColumn, writtenEndLine, writtenEndColumn),
+		static void AssertFirstSequencePointOfSum(CompiledAssembly written, int startLine, int startColumn, int endLine, int endColumn) {
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!)) {
+				var sequencePoint = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions.Select(a => a.SequencePoint).OfType<SequencePoint>().First();
+
+				Assert.Equal((startLine, startColumn, endLine, endColumn),
 					(sequencePoint.StartLine, sequencePoint.StartColumn, sequencePoint.EndLine, sequencePoint.EndColumn));
+			}
+		}
+
+		// The biggest valid lines and columns, and the lines next to the "hidden" line, are written as they are
+		[Theory]
+		[InlineData(0x1FFFFFFE, 0xFFFE, 0x1FFFFFFF, 0xFFFF)]
+		[InlineData(0x1FFFFFFF, 0xFFFE, 0x1FFFFFFF, 0xFFFF)]
+		[InlineData(0xFEEFED, 0, 0xFEEFEF, 0)]
+		[InlineData(0xFEEFEF, 1, 0xFEEFEF, 2)]
+		[InlineData(0, 0, 0, 1)]
+		public void SequencePointWithTheBiggestOrSmallestValuesIsWritten(int startLine, int startColumn, int endLine, int endColumn) {
+			var written = ChangeAndWrite(module => {
+				// Only the first sequence point is kept: a start line is written as the difference to the last
+				// one, and that's a smaller number (see the next test)
+				var instructions = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions;
+				var sequencePoint = instructions.Select(a => a.SequencePoint).OfType<SequencePoint>().First();
+				foreach (var instruction in instructions.Where(a => a.SequencePoint != sequencePoint))
+					instruction.SequencePoint = null;
+				sequencePoint.StartLine = startLine;
+				sequencePoint.StartColumn = startColumn;
+				sequencePoint.EndLine = endLine;
+				sequencePoint.EndColumn = endColumn;
+			});
+
+			AssertFirstSequencePointOfSum(written, startLine, startColumn, endLine, endColumn);
+		}
+
+		// A start line is stored as the difference to the start line of the sequence point before it, a signed
+		// number of 29 bits. Two valid lines can be further apart: that's an error, and if it's ignored, the
+		// second sequence point is written as a hidden one.
+		[Fact]
+		public void StartLineThatIsTooFarFromTheLastOneIsAnErrorAndIsWrittenAsAHiddenSequencePoint() {
+			void Change(ModuleDefMD module) {
+				var sequencePoints = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions.Select(a => a.SequencePoint).OfType<SequencePoint>().ToList();
+				SetPosition(sequencePoints[0], line: 1, column: 1);
+				sequencePoints[0].EndColumn = 2;
+				SetPosition(sequencePoints[1], line: 0x10000001, column: 1);
+				sequencePoints[1].EndColumn = 2;
+				SetPosition(sequencePoints[2], line: 0x10000000, column: 1);
+				sequencePoints[2].EndColumn = 2;
+			}
+
+			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(Change));
+			Assert.Contains("can't be encoded", exception.Message);
+
+			var written = ChangeAndWrite(Change, options => options.Logger = DummyLogger.NoThrowInstance);
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!)) {
+				var sequencePoints = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions.Select(a => a.SequencePoint).OfType<SequencePoint>().ToList();
+
+				Assert.Equal(1, sequencePoints[0].StartLine);
+				Assert.Equal(0xFEEFEE, sequencePoints[1].StartLine);
+				// 0x0FFFFFFF lines after the first one: the biggest difference
+				Assert.Equal(0x10000000, sequencePoints[2].StartLine);
 			}
 		}
 

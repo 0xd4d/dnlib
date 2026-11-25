@@ -3525,14 +3525,15 @@ namespace dnlib.DotNet.Writer {
 				(uint)startColumn > MaxColumn || (uint)endColumn > MaxColumn ||
 				endLine < startLine || (endLine == startLine && endColumn < startColumn)) {
 				Error("Invalid sequence point: start line {0}, start column {1}, end line {2}, end column {3}", startLine, startColumn, endLine, endColumn);
-				// Like Pdb2Pdb, but too big values become the biggest values System.Reflection.Metadata in .NET 10
-				// and earlier can read: it rejects lines >= 0xFEEFEE and columns >= 0xFFFF.
-				const int MaxFixedLine = SequencePointConstants.HIDDEN_LINE - 1;
-				const int MaxFixedColumn = MaxColumn - 1;
-				startLine = FixValue(startLine, MaxLine, MaxFixedLine);
-				endLine = Math.Max(startLine, endLine == SequencePointConstants.HIDDEN_LINE ? MaxFixedLine : FixValue(endLine, MaxLine, MaxFixedLine));
-				startColumn = FixValue(startColumn, MaxColumn, MaxFixedColumn);
-				endColumn = FixValue(endColumn, MaxColumn, MaxFixedColumn);
+				// Like Pdb2Pdb: a negative value becomes 0, a too big value becomes the biggest valid value, and
+				// an end before the start becomes the start. Pdb2Pdb writes an end line of 0xFEEFEE as it is,
+				// but that's not a valid line, so it becomes the line before it.
+				startLine = FixValue(startLine, MaxLine);
+				endLine = Math.Max(startLine, FixValue(endLine, MaxLine));
+				if (endLine == SequencePointConstants.HIDDEN_LINE)
+					endLine--;
+				startColumn = FixValue(startColumn, MaxColumn);
+				endColumn = FixValue(endColumn, MaxColumn);
 				if (endLine == startLine && endColumn < startColumn)
 					endColumn = startColumn;
 			}
@@ -3541,20 +3542,21 @@ namespace dnlib.DotNet.Writer {
 				// Only hidden sequence points can have zero width: (0, 0) is the hidden-sequence-point-record.
 				// Do what Microsoft's Pdb2Pdb does: (line, 0, line, 0) (written by eg. C++/CLI) is the whole
 				// line, anything else gets a width of one column. Pdb2Pdb uses 0xFFFF as the end column of
-				// a whole line, but System.Reflection.Metadata in .NET 10 and earlier rejects 0xFFFF, so
-				// use 0xFFFE. For the same reason, a start column >= 0xFFFE becomes 0xFFFD-0xFFFE.
+				// a whole line. That's a valid column, but System.Reflection.Metadata before .NET 12
+				// rejects it and then reads no sequence point of the method, so use 0xFFFE: it's still the
+				// whole line. A start column of 0xFFFF has no next column, so it becomes 0xFFFE-0xFFFF.
 				if (startColumn == 0)
 					endColumn = MaxColumn - 1;
-				else if (startColumn >= MaxColumn - 1) {
-					startColumn = MaxColumn - 2;
-					endColumn = MaxColumn - 1;
+				else if (startColumn == MaxColumn) {
+					startColumn = MaxColumn - 1;
+					endColumn = MaxColumn;
 				}
 				else
 					endColumn = startColumn + 1;
 			}
 		}
 
-		static int FixValue(int value, int max, int maxFixed) => value < 0 ? 0 : value > max ? maxFixed : value;
+		static int FixValue(int value, int max) => value < 0 ? 0 : value > max ? max : value;
 
 		static void GetSingleDocument(CilBody body, out PdbDocument? singleDoc, out PdbDocument? firstDoc, out bool hasNoSeqPoints) {
 			var instrs = body.Instructions;
