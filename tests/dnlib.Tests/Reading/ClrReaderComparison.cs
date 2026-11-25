@@ -78,13 +78,13 @@ namespace dnlib.Tests.Reading {
 				return;
 			string runtime = ReadOrException(readWithTheRuntime);
 			var allExpected = expectedRuntime.Split('|');
+			// It's not a difference if the runtime throws another exception than the expected one: which
+			// exception it is depends on the CLR and on the operating system
+			bool isSame = allExpected.Contains(runtime) || (runtime.StartsWith("throws ") && allExpected.Any(a => a.StartsWith("throws ")));
 			if (IsDotNet)
-				Assert.Contains(runtime, allExpected);
-			else {
-				// It's not a difference if both CLRs throw, whatever the exception is
-				bool isSame = allExpected.Contains(runtime) || (runtime.StartsWith("throws ") && allExpected.Any(a => a.StartsWith("throws ")));
+				Assert.True(isSame, $".NET reads '{runtime}', expected '{expectedRuntime}'");
+			else
 				Assert.SkipUnless(isSame, $"This CLR reads '{runtime}', .NET reads '{expectedRuntime}', dnlib reads '{expectedDnlib}'");
-			}
 		}
 
 		/// <summary>

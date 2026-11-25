@@ -61,7 +61,8 @@ namespace dnlib.Tests.Reading {
 		// Not the same, and not changed in dnlib:
 		// - the runtime leaves out a version part that is 65535 (and the parts after it): it means "no value"
 		// - the runtime puts a name with a quote or with a space at its start or end in quotes
-		// - a name of a referenced assembly goes through CultureInfo, which changes the case of the culture
+		// - a name of a referenced assembly goes through CultureInfo: what it does with a culture that it doesn't
+		//   know depends on the operating system, so the tests only have a culture that every system knows
 		[Theory]
 		[InlineData("", "TestAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "TestAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")]
 		[InlineData("MajorVersion = 65535; MinorVersion = 65535; BuildNumber = 65535; RevisionNumber = 65535", "TestAssembly, Version=65535.65535.65535.65535, Culture=neutral, PublicKeyToken=null", "TestAssembly, Culture=neutral, PublicKeyToken=null")]
@@ -126,9 +127,6 @@ namespace dnlib.Tests.Reading {
 		[InlineData("Name = ''", ", Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "")]
 		// The culture
 		[InlineData("Locale = 'de'", "Ref, Version=1.2.3.4, Culture=de, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3.4, Culture=de, PublicKeyToken=0102030405060708")]
-		[InlineData("Locale = 'DE-de'", "Ref, Version=1.2.3.4, Culture=DE-de, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3.4, Culture=de-DE, PublicKeyToken=0102030405060708")]
-		[InlineData("Locale = 'neutral'", "Ref, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]
-		[InlineData("Locale = 'no-such-culture'", "Ref, Version=1.2.3.4, Culture=no-such-culture, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3.4, Culture=no-Such-CULTURE, PublicKeyToken=0102030405060708")]
 		[InlineData("Locale = 'a,b'", "Ref, Version=1.2.3.4, Culture=a\\,b, PublicKeyToken=0102030405060708", "throws CultureNotFoundException")]
 		// The public key token, or the public key with the flag that says so (1)
 		[InlineData("PublicKeyOrToken = " + Token, "Ref, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708", "Ref, Version=1.2.3.4, Culture=neutral, PublicKeyToken=0102030405060708")]

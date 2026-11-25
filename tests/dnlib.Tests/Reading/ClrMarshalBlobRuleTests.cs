@@ -116,8 +116,8 @@ public class Marker {
 			}
 		}
 
-		// .NET's MarshalAsAttribute of a field doesn't have the values of a safe array and of an interface;
-		// dnlib reads them
+		// "A|B": the values of a safe array and of an interface are only in .NET's MarshalAsAttribute on
+		// Windows (B). On other systems the attribute only has the native type (A); dnlib always reads them.
 		[Theory]
 		// Simple native types
 		[InlineData("07", "07", "07")]
@@ -155,13 +155,13 @@ public class Marker {
 		[InlineData("2A 07 80 02 80 0A 01", "2A element=07 parameter=2 size=10", "2A element=07 parameter=2 size=10")]
 		[InlineData("2A 07 02 0A FF", "only the bytes", "throws BadImageFormatException")]
 		// A safe array (1D): the type of the elements and the name of a type
-		[InlineData("1D 03", "1D variant=3", "1D")]
+		[InlineData("1D 03", "1D variant=3", "1D|1D variant=3")]
 		[InlineData("1D", "1D", "1D")]
-		[InlineData("1D 03 S:Marker", "1D variant=3 type=Marker", "1D")]
-		[InlineData("1D 03 S:No.Such.Type", "1D variant=3 type=No.Such.Type", "1D")]
-		[InlineData("1D 03 00", "1D variant=3", "1D")]
+		[InlineData("1D 03 S:Marker", "1D variant=3 type=Marker", "1D|1D variant=3 type=Marker")]
+		[InlineData("1D 03 S:No.Such.Type", "1D variant=3 type=No.Such.Type", "1D|1D variant=3")]
+		[InlineData("1D 03 00", "1D variant=3", "1D|1D variant=3")]
 		[InlineData("1D 00", "1D", "1D")]
-		[InlineData("1D 03 7F", "only the bytes", "1D")]
+		[InlineData("1D 03 7F", "only the bytes", "1D|throws BadImageFormatException")]
 		// A custom marshaler (2C): a GUID, the name of a native type, the name of the marshaler, a cookie
 		[InlineData("2C 00 00 S:Marker S:cookie", "2C marshaler=Marker cookie=cookie", "2C marshaler=Marker cookie=cookie")]
 		[InlineData("2C S:guid S:native S:Marker S:cookie", "2C marshaler=Marker cookie=cookie", "2C marshaler=Marker cookie=cookie")]
@@ -175,10 +175,10 @@ public class Marker {
 		[InlineData("2C 00 00 S:Marker 7F", "only the bytes", "throws BadImageFormatException")]
 		// Interfaces (19, 1A, 1C): the number of a parameter
 		[InlineData("19", "19", "19")]
-		[InlineData("19 03", "19 iid=3", "19")]
-		[InlineData("1A 03", "1A iid=3", "1A")]
-		[InlineData("1C 03", "1C iid=3", "1C")]
-		[InlineData("19 80 03", "19 iid=3", "19")]
+		[InlineData("19 03", "19 iid=3", "19|19 iid=3")]
+		[InlineData("1A 03", "1A iid=3", "1A|1A iid=3")]
+		[InlineData("1C 03", "1C iid=3", "1C|1C iid=3")]
+		[InlineData("19 80 03", "19 iid=3", "19|19 iid=3")]
 		public void MarshallingInfoOfAField(string blob, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(blob);
 
