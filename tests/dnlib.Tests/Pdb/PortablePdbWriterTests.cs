@@ -418,6 +418,9 @@ public enum CharEnum : ushort { }
 			case "custom debug info of an unknown kind":
 				method.CustomDebugInfos.Add(new UnknownKindOfInfo());
 				break;
+			case "null instead of a custom debug info":
+				method.CustomDebugInfos.Add(null!);
+				break;
 			default:
 				throw new ArgumentException(what);
 			}
@@ -429,6 +432,7 @@ public enum CharEnum : ushort { }
 		[InlineData("document without a name", "Document name is null")]
 		[InlineData("iterator method without the method it was created for", "KickoffMethod is null")]
 		[InlineData("custom debug info of an unknown kind", "Unknown custom debug info")]
+		[InlineData("null instead of a custom debug info", "Custom debug info is null")]
 		public void DebugInfoThatCanNotBeWrittenIsAnError(string what, string expectedError) {
 			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(module => MakePdbInfoInvalid(module, what)));
 			Assert.Contains(expectedError, exception.Message);

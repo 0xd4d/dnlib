@@ -321,7 +321,7 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			else
 				WriteScope(ref info, scope, 0, 0, (int)info.BodySize, isRoot: true);
 
-			GetPseudoCustomDebugInfos(method.CustomDebugInfos, cdiBuilder, out var asyncMethod);
+			GetPseudoCustomDebugInfos(method, method.CustomDebugInfos, cdiBuilder, out var asyncMethod);
 			if (cdiBuilder.Count != 0) {
 				customDebugInfoWriterContext.Logger = GetLogger();
 				var cdiData = PdbCustomDebugInfoWriter.Write(metadata, method, customDebugInfoWriterContext, cdiBuilder);
@@ -339,12 +339,16 @@ namespace dnlib.DotNet.Pdb.WindowsPdb {
 			writer.CloseMethod();
 		}
 
-		void GetPseudoCustomDebugInfos(IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo? asyncMethod) {
+		void GetPseudoCustomDebugInfos(MethodDef method, IList<PdbCustomDebugInfo> customDebugInfos, List<PdbCustomDebugInfo> cdiBuilder, out PdbAsyncMethodCustomDebugInfo? asyncMethod) {
 			cdiBuilder.Clear();
 			asyncMethod = null;
 			int count = customDebugInfos.Count;
 			for (int i = 0; i < count; i++) {
 				var cdi = customDebugInfos[i];
+				if (cdi is null) {
+					Error("Custom debug info is null. Method {0} ({1:X8})", method, method.MDToken.Raw);
+					continue;
+				}
 				switch (cdi.Kind) {
 				case PdbCustomDebugInfoKind.AsyncMethod:
 					if (asyncMethod is not null)

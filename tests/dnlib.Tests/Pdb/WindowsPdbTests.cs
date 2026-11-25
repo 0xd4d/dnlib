@@ -840,5 +840,95 @@ public class Program {
 				Assert.Equal(expectedSteps, asyncMethod.StepInfos.Select(DescribeStep).ToList());
 			}
 		}
+
+		// Custom debug info that a Windows PDB can't store is an error of the writer (a ModuleWriterException with
+		// the default logger), never another exception.
+		// Fixed in this commit: null in the list of a method's custom debug infos threw a NullReferenceException.
+		[Theory]
+		[InlineData("more than 255 infos", "Too many custom debug infos")]
+		[InlineData("null info", "Custom debug info is null")]
+		[InlineData("more than 65535 using counts", "UsingCounts contains more than 0xFFFF elements")]
+		[InlineData("forwarded to a method of another module", "is not defined in this module")]
+		[InlineData("state machine without a type", "State machine type is null")]
+		[InlineData("null dynamic local", "Dynamic local is null")]
+		[InlineData("dynamic local with 65 flags", "Dynamic local flags is longer than 64 bytes")]
+		[InlineData("dynamic local with a long name", "Dynamic local name is longer than 64 chars")]
+		[InlineData("dynamic local with a zero character", "Dynamic local name contains a NUL char")]
+		[InlineData("null tuple names", "Tuple name info is null")]
+		[InlineData("tuple name with a zero character", "NUL char")]
+		[InlineData("info of a portable PDB", "isn't supported by Windows PDB files")]
+		public void CustomDebugInfoThatCanNotBeWrittenIsAnError(string what, string expectedMessage) {
+			SkipUnlessWindows();
+			using (var module = Load(DebugInfoSource.CompiledWithWindowsPdb))
+			using (var otherModule = Load(Windows)) {
+				var method = DebugInfoSource.GetMethod(module, "Sum");
+				var infos = method.CustomDebugInfos;
+				infos.Clear();
+				switch (what) {
+				case "more than 255 infos":
+					for (int i = 0; i < 256; i++)
+						infos.Add(new PdbUsingGroupsCustomDebugInfo());
+					break;
+				case "null info":
+					infos.Add(null!);
+					break;
+				case "more than 65535 using counts":
+					var usingGroups = new PdbUsingGroupsCustomDebugInfo();
+					for (int i = 0; i < 0x10000; i++)
+						usingGroups.UsingCounts.Add(1);
+					infos.Add(usingGroups);
+					break;
+				case "forwarded to a method of another module":
+					infos.Add(new PdbForwardMethodInfoCustomDebugInfo(otherModule.GetTypes().SelectMany(a => a.Methods).First()));
+					break;
+				case "state machine without a type":
+					infos.Add(new PdbStateMachineTypeNameCustomDebugInfo(null!));
+					break;
+				case "null dynamic local":
+					var dynamicLocals = new PdbDynamicLocalsCustomDebugInfo();
+					dynamicLocals.Locals.Add(null!);
+					infos.Add(dynamicLocals);
+					break;
+				case "dynamic local with 65 flags":
+					var withFlags = new PdbDynamicLocal { Name = "name" };
+					for (int i = 0; i < 65; i++)
+						withFlags.Flags.Add(1);
+					dynamicLocals = new PdbDynamicLocalsCustomDebugInfo();
+					dynamicLocals.Locals.Add(withFlags);
+					infos.Add(dynamicLocals);
+					break;
+				case "dynamic local with a long name":
+					dynamicLocals = new PdbDynamicLocalsCustomDebugInfo();
+					dynamicLocals.Locals.Add(new PdbDynamicLocal { Name = new string('a', 65) });
+					infos.Add(dynamicLocals);
+					break;
+				case "dynamic local with a zero character":
+					dynamicLocals = new PdbDynamicLocalsCustomDebugInfo();
+					dynamicLocals.Locals.Add(new PdbDynamicLocal { Name = "a\0b" });
+					infos.Add(dynamicLocals);
+					break;
+				case "null tuple names":
+					var tupleNames = new PdbTupleElementNamesCustomDebugInfo();
+					tupleNames.Names.Add(null!);
+					infos.Add(tupleNames);
+					break;
+				case "tuple name with a zero character":
+					tupleNames = new PdbTupleElementNamesCustomDebugInfo();
+					var names = new PdbTupleElementNames { Name = "local" };
+					names.TupleElementNames.Add("a\0b");
+					tupleNames.Names.Add(names);
+					infos.Add(tupleNames);
+					break;
+				case "info of a portable PDB":
+					infos.Add(new PdbDefaultNamespaceCustomDebugInfo("Namespace"));
+					break;
+				}
+				var options = new ModuleWriterOptions(module) { WritePdb = true, PdbStream = new MemoryStream(), PdbFileName = "written.pdb" };
+
+				var exception = Assert.Throws<ModuleWriterException>(() => module.Write(new MemoryStream(), options));
+
+				Assert.Contains(expectedMessage, exception.Message);
+			}
+		}
 	}
 }
