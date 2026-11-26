@@ -240,6 +240,11 @@ namespace dnlib.DotNet {
 		/// <inheritdoc/>
 		public uint OrigRid => origRid;
 
+		/// <summary>
+		/// Gets the module where this instance is located
+		/// </summary>
+		internal ModuleDefMD ReaderModule => readerModule;
+
 		bool IContainsGenericParameter2.ContainsGenericParameter => TypeHelper.ContainsGenericParameter(this);
 
 		/// <inheritdoc/>

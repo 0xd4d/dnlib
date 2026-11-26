@@ -1112,11 +1112,18 @@ namespace dnlib.DotNet.Writer {
 			else
 				typeSpecInfos.Add(ts, 0);   // Prevent inf recursion
 
-			bool isOld = forceIsOld || (PreserveTypeSpecRids && mod.ResolveTypeSpec(ts.Rid) == ts);
+			bool isOld = forceIsOld || (PreserveTypeSpecRids && IsOriginalTypeSpec(ts));
 			var row = new RawTypeSpecRow(GetSignature(ts.TypeSig, ts.ExtraData));
 			// Writing the signature can recursively add this TypeSpec through a custom attribute.
 			if (typeSpecInfos.TryGetRid(ts, out rid) && rid != 0)
 				return rid;
+			if (isOld && !forceIsOld) {
+				// The original row could already have been written by another instance of the same row (from a
+				// different generic param context). Only share it if it's identical.
+				var oldSig = tablesHeap.TypeSpecTable[ts.Rid].Signature;
+				if (oldSig != 0 && oldSig != row.Signature)
+					isOld = false;
+			}
 			if (isOld) {
 				rid = ts.Rid;
 				tablesHeap.TypeSpecTable[ts.Rid] = row;
@@ -1127,6 +1134,29 @@ namespace dnlib.DotNet.Writer {
 			AddCustomAttributes(Table.TypeSpec, rid, ts);
 			AddCustomDebugInformationList(Table.TypeSpec, rid, ts);
 			return rid;
+		}
+
+		// Checks if a TypeSpec, MemberRef or MethodSpec is the original row in the original module. Rows with generic
+		// parameters aren't cached, so there can be one instance per generic param context. All of them represent
+		// the original row. If they weren't the original row, they'd get the rid of the first row with the same
+		// columns, which is another rid if the table has duplicate rows (eg. files of Mono's C# compiler).
+
+		bool IsOriginalTypeSpec(TypeSpec ts) {
+			if (ts is TypeSpecMD tsMD && tsMD.ReaderModule == mod)
+				return tsMD.OrigRid == ts.Rid && mod.TablesStream.TypeSpecTable.IsValidRID(ts.Rid);
+			return mod.ResolveTypeSpec(ts.Rid) == ts;
+		}
+
+		bool IsOriginalMemberRef(MemberRef mr) {
+			if (mr is MemberRefMD mrMD && mrMD.ReaderModule == mod)
+				return mrMD.OrigRid == mr.Rid && mod.TablesStream.MemberRefTable.IsValidRID(mr.Rid);
+			return mod.ResolveMemberRef(mr.Rid) == mr;
+		}
+
+		bool IsOriginalMethodSpec(MethodSpec ms) {
+			if (ms is MethodSpecMD msMD && msMD.ReaderModule == mod)
+				return msMD.OrigRid == ms.Rid && mod.TablesStream.MethodSpecTable.IsValidRID(ms.Rid);
+			return mod.ResolveMethodSpec(ms.Rid) == ms;
 		}
 
 		/// <inheritdoc/>
@@ -1140,11 +1170,17 @@ namespace dnlib.DotNet.Writer {
 			if (memberRefInfos.TryGetRid(mr, out uint rid))
 				return rid;
 
-			bool isOld = forceIsOld || (PreserveMemberRefRids && mod.ResolveMemberRef(mr.Rid) == mr);
+			bool isOld = forceIsOld || (PreserveMemberRefRids && IsOriginalMemberRef(mr));
 			var row = new RawMemberRefRow(AddMemberRefParent(mr.Class), stringsHeap.Add(mr.Name), GetSignature(mr.Signature));
 			// Importing the parent can recursively add this member through a custom attribute.
 			if (memberRefInfos.TryGetRid(mr, out rid))
 				return rid;
+			if (isOld && !forceIsOld) {
+				// See AddTypeSpec()
+				var oldRow = tablesHeap.MemberRefTable[mr.Rid];
+				if (oldRow.Class != 0 && (oldRow.Class != row.Class || oldRow.Name != row.Name || oldRow.Signature != row.Signature))
+					isOld = false;
+			}
 			if (isOld) {
 				rid = mr.Rid;
 				tablesHeap.MemberRefTable[mr.Rid] = row;
@@ -1292,8 +1328,14 @@ namespace dnlib.DotNet.Writer {
 			if (methodSpecInfos.TryGetRid(ms, out uint rid))
 				return rid;
 
-			bool isOld = forceIsOld || (PreserveMethodSpecRids && mod.ResolveMethodSpec(ms.Rid) == ms);
+			bool isOld = forceIsOld || (PreserveMethodSpecRids && IsOriginalMethodSpec(ms));
 			var row = new RawMethodSpecRow(AddMethodDefOrRef(ms.Method), GetSignature(ms.Instantiation));
+			if (isOld && !forceIsOld) {
+				// See AddTypeSpec()
+				var oldRow = tablesHeap.MethodSpecTable[ms.Rid];
+				if (oldRow.Method != 0 && (oldRow.Method != row.Method || oldRow.Instantiation != row.Instantiation))
+					isOld = false;
+			}
 			if (isOld) {
 				rid = ms.Rid;
 				tablesHeap.MethodSpecTable[ms.Rid] = row;
