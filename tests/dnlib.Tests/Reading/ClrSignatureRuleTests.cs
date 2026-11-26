@@ -194,6 +194,23 @@ public static class Marker {
 		[InlineData("06 1B 00 00 01", "System.Void ()", "System.Void()")]
 		[InlineData("06 1B 00 01 08 0E", "System.Int32 (System.String)", "System.Int32(System.String)")]
 		[InlineData("06 1B 06 08", "<<<NULL>>>", "throws COMException")]
+		// Fixed in this commit: a function pointer whose signature has the calling convention of a property (8)
+		// or of a generic method instantiation (A) had no method signature, and with A the bytes after it
+		// were read as something else. The runtime reads a method signature whatever the calling convention is.
+		[InlineData("06 1B 08 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 28 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 08 01 08 0E", "System.Int32 (System.String)", "System.Int32(System.String)")]
+		[InlineData("06 1B 0A 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 05 00 01", "System.Void ()", "System.Void(...)")]
+		[InlineData("06 1B 09 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 0B 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 0C 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 07 00 01", "<<<NULL>>>", "throws TypeLoadException")]
+		[InlineData("06 1B 07 01 08", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 06 01", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 0D 00 01", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 0E 00 01", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 0F 00 01", "<<<NULL>>>", "throws COMException")]
 		public void FieldType(string signature, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(signature);
 
@@ -296,6 +313,8 @@ public static class Marker {
 		[InlineData("00 03 01 08 41 0E 41 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 03 01 41 08 0E 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 01 01 45 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		[InlineData("00 02 01 1B 0A 00 01 08", "System.Void((fnptr),System.Int32)", "System.Void(System.Void(),System.Int32)")]
+		[InlineData("00 02 01 1B 08 00 01 08", "System.Void((fnptr),System.Int32)", "System.Void(System.Void(),System.Int32)")]
 		[InlineData("00 01 01 1E 00", "System.Void(!!0)", "throws BadImageFormatException")]
 		public void MethodSignature(string signature, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(signature, Table.Method);
