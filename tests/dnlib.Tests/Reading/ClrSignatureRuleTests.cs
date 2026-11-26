@@ -231,8 +231,10 @@ public static class Marker {
 		// A method signature: the calling convention (0: a static method), the number of parameters, the
 		// return type and the types of the parameters
 		//
-		// "...": dnlib has the parameters after byte 41 in MethodSig.ParamsAfterSentinel, System.Reflection
-		// shows them like the other parameters
+		// Byte 41 (a sentinel) has no meaning in the signature of a method definition: the runtime ignores one
+		// before a type (before its modifiers, and only one), but only loads the method if that type is the
+		// last one of the signature. dnlib ignores it before every type, and only the signature of a
+		// reference has MethodSig.ParamsAfterSentinel.
 		[Theory]
 		[InlineData("00 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
 		// The calling convention byte: 20 = has a this parameter, 40 = the this parameter is in the
@@ -244,7 +246,7 @@ public static class Marker {
 		[InlineData("01 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
 		[InlineData("02 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
 		[InlineData("05 02 01 08 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
-		[InlineData("05 02 01 08 41 0E", "System.Void(System.Int32,...,System.String)", "System.Void(System.Int32,System.String)")]
+		[InlineData("05 02 01 08 41 0E", "System.Void(System.Int32,System.String)", "System.Void(System.Int32,System.String)")]
 		[InlineData("09 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
 		[InlineData("0B 02 01 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
 		[InlineData("0F 02 01 08 0E", "no signature", "throws TypeLoadException")]
@@ -277,13 +279,42 @@ public static class Marker {
 		[InlineData("00 01 01 10 16", "System.Void(System.TypedReference&)", "System.Void(System.TypedReference&)")]
 		[InlineData("00 01 01 20 {Object} 10 08", "System.Void(System.Int32&)", "System.Void(System.Int32&)")]
 		[InlineData("00 01 01 10 20 {Object} 08", "System.Void(System.Int32&)", "System.Void(System.Int32&)")]
-		[InlineData("00 01 01 41 08", "System.Void(...,System.Int32)", "System.Void(System.Int32)")]
+		[InlineData("00 01 01 41 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		[InlineData("00 02 01 41 08 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("00 02 01 41 08 41 0E", "System.Void(System.Int32,System.String)", "throws TypeLoadException")]
+		[InlineData("00 02 01 08 41 1D 41 0E", "System.Void(System.Int32,System.String[])", "System.Void(System.Int32,System.String[])")]
+		[InlineData("00 02 01 08 41 1D 0E", "System.Void(System.Int32,System.String[])", "System.Void(System.Int32,System.String[])")]
+		[InlineData("00 02 01 08 1D 41 0E", "System.Void(System.Int32,System.String[])", "System.Void(System.Int32,System.String[])")]
+		[InlineData("00 01 41 08 41 0E", "System.Int32(System.String)", "throws TypeLoadException")]
+		[InlineData("00 01 41 08 0E", "System.Int32(System.String)", "throws TypeLoadException")]
+		[InlineData("00 00 41 08", "System.Int32()", "System.Int32()")]
+		[InlineData("00 01 01 41 41 08", "System.Void(no type)", "throws BadImageFormatException")]
+		[InlineData("00 01 01 41 20 {Object} 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		[InlineData("00 01 01 20 {Object} 41 08", "System.Void(System.Int32)", "throws BadImageFormatException")]
+		[InlineData("00 03 01 08 0E 41 08", "System.Void(System.Int32,System.String,System.Int32)", "System.Void(System.Int32,System.String,System.Int32)")]
+		[InlineData("00 03 01 08 41 0E 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 03 01 08 41 0E 41 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 03 01 41 08 0E 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 01 01 45 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
 		[InlineData("00 01 01 1E 00", "System.Void(!!0)", "throws BadImageFormatException")]
 		public void MethodSignature(string signature, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(signature, Table.Method);
 
 			ClrReaderComparison.AssertRead(expectedDnlib, ReadMethodWithDnlib(image), expectedRuntime, () => ReadMethodWithTheRuntime(image));
+		}
+
+		// Fixed in this commit: the parameters after a sentinel were in MethodSig.ParamsAfterSentinel, so the
+		// method had fewer parameters than the method the runtime loads
+		[Fact]
+		public void SentinelInTheSignatureOfAMethodDefinitionIsIgnored() {
+			var image = CreateImage("00 02 01 08 41 0E", Table.Method);
+
+			using (var module = ModuleDefMD.Load(image)) {
+				var method = module.ResolveMethod(methodRid)!;
+				Assert.Null(method.MethodSig!.ParamsAfterSentinel);
+				Assert.Equal(new[] { "System.Int32", "System.String" }, method.MethodSig.Params.Select(a => a!.FullName));
+				Assert.Equal(new[] { "System.Int32", "System.String" }, method.Parameters.Select(a => a.Type!.FullName));
+			}
 		}
 
 		// The signature is then the one of the first row of the TypeSpec table

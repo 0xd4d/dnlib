@@ -1209,6 +1209,14 @@ namespace dnlib.DotNet {
 			origImplAttributes = (MethodImplAttributes)implAttributes;
 			declaringType2 = readerModule.GetOwnerType(this);
 			signature = readerModule.ReadSignature(row.Signature, new GenericParamContext(declaringType2, this));
+			// A sentinel has no meaning in the signature of a method definition: the CLR ignores one sentinel before
+			// any type (SigParser::SkipAnyVASentinel()), so the method has all the params. Only a reference
+			// (a MemberRef or a call site) has params after a sentinel.
+			if (signature is MethodSig { ParamsAfterSentinel: { } paramsAfterSentinel } methodSig) {
+				foreach (var param in paramsAfterSentinel)
+					methodSig.Params.Add(param);
+				methodSig.ParamsAfterSentinel = null;
+			}
 			parameterList = new ParameterList(this, declaringType2);
 			exportInfo = readerModule.GetExportInfo(rid);
 		}

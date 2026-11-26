@@ -355,5 +355,89 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("Ns.List`1<System.String>", Assert.IsAssignableFrom<TypeSpec>(asType).FullName);
 			Assert.Equal("Ns.T[]", TypeNameParser.ParseAsTypeSigReflectionOrThrow(module, "Ns.T[], A", null, context).FullName);
 		}
+
+		static ModuleDefUser CreateModuleWithAType(Version assemblyVersion) {
+			var module = new ModuleDefUser("Test.dll");
+			new AssemblyDefUser("Test", assemblyVersion).Modules.Add(module);
+			module.Types.Add(new TypeDefUser("Ns", "MyType", module.CorLibTypes.Object.TypeDefOrRef));
+			return module;
+		}
+
+		// Fixed in this commit: a version number that isn't in the name (or is 65535) has no value, and the CLR
+		// then accepts any number there and after it. Such a name of the module's own assembly was a reference
+		// to another assembly, so a type of a module whose assembly version has a 65535 number wasn't the same
+		// type any more when the module was written and read again.
+		[Theory]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.3.4")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.3")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.65535.4")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test")]
+		[InlineData("1.2.65535.4", "Ns.MyType, Test, Version=1.2")]
+		[InlineData("65535.2.3.4", "Ns.MyType, Test")]
+		public void NameWithVersionNumbersWithoutAValueIsTheTypeOfTheModule(string assemblyVersion, string name) {
+			var module = CreateModuleWithAType(Version.Parse(assemblyVersion));
+
+			var type = TypeNameParser.ParseReflection(module, name, null);
+
+			Assert.Same(module.Types[1], type);
+		}
+
+		[Theory]
+		[InlineData("Ns.MyType, Test, Version=1.2.3.5")]
+		[InlineData("Ns.MyType, Test, Version=1.3")]
+		[InlineData("Ns.MyType, Test, Version=1.2, Culture=de")]
+		[InlineData("Ns.MyType, Other")]
+		public void NameOfAnotherAssemblyIsNotTheTypeOfTheModule(string name) {
+			var module = CreateModuleWithAType(new Version(1, 2, 3, 4));
+
+			Assert.IsAssignableFrom<TypeRef>(TypeNameParser.ParseReflection(module, name, null));
+		}
+
+		// Fixed in this commit: the full name of an assembly ends its version before the first number that is
+		// 65535 (like AssemblyName.FullName), which can leave one number. Nothing can read that version, not
+		// System.Reflection either, so the assembly in the name of a type has no version then: a type of such
+		// an assembly was null when its name was read from a custom attribute that dnlib had written.
+		[Theory]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("1.2.3.65535", "Ns.MyType, Test, Version=1.2.3, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("1.2.65535.4", "Ns.MyType, Test, Version=1.2, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("1.65535.3.4", "Ns.MyType, Test, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("65535.2.3.4", "Ns.MyType, Test, Culture=neutral, PublicKeyToken=null")]
+		public void AssemblyQualifiedNameOfATypeOfTheModuleIsReadBack(string assemblyVersion, string expectedName) {
+			var module = CreateModuleWithAType(Version.Parse(assemblyVersion));
+
+			string name = module.Types[1].AssemblyQualifiedName;
+
+			Assert.Equal(expectedName, name);
+			Assert.Same(module.Types[1], TypeNameParser.ParseReflection(module, name, null));
+			// The name of the assembly itself is the one of System.Reflection
+			if (assemblyVersion == "1.65535.3.4")
+				Assert.Equal("Test, Version=1, Culture=neutral, PublicKeyToken=null", module.Assembly!.FullName);
+		}
+
+		// Fixed in this commit: every Unicode white space char was removed from the start and the end of the
+		// name and of a value. System.Reflection only removes these four, and a name with another one (which
+		// isn't written in quotes) couldn't be read back.
+		[Theory]
+		[InlineData(" ", true)]
+		[InlineData("\t", true)]
+		[InlineData("\r", true)]
+		[InlineData("\n", true)]
+		[InlineData("\f", false)]
+		[InlineData("\v", false)]
+		[InlineData("\u00A0", false)]
+		[InlineData("\u2028", false)]
+		public void OnlyFourCharsAreWhiteSpaceInAnAssemblyName(string whiteSpace, bool isRemoved) {
+			var assembly = GetAssembly(ParseTypeRef($"Ns.MyType,{whiteSpace}My{whiteSpace}, Culture={whiteSpace}de{whiteSpace}"));
+
+			string kept = isRemoved ? "" : whiteSpace;
+			Assert.Equal(kept + "My" + kept, assembly.Name);
+			Assert.Equal(kept + "de" + kept, assembly.Culture);
+
+			var readBack = GetAssembly(ParseTypeRef("Ns.MyType, " + assembly.FullName));
+			Assert.Equal(assembly.Name, readBack.Name);
+			Assert.Equal(assembly.Culture, readBack.Culture);
+		}
 	}
 }

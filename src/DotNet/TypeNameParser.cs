@@ -663,7 +663,9 @@ namespace dnlib.DotNet {
 			var asm = ownerModule.Assembly;
 			if (asm is null)
 				return null;
-			if (!(AssemblyNameComparer.CompareAll.Equals(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
+			// A name without a version (or with a version number that has no value) is this assembly too.
+			// The full name of an assembly whose version has such a number is written without it.
+			if (!(AssemblyResolver.IsExactMatch(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
 				return null;
 			// Finding a type is slow if the module's type cache isn't enabled (all types are checked),
 			// and this method is called once per type, so try to find it without checking all types.
@@ -886,6 +888,19 @@ namespace dnlib.DotNet {
 
 		// An attribute ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'.
 		// Its value can be in quotes, like the name of the assembly. Returns false if it has no '='.
+		// White space in an assembly name is only these chars, like in System.Reflection.AssemblyName. Any other
+		// white space char (eg. a form feed) is a part of the name or value.
+		static readonly char[] asmNameWhiteSpace = new char[] { ' ', '\t', '\r', '\n' };
+
+		void SkipAsmNameWhite() {
+			while (true) {
+				int next = PeekChar();
+				if (next != ' ' && next != '\t' && next != '\r' && next != '\n')
+					break;
+				ReadChar();
+			}
+		}
+
 		bool ReadAssemblyAttribute(out string key, out string value) {
 			var sb = new StringBuilder();
 			int c;
@@ -897,12 +912,12 @@ namespace dnlib.DotNet {
 				}
 				sb.Append((char)c);
 			}
-			key = sb.ToString().Trim();
+			key = sb.ToString().Trim(asmNameWhiteSpace);
 			value = string.Empty;
 			if (!hasEqualSign)
 				return false;
 
-			SkipWhite();
+			SkipAsmNameWhite();
 			sb.Length = 0;
 			c = PeekChar();
 			if (c == '"' || c == '\'') {
@@ -915,7 +930,7 @@ namespace dnlib.DotNet {
 			else {
 				while ((c = GetAsmNameChar()) != -1)
 					sb.Append((char)c);
-				value = sb.ToString().Trim();
+				value = sb.ToString().Trim(asmNameWhiteSpace);
 			}
 			return true;
 		}
@@ -935,7 +950,7 @@ namespace dnlib.DotNet {
 		}
 
 		string ReadAssemblyNameId() {
-			SkipWhite();
+			SkipAsmNameWhite();
 			var sb = new StringBuilder();
 			int c = PeekChar();
 			string name;
@@ -948,7 +963,7 @@ namespace dnlib.DotNet {
 			else {
 				while ((c = GetAsmNameChar()) != -1)
 					sb.Append((char)c);
-				name = sb.ToString().Trim();
+				name = sb.ToString().Trim(asmNameWhiteSpace);
 			}
 			Verify(name.Length > 0, "Expected an assembly name");
 			return name;
