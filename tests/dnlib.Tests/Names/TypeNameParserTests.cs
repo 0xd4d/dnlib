@@ -415,5 +415,29 @@ namespace dnlib.Tests.Names {
 			if (assemblyVersion == "1.65535.3.4")
 				Assert.Equal("Test, Version=1, Culture=neutral, PublicKeyToken=null", module.Assembly!.FullName);
 		}
+
+		// Fixed in this commit: every Unicode white space char was removed from the start and the end of the
+		// name and of a value. System.Reflection only removes these four, and a name with another one (which
+		// isn't written in quotes) couldn't be read back.
+		[Theory]
+		[InlineData(" ", true)]
+		[InlineData("\t", true)]
+		[InlineData("\r", true)]
+		[InlineData("\n", true)]
+		[InlineData("\f", false)]
+		[InlineData("\v", false)]
+		[InlineData("\u00A0", false)]
+		[InlineData("\u2028", false)]
+		public void OnlyFourCharsAreWhiteSpaceInAnAssemblyName(string whiteSpace, bool isRemoved) {
+			var assembly = GetAssembly(ParseTypeRef($"Ns.MyType,{whiteSpace}My{whiteSpace}, Culture={whiteSpace}de{whiteSpace}"));
+
+			string kept = isRemoved ? "" : whiteSpace;
+			Assert.Equal(kept + "My" + kept, assembly.Name);
+			Assert.Equal(kept + "de" + kept, assembly.Culture);
+
+			var readBack = GetAssembly(ParseTypeRef("Ns.MyType, " + assembly.FullName));
+			Assert.Equal(assembly.Name, readBack.Name);
+			Assert.Equal(assembly.Culture, readBack.Culture);
+		}
 	}
 }

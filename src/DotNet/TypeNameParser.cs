@@ -888,6 +888,19 @@ namespace dnlib.DotNet {
 
 		// An attribute ends at ',' (or at ']' in a bracketed generic argument), not at eg. white space or '+'.
 		// Its value can be in quotes, like the name of the assembly. Returns false if it has no '='.
+		// White space in an assembly name is only these chars, like in System.Reflection.AssemblyName. Any other
+		// white space char (eg. a form feed) is a part of the name or value.
+		static readonly char[] asmNameWhiteSpace = new char[] { ' ', '\t', '\r', '\n' };
+
+		void SkipAsmNameWhite() {
+			while (true) {
+				int next = PeekChar();
+				if (next != ' ' && next != '\t' && next != '\r' && next != '\n')
+					break;
+				ReadChar();
+			}
+		}
+
 		bool ReadAssemblyAttribute(out string key, out string value) {
 			var sb = new StringBuilder();
 			int c;
@@ -899,12 +912,12 @@ namespace dnlib.DotNet {
 				}
 				sb.Append((char)c);
 			}
-			key = sb.ToString().Trim();
+			key = sb.ToString().Trim(asmNameWhiteSpace);
 			value = string.Empty;
 			if (!hasEqualSign)
 				return false;
 
-			SkipWhite();
+			SkipAsmNameWhite();
 			sb.Length = 0;
 			c = PeekChar();
 			if (c == '"' || c == '\'') {
@@ -917,7 +930,7 @@ namespace dnlib.DotNet {
 			else {
 				while ((c = GetAsmNameChar()) != -1)
 					sb.Append((char)c);
-				value = sb.ToString().Trim();
+				value = sb.ToString().Trim(asmNameWhiteSpace);
 			}
 			return true;
 		}
@@ -937,7 +950,7 @@ namespace dnlib.DotNet {
 		}
 
 		string ReadAssemblyNameId() {
-			SkipWhite();
+			SkipAsmNameWhite();
 			var sb = new StringBuilder();
 			int c = PeekChar();
 			string name;
@@ -950,7 +963,7 @@ namespace dnlib.DotNet {
 			else {
 				while ((c = GetAsmNameChar()) != -1)
 					sb.Append((char)c);
-				name = sb.ToString().Trim();
+				name = sb.ToString().Trim(asmNameWhiteSpace);
 			}
 			Verify(name.Length > 0, "Expected an assembly name");
 			return name;

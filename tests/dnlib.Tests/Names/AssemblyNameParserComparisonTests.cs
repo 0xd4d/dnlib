@@ -70,6 +70,8 @@ namespace dnlib.Tests.Names {
 		[InlineData("\"A B\"", "A B|null||null", "A B|null|null|null")]
 		[InlineData("' A '", " A |null||null", " A |null|null|null")]
 		[InlineData("\" A \", Version=1.2.3.4", " A |1.2.3.4||null", " A |1.2.3.4|null|null")]
+		// Only a space, a tab, CR and LF are white space
+		[InlineData("\fLib\f, Version=1.2.3.4", "\fLib\f|1.2.3.4||null", "\fLib\f|1.2.3.4|null|null")]
 		[InlineData("\"A\\\"B\"", "A\"B|null||null", "A\"B|null|null|null")]
 		[InlineData("A\\,B", "A,B|null||null", "A,B|null|null|null")]
 		[InlineData("A\\=B", "A=B|null||null", "A=B|null|null|null")]
