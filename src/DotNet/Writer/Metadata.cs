@@ -2148,12 +2148,24 @@ namespace dnlib.DotNet.Writer {
 										var childScopes = scope.Scopes;
 										for (int j = childScopes.Count - 1; j >= 0; j--)
 											scopeStack.Add(childScopes[j]);
-										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
-										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
-										if (scopeEnd < scopeStart) {
-											Error("PDB scope's end instruction is before its start instruction");
-											scopeEnd = scopeStart;
+										uint scopeStart, scopeEnd;
+										if (scope == rootScope) {
+											// The first scope of a method must span all of its instructions
+											scopeStart = 0;
+											scopeEnd = serializerMethodContext.GetOffset(null);
 										}
+										else {
+											scopeStart = serializerMethodContext.GetOffset(scope.Start);
+											scopeEnd = serializerMethodContext.GetOffset(scope.End);
+											if (scopeEnd < scopeStart) {
+												Error("PDB scope's end instruction is before its start instruction");
+												scopeEnd = scopeStart;
+											}
+										}
+										// The length of a scope can't be 0. A scope without instructions isn't written,
+										// its locals couldn't be seen at any instruction.
+										if (scopeEnd == scopeStart)
+											continue;
 										methodScopeDebugInfos!.Add(new MethodScopeDebugInfo() {
 											Method = method,
 											MethodRid = rid,
@@ -2190,17 +2202,31 @@ namespace dnlib.DotNet.Writer {
 				});
 				MethodDef? currentMethod = null;
 				IDisposable? currentSource = null;
+				// The ends of the scopes that the current scope is inside of
+				var scopeEnds = new List<uint>();
 				foreach (var info in methodScopeDebugInfos) {
 					if (info.Method != currentMethod) {
 						currentSource?.Dispose();
 						currentMethod = info.Method;
 						currentSource = errorContext.SetSource(currentMethod);
+						scopeEnds.Clear();
 					}
+					// Two scopes of a method must not overlap, unless one of them is inside the other one. The
+					// scopes are sorted, so a scope that starts inside the previous scopes must also end there.
+					// The sorted order is still correct if the scope is made shorter.
+					uint scopeEnd = info.ScopeStart + info.ScopeLength;
+					while (scopeEnds.Count > 0 && scopeEnds[scopeEnds.Count - 1] <= info.ScopeStart)
+						scopeEnds.RemoveAt(scopeEnds.Count - 1);
+					if (scopeEnds.Count > 0 && scopeEnd > scopeEnds[scopeEnds.Count - 1]) {
+						Error("PDB scope overlaps another scope but isn't inside of it, writing a shorter scope");
+						scopeEnd = scopeEnds[scopeEnds.Count - 1];
+					}
+					scopeEnds.Add(scopeEnd);
 					uint localScopeRid = (uint)debugMetadata.localScopeInfos.infos.Count + 1;
 					var row = new RawLocalScopeRow(info.MethodRid, AddImportScope(info.Scope.ImportScope),
 						(uint)debugMetadata.tablesHeap.LocalVariableTable.Rows + 1,
 						(uint)debugMetadata.tablesHeap.LocalConstantTable.Rows + 1,
-						info.ScopeStart, info.ScopeLength);
+						info.ScopeStart, scopeEnd - info.ScopeStart);
 					debugMetadata.localScopeInfos.Add(info.Scope, row);
 					var variables = info.Scope.Variables;
 					int count = variables.Count;
