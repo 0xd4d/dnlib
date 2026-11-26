@@ -70,7 +70,11 @@ namespace dnlib.IO {
 			return *(double*)&value;
 		}
 
-		public override string ReadUtf16String(uint offset, int chars) => new string((char*)(data + offset), 0, chars);
+		public override string ReadUtf16String(uint offset, int chars) {
+			if (BitConverter.IsLittleEndian)
+				return new string((char*)(data + offset), 0, chars);
+			return ReadUtf16StringByteByByte(data + offset, chars);
+		}
 		public override string ReadString(uint offset, int length, Encoding encoding) => new string((sbyte*)(data + offset), 0, length, encoding);
 
 		public override bool TryGetOffsetOf(uint offset, uint endOffset, byte value, out uint valueOffset) {

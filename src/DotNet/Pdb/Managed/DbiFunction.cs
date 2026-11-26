@@ -70,7 +70,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				if (data is null || data.Length < 4)
 					return 0;
-				return BitConverter.ToInt32(data, 0);
+				return Utils.ReadInt32LittleEndian(data, 0);
 			}
 		}
 
@@ -79,7 +79,7 @@ namespace dnlib.DotNet.Pdb.Managed {
 				var data = Root.GetSymAttribute(asyncMethodInfoAttributeName);
 				if (data is null || data.Length < 8)
 					return null;
-				uint token = BitConverter.ToUInt32(data, 4);
+				uint token = Utils.ReadUInt32LittleEndian(data, 4);
 				return token == uint.MaxValue ? (uint?)null : token;
 			}
 		}
@@ -98,13 +98,13 @@ namespace dnlib.DotNet.Pdb.Managed {
 			if (data is null || data.Length < 12)
 				return Array2.Empty<SymbolAsyncStepInfo>();
 			int pos = 8;
-			int count = BitConverter.ToInt32(data, pos);
+			int count = Utils.ReadInt32LittleEndian(data, pos);
 			pos += 4;
 			if (count <= 0 || pos + (long)count * 12 > data.Length)
 				return Array2.Empty<SymbolAsyncStepInfo>();
 			var res = new SymbolAsyncStepInfo[count];
 			for (int i = 0; i < res.Length; i++) {
-				res[i] = new SymbolAsyncStepInfo(BitConverter.ToUInt32(data, pos), BitConverter.ToUInt32(data, pos + 8), BitConverter.ToUInt32(data, pos + 4));
+				res[i] = new SymbolAsyncStepInfo(Utils.ReadUInt32LittleEndian(data, pos), Utils.ReadUInt32LittleEndian(data, pos + 8), Utils.ReadUInt32LittleEndian(data, pos + 4));
 				pos += 12;
 			}
 			return res;

@@ -53,8 +53,11 @@ namespace dnlib.IO {
 		}
 
 		public override string ReadUtf16String(uint offset, int chars) {
-			fixed (byte* p = data)
-				return new string((char*)(p + offset), 0, chars);
+			fixed (byte* p = data) {
+				if (BitConverter.IsLittleEndian)
+					return new string((char*)(p + offset), 0, chars);
+				return ReadUtf16StringByteByByte(p + offset, chars);
+			}
 		}
 
 		public override string ReadString(uint offset, int length, Encoding encoding) {

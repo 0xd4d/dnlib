@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace dnlib.IO {
+	// Only for little endian CPUs: the values are read with the byte order of the CPU, see DataStreamFactory
 	sealed unsafe class UnalignedNativeMemoryDataStream : DataStream {
 		readonly byte* data;
 

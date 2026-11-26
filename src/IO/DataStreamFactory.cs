@@ -13,13 +13,17 @@ namespace dnlib.IO {
 		static bool supportsUnalignedAccesses = CalculateSupportsUnalignedAccesses();
 
 		static bool CalculateSupportsUnalignedAccesses() {
+			// The unaligned streams read a value with the byte order of the CPU, but the files are little endian.
+			// The aligned streams read byte by byte and work with any byte order (eg. s390x is big endian).
+			if (!BitConverter.IsLittleEndian)
+				return false;
 			var machine = ProcessorArchUtils.GetProcessCpuArchitecture();
 			switch (machine) {
 			case Machine.I386:
 			case Machine.AMD64:
 			case Machine.LOONGARCH64:
 			case Machine.POWERPC:
-			case Machine.Unknown: // wasm, s390x
+			case Machine.Unknown: // wasm
 				return true;
 			case Machine.ARMNT:
 			case Machine.ARM64:
