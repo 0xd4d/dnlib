@@ -174,9 +174,39 @@ public static class Program {
 				Assert.Null(SymbolReaderFactory.TryCreateEmbeddedPdbReader(PdbReaderOptions.None, module.Metadata));
 		}
 
-		// The embedded PDB is the PDB of the file: another PDB that's passed in isn't used
+		// A PDB that's passed in is tried first, like in System.Reflection.Metadata. This PDB has the same id as
+		// the embedded PDB, so it's the PDB of the file and it's used.
 		[Fact]
-		public void EmbeddedPdbIsPreferredToAPdbThatIsPassedIn() {
+		public void PdbThatIsPassedInIsPreferredToTheEmbeddedPdb() {
+			var pdb = GetEmbeddedPdb(imageWithEmbeddedPdb)!;
+			var options = new ModuleCreationOptions { PdbFileOrData = pdb, TryToLoadPdbFromDisk = false };
+
+			using (var module = ModuleDefMD.Load(imageWithEmbeddedPdb, options)) {
+				Assert.Equal(PdbFileKind.PortablePDB, module.PdbState!.PdbFileKind);
+				Assert.Equal("/src/Program.cs", Assert.Single(module.PdbState.Documents).Url);
+			}
+		}
+
+		// The same for a PDB file that's next to the file
+		[Fact]
+		public void PdbFileOnTheDiskIsPreferredToTheEmbeddedPdb() {
+			using (var directory = new TempDirectory()) {
+				var fileName = directory.GetPath("Program.dll");
+				File.WriteAllBytes(fileName, imageWithEmbeddedPdb);
+				using (var module = ModuleDefMD.Load(fileName))
+					Assert.Equal(PdbFileKind.EmbeddedPortablePDB, module.PdbState!.PdbFileKind);
+
+				File.WriteAllBytes(Path.ChangeExtension(fileName, "pdb"), GetEmbeddedPdb(imageWithEmbeddedPdb)!);
+				using (var module = ModuleDefMD.Load(fileName)) {
+					Assert.Equal(PdbFileKind.PortablePDB, module.PdbState!.PdbFileKind);
+					Assert.Equal("/src/Program.cs", Assert.Single(module.PdbState.Documents).Url);
+				}
+			}
+		}
+
+		// The embedded PDB is used if the PDB that's passed in is the PDB of another file
+		[Fact]
+		public void EmbeddedPdbIsReadIfThePdbThatIsPassedInIsOfAnotherFile() {
 			var otherPdb = CSharpCompiler.Compile("public class Other { public void M() { } }", new CSharpCompilerOptions { PdbKind = PdbKind.Portable, SourcePath = "/src/Other.cs" }).Pdb;
 			var options = new ModuleCreationOptions { PdbFileOrData = otherPdb, TryToLoadPdbFromDisk = false };
 
@@ -186,8 +216,8 @@ public static class Program {
 			}
 		}
 
-		// System.Reflection.Metadata tries the PDB file first and uses the embedded PDB if that file can't be
-		// read. dnlib tries the embedded PDB first, so a PDB file that can't be read changes nothing.
+		// The embedded PDB is also used if the PDB that's passed in can't be read, like in
+		// System.Reflection.Metadata
 		[Theory]
 		[InlineData("empty")]
 		[InlineData("not a PDB")]
