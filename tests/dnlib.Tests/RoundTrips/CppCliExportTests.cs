@@ -17,7 +17,7 @@ namespace dnlib.Tests.RoundTrips {
 	/// The export table has the address of a small piece of native code for every function (a stub), the stub
 	/// jumps to an address that is in a slot of the file's vtable fixups, and the CLR writes the address of the
 	/// method into the slot. dnlib finds the method of an export by reading the stub, which is other code for
-	/// every processor: these tests read stubs that Microsoft's compiler wrote, for x64 and for x86.
+	/// every processor: these tests read stubs that Microsoft's compiler wrote, for x64, x86 and ARM64.
 	/// Fixed in this commit: the x64 stub of that compiler (it's not the one that ilasm writes) wasn't known,
 	/// so no method of a 64-bit C++/CLI file had its export.
 	///
@@ -136,6 +136,63 @@ namespace dnlib.Tests.RoundTrips {
 			module.GlobalType!.Methods.Single(a => a.Name == "ManagedAdd").Name = "Renamed";
 			// New types before the other ones: the methods get other tokens
 			module.Types.Insert(1, new TypeDefUser("Added", "Type", module.CorLibTypes.Object.TypeDefOrRef));
+		}
+
+		// The same DLL for ARM64. Its stubs are other code again, and ilasm has none for ARM64: dnlib writes the
+		// stub of this compiler. The compiler is another component of Visual Studio, and the DLL can't be loaded
+		// by this process, so the functions aren't called. Added for issue 165: no ARM64 file had its exports.
+		static readonly Lazy<byte[]> imageArm64 = new Lazy<byte[]>(() => CppCliCompiler.CompileArm64(Fixtures.Fixtures.ReadSource("MixedModeExports.cpp")));
+
+		static byte[] GetArm64Image() {
+			Assert.SkipWhen(CppCliCompiler.WhyArm64NotAvailable is not null, CppCliCompiler.WhyArm64NotAvailable ?? "");
+			return imageArm64.Value;
+		}
+
+		[Fact]
+		public void Arm64ExportedManagedFunctionsAreFoundThroughTheirStubs() {
+			var image = GetArm64Image();
+			var functions = PEExports.GetFunctions(image);
+
+			using (var module = ModuleDefMD.Load(image)) {
+				Assert.Equal(dnlib.PE.Machine.ARM64, module.Machine);
+				Assert.False(module.IsILOnly);
+				var expected = functions.Where(a => managedExports.Contains(a.Value))
+					.Select(a => $"{a.Key} {a.Value} = {a.Value}").OrderBy(a => a, StringComparer.Ordinal).ToList();
+				Assert.Equal(3, expected.Count);
+				Assert.Equal(expected, GetExportedMethods(module));
+				Assert.Null(module.GlobalType!.Methods.Single(a => a.Name == "ManagedHelper").ExportInfo);
+				Assert.All(module.VTableFixups!.VTables, a => Assert.True(a.Is64Bit));
+			}
+		}
+
+		[Theory, InlineData(false), InlineData(true)]
+		public void Arm64ExportsAreTheSameAfterANativeWrite(bool optimizeImageSize) {
+			var image = GetArm64Image();
+			using (var original = ModuleDefMD.Load(image)) {
+				var written = NativeWrite(original, optimizeImageSize);
+
+				Assert.Equal(PEExports.GetFunctions(image), PEExports.GetFunctions(written));
+				using (var writtenModule = ModuleDefMD.Load(written)) {
+					ModuleComparer.AssertEqual(original, writtenModule, new ModuleDumpOptions { MaxStack = true });
+					Assert.Equal(3, GetExportedMethods(original).Count);
+					Assert.Equal(GetExportedMethods(original), GetExportedMethods(writtenModule));
+				}
+			}
+		}
+
+		[Fact]
+		public void Arm64ExportsAreTheSameAfterAChange() {
+			var image = GetArm64Image();
+			using (var module = ModuleDefMD.Load(image)) {
+				var expected = GetExportedMethods(module).Select(a => a.Replace("= ManagedAdd", "= Renamed")).ToList();
+				Change(module, "Changed");
+
+				var written = NativeWrite(module, optimizeImageSize: true);
+
+				Assert.Equal(PEExports.GetFunctions(image), PEExports.GetFunctions(written));
+				using (var writtenModule = ModuleDefMD.Load(written))
+					Assert.Equal(expected, GetExportedMethods(writtenModule));
+			}
 		}
 
 #if NETFRAMEWORK

@@ -206,7 +206,7 @@ method.MethodSigOrThrow.RetType = type;
 
 Requirements:
 
-- The assembly platform must be x86, x64, IA-64 or ARM (ARM64 isn't supported at the moment). AnyCPU assemblies are not supported. This is as simple as changing (if needed) `ModuleWriterOptions.PEHeadersOptions.Machine` when saving the file. x86 files should set `32-bit required` flag and clear `32-bit preferred` flag in the COR20 header.
+- The assembly platform must be x86, x64, IA-64, ARM or ARM64. AnyCPU assemblies are not supported. This is as simple as changing (if needed) `ModuleWriterOptions.PEHeadersOptions.Machine` when saving the file. x86 files should set `32-bit required` flag and clear `32-bit preferred` flag in the COR20 header.
 - `ModuleWriterOptions.Cor20HeaderOptions.Flags`: The `IL Only` bit must be cleared.
 - It must be a DLL file (see `ModuleWriterOptions.PEHeadersOptions.Characteristics`). The file will fail to load at runtime if it's an EXE file.
 

@@ -16,11 +16,12 @@ namespace dnlib.DotNet {
 		// To support a new CPU arch, the easiest way is to check coreclr/src/ilasm/writer.cpp or
 		// coreclr/src/dlls/mscorpe/stubs.h, eg. ExportStubAMD64Template, ExportStubX86Template,
 		// ExportStubARMTemplate, ExportStubIA64Template, or use ilasm to generate a file with
-		// exports and check the stub
+		// exports and check the stub. ilasm has no ARM64 stub, see Arm64CpuArch.
 		static readonly X86CpuArch x86CpuArch = new X86CpuArch();
 		static readonly X64CpuArch x64CpuArch = new X64CpuArch();
 		static readonly ItaniumCpuArch itaniumCpuArch = new ItaniumCpuArch();
 		static readonly ArmCpuArch armCpuArch = new ArmCpuArch();
+		static readonly Arm64CpuArch arm64CpuArch = new Arm64CpuArch();
 
 		/// <summary>
 		/// Gets the required alignment for the stubs, must be a power of 2
@@ -86,8 +87,8 @@ namespace dnlib.DotNet {
 			case Machine.ARM64_Native_NetBSD:
 			case Machine.ARM64_Native_OpenBSD:
 			case Machine.ARM64_Native_Sun:
-				//TODO: Support ARM64
-				goto default;
+				cpuArch = arm64CpuArch;
+				return true;
 
 			default:
 				cpuArch = null;
@@ -106,6 +107,11 @@ namespace dnlib.DotNet {
 			TryGetExportedRvaFromStubCore(ref reader, peImage, out funcRva);
 
 		protected abstract bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva);
+
+		/// <summary>
+		/// <c>true</c> if <see cref="WriteStubRelocs(StubType, RelocDirectory, IChunk, uint)"/> adds relocs
+		/// </summary>
+		public virtual bool HasStubRelocs => true;
 
 		/// <summary>
 		/// Writes stub relocs, if needed
@@ -470,6 +476,120 @@ namespace dnlib.DotNet {
 			case StubType.EntryPoint:
 				writer.WriteUInt32(0xF000F8DF);
 				writer.WriteUInt32((uint)imageBase + managedFuncRva);
+				break;
+			default:
+				throw new ArgumentOutOfRangeException();
+			}
+		}
+	}
+
+	// ilasm can't create ARM64 files with exported methods, so there's no stub to copy. This is the stub that
+	// Microsoft's C++ compiler (C++/CLI) writes to jump to the address in a vtable fixup slot. The address of
+	// the slot is relative to the address of the code, so there's nothing to relocate.
+	sealed class Arm64CpuArch : CpuArch {
+		const uint AdrpX9 = 0x90000009;
+		const uint LdrX9X9 = 0xF9400129;
+		const uint BrX9 = 0xD61F0120;
+
+		public override bool HasStubRelocs => false;
+
+		public override uint GetStubAlignment(StubType stubType) {
+			switch (stubType) {
+			case StubType.Export:
+			case StubType.EntryPoint:
+				return 4;
+			default:
+				throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		public override uint GetStubSize(StubType stubType) {
+			switch (stubType) {
+			case StubType.Export:
+			case StubType.EntryPoint:
+				return 12;
+			default:
+				throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		public override uint GetStubCodeOffset(StubType stubType) {
+			switch (stubType) {
+			case StubType.Export:
+			case StubType.EntryPoint:
+				return 0;
+			default:
+				throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		protected override bool TryGetExportedRvaFromStubCore(ref DataReader reader, IPEImage peImage, out uint funcRva) {
+			funcRva = 0;
+
+			// x9xxxxx0		adrp	x9,page of the slot
+			// 29xx4xF9		ldr		x9,[x9,#offset of the slot in the page]
+			// 20011FD6		br		x9
+			//
+			// Other tools can use other registers (linkers use x16 to jump to an imported function), and
+			// the offset can be added by its own instruction:
+			//
+			// 29xxxx91		add		x9,x9,#offset of the slot in the page
+			// 290140F9		ldr		x9,[x9]
+			if (!reader.CanRead(12U))
+				return false;
+			uint stubRva = (uint)peImage.ToRVA((FileOffset)reader.CurrentOffset);
+			uint adrp = reader.ReadUInt32();
+			if ((adrp & 0x9F000000) != 0x90000000)
+				return false;
+			uint addressReg = adrp & 0x1F;
+			// A signed number of 4K pages: the high 19 bits are at bit 5, the low 2 bits are at bit 29
+			long pages = (int)(((adrp >> 5 & 0x7FFFF) << 2 | adrp >> 29 & 3) << 11) >> 11;
+			long slotRva = (long)(stubRva & ~0xFFFU) + pages * 0x1000;
+
+			uint instr = reader.ReadUInt32();
+			if ((instr & 0xFFC003FF) == (0x91000000 | addressReg << 5 | addressReg)) {
+				slotRva += instr >> 10 & 0xFFF;
+				if (!reader.CanRead(8U))
+					return false;
+				instr = reader.ReadUInt32();
+			}
+			// 64-bit load, the offset is a number of 8 byte elements
+			if ((instr & 0xFFC003E0) != (0xF9400000 | addressReg << 5))
+				return false;
+			slotRva += (instr >> 10 & 0xFFF) * 8;
+			uint targetReg = instr & 0x1F;
+			if (reader.ReadUInt32() != (0xD61F0000 | targetReg << 5))
+				return false;
+
+			if (slotRva <= 0 || slotRva > uint.MaxValue)
+				return false;
+			funcRva = (uint)slotRva;
+			return true;
+		}
+
+		public override void WriteStubRelocs(StubType stubType, RelocDirectory relocDirectory, IChunk chunk, uint stubOffset) {
+			switch (stubType) {
+			case StubType.Export:
+			case StubType.EntryPoint:
+				// The stub has no absolute address
+				break;
+			default:
+				throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		public override void WriteStub(StubType stubType, DataWriter writer, ulong imageBase, uint stubRva, uint managedFuncRva) {
+			switch (stubType) {
+			case StubType.Export:
+			case StubType.EntryPoint:
+				// The load instruction can only read an 8 byte value at an address that's a multiple of 8
+				if ((managedFuncRva & 7) != 0)
+					throw new InvalidOperationException("The address that the ARM64 stub reads must be aligned");
+				// The image base is a multiple of the page size, so the pages are the same at any address
+				uint pages = (uint)((int)(managedFuncRva >> 12) - (int)(stubRva >> 12));
+				writer.WriteUInt32(AdrpX9 | (pages & 3) << 29 | (pages >> 2 & 0x7FFFF) << 5);
+				writer.WriteUInt32(LdrX9X9 | (managedFuncRva & 0xFFF) / 8 << 10);
+				writer.WriteUInt32(BrX9);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();

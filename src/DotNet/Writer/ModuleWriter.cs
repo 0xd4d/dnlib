@@ -257,7 +257,9 @@ namespace dnlib.DotNet.Writer {
 			chunks.Add(peHeaders);
 			if (!managedExportsWriter.HasExports)
 				sections.Remove(sdataSection);
-			if (!(relocDirectory.NeedsRelocSection || managedExportsWriter.HasExports || needStartupStub))
+			// The relocs of the exports' stubs have already been added, the startup stub adds its relocs later.
+			// The ARM64 stubs have no relocs, and a section can't be empty.
+			if (!(relocDirectory.NeedsRelocSection || (needStartupStub && startupStub.HasRelocs)))
 				sections.Remove(relocSection);
 
 			importAddressTable.Enable = needStartupStub;
