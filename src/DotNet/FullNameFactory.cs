@@ -1160,7 +1160,7 @@ namespace dnlib.DotNet {
 			CreateFullName(typeRef);
 			if (MustUseAssemblyName(typeRef)) {
 				sb.Append(", ");
-				CreateAssemblyFullName(GetDefinitionAssembly(typeRef), true);
+				CreateAssemblyFullName(GetDefinitionAssembly(typeRef), true, false, true);
 			}
 
 			recursionCounter.Decrement();
@@ -1222,7 +1222,7 @@ namespace dnlib.DotNet {
 			CreateFullName(typeDef);
 			if (MustUseAssemblyName(typeDef)) {
 				sb.Append(", ");
-				CreateAssemblyFullName(GetDefinitionAssembly(typeDef), true);
+				CreateAssemblyFullName(GetDefinitionAssembly(typeDef), true, false, true);
 			}
 
 			recursionCounter.Decrement();
@@ -1318,7 +1318,7 @@ namespace dnlib.DotNet {
 			CreateFullName(typeSig);
 			if (MustUseAssemblyName(typeSig)) {
 				sb.Append(", ");
-				CreateAssemblyFullName(GetDefinitionAssembly(typeSig), true);
+				CreateAssemblyFullName(GetDefinitionAssembly(typeSig), true, false, true);
 			}
 
 			recursionCounter.Decrement();
@@ -1510,7 +1510,7 @@ namespace dnlib.DotNet {
 
 							if (mustWriteAssembly) {
 								sb.Append(", ");
-								CreateAssemblyFullName(GetDefinitionAssembly(genArg), true, true);
+								CreateAssemblyFullName(GetDefinitionAssembly(genArg), true, true, true);
 								sb.Append(']');
 							}
 						}
@@ -1589,7 +1589,7 @@ namespace dnlib.DotNet {
 			CreateFullName(exportedType);
 			if (MustUseAssemblyName(exportedType)) {
 				sb.Append(", ");
-				CreateAssemblyFullName(GetDefinitionAssembly(exportedType), true);
+				CreateAssemblyFullName(GetDefinitionAssembly(exportedType), true, false, true);
 			}
 
 			recursionCounter.Decrement();
@@ -1715,7 +1715,7 @@ namespace dnlib.DotNet {
 			return true;
 		}
 
-		void CreateAssemblyFullName(IAssembly? assembly, bool useToken, bool escapeClosingBracket = false) {
+		void CreateAssemblyFullName(IAssembly? assembly, bool useToken, bool escapeClosingBracket = false, bool isInTypeName = false) {
 			if (assembly is null) {
 				AppendNullValue();
 				return;
@@ -1724,8 +1724,10 @@ namespace dnlib.DotNet {
 			AddAssemblyNamePart(UTF8String.ToSystemStringOrEmpty(assembly.Name), escapeClosingBracket);
 
 			if (assembly.Version is not null) {
-				// The CLR has no version for a reference if its first or second number has no value (65535)
-				bool hasVersion = !(assembly is AssemblyRef) || ((ushort)assembly.Version.Major != ushort.MaxValue && (ushort)assembly.Version.Minor != ushort.MaxValue);
+				// The CLR has no version for a reference if its first or second number has no value (65535).
+				// The assembly of a type name has no version then either: a version with one number (the full
+				// name of an assembly whose second number is 65535) can't be read back, not by the CLR either.
+				bool hasVersion = !(assembly is AssemblyRef || isInTypeName) || ((ushort)assembly.Version.Major != ushort.MaxValue && (ushort)assembly.Version.Minor != ushort.MaxValue);
 				if (hasVersion)
 					AddAssemblyVersion(assembly.Version);
 			}

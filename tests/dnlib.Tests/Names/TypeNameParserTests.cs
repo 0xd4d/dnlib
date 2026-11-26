@@ -393,5 +393,27 @@ namespace dnlib.Tests.Names {
 
 			Assert.IsAssignableFrom<TypeRef>(TypeNameParser.ParseReflection(module, name, null));
 		}
+
+		// Fixed in this commit: the full name of an assembly ends its version before the first number that is
+		// 65535 (like AssemblyName.FullName), which can leave one number. Nothing can read that version, not
+		// System.Reflection either, so the assembly in the name of a type has no version then: a type of such
+		// an assembly was null when its name was read from a custom attribute that dnlib had written.
+		[Theory]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("1.2.3.65535", "Ns.MyType, Test, Version=1.2.3, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("1.2.65535.4", "Ns.MyType, Test, Version=1.2, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("1.65535.3.4", "Ns.MyType, Test, Culture=neutral, PublicKeyToken=null")]
+		[InlineData("65535.2.3.4", "Ns.MyType, Test, Culture=neutral, PublicKeyToken=null")]
+		public void AssemblyQualifiedNameOfATypeOfTheModuleIsReadBack(string assemblyVersion, string expectedName) {
+			var module = CreateModuleWithAType(Version.Parse(assemblyVersion));
+
+			string name = module.Types[1].AssemblyQualifiedName;
+
+			Assert.Equal(expectedName, name);
+			Assert.Same(module.Types[1], TypeNameParser.ParseReflection(module, name, null));
+			// The name of the assembly itself is the one of System.Reflection
+			if (assemblyVersion == "1.65535.3.4")
+				Assert.Equal("Test, Version=1, Culture=neutral, PublicKeyToken=null", module.Assembly!.FullName);
+		}
 	}
 }
