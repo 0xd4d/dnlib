@@ -245,6 +245,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 						Debug2.Assert(data != 0);
 						if (data == 0)
 							return null;
+						// An offset that doesn't fit in an int is invalid. System.Reflection.Metadata throws.
+						if (data > int.MaxValue - ilOffset)
+							return null;
 						ilOffset += data;
 					}
 					symSeqPoint.Offset = (int)ilOffset;
@@ -320,6 +323,8 @@ namespace dnlib.DotNet.Pdb.Portable {
 					int token = new MDToken(Table.LocalScope, rid).ToInt32();
 					bool b = pdbMetadata.TablesStream.TryReadLocalScopeRow(rid, out var row);
 					Debug2.Assert(b);
+					if (!IsValidScopeRange(row.StartOffset, row.Length))
+						continue;
 					uint startOffset = row.StartOffset;
 					uint endOffset = startOffset + row.Length;
 
@@ -358,14 +363,23 @@ namespace dnlib.DotNet.Pdb.Portable {
 		bool NeedsRootScope(RidList scopesRidList, out uint rootEnd, out uint rootImportScope) {
 			rootEnd = 0;
 			rootImportScope = 0;
-			if (!pdbMetadata.TablesStream.TryReadLocalScopeRow(scopesRidList[0], out var firstRow))
+			// The first scope that isn't ignored
+			int first = 0;
+			RawLocalScopeRow firstRow = default;
+			for (; first < scopesRidList.Count; first++) {
+				if (pdbMetadata.TablesStream.TryReadLocalScopeRow(scopesRidList[first], out firstRow) && IsValidScopeRange(firstRow.StartOffset, firstRow.Length))
+					break;
+			}
+			if (first >= scopesRidList.Count)
 				return false;
 			uint firstStart = firstRow.StartOffset;
 			uint firstEnd = firstStart + firstRow.Length;
 			bool needsRoot = false;
 			uint maxEnd = firstEnd;
-			for (int i = 1; i < scopesRidList.Count; i++) {
+			for (int i = first + 1; i < scopesRidList.Count; i++) {
 				if (!pdbMetadata.TablesStream.TryReadLocalScopeRow(scopesRidList[i], out var row))
+					continue;
+				if (!IsValidScopeRange(row.StartOffset, row.Length))
 					continue;
 				uint end = row.StartOffset + row.Length;
 				if (row.StartOffset < firstStart || end > firstEnd)
@@ -379,6 +393,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 			rootImportScope = firstRow.ImportScope;
 			return true;
 		}
+
+		// The start and the end of a scope are in [0, 0x80000000). A scope that's outside of that range is ignored,
+		// its offsets can't be the offsets of instructions and they don't fit in an int.
+		static bool IsValidScopeRange(uint startOffset, uint length) => (ulong)startOffset + length <= int.MaxValue;
 
 		// Many LocalScopes, in one method or in many, can use the same ImportScope rows, and each row
 		// can have a long Parent chain. Each row is read once, and every scope that uses it gets the
@@ -511,17 +529,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				bool b = pdbMetadata.TablesStream.TryReadLocalVariableRow(rid, out var row);
 				Debug2.Assert(b);
 				var name = pdbMetadata.StringsStream.Read(row.Name);
-				scope.localsList.Add(new SymbolVariableImpl(name, ToSymbolVariableAttributes(row.Attributes), row.Index, customDebugInfos));
+				// All bits are kept, also the ones that have no meaning yet, so they're written again
+				scope.localsList.Add(new SymbolVariableImpl(name, (PdbLocalAttributes)row.Attributes, row.Index, customDebugInfos));
 			}
 			ListCache<PdbCustomDebugInfo>.Free(ref custInfos);
-		}
-
-		static PdbLocalAttributes ToSymbolVariableAttributes(ushort attributes) {
-			var res = PdbLocalAttributes.None;
-			const ushort DebuggerHidden = 0x0001;
-			if ((attributes & DebuggerHidden) != 0)
-				res |= PdbLocalAttributes.DebuggerHidden;
-			return res;
 		}
 
 		void ReadConstants(SymbolScopeImpl scope, RidList rids) {
