@@ -53,8 +53,8 @@ public static class Marker {
 				.ToArray();
 
 		static byte[] Concat(params byte[][] parts) => parts.SelectMany(a => a).ToArray();
-		static byte[] Int32(uint value) => BitConverter.GetBytes(value);
-		static byte[] Int16(int value) => BitConverter.GetBytes((ushort)value);
+		static byte[] Int32(uint value) => LittleEndian.GetBytes(value);
+		static byte[] Int16(int value) => LittleEndian.GetBytes((ushort)value);
 
 		const byte nop = 0x00, ldc_i4_0 = 0x16, ldc_i4_1 = 0x17, ldc_i4 = 0x20, pop = 0x26, ret = 0x2A, div = 0x5B, leave_s = 0xDE;
 

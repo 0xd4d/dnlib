@@ -74,7 +74,7 @@ namespace dnlib.TestUtils.Dumping {
 		/// Returns the bits of the value: there are many NaN values and two zeros, and they must stay what they are
 		/// </summary>
 		public static string Bits(float value) =>
-			"r4:" + BitConverter.ToUInt32(BitConverter.GetBytes(value), 0).ToString("X8", CultureInfo.InvariantCulture);
+			"r4:" + LittleEndian.ToUInt32(LittleEndian.GetBytes(value), 0).ToString("X8", CultureInfo.InvariantCulture);
 
 		/// <summary>
 		/// Returns the bits of the value: there are many NaN values and two zeros, and they must stay what they are

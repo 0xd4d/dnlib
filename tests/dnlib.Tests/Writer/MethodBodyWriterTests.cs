@@ -8,6 +8,7 @@ using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 using Xunit;
+using dnlib.TestUtils;
 
 namespace dnlib.Tests.Writer {
 	/// <summary>
@@ -231,8 +232,8 @@ namespace dnlib.Tests.Writer {
 		static bool HasFatExceptionClauses(byte[] image, MethodDef method) {
 			using (var peImage = new dnlib.PE.PEImage(image)) {
 				int offset = (int)peImage.ToFileOffset(method.RVA);
-				Assert.Equal(0x3003, System.BitConverter.ToUInt16(image, offset) & 0xF003);
-				int codeSize = System.BitConverter.ToInt32(image, offset + 4);
+				Assert.Equal(0x3003, dnlib.TestUtils.LittleEndian.ToUInt16(image, offset) & 0xF003);
+				int codeSize = dnlib.TestUtils.LittleEndian.ToInt32(image, offset + 4);
 				int sectionOffset = (offset + FatHeaderSize + codeSize + 3) & ~3;
 				Assert.Equal(1, image[sectionOffset] & 0x3F);
 				return (image[sectionOffset] & 0x40) != 0;

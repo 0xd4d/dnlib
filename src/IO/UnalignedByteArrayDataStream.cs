@@ -52,7 +52,9 @@ namespace dnlib.IO {
 
 		public override string ReadUtf16String(uint offset, int chars) {
 			fixed (byte* p = data)
+#pragma warning disable RS0030 // This class is only used if the CPU is little endian
 				return new string((char*)(p + offset), 0, chars);
+#pragma warning restore RS0030
 		}
 
 		public override string ReadString(uint offset, int length, Encoding encoding) {

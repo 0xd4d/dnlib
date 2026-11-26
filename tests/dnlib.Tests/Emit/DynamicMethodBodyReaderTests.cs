@@ -8,6 +8,7 @@ using dnlib.DotNet.Emit;
 using Xunit;
 using OpCodes = dnlib.DotNet.Emit.OpCodes;
 using ReflectionOpCodes = System.Reflection.Emit.OpCodes;
+using dnlib.TestUtils;
 
 namespace dnlib.Tests.Emit {
 	/// <summary>
@@ -326,7 +327,7 @@ namespace dnlib.Tests.Emit {
 			var info = dynamicMethod.GetDynamicILInfo();
 			info.SetCode(new byte[] { 0x00, 0xDE, 0x03, 0x26, 0xDE, 0x00, 0x1B, 0x2A }, 1);
 			info.SetLocalSignature(SignatureHelper.GetLocalVarSigHelper().GetSignature());
-			var exceptionToken = BitConverter.GetBytes(info.GetTokenFor(typeof(Exception).TypeHandle));
+			var exceptionToken = LittleEndian.GetBytes(info.GetTokenFor(typeof(Exception).TypeHandle));
 			byte[] handlers;
 			if (fatExceptionHandlers) {
 				handlers = new byte[] {

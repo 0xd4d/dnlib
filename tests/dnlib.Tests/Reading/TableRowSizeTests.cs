@@ -11,6 +11,7 @@ using System.Text;
 using dnlib.DotNet.MD;
 using dnlib.IO;
 using Xunit;
+using dnlib.TestUtils;
 
 namespace dnlib.Tests.Reading {
 	/// <summary>
@@ -152,13 +153,13 @@ namespace dnlib.Tests.Reading {
 				// the size and the offset in the file
 				int sectionHeader = headers.PEHeaderStartOffset + headers.CoffHeader.SizeOfOptionalHeader + lastIndex * 0x28;
 				int newSize = last.SizeOfRawData + metadata.Length;
-				BitConverter.GetBytes(newSize).CopyTo(image, sectionHeader + 8);
-				BitConverter.GetBytes(newSize).CopyTo(image, sectionHeader + 16);
+				LittleEndian.GetBytes(newSize).CopyTo(image, sectionHeader + 8);
+				LittleEndian.GetBytes(newSize).CopyTo(image, sectionHeader + 16);
 				// The size of the image in memory is at offset 56 of the optional header
-				BitConverter.GetBytes(last.VirtualAddress + ((newSize + 0x1FFF) & ~0x1FFF)).CopyTo(image, headers.PEHeaderStartOffset + 56);
+				LittleEndian.GetBytes(last.VirtualAddress + ((newSize + 0x1FFF) & ~0x1FFF)).CopyTo(image, headers.PEHeaderStartOffset + 56);
 				// The .NET header: its size, the runtime version, and then the address and the size of the metadata
-				BitConverter.GetBytes(last.VirtualAddress + last.SizeOfRawData).CopyTo(image, headers.CorHeaderStartOffset + 8);
-				BitConverter.GetBytes(metadata.Length).CopyTo(image, headers.CorHeaderStartOffset + 12);
+				LittleEndian.GetBytes(last.VirtualAddress + last.SizeOfRawData).CopyTo(image, headers.CorHeaderStartOffset + 8);
+				LittleEndian.GetBytes(metadata.Length).CopyTo(image, headers.CorHeaderStartOffset + 12);
 				return image;
 			}
 		}

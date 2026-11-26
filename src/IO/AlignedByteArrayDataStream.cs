@@ -55,7 +55,9 @@ namespace dnlib.IO {
 		public override string ReadUtf16String(uint offset, int chars) {
 			fixed (byte* p = data) {
 				if (BitConverter.IsLittleEndian)
+#pragma warning disable RS0030 // Only if the CPU is little endian
 					return new string((char*)(p + offset), 0, chars);
+#pragma warning restore RS0030
 				return ReadUtf16StringByteByByte(p + offset, chars);
 			}
 		}

@@ -384,7 +384,8 @@ namespace Features {
 			Check(Outer<Key>.Create<Key>().Value == 0, "Outer.Create");
 
 			var union = new Union { Low = 1, High = 2 };
-			Check(union.Whole == 0x200000001, "Union");
+			// The fields share their bytes, so the value depends on the byte order of the CPU
+			Check(union.Whole == (BitConverter.IsLittleEndian ? 0x200000001 : 0x100000002), "Union");
 
 			// .NET only supports vararg methods on Windows
 			if (Environment.OSVersion.Platform == PlatformID.Win32NT || Type.GetType("Mono.Runtime") != null)

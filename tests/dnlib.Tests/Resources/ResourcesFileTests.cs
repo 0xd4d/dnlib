@@ -11,6 +11,7 @@ using dnlib.IO;
 using Xunit;
 using SystemResourceReader = System.Resources.ResourceReader;
 using SystemResourceWriter = System.Resources.ResourceWriter;
+using dnlib.TestUtils;
 
 namespace dnlib.Tests.Resources {
 	/// <summary>
@@ -312,7 +313,7 @@ namespace dnlib.Tests.Resources {
 			var file = WriteUserTypeResources(("first", new byte[] { 1, 2, 3 }), ("second", new byte[] { 4, 5 }), ("third", new byte[] { 6 }));
 			int firstOffsetField = FindDataOffsetField(file, "first");
 			int secondOffsetField = FindDataOffsetField(file, "second");
-			Assert.NotEqual(BitConverter.ToInt32(file, firstOffsetField), BitConverter.ToInt32(file, secondOffsetField));
+			Assert.NotEqual(LittleEndian.ToInt32(file, firstOffsetField), LittleEndian.ToInt32(file, secondOffsetField));
 			// "second" now uses the data of "first"
 			Array.Copy(file, firstOffsetField, file, secondOffsetField, 4);
 

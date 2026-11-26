@@ -1,7 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
-using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
@@ -74,7 +73,7 @@ namespace dnlib.Tests.IO {
 				Assert.Equal(text, DataStream.ReadUtf16StringByteByByte(p + 1, text.Length));
 
 			// Every stream reads the same string on this CPU
-			foreach (var kind in TestDataReader.AllKinds.Select(a => a.Data)) {
+			foreach (var kind in TestDataReader.KindValues) {
 				using (var source = TestDataReader.Create(kind, bytes)) {
 					var reader = source.Reader;
 					reader.Position = 1;

@@ -53,7 +53,7 @@ public static class Program {
 					return null;
 				var entry = Assert.Single(entries);
 				Assert.Equal("MPDB", System.Text.Encoding.ASCII.GetString(image, entry.DataPointer, 4));
-				int size = BitConverter.ToInt32(image, entry.DataPointer + 4);
+				int size = LittleEndian.ToInt32(image, entry.DataPointer + 4);
 				var pdb = new MemoryStream();
 				using (var deflate = new DeflateStream(new MemoryStream(image, entry.DataPointer + 8, entry.DataSize - 8), CompressionMode.Decompress))
 					deflate.CopyTo(pdb);
@@ -116,9 +116,9 @@ public static class Program {
 				int index = entries.IndexOf(entries.Single(a => a.Type == DebugDirectoryEntryType.EmbeddedPortablePdb));
 				int dataOffset = entries[index].DataPointer;
 				Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(peReader.PEHeaders.PEHeader!.DebugTableDirectory, out int tableOffset));
-				void SetSize(uint size) => BitConverter.GetBytes(size).CopyTo(image, dataOffset + 4);
+				void SetSize(uint size) => LittleEndian.GetBytes(size).CopyTo(image, dataOffset + 4);
 				// An entry of the debug directory has 28 bytes, the size of its data is at offset 16
-				void SetDataSize(int size) => BitConverter.GetBytes(size).CopyTo(image, tableOffset + index * 28 + 16);
+				void SetDataSize(int size) => LittleEndian.GetBytes(size).CopyTo(image, tableOffset + index * 28 + 16);
 				switch (change) {
 				case "size is 0": SetSize(0); break;
 				case "size is too small by 1": SetSize((uint)realSize - 1); break;
@@ -301,7 +301,7 @@ public static class Program {
 
 		// The offset of the 20 bytes of the PDB id (a GUID and a 32-bit stamp) in the PDB
 		static int FindId(byte[] pdb, BlobContentId id) {
-			var idBytes = id.Guid.ToByteArray().Concat(BitConverter.GetBytes(id.Stamp)).ToArray();
+			var idBytes = id.Guid.ToByteArray().Concat(LittleEndian.GetBytes(id.Stamp)).ToArray();
 			for (int i = 0; i + idBytes.Length <= pdb.Length; i++) {
 				if (pdb.Skip(i).Take(idBytes.Length).SequenceEqual(idBytes))
 					return i;

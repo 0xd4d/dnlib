@@ -87,20 +87,20 @@ namespace dnlib.TestUtils {
 			}
 
 			int position = metadataOffset;
-			Signature = BitConverter.ToUInt32(image, position);
-			MajorVersion = BitConverter.ToUInt16(image, position + 4);
-			MinorVersion = BitConverter.ToUInt16(image, position + 6);
-			Reserved = BitConverter.ToUInt32(image, position + 8);
-			int versionLength = BitConverter.ToInt32(image, position + 12);
+			Signature = LittleEndian.ToUInt32(image, position);
+			MajorVersion = LittleEndian.ToUInt16(image, position + 4);
+			MinorVersion = LittleEndian.ToUInt16(image, position + 6);
+			Reserved = LittleEndian.ToUInt32(image, position + 8);
+			int versionLength = LittleEndian.ToInt32(image, position + 12);
 			VersionString = image.Skip(position + 16).Take(versionLength).ToArray();
 			position += 16 + versionLength;
 			StorageFlags = image[position];
 			StorageReserved = image[position + 1];
-			int streamCount = BitConverter.ToUInt16(image, position + 2);
+			int streamCount = LittleEndian.ToUInt16(image, position + 2);
 			position += 4;
 			for (int i = 0; i < streamCount; i++) {
-				int offset = BitConverter.ToInt32(image, position);
-				int size = BitConverter.ToInt32(image, position + 4);
+				int offset = LittleEndian.ToInt32(image, position);
+				int size = LittleEndian.ToInt32(image, position + 4);
 				int nameEnd = Array.IndexOf(image, (byte)0, position + 8);
 				string name = Encoding.ASCII.GetString(image, position + 8, nameEnd - (position + 8));
 				Streams.Add(new MetadataBlockStream(name, image.Skip(metadataOffset + offset).Take(size).ToArray()));
@@ -170,7 +170,7 @@ namespace dnlib.TestUtils {
 			Array.Clear(newImage, metadataOffset, metadataSize);
 			metadata.CopyTo(newImage, metadataOffset);
 			if (SizeInDotNetHeader is not null)
-				BitConverter.GetBytes(SizeInDotNetHeader.Value).CopyTo(newImage, metadataSizeOffset);
+				LittleEndian.GetBytes(SizeInDotNetHeader.Value).CopyTo(newImage, metadataSizeOffset);
 			return newImage;
 		}
 	}

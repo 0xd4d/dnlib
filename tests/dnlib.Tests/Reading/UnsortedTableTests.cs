@@ -44,10 +44,10 @@ namespace dnlib.Tests.Reading {
 			var patcher = new MetadataPatcher(image);
 			// The header is 24 bytes, the last 8 are the bits of the sorted tables
 			long sortedBitsOffset = patcher.GetStreamFileOffset("#-") + 16;
-			ulong sortedBits = BitConverter.ToUInt64(image, (int)sortedBitsOffset);
+			ulong sortedBits = LittleEndian.ToUInt64(image, (int)sortedBitsOffset);
 			Assert.True((sortedBits & (1UL << (int)table)) != 0, $"{table} isn't a sorted table");
 			sortedBits &= ~(1UL << (int)table);
-			return patcher.SetBytes(sortedBitsOffset, BitConverter.GetBytes(sortedBits)).ToArray();
+			return patcher.SetBytes(sortedBitsOffset, LittleEndian.GetBytes(sortedBits)).ToArray();
 		}
 
 		static byte[] CreateImageWithReversedTable(Table table) {

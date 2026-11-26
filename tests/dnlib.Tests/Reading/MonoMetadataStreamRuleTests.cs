@@ -233,7 +233,7 @@ public static class Second {
 		static readonly uint markerRid = new MetadataPatcher(baseImage).FindRow(DotNet.MD.Table.TypeDef, "Name", "Marker");
 
 		static byte[] SetUInt32(byte[] image, long offset, uint value) =>
-			new MetadataPatcher(image).SetBytes(offset, BitConverter.GetBytes(value)).ToArray();
+			new MetadataPatcher(image).SetBytes(offset, LittleEndian.GetBytes(value)).ToArray();
 
 		// The changes, separated by "; ":
 		//	size of #Name = number				the size of a stream in its header
@@ -256,7 +256,7 @@ public static class Second {
 				}
 				else if (parts[0] == "sorted tables")
 					// The tables header is 24 bytes, the last 8 are the bits of the sorted tables
-					image = patcher.SetBytes(patcher.GetStreamFileOffset("#~") + 16, BitConverter.GetBytes((ulong)value)).ToArray();
+					image = patcher.SetBytes(patcher.GetStreamFileOffset("#~") + 16, LittleEndian.GetBytes((ulong)value)).ToArray();
 				else if (parts[0] == "constants reversed") {
 					foreach (var column in patcher.GetColumnNames(DotNet.MD.Table.Constant)) {
 						uint first = patcher.GetCell(DotNet.MD.Table.Constant, 1, column);

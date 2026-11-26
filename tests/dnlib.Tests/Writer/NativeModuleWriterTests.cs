@@ -110,14 +110,14 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
-		static uint ReadNumberOfRvaAndSizes(byte[] image) => BitConverter.ToUInt32(image, GetOptionalHeaderOffset(image) + numberOfRvaAndSizesOffset);
+		static uint ReadNumberOfRvaAndSizes(byte[] image) => LittleEndian.ToUInt32(image, GetOptionalHeaderOffset(image) + numberOfRvaAndSizesOffset);
 
 		// The fixture with 15 instead of 16 data directories in its PE header. The last one isn't used by any
 		// file, and the .NET directory is number 15.
 		static byte[] CreateImageWith15DataDirectories() {
 			var image = (byte[])Image.Clone();
 			int offset = GetOptionalHeaderOffset(image) + numberOfRvaAndSizesOffset;
-			Assert.Equal(16U, BitConverter.ToUInt32(image, offset));
+			Assert.Equal(16U, LittleEndian.ToUInt32(image, offset));
 			image[offset] = 15;
 			return image;
 		}
@@ -154,7 +154,7 @@ namespace dnlib.Tests.Writer {
 		public void FileAlignmentThatIsNotAPowerOfTwoIsAnError() {
 			var image = (byte[])Image.Clone();
 			int offset = GetOptionalHeaderOffset(image) + fileAlignmentOffset;
-			Assert.Equal(0x200U, BitConverter.ToUInt32(image, offset));
+			Assert.Equal(0x200U, LittleEndian.ToUInt32(image, offset));
 			image[offset] = 3;
 
 			using (var module = ModuleDefMD.Load(image))

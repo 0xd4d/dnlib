@@ -215,7 +215,7 @@ namespace dnlib.Tests.Writer {
 				foreach (var resource in writtenModule.Resources.OfType<EmbeddedResource>()) {
 					// A resource is stored as its length (4 bytes) and its bytes. The chunk is the bytes.
 					int offset = (int)resources[resource.Name];
-					Assert.Equal((int)resource.Length, BitConverter.ToInt32(written.Image, offset - 4));
+					Assert.Equal((int)resource.Length, LittleEndian.ToInt32(written.Image, offset - 4));
 					Assert.Equal(resource.CreateReader().ToArray(), written.Image.Skip(offset).Take((int)resource.Length));
 				}
 			}

@@ -138,7 +138,7 @@ namespace dnlib.Tests.Writer {
 			using (var original = WriteStubIntoTheFile(cpuArch, StubType.Export, out uint stubOffset, out var stub)) {
 				var bytes = original.CreateReader().ToArray();
 				ulong imageBase = original.ImageNTHeaders.OptionalHeader.ImageBase;
-				var slotAddress = BitConverter.GetBytes(imageBase + SlotRva);
+				var slotAddress = LittleEndian.GetBytes(imageBase + SlotRva);
 				// The address of the slot is somewhere in the stub
 				int index = -1;
 				for (int i = 0; i + 8 <= stub.Length; i++) {
@@ -146,7 +146,7 @@ namespace dnlib.Tests.Writer {
 						index = i;
 				}
 				Assert.True(index >= 0);
-				BitConverter.GetBytes(imageBase - 1).CopyTo(bytes, stubOffset + index);
+				LittleEndian.GetBytes(imageBase - 1).CopyTo(bytes, stubOffset + index);
 
 				using (var peImage = new PEImage(bytes)) {
 					var reader = peImage.CreateReader();
@@ -181,7 +181,7 @@ namespace dnlib.Tests.Writer {
 			foreach (var word in code.Split(' ')) {
 				if (word == "RELATIVE")
 					// The slot's address minus the address of the next instruction (after these 4 bytes)
-					bytes.AddRange(BitConverter.GetBytes((int)(SlotRva - (stubRva + (uint)bytes.Count + 4))));
+					bytes.AddRange(LittleEndian.GetBytes((int)(SlotRva - (stubRva + (uint)bytes.Count + 4))));
 				else
 					bytes.Add(Convert.ToByte(word, 16));
 			}
@@ -260,7 +260,7 @@ namespace dnlib.Tests.Writer {
 		// Moves the first section (the code) to another RVA
 		static void PatchSectionRva(byte[] newImage, PEImage original, uint rva) {
 			var section = original.ImageSectionHeaders[0];
-			BitConverter.GetBytes(rva).CopyTo(newImage, (int)section.StartOffset + 12);
+			LittleEndian.GetBytes(rva).CopyTo(newImage, (int)section.StartOffset + 12);
 		}
 
 		// The stub that dnlib writes for ARM64: the instructions of Microsoft's C++ compiler, for any distance to

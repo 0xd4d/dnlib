@@ -60,9 +60,9 @@ public class Program {
 				default: throw new ArgumentException(entryPoint);
 				}
 			}
-			BitConverter.GetBytes(token).CopyTo(image, headerOffset + EntryPointOffset);
-			uint flags = BitConverter.ToUInt32(image, headerOffset + FlagsOffset) | flagsToSet;
-			BitConverter.GetBytes(flags).CopyTo(image, headerOffset + FlagsOffset);
+			LittleEndian.GetBytes(token).CopyTo(image, headerOffset + EntryPointOffset);
+			uint flags = LittleEndian.ToUInt32(image, headerOffset + FlagsOffset) | flagsToSet;
+			LittleEndian.GetBytes(flags).CopyTo(image, headerOffset + FlagsOffset);
 			return image;
 		}
 

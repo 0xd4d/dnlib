@@ -8,7 +8,7 @@ using Xunit;
 namespace dnlib.Tests.IO {
 	/// <summary>
 	/// The <see cref="DataStream"/> implementations. dnlib picks the aligned or the unaligned ones depending on
-	/// the CPU, the tests use all of them on every CPU.
+	/// the CPU, the tests use all of them on every little endian CPU, and the aligned ones on a big endian CPU.
 	/// </summary>
 	public enum DataStreamKind {
 		UnalignedByteArray,
@@ -36,12 +36,19 @@ namespace dnlib.Tests.IO {
 		/// <summary>
 		/// All <see cref="DataStreamKind"/> values, for tests that have other test data and loop over the kinds
 		/// </summary>
-		public static readonly DataStreamKind[] KindValues = new[] {
-			DataStreamKind.UnalignedByteArray,
-			DataStreamKind.AlignedByteArray,
-			DataStreamKind.UnalignedNativeMemory,
-			DataStreamKind.AlignedNativeMemory,
-		};
+		public static readonly DataStreamKind[] KindValues = BitConverter.IsLittleEndian ?
+			new[] {
+				DataStreamKind.UnalignedByteArray,
+				DataStreamKind.AlignedByteArray,
+				DataStreamKind.UnalignedNativeMemory,
+				DataStreamKind.AlignedNativeMemory,
+			} :
+			// The unaligned streams copy numbers from memory, so they're only for (and only used by) little
+			// endian CPUs
+			new[] {
+				DataStreamKind.AlignedByteArray,
+				DataStreamKind.AlignedNativeMemory,
+			};
 
 		/// <summary>
 		/// A reader positioned at the first of the bytes that were passed to <see cref="Create"/>.

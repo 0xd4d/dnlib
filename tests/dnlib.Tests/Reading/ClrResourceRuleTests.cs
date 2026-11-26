@@ -44,14 +44,14 @@ namespace dnlib.Tests.Reading {
 			foreach (var change in changes.Split(new[] { "; " }, StringSplitOptions.RemoveEmptyEntries)) {
 				var parts = change.Split(new[] { " = " }, StringSplitOptions.None);
 				string what = parts[0];
-				uint original = what == "Length" ? BitConverter.ToUInt32(baseImage, (int)lengthOffset) :
-					what == "Size" ? BitConverter.ToUInt32(baseImage, (int)sizeOffset) :
+				uint original = what == "Length" ? LittleEndian.ToUInt32(baseImage, (int)lengthOffset) :
+					what == "Size" ? LittleEndian.ToUInt32(baseImage, (int)sizeOffset) :
 					patcher.GetCell(Table.ManifestResource, 1, what);
 				uint value = parts[1].StartsWith("+") ? original + uint.Parse(parts[1].Substring(1)) : uint.Parse(parts[1]);
 				if (what == "Length")
-					patcher.SetBytes(lengthOffset, BitConverter.GetBytes(value));
+					patcher.SetBytes(lengthOffset, LittleEndian.GetBytes(value));
 				else if (what == "Size")
-					patcher.SetBytes(sizeOffset, BitConverter.GetBytes(value));
+					patcher.SetBytes(sizeOffset, LittleEndian.GetBytes(value));
 				else
 					patcher.SetCell(Table.ManifestResource, 1, what, value);
 			}

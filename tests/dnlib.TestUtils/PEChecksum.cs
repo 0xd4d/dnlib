@@ -16,7 +16,7 @@ namespace dnlib.TestUtils {
 		/// <summary>
 		/// Reads the checksum that's stored in the PE file's optional header
 		/// </summary>
-		public static uint Read(byte[] image) => BitConverter.ToUInt32(image, GetChecksumOffset(image));
+		public static uint Read(byte[] image) => LittleEndian.ToUInt32(image, GetChecksumOffset(image));
 
 		/// <summary>
 		/// Calculates the checksum the PE file should have
