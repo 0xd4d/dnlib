@@ -108,16 +108,12 @@ namespace dnlib.DotNet.Pdb.Portable {
 					break;
 
 				case ImportDefinitionKindUtils.UNKNOWN_IMPORT_KIND:
-					import = null;
-					break;
-
 				default:
-					Debug.Fail($"Unknown import definition kind: {kind}");
-					import = null;
-					break;
+					// It's not known which values an unknown kind has, so the rest of the blob can't be read.
+					// System.Reflection.Metadata throws here, after it has returned the imports before this one.
+					return;
 				}
-				if (import is not null)
-					result.Add(import);
+				result.Add(import);
 			}
 			Debug2.Assert(reader.Position == reader.Length);
 		}
@@ -169,6 +165,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 						reader.ReadCompressedUInt32();
 						size += GetUTF8Size(reader.ReadCompressedUInt32());
 						break;
+
+					default:
+						// Read() stops here too
+						return size;
 					}
 				}
 			}
