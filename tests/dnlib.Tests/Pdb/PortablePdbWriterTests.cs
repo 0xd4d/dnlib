@@ -84,7 +84,7 @@ namespace dnlib.Tests.Pdb {
 		// A sequence point that a portable PDB can't store is an error: a line or column that's negative or too
 		// big, or an end before the start. If the error is ignored, the values are changed to valid ones like
 		// Microsoft's PDB converter does it.
-		// Fixed in the commit that added this test: too big values became 0xFEEFED (lines) and 0xFFFE (columns), the
+		// Fixed in f712362a: too big values became 0xFEEFED (lines) and 0xFFFE (columns), the
 		// biggest values that System.Reflection.Metadata before .NET 12 reads. They're now the biggest valid
 		// values, so the written file is read with dnlib.
 		[Theory]

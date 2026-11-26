@@ -56,7 +56,7 @@ namespace dnlib.Tests.Pdb {
 			Assert.Equal(expected, ReadWithSrm(pdb));
 		}
 
-		// Fixed in the commit that added this test: a document without a name has the offset 0, the empty blob. dnlib
+		// Fixed in 347194e5: a document without a name has the offset 0, the empty blob. dnlib
 		// tried to read its separator, and then didn't read the PDB file at all.
 		[Fact]
 		public void DocumentWithoutANameHasAnEmptyName() {
@@ -122,7 +122,7 @@ namespace dnlib.Tests.Pdb {
 			Assert.Throws<BadImageFormatException>(() => ReadWithSrm(pdb));
 		}
 
-		// Fixed in the commit that added this test: dnlib read after the end of these names and then didn't
+		// Fixed in 347194e5: dnlib read after the end of these names and then didn't
 		// read the PDB file at all. The name now ends where nothing more can be read.
 		[Theory]
 		[InlineData(new byte[] { 0xE2 }, "")]                   // the first byte of a separator of three bytes

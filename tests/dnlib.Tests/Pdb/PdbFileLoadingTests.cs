@@ -89,7 +89,7 @@ public static class Program {
 		const int CodeViewNameOffset = 24;
 		const string CodeViewName = "TestAssembly.pdb";
 
-		// Fixed in the commit that added this test: dnlib needed a zero byte after the name. Without it, it read
+		// Fixed in 0d73bed1: dnlib needed a zero byte after the name. Without it, it read
 		// no PDB file at all, also not one that was passed to it. Like System.Reflection.Metadata, the name now
 		// ends where the data ends.
 		[Fact]

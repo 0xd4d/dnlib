@@ -94,7 +94,7 @@ public static class Program {
 		// The data of the entry: "MPDB", the size of the PDB (4 bytes) and the compressed PDB. If the size isn't
 		// the real size, if the signature is another one or if the data can't be decompressed, the module is
 		// loaded without debug info. These are the cases that System.Reflection.Metadata tests (it throws).
-		// Fixed in the commit that added this test: a size that was smaller than the real size was accepted,
+		// Fixed in 9d7b9c04: a size that was smaller than the real size was accepted,
 		// and dnlib read the start of the PDB.
 		[Theory]
 		[InlineData("size is 0")]
