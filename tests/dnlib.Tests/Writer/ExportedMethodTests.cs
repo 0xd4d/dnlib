@@ -55,14 +55,14 @@ public static class Functions {
 			}
 		}
 
-		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.IA64)]
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.ARM64), InlineData(Machine.IA64)]
 		public void ExportDirectoryHasTheNamesSorted(Machine machine) {
 			var written = WriteWithExports(machine);
 
 			Assert.Equal(new[] { "ExportedFirst", "ExportedSecond" }, PEExports.GetNames(written));
 		}
 
-		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.IA64)]
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.ARM64), InlineData(Machine.IA64)]
 		public void ExportInfoIsReadFromTheWrittenFile(Machine machine) {
 			using (var module = ModuleDefMD.Load(WriteWithExports(machine))) {
 				var functions = module.Find("Functions", isReflectionName: true)!;
@@ -88,7 +88,7 @@ public static class Functions {
 		}
 
 		// Fixed in 96cbcc25: the ordinal of an export that also has a name was ignored
-		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.IA64)]
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.ARM64), InlineData(Machine.IA64)]
 		public void ExportsKeepTheirOrdinals(Machine machine) {
 			var written = WriteWithExports(machine, functions => {
 				functions.FindMethod("First")!.ExportInfo = new MethodExportInfo("ExportedFirst", 9);
@@ -132,19 +132,69 @@ public static class Functions {
 		public void ModuleWithoutExportedMethodsHasNoExportDirectory() =>
 			Assert.Empty(PEExports.GetNames(CSharpCompiler.Compile(Source).Image));
 
+		// The ARM64 stubs have the address of their slot relative to the code, so nothing must be relocated when
+		// the file is loaded at another address. The file has no relocations and no section for them: a section
+		// can't be empty. Added for issue 165 (ARM64 exports).
+		[Fact]
+		public void Arm64FileWithExportsHasNoRelocations() {
+			var written = WriteWithExports(Machine.ARM64);
+
+			using (var peImage = new PEImage(written)) {
+				Assert.DoesNotContain(peImage.ImageSectionHeaders, a => a.DisplayName == ".reloc");
+				Assert.Contains(peImage.ImageSectionHeaders, a => a.DisplayName == ".sdata");
+				Assert.All(peImage.ImageSectionHeaders, a => Assert.NotEqual(0U, a.VirtualSize));
+				var relocations = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[5];
+				Assert.Equal(0U, (uint)relocations.VirtualAddress);
+				Assert.Equal(0U, relocations.Size);
+			}
+		}
+
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.IA64)]
+		public void FileWithExportsForOtherProcessorsHasRelocations(Machine machine) {
+			var written = WriteWithExports(machine);
+
+			using (var peImage = new PEImage(written)) {
+				var section = Assert.Single(peImage.ImageSectionHeaders, a => a.DisplayName == ".reloc");
+				var relocations = peImage.ImageNTHeaders.OptionalHeader.DataDirectories[5];
+				Assert.Equal(section.VirtualAddress, relocations.VirtualAddress);
+				Assert.NotEqual(0U, relocations.Size);
+			}
+		}
+
+		// A file with exported methods isn't IL only: Windows calls its entry point, which is a stub that jumps
+		// to the function of mscoree.dll that the file imports. Its address is the file's only imported address.
+		[Theory, InlineData(Machine.I386), InlineData(Machine.AMD64), InlineData(Machine.ARMNT), InlineData(Machine.ARM64), InlineData(Machine.IA64)]
+		public void EntryPointOfAFileWithExportsJumpsToTheImportedFunction(Machine machine) {
+			var written = WriteWithExports(machine);
+
+			using (var peImage = new PEImage(written)) {
+				Assert.True(CpuArch.TryGetCpuArch(machine, out var cpuArch));
+				var optionalHeader = peImage.ImageNTHeaders.OptionalHeader;
+				var importedAddresses = optionalHeader.DataDirectories[12];
+				Assert.NotEqual(0U, (uint)importedAddresses.VirtualAddress);
+				Assert.NotEqual(0U, (uint)optionalHeader.AddressOfEntryPoint);
+				var reader = peImage.CreateReader();
+				reader.Position = (uint)peImage.ToFileOffset(optionalHeader.AddressOfEntryPoint);
+
+				Assert.True(cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out uint slotRva));
+
+				Assert.Equal((uint)importedAddresses.VirtualAddress, slotRva);
+			}
+		}
+
 		// An exported method needs a few bytes of native code that jump to it. dnlib has that code for x86, x64,
-		// ARM and Itanium, not for ARM64.
+		// ARM, ARM64 and Itanium, not for the other processors.
 		[Fact]
 		public void ExportedMethodForAProcessorWithoutNativeStubIsAnError() {
-			var exception = Assert.Throws<ModuleWriterException>(() => WriteWithExports(Machine.ARM64));
+			var exception = Assert.Throws<ModuleWriterException>(() => WriteWithExports(Machine.RISCV64));
 			Assert.Contains("the CPU architecture isn't supported", exception.Message);
 
 			// If the error is ignored, the file has no export directory, but it's the same module
-			var written = WriteWithExports(Machine.ARM64, functions => functions.FindMethod("First")!.ExportInfo = new MethodExportInfo("ExportedFirst"),
+			var written = WriteWithExports(Machine.RISCV64, functions => functions.FindMethod("First")!.ExportInfo = new MethodExportInfo("ExportedFirst"),
 				DummyLogger.NoThrowInstance);
 			Assert.Empty(PEExports.GetNames(written));
 			using (var module = ModuleDefMD.Load(written)) {
-				Assert.Equal(Machine.ARM64, module.Machine);
+				Assert.Equal(Machine.RISCV64, module.Machine);
 				Assert.NotNull(module.Find("Functions", isReflectionName: true)!.FindMethod("First"));
 			}
 		}

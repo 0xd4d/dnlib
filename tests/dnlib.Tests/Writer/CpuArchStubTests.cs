@@ -25,7 +25,7 @@ namespace dnlib.Tests.Writer {
 		public static TheoryData<Machine, string> Stubs {
 			get {
 				var data = new TheoryData<Machine, string>();
-				foreach (var machine in new[] { Machine.I386, Machine.AMD64, Machine.IA64, Machine.ARMNT, Machine.AMD64_Native_Linux, Machine.I386_Native_Apple, Machine.ARMNT_Native_FreeBSD }) {
+				foreach (var machine in new[] { Machine.I386, Machine.AMD64, Machine.IA64, Machine.ARMNT, Machine.ARM64, Machine.AMD64_Native_Linux, Machine.I386_Native_Apple, Machine.ARMNT_Native_FreeBSD, Machine.ARM64_Native_Linux }) {
 					data.Add(machine, "Export");
 					data.Add(machine, "EntryPoint");
 				}
@@ -200,9 +200,97 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// The ARM64 stub has the address of the slot relative to the stub's page: a number of 4K pages, which can
+		// be negative, and the offset in the page. The offset is in the instruction that reads the slot, or it's
+		// added by an instruction before it. dnlib and Microsoft's C++ compiler use x9, other tools can use
+		// other registers. Added for issue 165: there was no ARM64 stub.
 		[Theory]
-		[InlineData(Machine.ARM64)]
-		[InlineData(Machine.ARM64_Native_Linux)]
+		// A stub of Microsoft's C++ compiler: adrp x9,page ; ldr x9,[x9,#8] ; br x9
+		[InlineData(0x1240U, 0x9008U, "49 00 00 90   29 05 40 F9   20 01 1F D6", true)]
+		// adrp x16,page ; ldr x16,[x16,#0x340] ; br x16
+		[InlineData(0x2040U, 0x12340U, "90 00 00 90   10 A2 41 F9   00 02 1F D6", true)]
+		// The slot is in a page below the stub's page: -3 pages
+		[InlineData(0x5040U, 0x2FF8U, "F0 FF FF B0   10 FE 47 F9   00 02 1F D6", true)]
+		// The same page
+		[InlineData(0x2040U, 0x2008U, "10 00 00 90   10 06 40 F9   00 02 1F D6", true)]
+		// adrp x9,page ; add x9,x9,#0x340 ; ldr x10,[x9] ; br x10
+		[InlineData(0x2040U, 0x12340U, "89 00 00 90   29 01 0D 91   2A 01 40 F9   40 01 1F D6", true)]
+		// adrp x17,page ; ldr x17,[x17,#0x340] ; br x17
+		[InlineData(0x2040U, 0x12340U, "91 00 00 90   31 A2 41 F9   20 02 1F D6", true)]
+		// adr instead of adrp
+		[InlineData(0x2040U, 0U, "90 00 00 10   10 A2 41 F9   00 02 1F D6", false)]
+		// The address is read from another register than the one with the page
+		[InlineData(0x2040U, 0U, "90 00 00 90   30 A2 41 F9   00 02 1F D6", false)]
+		// It jumps to another register than the one that was read
+		[InlineData(0x2040U, 0U, "90 00 00 90   10 A2 41 F9   20 02 1F D6", false)]
+		// A 32-bit load
+		[InlineData(0x2040U, 0U, "90 00 00 90   10 A2 41 B9   00 02 1F D6", false)]
+		// blr (a call) instead of br
+		[InlineData(0x2040U, 0U, "90 00 00 90   10 A2 41 F9   00 02 3F D6", false)]
+		// The add is to another register
+		[InlineData(0x2040U, 0U, "89 00 00 90   2B 01 0D 91   2A 01 40 F9   40 01 1F D6", false)]
+		// The slot is before the start of the file: -4 pages from page 0x2000
+		[InlineData(0x2040U, 0U, "F0 FF FF 90   10 A2 41 F9   00 02 1F D6", false)]
+		public void Arm64StubIsRead(uint stubRva, uint slotRva, string code, bool isRead) {
+			Assert.True(CpuArch.TryGetCpuArch(Machine.ARM64, out var cpuArch));
+			var newImage = (byte[])image.Clone();
+			uint stubOffset;
+			using (var original = new PEImage(image)) {
+				// The file has one page of code, the stub can be in any page since only its RVA is used
+				uint sectionRva = (uint)original.ImageSectionHeaders[0].VirtualAddress;
+				Assert.Equal(0x2000U, sectionRva);
+				stubOffset = (uint)original.ToFileOffset((RVA)(sectionRva + (stubRva & 0xFFF)));
+				PatchSectionRva(newImage, original, stubRva & ~0xFFFU);
+			}
+			var bytes = code.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(a => Convert.ToByte(a, 16)).ToArray();
+			for (int i = 0; i < 0x40; i++)
+				newImage[stubOffset + i] = 0;
+			bytes.CopyTo(newImage, (int)stubOffset);
+
+			using (var peImage = new PEImage(newImage)) {
+				var reader = peImage.CreateReader();
+				reader.Position = stubOffset;
+
+				Assert.Equal(isRead, cpuArch.TryGetExportedRvaFromStub(ref reader, peImage, out uint readRva));
+
+				Assert.Equal(isRead ? slotRva : 0U, readRva);
+			}
+		}
+
+		// Moves the first section (the code) to another RVA
+		static void PatchSectionRva(byte[] newImage, PEImage original, uint rva) {
+			var section = original.ImageSectionHeaders[0];
+			BitConverter.GetBytes(rva).CopyTo(newImage, (int)section.StartOffset + 12);
+		}
+
+		// The stub that dnlib writes for ARM64: the instructions of Microsoft's C++ compiler, for any distance to
+		// the slot
+		[Theory]
+		[InlineData(0x2040U, 0x12340U, "89 00 00 90   29 A1 41 F9   20 01 1F D6")]
+		[InlineData(0x5040U, 0x2FF8U, "E9 FF FF B0   29 FD 47 F9   20 01 1F D6")]
+		[InlineData(0x2FFCU, 0x2000U, "09 00 00 90   29 01 40 F9   20 01 1F D6")]
+		[InlineData(0x2000U, 0xFFFFFFF8U, "E9 FF 7F B0   29 FD 47 F9   20 01 1F D6")]
+		[InlineData(0xFFFFF000U, 0x2008U, "09 00 80 F0   29 05 40 F9   20 01 1F D6")]
+		public void Arm64StubIsWritten(uint stubRva, uint slotRva, string expected) {
+			Assert.True(CpuArch.TryGetCpuArch(Machine.ARM64, out var cpuArch));
+			foreach (var stubType in new[] { StubType.Export, StubType.EntryPoint }) {
+				var stream = new MemoryStream();
+
+				cpuArch.WriteStub(stubType, new DataWriter(stream), 0x180000000, stubRva, slotRva);
+
+				Assert.Equal(expected.Replace(" ", ""), BitConverter.ToString(stream.ToArray()).Replace("-", ""));
+			}
+		}
+
+		// The instruction that reads the slot can only read at a multiple of 8. dnlib's slots always are.
+		[Fact]
+		public void Arm64StubOfAnUnalignedSlotIsAnError() {
+			Assert.True(CpuArch.TryGetCpuArch(Machine.ARM64, out var cpuArch));
+
+			Assert.Throws<InvalidOperationException>(() => cpuArch.WriteStub(StubType.Export, new DataWriter(new MemoryStream()), 0x180000000, 0x2000, 0x3004));
+		}
+
+		[Theory]
 		[InlineData(Machine.RISCV64)]
 		[InlineData(Machine.LOONGARCH64)]
 		[InlineData(Machine.Unknown)]
@@ -214,7 +302,7 @@ namespace dnlib.Tests.Writer {
 
 		[Fact]
 		public void StubTypeThatDoesNotExistIsAnError() {
-			foreach (var machine in new[] { Machine.I386, Machine.AMD64, Machine.IA64, Machine.ARMNT }) {
+			foreach (var machine in new[] { Machine.I386, Machine.AMD64, Machine.IA64, Machine.ARMNT, Machine.ARM64 }) {
 				Assert.True(CpuArch.TryGetCpuArch(machine, out var cpuArch));
 				var invalid = (StubType)99;
 

@@ -39,6 +39,7 @@ namespace dnlib.DotNet.Writer {
 		public RVA EntryPointRVA => rva + (cpuArch is null ? 0 : cpuArch.GetStubCodeOffset(stubType));
 
 		internal bool Enable { get; set; }
+		internal bool HasRelocs => cpuArch is not null && cpuArch.HasStubRelocs;
 		internal uint Alignment => cpuArch is null ? 1 : cpuArch.GetStubAlignment(stubType);
 
 		/// <summary>
