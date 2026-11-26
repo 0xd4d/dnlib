@@ -519,7 +519,7 @@ namespace dnlib.DotNet {
 
 		// A requested version number that has no value (65535) matches any number, and so do the numbers
 		// after it, like in the CLR
-		static bool IsExactMatch(IAssembly requested, AssemblyDef assembly) {
+		internal static bool IsExactMatch(IAssembly requested, AssemblyDef assembly) {
 			if (!Utils.HasVersionNumberWithoutValue(requested.Version))
 				return AssemblyNameComparer.CompareAll.Equals(requested, assembly);
 			if (!allExceptVersionComparer.Equals(requested, assembly))

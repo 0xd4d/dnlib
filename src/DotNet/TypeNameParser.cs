@@ -663,7 +663,9 @@ namespace dnlib.DotNet {
 			var asm = ownerModule.Assembly;
 			if (asm is null)
 				return null;
-			if (!(AssemblyNameComparer.CompareAll.Equals(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
+			// A name without a version (or with a version number that has no value) is this assembly too.
+			// The full name of an assembly whose version has such a number is written without it.
+			if (!(AssemblyResolver.IsExactMatch(asmRef, asm) && asmRef.IsRetargetable == asm.IsRetargetable))
 				return null;
 			// Finding a type is slow if the module's type cache isn't enabled (all types are checked),
 			// and this method is called once per type, so try to find it without checking all types.

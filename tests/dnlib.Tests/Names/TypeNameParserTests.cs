@@ -355,5 +355,43 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("Ns.List`1<System.String>", Assert.IsAssignableFrom<TypeSpec>(asType).FullName);
 			Assert.Equal("Ns.T[]", TypeNameParser.ParseAsTypeSigReflectionOrThrow(module, "Ns.T[], A", null, context).FullName);
 		}
+
+		static ModuleDefUser CreateModuleWithAType(Version assemblyVersion) {
+			var module = new ModuleDefUser("Test.dll");
+			new AssemblyDefUser("Test", assemblyVersion).Modules.Add(module);
+			module.Types.Add(new TypeDefUser("Ns", "MyType", module.CorLibTypes.Object.TypeDefOrRef));
+			return module;
+		}
+
+		// Fixed in this commit: a version number that isn't in the name (or is 65535) has no value, and the CLR
+		// then accepts any number there and after it. Such a name of the module's own assembly was a reference
+		// to another assembly, so a type of a module whose assembly version has a 65535 number wasn't the same
+		// type any more when the module was written and read again.
+		[Theory]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.3.4")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.3")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test, Version=1.2.65535.4")]
+		[InlineData("1.2.3.4", "Ns.MyType, Test")]
+		[InlineData("1.2.65535.4", "Ns.MyType, Test, Version=1.2")]
+		[InlineData("65535.2.3.4", "Ns.MyType, Test")]
+		public void NameWithVersionNumbersWithoutAValueIsTheTypeOfTheModule(string assemblyVersion, string name) {
+			var module = CreateModuleWithAType(Version.Parse(assemblyVersion));
+
+			var type = TypeNameParser.ParseReflection(module, name, null);
+
+			Assert.Same(module.Types[1], type);
+		}
+
+		[Theory]
+		[InlineData("Ns.MyType, Test, Version=1.2.3.5")]
+		[InlineData("Ns.MyType, Test, Version=1.3")]
+		[InlineData("Ns.MyType, Test, Version=1.2, Culture=de")]
+		[InlineData("Ns.MyType, Other")]
+		public void NameOfAnotherAssemblyIsNotTheTypeOfTheModule(string name) {
+			var module = CreateModuleWithAType(new Version(1, 2, 3, 4));
+
+			Assert.IsAssignableFrom<TypeRef>(TypeNameParser.ParseReflection(module, name, null));
+		}
 	}
 }
