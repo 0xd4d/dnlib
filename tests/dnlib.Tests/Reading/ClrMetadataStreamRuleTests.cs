@@ -233,7 +233,7 @@ public static class Marker {
 		const int TablesVersionOffset = 4, TablesFlagsOffset = 6, ValidMaskOffset = 8, RowCountsOffset = 24;
 
 		static int GetEndOfRowCounts(byte[] tables) {
-			ulong valid = BitConverter.ToUInt64(tables, ValidMaskOffset);
+			ulong valid = LittleEndian.ToUInt64(tables, ValidMaskOffset);
 			int count = 0;
 			for (; valid != 0; valid >>= 1)
 				count += (int)(valid & 1);

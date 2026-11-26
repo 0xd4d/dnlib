@@ -25,7 +25,7 @@ public class C {
 		static readonly byte[] baseImage = CSharpCompiler.Compile(Source).Image;
 
 		static string Describe(byte[]? data) => data is null ? "null" :
-			string.Join(" ", Enumerable.Range(0, data.Length / 4).Select(a => BitConverter.ToInt32(data, a * 4).ToString("X")));
+			string.Join(" ", Enumerable.Range(0, data.Length / 4).Select(a => LittleEndian.ToInt32(data, a * 4).ToString("X")));
 
 		// The compiler's fields with the data of A and B
 		static FieldDef[] GetDataFields(ModuleDefMD module) {

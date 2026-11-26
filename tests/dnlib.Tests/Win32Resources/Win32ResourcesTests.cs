@@ -290,7 +290,7 @@ namespace dnlib.Tests.Win32Resources {
 				Assert.True(chunk.GetFileOffsetAndRvaOf(root, out var rootOffset, out var rootRva));
 				Assert.Equal(chunk.FileOffset, rootOffset);
 				Assert.Equal(chunk.RVA, rootRva);
-				Assert.Equal(root.Directories.Count, BitConverter.ToUInt16(image, (int)rootOffset + 12) + BitConverter.ToUInt16(image, (int)rootOffset + 14));
+				Assert.Equal(root.Directories.Count, LittleEndian.ToUInt16(image, (int)rootOffset + 12) + LittleEndian.ToUInt16(image, (int)rootOffset + 14));
 				var typeDirectory = root.FindDirectory(3)!;
 				Assert.True(chunk.GetFileOffset(typeDirectory) > rootOffset);
 				Assert.Equal((uint)chunk.GetFileOffset(typeDirectory) - (uint)rootOffset, (uint)chunk.GetRVA(typeDirectory) - (uint)rootRva);
@@ -300,13 +300,13 @@ namespace dnlib.Tests.Win32Resources {
 
 				// A data entry is the RVA and the size of its data
 				int dataEntryOffset = (int)chunk.GetFileOffset(data);
-				Assert.Equal(5U, BitConverter.ToUInt32(image, dataEntryOffset + 4));
+				Assert.Equal(5U, LittleEndian.ToUInt32(image, dataEntryOffset + 4));
 				Assert.Equal(chunk.GetFileOffset(data), chunk.GetFileOffset((ResourceDirectoryEntry)data));
 				Assert.NotEqual(0U, (uint)chunk.GetRVA(data));
 
 				// A name is its length and its UTF-16 chars
 				int nameOffset = (int)chunk.GetFileOffset("SOMENAME");
-				Assert.Equal(8, BitConverter.ToUInt16(image, nameOffset));
+				Assert.Equal(8, LittleEndian.ToUInt16(image, nameOffset));
 				Assert.Equal("SOMENAME", System.Text.Encoding.Unicode.GetString(image, nameOffset + 2, 16));
 				Assert.NotEqual(0U, (uint)chunk.GetRVA("SOMENAME"));
 

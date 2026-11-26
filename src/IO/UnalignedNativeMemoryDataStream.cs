@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace dnlib.IO {
+	// Only for little endian CPUs: the values are read with the byte order of the CPU, see DataStreamFactory
 	sealed unsafe class UnalignedNativeMemoryDataStream : DataStream {
 		readonly byte* data;
 
@@ -35,7 +36,9 @@ namespace dnlib.IO {
 		public override float ReadSingle(uint offset) => *(float*)(data + offset);
 		public override double ReadDouble(uint offset) => *(double*)(data + offset);
 		public override Guid ReadGuid(uint offset) => *(Guid*)(data + offset);
+#pragma warning disable RS0030 // This class is only used if the CPU is little endian
 		public override string ReadUtf16String(uint offset, int chars) => new string((char*)(data + offset), 0, chars);
+#pragma warning restore RS0030
 		public override string ReadString(uint offset, int length, Encoding encoding) => new string((sbyte*)(data + offset), 0, length, encoding);
 
 		public override bool TryGetOffsetOf(uint offset, uint endOffset, byte value, out uint valueOffset) {

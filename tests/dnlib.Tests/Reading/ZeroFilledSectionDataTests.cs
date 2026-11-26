@@ -6,6 +6,7 @@ using System.Reflection.PortableExecutable;
 using dnlib.DotNet;
 using dnlib.PE;
 using Xunit;
+using dnlib.TestUtils;
 
 namespace dnlib.Tests.Reading {
 	/// <summary>
@@ -44,9 +45,9 @@ namespace dnlib.Tests.Reading {
 		// The image with another size of the data of the field's section in the file (and in memory)
 		byte[] CreateImage(uint sizeOfRawData, uint? virtualSize = null) {
 			var image = (byte[])ValidImage.Clone();
-			BitConverter.GetBytes(sizeOfRawData).CopyTo(image, sectionHeaderOffset + sizeOfRawDataOffset);
+			LittleEndian.GetBytes(sizeOfRawData).CopyTo(image, sectionHeaderOffset + sizeOfRawDataOffset);
 			if (virtualSize is not null)
-				BitConverter.GetBytes(virtualSize.Value).CopyTo(image, sectionHeaderOffset + virtualSizeOffset);
+				LittleEndian.GetBytes(virtualSize.Value).CopyTo(image, sectionHeaderOffset + virtualSizeOffset);
 			return image;
 		}
 

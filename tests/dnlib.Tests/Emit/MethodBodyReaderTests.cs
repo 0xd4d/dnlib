@@ -31,8 +31,8 @@ namespace dnlib.Tests.Emit {
 
 		static byte[] Concat(params byte[][] parts) => parts.SelectMany(a => a).ToArray();
 
-		static byte[] UInt16(int value) => BitConverter.GetBytes((ushort)value);
-		static byte[] UInt32(uint value) => BitConverter.GetBytes(value);
+		static byte[] UInt16(int value) => LittleEndian.GetBytes((ushort)value);
+		static byte[] UInt32(uint value) => LittleEndian.GetBytes(value);
 
 		// A fat header: flags and the header's size in dwords (in the 4 high bits), max stack, code size and
 		// the token of the locals' signature

@@ -122,6 +122,19 @@ namespace dnlib.IO {
 				ReadByte(offset + 12), ReadByte(offset + 13), ReadByte(offset + 14), ReadByte(offset + 15));
 
 		/// <summary>
+		/// Reads a UTF-16 little endian string byte by byte: for CPUs that aren't little endian
+		/// </summary>
+		/// <param name="data">The first byte of the string</param>
+		/// <param name="chars">Number of characters</param>
+		/// <returns></returns>
+		internal static unsafe string ReadUtf16StringByteByByte(byte* data, int chars) {
+			var result = new char[chars];
+			for (int i = 0; i < result.Length; i++, data += 2)
+				result[i] = (char)(data[0] | (data[1] << 8));
+			return new string(result);
+		}
+
+		/// <summary>
 		/// Reads a <see cref="decimal"/>
 		/// </summary>
 		/// <param name="offset">Offset of data</param>

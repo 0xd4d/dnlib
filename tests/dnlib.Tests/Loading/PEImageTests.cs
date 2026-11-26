@@ -87,7 +87,7 @@ namespace dnlib.Tests.Loading {
 					Assert.True(image.IsFileImageLayout);
 					Assert.False(image.MayHaveInvalidAddresses);
 					// The DOS header has the offset of the PE header at 0x3C
-					Assert.Equal(BitConverter.ToUInt32(Image, 0x3C), image.ImageDosHeader.NTHeadersOffset);
+					Assert.Equal(LittleEndian.ToUInt32(Image, 0x3C), image.ImageDosHeader.NTHeadersOffset);
 				}
 			}
 			using (var named = new PEImage(Image, "name.dll"))
@@ -247,7 +247,7 @@ namespace dnlib.Tests.Loading {
 				Assert.Equal(3, room);
 				extraSectionsRead = Math.Min(extraSections, room - 2);
 				// The file header: the machine and then the number of sections
-				BitConverter.GetBytes((ushort)(2 + extraSections)).CopyTo(image, headers.CoffHeaderStartOffset + 2);
+				LittleEndian.GetBytes((ushort)(2 + extraSections)).CopyTo(image, headers.CoffHeaderStartOffset + 2);
 			}
 			using (var original = new PEImage(Image))
 				expected = DescribeHeaders(original);

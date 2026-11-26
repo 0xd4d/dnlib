@@ -96,7 +96,7 @@ namespace dnlib.TestUtils {
 		// The second uint32 of the public key is the Windows ID of the hash algorithm. A key made by 'sn -k' has
 		// SHA-1, the keys of "enhanced strong naming" have SHA-256 or more.
 		static HashAlgorithmName GetHashAlgorithm(byte[] publicKey) {
-			switch (BitConverter.ToUInt32(publicKey, 4)) {
+			switch (LittleEndian.ToUInt32(publicKey, 4)) {
 			case 0x800C: return HashAlgorithmName.SHA256;
 			case 0x800D: return HashAlgorithmName.SHA384;
 			case 0x800E: return HashAlgorithmName.SHA512;
@@ -140,7 +140,7 @@ namespace dnlib.TestUtils {
 		static RSAParameters ParsePublicKey(byte[] publicKey) {
 			const int blobOffset = 12;
 			const int rsaPubKeyOffset = blobOffset + 8;
-			int bitLength = BitConverter.ToInt32(publicKey, rsaPubKeyOffset + 4);
+			int bitLength = LittleEndian.ToInt32(publicKey, rsaPubKeyOffset + 4);
 			var exponent = new byte[4];
 			Array.Copy(publicKey, rsaPubKeyOffset + 8, exponent, 0, 4);
 			var modulus = new byte[bitLength / 8];

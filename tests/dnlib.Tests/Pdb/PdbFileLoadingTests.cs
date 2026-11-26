@@ -81,7 +81,7 @@ public static class Program {
 				Assert.True(newSize <= entries[index].DataSize);
 				Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(peReader.PEHeaders.PEHeader!.DebugTableDirectory, out int tableOffset));
 				// An entry has 28 bytes, the size of its data is at offset 16
-				BitConverter.GetBytes(newSize).CopyTo(image, tableOffset + index * 28 + 16);
+				LittleEndian.GetBytes(newSize).CopyTo(image, tableOffset + index * 28 + 16);
 				newName?.CopyTo(image, entries[index].DataPointer + CodeViewNameOffset);
 			}
 			return image;

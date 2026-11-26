@@ -132,6 +132,28 @@ namespace dnlib.DotNet {
 			return true;
 		}
 
+		// The files are little endian, BitConverter uses the byte order of the CPU
+
+		internal static uint ReadUInt32LittleEndian(byte[] data, int index) =>
+			data[index] | ((uint)data[index + 1] << 8) | ((uint)data[index + 2] << 16) | ((uint)data[index + 3] << 24);
+
+		internal static int ReadInt32LittleEndian(byte[] data, int index) => (int)ReadUInt32LittleEndian(data, index);
+
+		internal static byte[] GetLittleEndianBytes(ushort value) => new byte[2] { (byte)value, (byte)(value >> 8) };
+
+		internal static byte[] GetLittleEndianBytes(uint value) =>
+			new byte[4] { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+
+		internal static byte[] GetLittleEndianBytes(ulong value) =>
+			new byte[8] {
+				(byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24),
+				(byte)(value >> 32), (byte)(value >> 40), (byte)(value >> 48), (byte)(value >> 56),
+			};
+
+		internal static unsafe byte[] GetLittleEndianBytes(float value) => GetLittleEndianBytes(*(uint*)&value);
+
+		internal static unsafe byte[] GetLittleEndianBytes(double value) => GetLittleEndianBytes(*(ulong*)&value);
+
 		/// <summary>
 		/// Gets the hash code of a byte array
 		/// </summary>
@@ -143,6 +165,8 @@ namespace dnlib.DotNet {
 			// All bytes are hashed (xxHash32 algorithm, seed 0). Hashing only some of the bytes makes
 			// it easy to create many different arrays with the same hash code, which makes the
 			// dictionaries (eg. #Blob heap, FieldRVA data, method bodies) quadratic.
+			// The bytes are read with the byte order of the CPU: a big endian CPU gets other hash codes, which
+			// are as good. A hash code is never written to a file.
 			int length = a.Length;
 			uint hash;
 			fixed (byte* start = a) {

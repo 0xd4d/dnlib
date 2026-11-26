@@ -5,6 +5,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
+#pragma warning disable RS0030 // The Marshal methods write values that native code (COM) reads, that's not file data
+
 namespace dnlib.DotNet.Pdb.Dss {
 	/// <summary>
 	/// Implements <see cref="IStream"/> and uses a <see cref="Stream"/> as the underlying

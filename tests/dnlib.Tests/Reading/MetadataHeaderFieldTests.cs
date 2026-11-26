@@ -11,6 +11,7 @@ using System.Text;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
 using Xunit;
+using dnlib.TestUtils;
 
 namespace dnlib.Tests.Reading {
 	/// <summary>
@@ -32,12 +33,12 @@ namespace dnlib.Tests.Reading {
 			int offset = (int)MetadataOffset;
 
 			Assert.Equal(0x424A5342U, header.Signature);
-			Assert.Equal(BitConverter.ToUInt32(image, offset), header.Signature);
-			Assert.Equal(BitConverter.ToUInt16(image, offset + 4), header.MajorVersion);
-			Assert.Equal(BitConverter.ToUInt16(image, offset + 6), header.MinorVersion);
+			Assert.Equal(LittleEndian.ToUInt32(image, offset), header.Signature);
+			Assert.Equal(LittleEndian.ToUInt16(image, offset + 4), header.MajorVersion);
+			Assert.Equal(LittleEndian.ToUInt16(image, offset + 6), header.MinorVersion);
 			Assert.Equal((1, 1), (header.MajorVersion, header.MinorVersion));
 			Assert.Equal(0U, header.Reserved1);
-			Assert.Equal(BitConverter.ToUInt32(image, offset + 12), header.StringLength);
+			Assert.Equal(LittleEndian.ToUInt32(image, offset + 12), header.StringLength);
 			// The length is a multiple of 4: there are zero bytes after the text
 			Assert.Equal(0U, header.StringLength % 4);
 			string versionInFile = Encoding.UTF8.GetString(image, offset + 16, (int)header.StringLength).TrimEnd('\0');
@@ -49,7 +50,7 @@ namespace dnlib.Tests.Reading {
 			Assert.Equal(image[storageHeader], (byte)header.Flags);
 			Assert.Equal(StorageFlags.Normal, header.Flags);
 			Assert.Equal(image[storageHeader + 1], header.Reserved2);
-			Assert.Equal(BitConverter.ToUInt16(image, storageHeader + 2), header.Streams);
+			Assert.Equal(LittleEndian.ToUInt16(image, storageHeader + 2), header.Streams);
 			Assert.Equal(header.Streams, header.StreamHeaders.Count);
 
 			using (var peReader = new PEReader(new MemoryStream(image)))
@@ -64,8 +65,8 @@ namespace dnlib.Tests.Reading {
 			int position = (int)header.StorageHeaderOffset + 4;
 
 			foreach (var stream in header.StreamHeaders) {
-				Assert.Equal(BitConverter.ToUInt32(image, position), stream.Offset);
-				Assert.Equal(BitConverter.ToUInt32(image, position + 4), stream.StreamSize);
+				Assert.Equal(LittleEndian.ToUInt32(image, position), stream.Offset);
+				Assert.Equal(LittleEndian.ToUInt32(image, position + 4), stream.StreamSize);
 				int nameLength = Array.IndexOf(image, (byte)0, position + 8) - (position + 8);
 				Assert.Equal(Encoding.ASCII.GetString(image, position + 8, nameLength), stream.Name);
 				position += 8 + (nameLength + 4) / 4 * 4;
@@ -106,15 +107,15 @@ namespace dnlib.Tests.Reading {
 			var tables = module.TablesStream;
 			int offset = (int)tables.StartOffset;
 
-			Assert.Equal(BitConverter.ToUInt32(image, offset), tables.Reserved1);
+			Assert.Equal(LittleEndian.ToUInt32(image, offset), tables.Reserved1);
 			Assert.Equal(0U, tables.Reserved1);
 			// The major version is the upper byte
 			Assert.Equal((ushort)((image[offset + 4] << 8) | image[offset + 5]), tables.Version);
 			Assert.Equal(0x0200, tables.Version);
 			Assert.Equal(image[offset + 6], (byte)tables.Flags);
 			Assert.Equal(image[offset + 7], tables.Log2Rid);
-			Assert.Equal(BitConverter.ToUInt64(image, offset + 8), tables.ValidMask);
-			Assert.Equal(BitConverter.ToUInt64(image, offset + 16), tables.SortedMask);
+			Assert.Equal(LittleEndian.ToUInt64(image, offset + 8), tables.ValidMask);
+			Assert.Equal(LittleEndian.ToUInt64(image, offset + 16), tables.SortedMask);
 
 			// A small file: every index into a heap has 2 bytes, and there's nothing else in the header
 			Assert.Equal((MDStreamFlags)0, tables.Flags);
@@ -147,7 +148,7 @@ namespace dnlib.Tests.Reading {
 				Assert.True(tables.HasTable((Table)i));
 				uint rows = 0;
 				if (exists) {
-					rows = BitConverter.ToUInt32(image, position);
+					rows = LittleEndian.ToUInt32(image, position);
 					position += 4;
 				}
 				Assert.Equal(rows, table.Rows);

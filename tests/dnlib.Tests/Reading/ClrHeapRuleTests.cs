@@ -87,7 +87,7 @@ public static class Marker {
 			var positions = Enumerable.Range(0, image.Length - oldCode.Length).Where(a => image.Skip(a).Take(oldCode.Length).SequenceEqual(oldCode)).ToArray();
 			int position = Assert.Single(positions);
 			var patched = (byte[])image.Clone();
-			BitConverter.GetBytes(0x70000000 | offset).CopyTo(patched, position + 1);
+			LittleEndian.GetBytes(0x70000000 | offset).CopyTo(patched, position + 1);
 			return patched;
 		}
 
@@ -433,7 +433,7 @@ public static class Marker {
 								(column.ColumnSize == ColumnSize.Strings && (flags & MDStreamFlags.BigStrings) != 0) ||
 								(column.ColumnSize == ColumnSize.GUID && (flags & MDStreamFlags.BigGUID) != 0) ||
 								(column.ColumnSize == ColumnSize.Blob && (flags & MDStreamFlags.BigBlob) != 0);
-							var value = BitConverter.GetBytes(patcher.GetCell(mdTable.Table, rid, column.Name));
+							var value = LittleEndian.GetBytes(patcher.GetCell(mdTable.Table, rid, column.Name));
 							output.Write(value, 0, isBig ? 4 : column.Size);
 						}
 					}

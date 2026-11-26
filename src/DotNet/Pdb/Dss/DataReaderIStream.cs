@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using dnlib.IO;
 
+#pragma warning disable RS0030 // The Marshal methods write values that native code (COM) reads, that's not file data
+
 namespace dnlib.DotNet.Pdb.Dss {
 	sealed class DataReaderIStream : IStream, IDisposable {
 		readonly DataReaderFactory dataReaderFactory;

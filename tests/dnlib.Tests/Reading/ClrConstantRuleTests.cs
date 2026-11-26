@@ -75,7 +75,7 @@ public static class Marker {
 				return sb.Append('\'').ToString();
 			// The bits of a floating point number
 			case float single:
-				return $"Single:0x{BitConverter.ToInt32(BitConverter.GetBytes(single), 0):X}";
+				return $"Single:0x{LittleEndian.ToInt32(LittleEndian.GetBytes(single), 0):X}";
 			case double number:
 				return $"Double:0x{BitConverter.DoubleToInt64Bits(number):X}";
 			case bool boolean:

@@ -817,7 +817,7 @@ public enum CharEnum : ushort { }
 				Assert.Equal(7 + 32, entries[index].DataSize);
 				Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(peReader.PEHeaders.PEHeader!.DebugTableDirectory, out int tableOffset));
 				// An entry of the debug directory has 28 bytes, the size of its data is at offset 16
-				void SetDataSize(int size) => BitConverter.GetBytes(size).CopyTo(image, tableOffset + index * 28 + 16);
+				void SetDataSize(int size) => LittleEndian.GetBytes(size).CopyTo(image, tableOffset + index * 28 + 16);
 				switch (change) {
 				case "no data": SetDataSize(0); break;
 				case "only a zero byte": image[dataOffset] = 0; SetDataSize(1); break;

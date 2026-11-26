@@ -2972,11 +2972,11 @@ namespace dnlib.DotNet.Writer {
 			switch (typeCode) {
 			case TypeCode.Boolean:
 				VerifyConstantType(etype, ElementType.Boolean);
-				return BitConverter.GetBytes((bool)o);
+				return new byte[1] { (bool)o ? (byte)1 : (byte)0 };
 
 			case TypeCode.Char:
 				VerifyConstantType(etype, ElementType.Char);
-				return BitConverter.GetBytes((char)o);
+				return Utils.GetLittleEndianBytes((ushort)(char)o);
 
 			case TypeCode.SByte:
 				VerifyConstantType(etype, ElementType.I1);
@@ -2988,35 +2988,35 @@ namespace dnlib.DotNet.Writer {
 
 			case TypeCode.Int16:
 				VerifyConstantType(etype, ElementType.I2);
-				return BitConverter.GetBytes((short)o);
+				return Utils.GetLittleEndianBytes((ushort)(short)o);
 
 			case TypeCode.UInt16:
 				VerifyConstantType(etype, ElementType.U2);
-				return BitConverter.GetBytes((ushort)o);
+				return Utils.GetLittleEndianBytes((ushort)o);
 
 			case TypeCode.Int32:
 				VerifyConstantType(etype, ElementType.I4);
-				return BitConverter.GetBytes((int)o);
+				return Utils.GetLittleEndianBytes((uint)(int)o);
 
 			case TypeCode.UInt32:
 				VerifyConstantType(etype, ElementType.U4);
-				return BitConverter.GetBytes((uint)o);
+				return Utils.GetLittleEndianBytes((uint)o);
 
 			case TypeCode.Int64:
 				VerifyConstantType(etype, ElementType.I8);
-				return BitConverter.GetBytes((long)o);
+				return Utils.GetLittleEndianBytes((ulong)(long)o);
 
 			case TypeCode.UInt64:
 				VerifyConstantType(etype, ElementType.U8);
-				return BitConverter.GetBytes((ulong)o);
+				return Utils.GetLittleEndianBytes((ulong)o);
 
 			case TypeCode.Single:
 				VerifyConstantType(etype, ElementType.R4);
-				return BitConverter.GetBytes((float)o);
+				return Utils.GetLittleEndianBytes((float)o);
 
 			case TypeCode.Double:
 				VerifyConstantType(etype, ElementType.R8);
-				return BitConverter.GetBytes((double)o);
+				return Utils.GetLittleEndianBytes((double)o);
 
 			case TypeCode.String:
 				VerifyConstantType(etype, ElementType.String);

@@ -105,8 +105,8 @@ namespace dnlib.Tests.Reading {
 		static byte[] WithLength(uint length) {
 			GetResourcesBlock(out uint fileOffset, out _);
 			var image = (byte[])validImage.Clone();
-			Assert.Equal((uint)resourceContent.Length, BitConverter.ToUInt32(image, (int)fileOffset));
-			BitConverter.GetBytes(length).CopyTo(image, (int)fileOffset);
+			Assert.Equal((uint)resourceContent.Length, LittleEndian.ToUInt32(image, (int)fileOffset));
+			LittleEndian.GetBytes(length).CopyTo(image, (int)fileOffset);
 			return image;
 		}
 

@@ -8,6 +8,7 @@ using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
 using dnlib.IO;
 using Xunit;
+using dnlib.TestUtils;
 
 namespace dnlib.Tests.Writer {
 	/// <summary>
@@ -115,7 +116,7 @@ namespace dnlib.Tests.Writer {
 			ushort Write(MethodBodyWriter writer) {
 				writer.Write();
 				// A body with locals has a fat header: flags and size (2 bytes), then max stack (2 bytes)
-				return BitConverter.ToUInt16(writer.Code, 2);
+				return LittleEndian.ToUInt16(writer.Code, 2);
 			}
 
 			Assert.Equal(123, Write(new MethodBodyWriter(new Tokens(module), method, keepMaxStack: true)));
@@ -136,7 +137,7 @@ namespace dnlib.Tests.Writer {
 				bool isTiny = (writer.Code[0] & 3) == 2;
 				int headerSize = isTiny ? 1 : 12;
 				var codeOnly = writer.Code.Skip(headerSize).ToArray();
-				ushort flags = isTiny ? (ushort)2 : BitConverter.ToUInt16(writer.Code, 0);
+				ushort flags = isTiny ? (ushort)2 : LittleEndian.ToUInt16(writer.Code, 0);
 
 				var read = MethodBodyReader.CreateCilBody(tokens, codeOnly, writer.ExtraSections, method.Parameters, flags, body.MaxStack,
 					(uint)codeOnly.Length, body.LocalVarSigTok, GenericParamContext.Create(method));

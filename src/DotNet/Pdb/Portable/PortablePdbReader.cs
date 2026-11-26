@@ -40,7 +40,7 @@ namespace dnlib.DotNet.Pdb.Portable {
 				Array.Resize(ref pdbGuidArray, 16);
 				if (new Guid(pdbGuidArray) != pdbGuid)
 					return false;
-				if (BitConverter.ToUInt32(pdbStream.Id, 16) != timestamp)
+				if (Utils.ReadUInt32LittleEndian(pdbStream.Id, 16) != timestamp)
 					return false;
 				if (age != 1)
 					return false;
