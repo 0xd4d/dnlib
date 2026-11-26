@@ -530,6 +530,132 @@ public enum CharEnum : ushort { }
 			}
 		}
 
+		// The start and the length of the LocalScope rows of the method Sum, in the order of the table
+		static (int start, int length)[] GetScopeRangesOfSum(byte[] pdb) {
+			uint rid = GetMethodRid("Sum");
+			using (var provider = OpenWithSrm(pdb)) {
+				var reader = provider.GetMetadataReader();
+				return reader.GetLocalScopes(MetadataTokens.MethodDefinitionHandle((int)rid)).Select(a => reader.GetLocalScope(a))
+					.Select(a => (a.StartOffset, a.Length)).ToArray();
+			}
+		}
+
+		static int GetCodeSizeOfSum() {
+			using (var module = DebugInfoSource.Load()) {
+				var last = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions.Last();
+				return (int)last.Offset + last.GetSize();
+			}
+		}
+
+		// The first scope of a method must span all of its instructions. The root scope of the method is
+		// written like that, whatever its first and last instructions are (they are the wrong ones if eg.
+		// instructions were added at the start of the method).
+		// Fixed in 79321c9e: the scope was written from its first to its last instruction.
+		[Fact]
+		public void RootScopeIsWrittenWithAllInstructionsOfTheMethod() {
+			var written = ChangeAndWrite(module => {
+				var instructions = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions;
+				var root = DebugInfoSource.GetRootScope(module, "Sum");
+				root.Start = instructions[2];
+				root.End = instructions[instructions.Count - 2];
+			});
+
+			var ranges = GetScopeRangesOfSum(written.Pdb!);
+			Assert.Equal((0, GetCodeSizeOfSum()), ranges[0]);
+			Assert.All(ranges, a => Assert.True(a.length > 0));
+		}
+
+		// The length of a scope can't be 0, so a scope without instructions isn't written. It's not an error:
+		// the scope is what's left if its instructions were removed.
+		// Fixed in 79321c9e: it was written with a length of 0.
+		[Fact]
+		public void ScopeWithoutInstructionsIsNotWritten() {
+			var original = GetScopeRangesOfSum(DebugInfoSource.Compiled.Pdb!);
+			var written = ChangeAndWrite(module => {
+				var instructions = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions;
+				var empty = new PdbScope { Start = instructions[2], End = instructions[2] };
+				empty.Constants.Add(new PdbConstant("InEmptyScope", module.CorLibTypes.Int32, 1));
+				// A scope in it has no instructions either
+				empty.Scopes.Add(new PdbScope { Start = instructions[2], End = instructions[2] });
+				DebugInfoSource.GetRootScope(module, "Sum").Scopes.Add(empty);
+			});
+
+			Assert.Equal(original, GetScopeRangesOfSum(written.Pdb!));
+			using (var provider = OpenWithSrm(written.Pdb!)) {
+				var reader = provider.GetMetadataReader();
+				Assert.DoesNotContain(reader.LocalConstants, a => reader.GetString(reader.GetLocalConstant(a).Name) == "InEmptyScope");
+			}
+		}
+
+		// Two scopes of a method are either one inside the other or they have no instruction in common. A scope
+		// that starts in another scope and ends after it is an error. If the error is ignored, it's written
+		// with the end of that other scope.
+		// Fixed in 79321c9e: the scopes were written as they were.
+		[Theory]
+		[InlineData("scope that ends after its parent scope")]
+		[InlineData("scope that starts in the scope before it")]
+		public void ScopesThatOverlapAreAnErrorAndTheSecondOneIsWrittenShorter(string what) {
+			int firstStart = 0, firstEnd = 0, secondStart = 0;
+			void Change(ModuleDefMD module) {
+				var instructions = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions;
+				firstStart = (int)instructions[1].Offset;
+				firstEnd = (int)instructions[4].Offset;
+				secondStart = (int)instructions[2].Offset;
+				var root = DebugInfoSource.GetRootScope(module, "Sum");
+				root.Scopes.Clear();
+				var first = new PdbScope { Start = instructions[1], End = instructions[4] };
+				var second = new PdbScope { Start = instructions[2], End = instructions[6] };
+				root.Scopes.Add(first);
+				switch (what) {
+				case "scope that ends after its parent scope": first.Scopes.Add(second); break;
+				case "scope that starts in the scope before it": root.Scopes.Add(second); break;
+				default: throw new ArgumentException(what);
+				}
+			}
+
+			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(Change));
+			Assert.Contains("PDB scope overlaps another scope", exception.Message);
+
+			var written = ChangeAndWrite(Change, options => options.Logger = DummyLogger.NoThrowInstance);
+			Assert.Equal(new[] { (0, GetCodeSizeOfSum()), (firstStart, firstEnd - firstStart), (secondStart, firstEnd - secondStart) },
+				GetScopeRangesOfSum(written.Pdb!));
+		}
+
+		// A scope that's in the list of another scope, but not inside its range, is not an error: the file has
+		// no tree, only the ranges, and these are valid
+		[Fact]
+		public void ScopeThatIsAfterItsParentScopeIsWritten() {
+			var written = ChangeAndWrite(module => {
+				var instructions = DebugInfoSource.GetMethod(module, "Sum").Body!.Instructions;
+				var root = DebugInfoSource.GetRootScope(module, "Sum");
+				root.Scopes.Clear();
+				var first = new PdbScope { Start = instructions[1], End = instructions[4] };
+				first.Scopes.Add(new PdbScope { Start = instructions[4], End = instructions[6] });
+				root.Scopes.Add(first);
+			});
+
+			Assert.Equal(3, GetScopeRangesOfSum(written.Pdb!).Length);
+		}
+
+		// The attributes of a local are 16 bits, and only one of them has a meaning now. The others are kept.
+		// Fixed in af20934b: dnlib only read the DebuggerHidden bit.
+		[Fact]
+		public void AllAttributeBitsOfALocalAreReadAndWritten() {
+			const PdbLocalAttributes attributes = (PdbLocalAttributes)0x8003;
+			var written = ChangeAndWrite(module => DebugInfoSource.GetRootScope(module, "Sum").Variables.Single().Attributes = attributes);
+
+			using (var provider = OpenWithSrm(written.Pdb!)) {
+				var reader = provider.GetMetadataReader();
+				var local = reader.LocalVariables.Select(a => reader.GetLocalVariable(a)).Single(a => (int)a.Attributes == 0x8003);
+				Assert.Equal("sum", reader.GetString(local.Name));
+			}
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!)) {
+				var local = DebugInfoSource.GetRootScope(module, "Sum").Variables.Single();
+				Assert.Equal(attributes, local.Attributes);
+				Assert.True(local.IsDebuggerHidden);
+			}
+		}
+
 		// The names of the streams (the tables and the heaps) in a metadata file
 		static List<string> GetStreamNames(byte[] metadata) {
 			var reader = new BinaryReader(new MemoryStream(metadata));

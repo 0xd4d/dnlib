@@ -193,5 +193,30 @@ namespace dnlib.Tests.Pdb {
 			AssertIsRead(sequencePoints, 2, 0x1FFFFFFE, 1, 0x1FFFFFFE, 2);
 			Assert.Null(sequencePoints[3]);
 		}
+
+		// An IL offset is the sum of the differences that are in the blob. System.Reflection.Metadata throws if
+		// the sum doesn't fit in an int, and dnlib reads no sequence point of the method.
+		// Fixed in af20934b: the offset became a negative number or started at 0 again.
+		[Theory]
+		[InlineData(4, true)]
+		[InlineData(5, false)]
+		[InlineData(9, false)]
+		public void OffsetThatDoesNotFitInAnInt(int bigDifferences, bool valid) {
+			var points = FirstPoint(deltaLines: 0, deltaColumns: 1, startLine: 1, startColumn: 1);
+			// 4 * 0x1FFFFFFF is 0x7FFFFFFC, the next sum is too big, and the 9th one is bigger than a uint
+			for (int i = 0; i < bigDifferences; i++) {
+				points.WriteCompressedInteger(0x1FFFFFFF); // delta IL offset
+				points.WriteCompressedInteger(0); // hidden: no lines
+				points.WriteCompressedInteger(0); // and no columns
+			}
+			var sequencePoints = Read(points);
+
+			if (valid) {
+				AssertIsRead(sequencePoints, 0, 1, 1, 1, 2);
+				Assert.All(sequencePoints.Skip(1), a => Assert.Null(a));
+			}
+			else
+				AssertNothingIsRead(sequencePoints);
+		}
 	}
 }
