@@ -78,10 +78,18 @@ namespace dnlib.DotNet.Pdb {
 					// Use the managed reader if there's no COM reader, eg. built-in COM interop is disabled (the
 					// default in trimmed and NativeAOT apps) or no symbol reader is installed
 					if (symReader is null && noComReader)
-						symReader = CreateManaged(pdbContext, metadata, pdbStream);
+						symReader = CreateManagedCore(pdbContext, pdbStream);
 				}
 				else
-					symReader = CreateManaged(pdbContext, metadata, pdbStream);
+					symReader = CreateManagedCore(pdbContext, pdbStream);
+
+				// The PDB file has priority, like in System.Reflection.Metadata. The embedded PDB is used if
+				// there's no PDB file or if it can't be read (eg. it's the PDB of another module).
+				if (symReader is null) {
+					symReader = TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
+					if (symReader is not null)
+						pdbStream?.Dispose();
+				}
 
 				if (symReader is not null) {
 					error = false;
@@ -111,23 +119,6 @@ namespace dnlib.DotNet.Pdb {
 			if (!pdbContext.HasDebugInfo)
 				return null;
 			return TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
-		}
-
-		static SymbolReader? CreateManaged(PdbReaderContext pdbContext, Metadata metadata, DataReaderFactory? pdbStream) {
-			try {
-				// Embedded PDBs have priority
-				var embeddedReader = TryCreateEmbeddedPortablePdbReader(pdbContext, metadata);
-				if (embeddedReader is not null) {
-					pdbStream?.Dispose();
-					return embeddedReader;
-				}
-
-				return CreateManagedCore(pdbContext, pdbStream);
-			}
-			catch {
-				pdbStream?.Dispose();
-				throw;
-			}
 		}
 
 		static SymbolReader? CreateManagedCore(PdbReaderContext pdbContext, DataReaderFactory? pdbStream) {

@@ -162,6 +162,10 @@ namespace dnlib.DotNet.Pdb.Portable {
 				uint length = reader.ReadUInt32();
 				if (startOffset == 0 && length == 0)
 					smScope.Scopes.Add(new StateMachineHoistedLocalScope());
+				else if ((ulong)startOffset + length > int.MaxValue) {
+					// The start and the end of a scope are in [0, 0x80000000)
+					return null;
+				}
 				else {
 					var start = GetInstruction(startOffset);
 					var end = GetInstruction(startOffset + length);

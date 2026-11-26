@@ -124,5 +124,52 @@ namespace dnlib.Tests.Names {
 			if (typeof(object).Assembly.GetName().Name == "System.Private.CoreLib")
 				Assert.Equal(expectedSystemReflection, ParseWithSystemReflection(text));
 		}
+
+		// The type names that the tests of System.Reflection.Metadata's TypeName parser have. These types don't
+		// exist, so the runtime isn't asked. The first ones are invalid for both parsers.
+		[Theory]
+		[InlineData("Namespace.Containing++Nested", "invalid")]
+		[InlineData("DoubleNestingChar++Bla", "invalid")]
+		[InlineData("TypeNameFollowedBySome[] unconsumedCharacters", "invalid")]
+		[InlineData("MissingAssemblyName, ", "invalid")]
+		[InlineData("ExtraComma, ,", "invalid")]
+		[InlineData("ExtraComma, , System.Runtime", "invalid")]
+		[InlineData("UsingGenericSyntaxButNotProvidingGenericArgs[[]]", "invalid")]
+		[InlineData("MissingClosingSquareBrackets`1[[type1, assembly1", "invalid")]
+		[InlineData("MissingClosingSquareBracket`1[[type1, assembly1]", "invalid")]
+		[InlineData("MissingClosingSquareBracketsMixedMode`2[[type1, assembly1], type2", "invalid")]
+		[InlineData("MissingClosingSquareBrackets`2[[type1, assembly1], [type2, assembly2", "invalid")]
+		[InlineData("MissingClosingSquareBracketsMixedMode`2[type1, [type2, assembly2", "invalid")]
+		[InlineData("MissingClosingSquareBracketsMixedMode`2[type1, [type2, assembly2]", "invalid")]
+		// System.Reflection.Metadata rejects these, dnlib reads them: a comma after the last generic argument,
+		// and a backslash that isn't before a special character or that is the last character
+		[InlineData("ExtraCommaAfterFirstGenericArg`1[[type1, assembly1],]", "ExtraCommaAfterFirstGenericArg`1[type1]")]
+		[InlineData("EscapeCharacterAtTheEnd\\", "EscapeCharacterAtTheEnd")]
+		[InlineData("EscapeNonSpecialChar\\a", "EscapeNonSpecialChara")]
+		[InlineData("EscapeNonSpecialChar\\0", "EscapeNonSpecialChar0")]
+		// Both read these: a name that starts with a dot, nested types, an escaped '+' that is a part of the
+		// name, a name that ends with a backslash, and more or fewer generic arguments than the name says
+		[InlineData(".NoNamespace", "NoNamespace")]
+		[InlineData("Type+InnerType+InnermostType", "Type+InnerType+InnermostType")]
+		[InlineData("NotNested\\+Name", "NotNested+Name")]
+		[InlineData("NameEndingInBackSlash\\\\+NestedName", "NameEndingInBackSlash\\+NestedName")]
+		[InlineData("Name`3[[int], [bool]]", "Name`3[int,bool]")]
+		[InlineData("Name[[int], [bool]]", "Name[int,bool]")]
+		public void TypeNameOfATypeThatDoesNotExistIsParsed(string text, string expectedDnlib) =>
+			Assert.Equal(expectedDnlib, ParseWithDnlib(text));
+
+		// The runtime has arrays of up to 32 dimensions, the parsers don't have that limit
+		[Fact]
+		public void ArrayWithMoreDimensionsThanTheRuntimeHasIsParsed() {
+			string text = "RankOf128[" + new string(',', 127) + "]";
+			var module = new ModuleDefUser("Test.dll");
+
+			var type = TypeNameParser.ParseAsTypeSigReflection(module, text, null);
+
+			var array = Assert.IsType<ArraySig>(type);
+			Assert.Equal(128U, array.Rank);
+			// A full name is written with 100 dimensions at most (a file can have any number in a signature)
+			Assert.Equal("RankOf128[" + new string(',', 99) + "]", type.FullName);
+		}
 	}
 }

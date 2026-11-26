@@ -2148,12 +2148,24 @@ namespace dnlib.DotNet.Writer {
 										var childScopes = scope.Scopes;
 										for (int j = childScopes.Count - 1; j >= 0; j--)
 											scopeStack.Add(childScopes[j]);
-										uint scopeStart = serializerMethodContext.GetOffset(scope.Start);
-										uint scopeEnd = serializerMethodContext.GetOffset(scope.End);
-										if (scopeEnd < scopeStart) {
-											Error("PDB scope's end instruction is before its start instruction");
-											scopeEnd = scopeStart;
+										uint scopeStart, scopeEnd;
+										if (scope == rootScope) {
+											// The first scope of a method must span all of its instructions
+											scopeStart = 0;
+											scopeEnd = serializerMethodContext.GetOffset(null);
 										}
+										else {
+											scopeStart = serializerMethodContext.GetOffset(scope.Start);
+											scopeEnd = serializerMethodContext.GetOffset(scope.End);
+											if (scopeEnd < scopeStart) {
+												Error("PDB scope's end instruction is before its start instruction");
+												scopeEnd = scopeStart;
+											}
+										}
+										// The length of a scope can't be 0. A scope without instructions isn't written,
+										// its locals couldn't be seen at any instruction.
+										if (scopeEnd == scopeStart)
+											continue;
 										methodScopeDebugInfos!.Add(new MethodScopeDebugInfo() {
 											Method = method,
 											MethodRid = rid,
@@ -2190,17 +2202,31 @@ namespace dnlib.DotNet.Writer {
 				});
 				MethodDef? currentMethod = null;
 				IDisposable? currentSource = null;
+				// The ends of the scopes that the current scope is inside of
+				var scopeEnds = new List<uint>();
 				foreach (var info in methodScopeDebugInfos) {
 					if (info.Method != currentMethod) {
 						currentSource?.Dispose();
 						currentMethod = info.Method;
 						currentSource = errorContext.SetSource(currentMethod);
+						scopeEnds.Clear();
 					}
+					// Two scopes of a method must not overlap, unless one of them is inside the other one. The
+					// scopes are sorted, so a scope that starts inside the previous scopes must also end there.
+					// The sorted order is still correct if the scope is made shorter.
+					uint scopeEnd = info.ScopeStart + info.ScopeLength;
+					while (scopeEnds.Count > 0 && scopeEnds[scopeEnds.Count - 1] <= info.ScopeStart)
+						scopeEnds.RemoveAt(scopeEnds.Count - 1);
+					if (scopeEnds.Count > 0 && scopeEnd > scopeEnds[scopeEnds.Count - 1]) {
+						Error("PDB scope overlaps another scope but isn't inside of it, writing a shorter scope");
+						scopeEnd = scopeEnds[scopeEnds.Count - 1];
+					}
+					scopeEnds.Add(scopeEnd);
 					uint localScopeRid = (uint)debugMetadata.localScopeInfos.infos.Count + 1;
 					var row = new RawLocalScopeRow(info.MethodRid, AddImportScope(info.Scope.ImportScope),
 						(uint)debugMetadata.tablesHeap.LocalVariableTable.Rows + 1,
 						(uint)debugMetadata.tablesHeap.LocalConstantTable.Rows + 1,
-						info.ScopeStart, info.ScopeLength);
+						info.ScopeStart, scopeEnd - info.ScopeStart);
 					debugMetadata.localScopeInfos.Add(info.Scope, row);
 					var variables = info.Scope.Variables;
 					int count = variables.Count;
@@ -3525,14 +3551,15 @@ namespace dnlib.DotNet.Writer {
 				(uint)startColumn > MaxColumn || (uint)endColumn > MaxColumn ||
 				endLine < startLine || (endLine == startLine && endColumn < startColumn)) {
 				Error("Invalid sequence point: start line {0}, start column {1}, end line {2}, end column {3}", startLine, startColumn, endLine, endColumn);
-				// Like Pdb2Pdb, but too big values become the biggest values System.Reflection.Metadata in .NET 10
-				// and earlier can read: it rejects lines >= 0xFEEFEE and columns >= 0xFFFF.
-				const int MaxFixedLine = SequencePointConstants.HIDDEN_LINE - 1;
-				const int MaxFixedColumn = MaxColumn - 1;
-				startLine = FixValue(startLine, MaxLine, MaxFixedLine);
-				endLine = Math.Max(startLine, endLine == SequencePointConstants.HIDDEN_LINE ? MaxFixedLine : FixValue(endLine, MaxLine, MaxFixedLine));
-				startColumn = FixValue(startColumn, MaxColumn, MaxFixedColumn);
-				endColumn = FixValue(endColumn, MaxColumn, MaxFixedColumn);
+				// Like Pdb2Pdb: a negative value becomes 0, a too big value becomes the biggest valid value, and
+				// an end before the start becomes the start. Pdb2Pdb writes an end line of 0xFEEFEE as it is,
+				// but that's not a valid line, so it becomes the line before it.
+				startLine = FixValue(startLine, MaxLine);
+				endLine = Math.Max(startLine, FixValue(endLine, MaxLine));
+				if (endLine == SequencePointConstants.HIDDEN_LINE)
+					endLine--;
+				startColumn = FixValue(startColumn, MaxColumn);
+				endColumn = FixValue(endColumn, MaxColumn);
 				if (endLine == startLine && endColumn < startColumn)
 					endColumn = startColumn;
 			}
@@ -3541,20 +3568,21 @@ namespace dnlib.DotNet.Writer {
 				// Only hidden sequence points can have zero width: (0, 0) is the hidden-sequence-point-record.
 				// Do what Microsoft's Pdb2Pdb does: (line, 0, line, 0) (written by eg. C++/CLI) is the whole
 				// line, anything else gets a width of one column. Pdb2Pdb uses 0xFFFF as the end column of
-				// a whole line, but System.Reflection.Metadata in .NET 10 and earlier rejects 0xFFFF, so
-				// use 0xFFFE. For the same reason, a start column >= 0xFFFE becomes 0xFFFD-0xFFFE.
+				// a whole line. That's a valid column, but System.Reflection.Metadata before .NET 12
+				// rejects it and then reads no sequence point of the method, so use 0xFFFE: it's still the
+				// whole line. A start column of 0xFFFF has no next column, so it becomes 0xFFFE-0xFFFF.
 				if (startColumn == 0)
 					endColumn = MaxColumn - 1;
-				else if (startColumn >= MaxColumn - 1) {
-					startColumn = MaxColumn - 2;
-					endColumn = MaxColumn - 1;
+				else if (startColumn == MaxColumn) {
+					startColumn = MaxColumn - 1;
+					endColumn = MaxColumn;
 				}
 				else
 					endColumn = startColumn + 1;
 			}
 		}
 
-		static int FixValue(int value, int max, int maxFixed) => value < 0 ? 0 : value > max ? maxFixed : value;
+		static int FixValue(int value, int max) => value < 0 ? 0 : value > max ? max : value;
 
 		static void GetSingleDocument(CilBody body, out PdbDocument? singleDoc, out PdbDocument? firstDoc, out bool hasNoSeqPoints) {
 			var instrs = body.Instructions;

@@ -93,6 +93,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 					}
 					if (pos != uncompressedSize)
 						return null;
+					// The size is wrong if there's more data, the PDB would be cut off
+					if (deflateStream.ReadByte() != -1)
+						return null;
 					var stream = ByteArrayDataReaderFactory.Create(decompressedBytes, filename: null);
 					return TryCreate(pdbContext, stream, isEmbeddedPortablePdb: true);
 				}

@@ -91,6 +91,56 @@ public static class Program {
 			}
 		}
 
+		// The data of the entry: "MPDB", the size of the PDB (4 bytes) and the compressed PDB. If the size isn't
+		// the real size, if the signature is another one or if the data can't be decompressed, the module is
+		// loaded without debug info. These are the cases that System.Reflection.Metadata tests (it throws).
+		// Fixed in 9d7b9c04: a size that was smaller than the real size was accepted,
+		// and dnlib read the start of the PDB.
+		[Theory]
+		[InlineData("size is 0")]
+		[InlineData("size is too small by 1")]
+		[InlineData("size is half the real size")]
+		[InlineData("size is too big by 1")]
+		[InlineData("size is 0x7FFFFFFF")]
+		[InlineData("size is 0xFFFFFFFF")]
+		[InlineData("another signature")]
+		[InlineData("invalid compressed data")]
+		[InlineData("compressed data is cut off")]
+		[InlineData("no compressed data")]
+		[InlineData("only the signature")]
+		public void EmbeddedPdbThatCanNotBeDecompressedIsNotRead(string change) {
+			var image = (byte[])imageWithEmbeddedPdb.Clone();
+			int realSize = GetEmbeddedPdb(image)!.Length;
+			using (var peReader = new PEReader(new MemoryStream(imageWithEmbeddedPdb))) {
+				var entries = peReader.ReadDebugDirectory();
+				int index = entries.IndexOf(entries.Single(a => a.Type == DebugDirectoryEntryType.EmbeddedPortablePdb));
+				int dataOffset = entries[index].DataPointer;
+				Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(peReader.PEHeaders.PEHeader!.DebugTableDirectory, out int tableOffset));
+				void SetSize(uint size) => BitConverter.GetBytes(size).CopyTo(image, dataOffset + 4);
+				// An entry of the debug directory has 28 bytes, the size of its data is at offset 16
+				void SetDataSize(int size) => BitConverter.GetBytes(size).CopyTo(image, tableOffset + index * 28 + 16);
+				switch (change) {
+				case "size is 0": SetSize(0); break;
+				case "size is too small by 1": SetSize((uint)realSize - 1); break;
+				case "size is half the real size": SetSize((uint)realSize / 2); break;
+				case "size is too big by 1": SetSize((uint)realSize + 1); break;
+				case "size is 0x7FFFFFFF": SetSize(0x7FFFFFFF); break;
+				case "size is 0xFFFFFFFF": SetSize(0xFFFFFFFF); break;
+				case "another signature": image[dataOffset + 3] = (byte)'C'; break;
+				case "invalid compressed data": new byte[] { 0xEF, 0xFF, 0x4F, 0xFF }.CopyTo(image, dataOffset + 8); break;
+				case "compressed data is cut off": SetDataSize(8 + (entries[index].DataSize - 8) / 2); break;
+				case "no compressed data": SetDataSize(8); break;
+				case "only the signature": SetDataSize(4); break;
+				default: throw new ArgumentException(change);
+				}
+			}
+
+			using (var module = ModuleDefMD.Load(image)) {
+				Assert.Null(module.PdbState);
+				Assert.NotNull(module.Find("Program", isReflectionName: true)!.FindMethod("Main")!.Body);
+			}
+		}
+
 		// The option is for both: a PDB file on the disk and a PDB in the PE file
 		[Fact]
 		public void EmbeddedPdbIsNotReadIfTryToLoadPdbFromDiskIsFalse() {
@@ -124,11 +174,66 @@ public static class Program {
 				Assert.Null(SymbolReaderFactory.TryCreateEmbeddedPdbReader(PdbReaderOptions.None, module.Metadata));
 		}
 
-		// The embedded PDB is the PDB of the file: another PDB that's passed in isn't used
+		// A PDB that's passed in is tried first, like in System.Reflection.Metadata. This PDB has the same id as
+		// the embedded PDB, so it's the PDB of the file and it's used.
 		[Fact]
-		public void EmbeddedPdbIsPreferredToAPdbThatIsPassedIn() {
+		public void PdbThatIsPassedInIsPreferredToTheEmbeddedPdb() {
+			var pdb = GetEmbeddedPdb(imageWithEmbeddedPdb)!;
+			var options = new ModuleCreationOptions { PdbFileOrData = pdb, TryToLoadPdbFromDisk = false };
+
+			using (var module = ModuleDefMD.Load(imageWithEmbeddedPdb, options)) {
+				Assert.Equal(PdbFileKind.PortablePDB, module.PdbState!.PdbFileKind);
+				Assert.Equal("/src/Program.cs", Assert.Single(module.PdbState.Documents).Url);
+			}
+		}
+
+		// The same for a PDB file that's next to the file
+		[Fact]
+		public void PdbFileOnTheDiskIsPreferredToTheEmbeddedPdb() {
+			using (var directory = new TempDirectory()) {
+				var fileName = directory.GetPath("Program.dll");
+				File.WriteAllBytes(fileName, imageWithEmbeddedPdb);
+				using (var module = ModuleDefMD.Load(fileName))
+					Assert.Equal(PdbFileKind.EmbeddedPortablePDB, module.PdbState!.PdbFileKind);
+
+				File.WriteAllBytes(Path.ChangeExtension(fileName, "pdb"), GetEmbeddedPdb(imageWithEmbeddedPdb)!);
+				using (var module = ModuleDefMD.Load(fileName)) {
+					Assert.Equal(PdbFileKind.PortablePDB, module.PdbState!.PdbFileKind);
+					Assert.Equal("/src/Program.cs", Assert.Single(module.PdbState.Documents).Url);
+				}
+			}
+		}
+
+		// The embedded PDB is used if the PDB that's passed in is the PDB of another file
+		[Fact]
+		public void EmbeddedPdbIsReadIfThePdbThatIsPassedInIsOfAnotherFile() {
 			var otherPdb = CSharpCompiler.Compile("public class Other { public void M() { } }", new CSharpCompilerOptions { PdbKind = PdbKind.Portable, SourcePath = "/src/Other.cs" }).Pdb;
 			var options = new ModuleCreationOptions { PdbFileOrData = otherPdb, TryToLoadPdbFromDisk = false };
+
+			using (var module = ModuleDefMD.Load(imageWithEmbeddedPdb, options)) {
+				Assert.Equal(PdbFileKind.EmbeddedPortablePDB, module.PdbState!.PdbFileKind);
+				Assert.Equal("/src/Program.cs", Assert.Single(module.PdbState.Documents).Url);
+			}
+		}
+
+		// The embedded PDB is also used if the PDB that's passed in can't be read, like in
+		// System.Reflection.Metadata
+		[Theory]
+		[InlineData("empty")]
+		[InlineData("not a PDB")]
+		[InlineData("only the signature of a portable PDB")]
+		[InlineData("only the signature of a Windows PDB")]
+		[InlineData("file that doesn't exist")]
+		public void EmbeddedPdbIsReadIfThePdbThatIsPassedInCanNotBeRead(string pdb) {
+			object pdbFileOrData = pdb switch {
+				"empty" => new byte[0],
+				"not a PDB" => System.Text.Encoding.ASCII.GetBytes("This isn't a PDB file"),
+				"only the signature of a portable PDB" => new byte[] { 0x42, 0x53, 0x4A, 0x42 },
+				"only the signature of a Windows PDB" => System.Text.Encoding.ASCII.GetBytes("Microsoft C/C++ MSF 7.00\r\n\u001ADS\0"),
+				"file that doesn't exist" => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "no.pdb"),
+				_ => throw new ArgumentException(pdb),
+			};
+			var options = new ModuleCreationOptions { PdbFileOrData = pdbFileOrData, TryToLoadPdbFromDisk = false };
 
 			using (var module = ModuleDefMD.Load(imageWithEmbeddedPdb, options)) {
 				Assert.Equal(PdbFileKind.EmbeddedPortablePDB, module.PdbState!.PdbFileKind);
