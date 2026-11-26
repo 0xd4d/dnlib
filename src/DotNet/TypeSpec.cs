@@ -308,6 +308,11 @@ namespace dnlib.DotNet {
 		public uint OrigRid => origRid;
 
 		/// <summary>
+		/// Gets the module where this instance is located
+		/// </summary>
+		internal ModuleDefMD ReaderModule => readerModule;
+
+		/// <summary>
 		/// State of the TypeSpec signatures that are currently being read by a thread
 		/// </summary>
 		sealed class SignatureReadState {
