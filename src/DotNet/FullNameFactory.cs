@@ -1564,6 +1564,32 @@ namespace dnlib.DotNet {
 			case ElementType.Sentinel:
 				break;
 
+			case ElementType.VarZapSig:
+				// Its name is the name of the generic parameter, which isn't known here
+				if (createName) {
+					sb.Append("GenericParam(");
+					sb.Append(((VarZapSig)typeSig).GenericParamRid);
+					sb.Append(')');
+				}
+				break;
+
+			case ElementType.NativeValueTypeZapSig:
+				// System.Reflection: "VALUETYPE" and the name of the next type
+				if (createName)
+					sb.Append(isReflection ? "VALUETYPE" : "native ");
+				CreateTypeSigName(typeSig.Next, flags);
+				break;
+
+			case ElementType.CanonZapSig:
+				if (createNamespace) {
+					sb.Append("System");
+					if (createName)
+						sb.Append('.');
+				}
+				if (createName)
+					sb.Append("__Canon");
+				break;
+
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
@@ -1975,6 +2001,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetDefinitionAssembly(typeSig.Next);
 				break;
@@ -1988,6 +2015,8 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:
@@ -2045,6 +2074,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetScopeType(typeSig.Next);
 				break;
@@ -2056,6 +2086,8 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:
@@ -2113,6 +2145,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetScope(typeSig.Next);
 				break;
@@ -2124,6 +2157,8 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:
@@ -2181,6 +2216,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetOwnerModule(typeSig.Next);
 				break;
@@ -2192,6 +2228,8 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:

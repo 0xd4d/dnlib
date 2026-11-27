@@ -233,6 +233,9 @@ namespace dnlib.DotNet.Pdb.Portable {
 			case ElementType.R:
 			case ElementType.Internal:
 			case ElementType.CModInternal:
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.Sentinel:
 			case ElementType.Pinned:

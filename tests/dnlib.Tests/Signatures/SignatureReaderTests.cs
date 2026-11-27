@@ -18,7 +18,7 @@ namespace dnlib.Tests.Signatures {
 		// The element types and calling conventions that are used below, see ECMA-335 II.23.1.16 and II.23.2.3
 		const byte Void = 0x01, I4 = 0x08, String = 0x0E, Ptr = 0x0F, ByRef = 0x10, ValueType = 0x11, Class = 0x12,
 			Var = 0x13, Array = 0x14, GenericInst = 0x15, FnPtr = 0x1B, SZArray = 0x1D, MVar = 0x1E, CModReqd = 0x1F,
-			CModOpt = 0x20, Internal = 0x21, CModInternal = 0x22, Module = 0x3F, Sentinel = 0x41, Pinned = 0x45, ValueArray = 0x17;
+			CModOpt = 0x20, Internal = 0x21, CModInternal = 0x22, VarZapSig = 0x3B, NativeValueTypeZapSig = 0x3D, CanonZapSig = 0x3E, Module = 0x3F, Sentinel = 0x41, Pinned = 0x45, ValueArray = 0x17;
 		const byte DefaultCall = 0x00, VarArgCall = 0x05, FieldCall = 0x06, LocalCall = 0x07, PropertyCall = 0x08,
 			GenericInstCall = 0x0A, AsyncCall = 0x0C, GenericFlag = 0x10, HasThisFlag = 0x20;
 
@@ -227,6 +227,10 @@ namespace dnlib.Tests.Signatures {
 			// (module number, type), and a type or a modifier that's the address of the runtime's own type
 			yield return new object[] { "value array", new byte[] { ValueArray, I4, 0x81, 0x00 } };
 			yield return new object[] { "module", new byte[] { Module, 0x81, 0x00, I4 } };
+			// A generic parameter by the rid of its row, the native view of a type, System.__Canon
+			yield return new object[] { "generic parameter row", new byte[] { VarZapSig, 0x81, 0x00 } };
+			yield return new object[] { "native view", new byte[] { NativeValueTypeZapSig, I4 } };
+			yield return new object[] { "canonical type", new byte[] { CanonZapSig } };
 			yield return new object[] { "internal", new byte[] { Internal }.Concat(new byte[IntPtr.Size]).ToArray() };
 			yield return new object[] { "internal modifier", new byte[] { CModInternal, 1 }.Concat(new byte[IntPtr.Size]).Concat(new byte[] { I4 }).ToArray() };
 			// The byte before the generic type's token isn't CLASS or VALUETYPE (the CLR ignores it)
@@ -254,6 +258,44 @@ namespace dnlib.Tests.Signatures {
 			while (type is SZArraySig)
 				type = type.Next;
 			Assert.Null(type);
+		}
+
+		// Fixed in this commit: these three element types weren't read. The runtime uses them in its own
+		// signatures, but it also reads them in a method signature of a file. The type was null and the bytes
+		// of a generic parameter's rid or of the native view's type were read as the next parameter.
+		[Fact]
+		public void ElementTypesOfTheRuntimesOwnSignaturesAreRead() {
+			// static void(native int, generic parameter row 0x81, System.__Canon, string)
+			var signature = Assert.IsType<MethodSig>(ReadSig(DefaultCall, 4, Void, NativeValueTypeZapSig, I4, VarZapSig, 0x80, 0x81, CanonZapSig, String));
+
+			Assert.Equal(4, signature.Params.Count);
+			var native = Assert.IsType<NativeValueTypeZapSig>(signature.Params[0]);
+			Assert.Equal(ElementType.NativeValueTypeZapSig, native.ElementType);
+			Assert.Equal(ElementType.I4, native.Next!.ElementType);
+			var genericParam = Assert.IsType<VarZapSig>(signature.Params[1]);
+			Assert.Equal(ElementType.VarZapSig, genericParam.ElementType);
+			Assert.Equal(0x81U, genericParam.GenericParamRid);
+			Assert.Null(genericParam.Next);
+			var canon = Assert.IsType<CanonZapSig>(signature.Params[2]);
+			Assert.Equal(ElementType.CanonZapSig, canon.ElementType);
+			Assert.Null(canon.Next);
+			Assert.Equal(ElementType.String, signature.Params[3]!.ElementType);
+		}
+
+		[Fact]
+		public void NativeViewCanBeNestedAndBeTheElementOfOtherTypes() {
+			// native native int*[]
+			var type = ReadType(SZArray, Ptr, NativeValueTypeZapSig, NativeValueTypeZapSig, I4);
+
+			var native = Assert.IsType<NativeValueTypeZapSig>(Assert.IsType<PtrSig>(Assert.IsType<SZArraySig>(type).Next).Next);
+			Assert.Equal(ElementType.I4, Assert.IsType<NativeValueTypeZapSig>(native.Next).Next!.ElementType);
+		}
+
+		[Fact]
+		public void GenericParameterRowWithoutItsRidIsNotRead() {
+			Assert.Null(ReadType(VarZapSig));
+			// The rid is a compressed number: 0x80 needs a second byte
+			Assert.Null(ReadType(VarZapSig, 0x80));
 		}
 
 		[Fact]

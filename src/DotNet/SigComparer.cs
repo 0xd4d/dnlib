@@ -529,6 +529,9 @@ namespace dnlib.DotNet {
 		const int HASHCODE_MAGIC_NESTED_TYPE = -1049070942;
 		const int HASHCODE_ENCLOSING_TYPE_MULTIPLIER = 31;
 		const int HASHCODE_MAGIC_ET_MODULE = -299744851;
+		const int HASHCODE_MAGIC_ET_VARZAPSIG = 1620149107;
+		const int HASHCODE_MAGIC_ET_NATIVEVALUETYPEZAPSIG = -1183408423;
+		const int HASHCODE_MAGIC_ET_CANONZAPSIG = 902473519;
 		const int HASHCODE_MAGIC_ET_VALUEARRAY = -674970533;
 		const int HASHCODE_MAGIC_ET_GENERICINST = -2050514639;
 		const int HASHCODE_MAGIC_ET_VAR = 1288450097;
@@ -2229,6 +2232,7 @@ exit:;
 				case ElementType.U:
 				case ElementType.Object:
 				case ElementType.Sentinel:
+				case ElementType.CanonZapSig:
 					result = true;
 					break;
 
@@ -2330,6 +2334,16 @@ exit:;
 
 				case ElementType.Module:
 					result = ((ModuleSig)a).Index == ((ModuleSig)b).Index && Equals(a.Next, b.Next);
+					break;
+
+				case ElementType.VarZapSig:
+					// It's never equal to a GenericVar/GenericMVar, also in the CLR. The CLR can't compare two of
+					// them (bad image), dnlib says that they're equal if it's the same GenericParam rid.
+					result = ((VarZapSig)a).GenericParamRid == ((VarZapSig)b).GenericParamRid;
+					break;
+
+				case ElementType.NativeValueTypeZapSig:
+					result = Equals(a.Next, b.Next);
 					break;
 
 				case ElementType.End:
@@ -2467,6 +2481,18 @@ exit:;
 
 			case ElementType.Module:
 				hash = HASHCODE_MAGIC_ET_MODULE + (int)((ModuleSig)a).Index + GetHashCode(a.Next, substituteGenericParameters);
+				break;
+
+			case ElementType.VarZapSig:
+				hash = HASHCODE_MAGIC_ET_VARZAPSIG + (int)((VarZapSig)a).GenericParamRid;
+				break;
+
+			case ElementType.NativeValueTypeZapSig:
+				hash = HASHCODE_MAGIC_ET_NATIVEVALUETYPEZAPSIG + GetHashCode(a.Next, substituteGenericParameters);
+				break;
+
+			case ElementType.CanonZapSig:
+				hash = HASHCODE_MAGIC_ET_CANONZAPSIG;
 				break;
 
 			case ElementType.End:
@@ -3976,6 +4002,9 @@ exit:;
 
 			case ElementType.Sentinel:
 			case ElementType.ValueArray:
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.End:
 			case ElementType.R:
@@ -4230,6 +4259,9 @@ exit:;
 				break;
 
 			case ElementType.ValueArray:
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.End:
 			case ElementType.R:

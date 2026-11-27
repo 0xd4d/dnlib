@@ -75,6 +75,15 @@ namespace dnlib.DotNet {
 		Internal    = 0x21,
 		/// <summary>Custom modifier with a type handle, used internally by the CLR (don't use)</summary>
 		CModInternal = 0x22,
+		/// <summary>A generic parameter that is referenced by the rid of its <c>GenericParam</c> row, used
+		/// internally by the CLR (don't use). The CLR also reads it in a method signature of a file.</summary>
+		VarZapSig   = 0x3B,
+		/// <summary>The native (unmanaged) view of the next type, used internally by the CLR (don't use).
+		/// The CLR also reads it in a method signature of a file.</summary>
+		NativeValueTypeZapSig = 0x3D,
+		/// <summary><c>System.__Canon</c>, used internally by the CLR (don't use). The CLR also reads it
+		/// in a method signature of a file.</summary>
+		CanonZapSig = 0x3E,
 		/// <summary>Module (don't use)</summary>
 		Module      = 0x3F,
 		/// <summary>Sentinel (method sigs only)</summary>
@@ -201,6 +210,9 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Internal:
 			case ElementType.CModInternal:
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.Sentinel:
 			case ElementType.Pinned:

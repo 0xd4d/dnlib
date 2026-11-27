@@ -576,6 +576,9 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.CModOpt:
 			case ElementType.Internal:
 			case ElementType.CModInternal:
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.Sentinel:
 			case ElementType.Pinned:

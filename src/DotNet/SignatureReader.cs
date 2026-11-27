@@ -730,6 +730,17 @@ namespace dnlib.DotNet {
 				result = new ModuleSig(num, ReadType());
 				break;
 
+			// The CLR uses the next three in its own signatures, but it also reads them in a method signature
+			// of a file (not in a field signature)
+			case ElementType.VarZapSig:
+				if (!reader.TryReadCompressedUInt32(out num))
+					break;
+				result = new VarZapSig(num);
+				break;
+
+			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ReadType()); break;
+			case ElementType.CanonZapSig: result = new CanonZapSig(); break;
+
 			case ElementType.GenericInst:
 				if (IsGenericInstTypeKindIgnored())
 					nextType = new ClassSig(ReadTypeDefOrRef(false));
@@ -927,12 +938,14 @@ namespace dnlib.DotNet {
 			case ElementType.I:
 			case ElementType.U:
 			case ElementType.Object:
+			case ElementType.CanonZapSig:
 				return;
 
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.SZArray:
 			case ElementType.Pinned:
+			case ElementType.NativeValueTypeZapSig:
 				stack.Add(new SkipItem(SkipKind.Types, 1));
 				return;
 
@@ -940,6 +953,7 @@ namespace dnlib.DotNet {
 			case ElementType.Class:
 			case ElementType.Var:
 			case ElementType.MVar:
+			case ElementType.VarZapSig:
 				reader.TryReadCompressedUInt32(out _);
 				return;
 

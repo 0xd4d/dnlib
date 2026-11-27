@@ -19,6 +19,8 @@ TypeSig								base class
 			GenericVar				Generic type parameter
 			GenericMVar				Generic method parameter
 		SentinelSig					Sentinel
+		VarZapSig				Generic parameter referenced by its GenericParam rid (internal CLR type, don't use it)
+		CanonZapSig				System.__Canon (internal CLR type, don't use it)
 		FnPtrSig					Function pointer sig
 		GenericInstSig				Generic instance type (contains a generic type + all generic args)
 	NonLeafSig						base class for non-leaf types
@@ -33,6 +35,7 @@ TypeSig								base class
 		PinnedSig					Pinned
 		ValueArraySig				Value array (undocumented/not implemented by the CLR so don't use it)
 		ModuleSig					Module (undocumented/not implemented by the CLR so don't use it)
+		NativeValueTypeZapSig	Native view of the next type (internal CLR type, don't use it)
 */
 
 namespace dnlib.DotNet {
@@ -265,6 +268,21 @@ namespace dnlib.DotNet {
 		/// <c>true</c> if it's a <see cref="ModuleSig"/>
 		/// </summary>
 		public bool IsModuleSig => this is ModuleSig;
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="VarZapSig"/>
+		/// </summary>
+		public bool IsVarZapSig => this is VarZapSig;
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="NativeValueTypeZapSig"/>
+		/// </summary>
+		public bool IsNativeValueTypeZapSig => this is NativeValueTypeZapSig;
+
+		/// <summary>
+		/// <c>true</c> if it's a <see cref="CanonZapSig"/>
+		/// </summary>
+		public bool IsCanonZapSig => this is CanonZapSig;
 
 		/// <summary>
 		/// <c>true</c> if this <see cref="TypeSig"/> contains a <see cref="GenericVar"/> or a
@@ -807,6 +825,45 @@ namespace dnlib.DotNet {
 	}
 
 	/// <summary>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.VarZapSig"/>: a generic parameter of a type or of
+	/// a method that is referenced by the rid of its <c>GenericParam</c> row. The CLR only uses it in its
+	/// own signatures, but it also reads it in a method signature of a file: the type is then always the
+	/// generic parameter itself, also in an instantiated type or method. It's not equal to a
+	/// <see cref="GenericVar"/> or to a <see cref="GenericMVar"/> when signatures are compared.
+	/// </summary>
+	public sealed class VarZapSig : LeafSig {
+		uint genericParamRid;
+
+		/// <inheritdoc/>
+		public override ElementType ElementType => ElementType.VarZapSig;
+
+		/// <summary>
+		/// Gets/sets the rid of the <c>GenericParam</c> row. It's written as it is: it's not updated if
+		/// the row gets another rid when the module is written.
+		/// </summary>
+		public uint GenericParamRid {
+			get => genericParamRid;
+			set => genericParamRid = value;
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="genericParamRid">Rid of the <c>GenericParam</c> row</param>
+		public VarZapSig(uint genericParamRid) => this.genericParamRid = genericParamRid;
+	}
+
+	/// <summary>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.CanonZapSig"/>: <c>System.__Canon</c>. The CLR
+	/// only uses it in its own signatures, but it also reads it in a method signature of a file. It's not
+	/// equal to a reference to <c>System.__Canon</c> when signatures are compared.
+	/// </summary>
+	public sealed class CanonZapSig : LeafSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType => ElementType.CanonZapSig;
+	}
+
+	/// <summary>
 	/// Represents a <see cref="dnlib.DotNet.ElementType.FnPtr"/>
 	/// </summary>
 	public sealed class FnPtrSig : LeafSig {
@@ -1307,5 +1364,23 @@ namespace dnlib.DotNet {
 		/// <param name="nextSig">The next element type</param>
 		public ModuleSig(uint index, TypeSig? nextSig)
 			: base(nextSig) => this.index = index;
+	}
+
+	/// <summary>
+	/// Represents a <see cref="dnlib.DotNet.ElementType.NativeValueTypeZapSig"/>: the native (unmanaged)
+	/// view of the next type. The CLR only uses it in its own signatures, but it also reads it in a method
+	/// signature of a file.
+	/// </summary>
+	public sealed class NativeValueTypeZapSig : NonLeafSig {
+		/// <inheritdoc/>
+		public override ElementType ElementType => ElementType.NativeValueTypeZapSig;
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="nextSig">The next element type</param>
+		public NativeValueTypeZapSig(TypeSig? nextSig)
+			: base(nextSig) {
+		}
 	}
 }

@@ -325,6 +325,9 @@ namespace dnlib.DotNet {
 			case ElementType.R:
 			case ElementType.Internal:
 			case ElementType.CModInternal:
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.End:
 			default:
@@ -955,6 +958,10 @@ namespace dnlib.DotNet {
 			case ElementType.CModReqd: result = new CModReqdSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
 			case ElementType.CModOpt: result = new CModOptSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
 			case ElementType.Module: result = new ModuleSig(((ModuleSig)type).Index, ImportOrNull(type.Next)); break;
+			// The rid is the one of the other module's GenericParam row, it's imported as it is
+			case ElementType.VarZapSig: result = new VarZapSig(((VarZapSig)type).GenericParamRid); break;
+			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ImportOrNull(type.Next)); break;
+			case ElementType.CanonZapSig: result = new CanonZapSig(); break;
 			case ElementType.Sentinel: result = new SentinelSig(); break;
 			case ElementType.Pinned: result = new PinnedSig(ImportOrNull(type.Next)); break;
 

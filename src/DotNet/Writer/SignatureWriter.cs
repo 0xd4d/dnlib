@@ -121,6 +121,7 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.U:
 			case ElementType.Object:
 			case ElementType.Sentinel:
+			case ElementType.CanonZapSig:
 				writer.WriteByte((byte)typeSig.ElementType);
 				break;
 
@@ -128,8 +129,14 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.ByRef:
 			case ElementType.SZArray:
 			case ElementType.Pinned:
+			case ElementType.NativeValueTypeZapSig:
 				writer.WriteByte((byte)typeSig.ElementType);
 				Write(typeSig.Next);
+				break;
+
+			case ElementType.VarZapSig:
+				writer.WriteByte((byte)typeSig.ElementType);
+				WriteCompressedUInt32(((VarZapSig)typeSig).GenericParamRid);
 				break;
 
 			case ElementType.ValueType:

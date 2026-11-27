@@ -108,6 +108,22 @@ public class Box<T> { }
 			AssertImported(new PinnedSig(new ByRefSig(Value)));
 		}
 
+		// Fixed in this commit: the types of the runtime's own signatures had no TypeSig class. The rid of a
+		// generic parameter row is the one of the module it was read from, it's imported as it is.
+		[Fact]
+		public void TypesOfTheRuntimesOwnSignatures() {
+			AssertImported(new NativeValueTypeZapSig(Value));
+			AssertImported(new SZArraySig(new NativeValueTypeZapSig(new NativeValueTypeZapSig(Thing))));
+			// These two aren't made of other types
+			var canon = new CanonZapSig();
+			Assert.NotSame(canon, Assert.IsType<CanonZapSig>(importer.Import(canon)));
+			var genericParam = new VarZapSig(3);
+			var importedGenericParam = Assert.IsType<VarZapSig>(importer.Import(genericParam));
+			Assert.NotSame(genericParam, importedGenericParam);
+			Assert.Equal(3U, importedGenericParam.GenericParamRid);
+			Assert.IsType<CanonZapSig>(Assert.IsType<SZArraySig>(importer.Import(new SZArraySig(canon))).Next);
+		}
+
 		[Fact]
 		public void MultiDimensionalArrayKeepsItsSizesAndLowerBounds() {
 			var original = new ArraySig(Thing, 3U, new uint[] { 4, 5 }, new[] { -1, 0, 2 });

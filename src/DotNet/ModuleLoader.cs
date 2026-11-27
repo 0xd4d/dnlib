@@ -195,6 +195,9 @@ namespace dnlib.DotNet {
 			case ElementType.Array:
 			case ElementType.ValueArray:
 			case ElementType.SZArray:
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.Pinned:
 			case ElementType.Sentinel:

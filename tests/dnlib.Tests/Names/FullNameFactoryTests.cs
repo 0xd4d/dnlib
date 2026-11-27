@@ -168,6 +168,39 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("System.Void (System.Int32,...,System.String)", FullNameFactory.MethodBaseSigFullName(varArgSig));
 		}
 
+		// Fixed in this commit: the three kinds of types of the runtime's own signatures had no TypeSig class.
+		// System.Reflection shows the native view of a type as "VALUETYPE" and the type's name, and
+		// System.__Canon like the class. It shows a generic parameter by its name, which dnlib doesn't know:
+		// the signature only has the rid of the GenericParam row.
+		[Fact]
+		public void NamesOfTheTypesOfTheRuntimesOwnSignatures() {
+			var native = new NativeValueTypeZapSig(CorLib.Int32);
+			Assert.Equal("native System.Int32", native.FullName);
+			Assert.Equal("native Int32", native.TypeName);
+			Assert.Equal("System", native.Namespace);
+			Assert.Equal("VALUETYPESystem.Int32", native.ReflectionFullName);
+			Assert.Equal("VALUETYPEInt32", native.ReflectionName);
+			Assert.Equal("native System.Int32*[]", new SZArraySig(new PtrSig(native)).FullName);
+			Assert.Equal("VALUETYPESystem.Int32*[]", new SZArraySig(new PtrSig(native)).ReflectionFullName);
+			Assert.Equal("VALUETYPEVALUETYPESystem.Int32", new NativeValueTypeZapSig(native).ReflectionFullName);
+
+			var canon = new CanonZapSig();
+			Assert.Equal("System.__Canon", canon.FullName);
+			Assert.Equal("__Canon", canon.TypeName);
+			Assert.Equal("System", canon.Namespace);
+			Assert.Equal("System.__Canon", canon.ReflectionFullName);
+			Assert.Equal("__Canon", canon.ReflectionName);
+			Assert.Equal("System", canon.ReflectionNamespace);
+			Assert.Equal("System.__Canon[]", new SZArraySig(canon).FullName);
+
+			var genericParam = new VarZapSig(3);
+			Assert.Equal("GenericParam(3)", genericParam.FullName);
+			Assert.Equal("GenericParam(3)", genericParam.TypeName);
+			Assert.Equal("", genericParam.Namespace);
+			Assert.Equal("GenericParam(3)", genericParam.ReflectionFullName);
+			Assert.Equal("GenericParam(3)&", new ByRefSig(genericParam).FullName);
+		}
+
 		// Two kinds of types that only the runtime itself uses (dnlib reads them): their names have the number
 		[Fact]
 		public void NamesOfValueArraysAndModuleTypes() {

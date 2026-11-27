@@ -19,6 +19,7 @@ namespace dnlib.Tests.Signatures {
 			"IsTypeDefOrRef", "IsCorLibType", "IsClassSig", "IsValueTypeSig", "IsGenericParameter", "IsGenericTypeParameter", "IsGenericMethodParameter",
 			"IsSentinel", "IsFunctionPointer", "IsGenericInstanceType", "IsPointer", "IsByRef", "IsSingleOrMultiDimensionalArray", "IsArray", "IsSZArray",
 			"IsModifier", "IsRequiredModifier", "IsOptionalModifier", "IsPinned", "IsValueArray", "IsModuleSig",
+			"IsVarZapSig", "IsNativeValueTypeZapSig", "IsCanonZapSig",
 		};
 
 		static TypeSig Create(string kind) {
@@ -42,6 +43,9 @@ namespace dnlib.Tests.Signatures {
 			case "pinned": return new PinnedSig(int32);
 			case "value array": return new ValueArraySig(int32, 4);
 			case "module": return new ModuleSig(1, int32);
+			case "generic parameter row": return new VarZapSig(1);
+			case "native view": return new NativeValueTypeZapSig(int32);
+			case "canonical type": return new CanonZapSig();
 			default: throw new ArgumentException(kind);
 			}
 		}
@@ -64,6 +68,11 @@ namespace dnlib.Tests.Signatures {
 		[InlineData("pinned", "IsPinned")]
 		[InlineData("value array", "IsValueArray")]
 		[InlineData("module", "IsModuleSig")]
+		// Fixed in this commit: the three kinds that the runtime uses in its own signatures and also reads in
+		// a method signature of a file had no TypeSig class
+		[InlineData("generic parameter row", "IsVarZapSig")]
+		[InlineData("native view", "IsNativeValueTypeZapSig")]
+		[InlineData("canonical type", "IsCanonZapSig")]
 		public void OnlyThePropertiesOfTheKindAreTrue(string kind, string expectedProperties) {
 			var signature = Create(kind);
 

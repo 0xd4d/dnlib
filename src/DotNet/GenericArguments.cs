@@ -260,6 +260,9 @@ namespace dnlib.DotNet {
 			case ModuleSig moduleSig:
 				result = new ModuleSig(moduleSig.Index, Create(moduleSig.Next));
 				break;
+			case NativeValueTypeZapSig nativeValueType:
+				result = new NativeValueTypeZapSig(Create(nativeValueType.Next));
+				break;
 			default:
 				result = sig;
 				break;

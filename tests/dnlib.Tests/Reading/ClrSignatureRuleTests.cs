@@ -194,6 +194,10 @@ public static class Marker {
 		[InlineData("06 1B 00 00 01", "System.Void ()", "System.Void()")]
 		[InlineData("06 1B 00 01 08 0E", "System.Int32 (System.String)", "System.Int32(System.String)")]
 		[InlineData("06 1B 06 08", "<<<NULL>>>", "throws COMException")]
+		// The runtime's own element types (see the method signatures below): not in a field signature
+		[InlineData("06 3D 05", "VALUETYPESystem.Byte", "throws COMException")]
+		[InlineData("06 3E", "System.__Canon", "throws COMException")]
+		[InlineData("06 3B 01", "GenericParam(1)", "throws COMException")]
 		// Fixed in this commit: a function pointer whose signature has the calling convention of a property (8)
 		// or of a generic method instantiation (A) had no method signature, and with A the bytes after it
 		// were read as something else. The runtime reads a method signature whatever the calling convention is.
@@ -313,6 +317,36 @@ public static class Marker {
 		[InlineData("00 03 01 08 41 0E 41 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 03 01 41 08 0E 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 01 01 45 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		// Fixed in this commit: dnlib didn't read the element types 3B, 3D and 3E, which the runtime only uses in
+		// its own signatures but also reads in a method signature of a file. 3D = the native view of the type that
+		// follows ("VALUETYPE" in System.Reflection), 3E = System.__Canon, 3B = the generic parameter with the
+		// rid that follows (the module of these tests has none; dnlib has no name for it, only the rid).
+		// The runtime only loads the method if the type is the last one of the signature, dnlib reads it
+		// everywhere. 3F (a type of another module, a ModuleSig in dnlib) isn't here: the runtime crashes.
+		[InlineData("00 01 01 3D 05", "System.Void(VALUETYPESystem.Byte)", "System.Void(VALUETYPESystem.Byte)")]
+		[InlineData("00 01 01 3D 11 {DateTime}", "System.Void(VALUETYPESystem.DateTime)", "System.Void(VALUETYPESystem.DateTime)")]
+		[InlineData("00 01 01 3D 12 {Object}", "System.Void(VALUETYPESystem.Object)", "System.Void(VALUETYPESystem.Object)")]
+		[InlineData("00 01 01 3D 0E", "System.Void(VALUETYPESystem.String)", "System.Void(VALUETYPESystem.String)")]
+		[InlineData("00 01 01 3D 1D 05", "System.Void(VALUETYPESystem.Byte[])", "System.Void(VALUETYPESystem.Byte[])")]
+		[InlineData("00 01 01 1D 3D 05", "System.Void(VALUETYPESystem.Byte[])", "System.Void(VALUETYPESystem.Byte[])")]
+		[InlineData("00 01 01 10 3D 05", "System.Void(VALUETYPESystem.Byte&)", "System.Void(VALUETYPESystem.Byte&)")]
+		[InlineData("00 01 01 0F 3D 05", "System.Void(VALUETYPESystem.Byte*)", "System.Void(VALUETYPESystem.Byte*)")]
+		[InlineData("00 01 01 3D 3D 05", "System.Void(VALUETYPEVALUETYPESystem.Byte)", "System.Void(VALUETYPEVALUETYPESystem.Byte)")]
+		[InlineData("00 01 01 20 {Object} 3D 05", "System.Void(VALUETYPESystem.Byte)", "System.Void(VALUETYPESystem.Byte)")]
+		[InlineData("00 01 01 3D 20 {Object} 05", "System.Void(VALUETYPESystem.Byte)", "System.Void(VALUETYPESystem.Byte)")]
+		[InlineData("00 00 3D 05", "VALUETYPESystem.Byte()", "VALUETYPESystem.Byte()")]
+		[InlineData("00 02 01 08 3D 05", "System.Void(System.Int32,VALUETYPESystem.Byte)", "System.Void(System.Int32,VALUETYPESystem.Byte)")]
+		[InlineData("00 02 01 3D 05 08", "System.Void(VALUETYPESystem.Byte,System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 01 01 3E", "System.Void(System.__Canon)", "System.Void(System.__Canon)")]
+		[InlineData("00 01 01 1D 3E", "System.Void(System.__Canon[])", "System.Void(System.__Canon[])")]
+		[InlineData("00 00 3E", "System.__Canon()", "System.__Canon()")]
+		[InlineData("00 02 01 3E 08", "System.Void(System.__Canon,System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 01 01 3B 01", "System.Void(GenericParam(1))", "throws BadImageFormatException")]
+		[InlineData("00 01 01 3B 00", "System.Void(GenericParam(0))", "throws BadImageFormatException")]
+		[InlineData("00 02 01 3B 01 08", "System.Void(GenericParam(1),System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 01 01 3C 08", "System.Void(no type)", "throws BadImageFormatException")]
+		[InlineData("00 01 01 3A 08", "System.Void(no type)", "throws BadImageFormatException")]
+		[InlineData("00 01 01 23 08", "System.Void(no type)", "throws BadImageFormatException")]
 		[InlineData("00 02 01 1B 0A 00 01 08", "System.Void((fnptr),System.Int32)", "System.Void(System.Void(),System.Int32)")]
 		[InlineData("00 02 01 1B 08 00 01 08", "System.Void((fnptr),System.Int32)", "System.Void(System.Void(),System.Int32)")]
 		[InlineData("00 01 01 1E 00", "System.Void(!!0)", "throws BadImageFormatException")]
