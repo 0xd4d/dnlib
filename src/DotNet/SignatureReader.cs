@@ -745,8 +745,10 @@ namespace dnlib.DotNet {
 			case ElementType.CanonZapSig: result = new CanonZapSig(); break;
 
 			case ElementType.GenericInst:
+				// The CLR only loads the generic instance if the byte is CLASS and the type is a class, or if it's
+				// any other byte and the type is a value type
 				if (IsGenericInstTypeKindIgnored())
-					nextType = new ClassSig(ReadTypeDefOrRef(false));
+					nextType = new ValueTypeSig(ReadTypeDefOrRef(false));
 				else
 					nextType = ReadType();
 				// The CLR only allows up to 0xFFFF generic arguments
@@ -1016,8 +1018,9 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// The generic type of a generic instance is <c>CLASS</c> or <c>VALUETYPE</c> followed by a token. The CLR
-		/// reads that byte but ignores its value (<c>SigPointer::GetGenericInstType()</c>), so any other byte followed
-		/// by a token is a generic type too. If the next byte is such a byte, it's read and <c>true</c> is returned.
+		/// reads that byte and only checks whether it's <c>CLASS</c> (<c>SigPointer::GetGenericInstType()</c>): any
+		/// other byte followed by a token is a generic value type. If the next byte is such a byte (not
+		/// <c>CLASS</c>, not <c>VALUETYPE</c>), it's read and <c>true</c> is returned.
 		/// </summary>
 		bool IsGenericInstTypeKindIgnored() {
 			if (reader.BytesLeft == 0)

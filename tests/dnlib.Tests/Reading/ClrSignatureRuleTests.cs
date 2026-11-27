@@ -26,12 +26,13 @@ public static class Marker {
 	public static int Field;
 	public static System.Collections.Generic.List<int> List;
 	public static System.DateTime Date;
+	public static System.Nullable<int> Nullable;
 	public static void Method(int a, string b) { }
 }
 ";
 		static readonly byte[] baseImage = ClrReaderComparison.CreateBaseImage(Source);
 		static readonly uint fieldRid, methodRid;
-		static readonly string objectToken, listToken, dateTimeToken, markerToken;
+		static readonly string objectToken, listToken, dateTimeToken, markerToken, nullableToken;
 
 		static ClrSignatureRuleTests() {
 			using (var module = ModuleDefMD.Load(baseImage)) {
@@ -42,6 +43,7 @@ public static class Marker {
 				listToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "List`1"));
 				dateTimeToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "DateTime"));
 				markerToken = GetCodedToken(type);
+				nullableToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "Nullable`1"));
 			}
 		}
 
@@ -52,10 +54,10 @@ public static class Marker {
 			return token.ToString("X2");
 		}
 
-		// The bytes as hex numbers. {Object}, {List}, {DateTime} and {Marker} are the tokens of these types,
+		// The bytes as hex numbers. {Object}, {List}, {DateTime}, {Nullable} and {Marker} are the tokens of these types,
 		// {TypeSpec} is the token of the first row of the TypeSpec table.
 		static byte[] ParseSignature(string signature) =>
-			signature.Replace("{Object}", objectToken).Replace("{List}", listToken).Replace("{DateTime}", dateTimeToken).Replace("{Marker}", markerToken).Replace("{TypeSpec}", "06")
+			signature.Replace("{Object}", objectToken).Replace("{List}", listToken).Replace("{DateTime}", dateTimeToken).Replace("{Marker}", markerToken).Replace("{Nullable}", nullableToken).Replace("{TypeSpec}", "06")
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(a => Convert.ToByte(a, 16)).ToArray();
 
 		// Adds the signature to the end of the #Blob heap. The field or the method then has that signature.
@@ -317,6 +319,18 @@ public static class Marker {
 		[InlineData("00 03 01 08 41 0E 41 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 03 01 41 08 0E 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 01 01 45 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		// The byte before the token of the generic type of a generic instance (15): 12 = a class, 11 = a value
+		// type. The runtime only checks whether it's 12: with any other byte, the type must be a value type.
+		[InlineData("00 01 01 15 11 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 12 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "throws TypeLoadException")]
+		[InlineData("00 01 01 15 08 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 00 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 13 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 1C {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 12 {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "System.Void(System.Collections.Generic.List`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 11 {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "throws TypeLoadException")]
+		[InlineData("00 01 01 15 08 {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "throws TypeLoadException")]
+		[InlineData("00 01 01 15 1C {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "throws TypeLoadException")]
 		// Fixed in this commit: dnlib didn't read the element types 3B, 3D and 3E, which the runtime only uses in
 		// its own signatures but also reads in a method signature of a file. 3D = the native view of the type that
 		// follows ("VALUETYPE" in System.Reflection), 3E = System.__Canon, 3B = the generic parameter with the

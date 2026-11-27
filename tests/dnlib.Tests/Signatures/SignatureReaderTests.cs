@@ -94,13 +94,14 @@ namespace dnlib.Tests.Signatures {
 			Assert.Equal(new[] { "System.Int32", "System.String" }, type.GenericArguments.Select(a => a?.FullName).ToArray());
 		}
 
-		// Fixed in 0910a498: the CLR ignores the byte after GENERICINST and reads a token. dnlib read a whole
-		// type there, returned a generic instance without a generic type and misread the rest.
+		// Fixed in 0910a498: the CLR reads a token after the byte after GENERICINST, whatever the byte is. dnlib
+		// read a whole type there, returned a generic instance without a generic type and misread the rest.
+		// The type is a value type, see GenericInstanceWithAnotherByteThanClassOrValueTypeIsAValueType().
 		[Fact]
 		public void GenericInstanceWhoseTypeDoesNotStartWithClassOrValueType() {
-			var type = Assert.IsType<GenericInstSig>(ReadType(GenericInst, Ptr, classToken, 1, I4));
+			var type = Assert.IsType<GenericInstSig>(ReadType(GenericInst, Ptr, structToken, 1, I4));
 
-			Assert.Equal("MyClass", Assert.IsType<ClassSig>(type.GenericType).FullName);
+			Assert.Equal("MyStruct", Assert.IsType<ValueTypeSig>(type.GenericType).FullName);
 			Assert.Equal("System.Int32", Assert.Single(type.GenericArguments)?.FullName);
 		}
 
@@ -296,6 +297,23 @@ namespace dnlib.Tests.Signatures {
 			Assert.Null(ReadType(VarZapSig));
 			// The rid is a compressed number: 0x80 needs a second byte
 			Assert.Null(ReadType(VarZapSig, 0x80));
+		}
+
+		// Fixed in this commit: it was read as a class, so TypeSig.IsValueType was false and CLASS was written
+		// (which the CLR doesn't load if the type is a value type). The CLR only checks whether the byte before
+		// the generic type's token is CLASS: with any other byte, the type must be a value type.
+		[Fact]
+		public void GenericInstanceWithAnotherByteThanClassOrValueTypeIsAValueType() {
+			// MyStruct<int>, with "int" where VALUETYPE should be
+			var type = Assert.IsType<GenericInstSig>(ReadType(GenericInst, I4, structToken, 1, I4));
+
+			Assert.IsType<ValueTypeSig>(type.GenericType);
+			Assert.Equal("MyStruct", type.GenericType!.TypeName);
+			Assert.True(type.IsValueType);
+			Assert.Equal(ElementType.I4, type.GenericArguments.Single()!.ElementType);
+			// The normal forms
+			Assert.True(ReadType(GenericInst, ValueType, structToken, 1, I4)!.IsValueType);
+			Assert.False(ReadType(GenericInst, Class, classToken, 1, I4)!.IsValueType);
 		}
 
 		[Fact]
