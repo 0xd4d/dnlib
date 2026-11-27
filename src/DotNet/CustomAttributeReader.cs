@@ -487,6 +487,14 @@ namespace dnlib.DotNet {
 				}
 				throw new CABlobParserException("Invalid element type");
 
+			// The CLR loads a class for these types of its own signatures (a generic parameter, a native value type,
+			// System.__Canon) and reads the argument like a System.Object argument, see the ET.Class case above
+			case (SerializationType)ElementType.VarZapSig:
+			case (SerializationType)ElementType.NativeValueTypeZapSig:
+			case (SerializationType)ElementType.CanonZapSig:
+				result = ReadValue(SerializationType.TaggedObject, argType, out realArgType);
+				break;
+
 			case SerializationType.Type:
 				realArgType = argType;
 				result = ReadType(true);

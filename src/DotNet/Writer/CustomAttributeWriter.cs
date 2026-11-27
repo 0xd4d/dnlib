@@ -536,6 +536,18 @@ namespace dnlib.DotNet.Writer {
 				WriteElem(value.Type, value);
 				break;
 
+			// The CLR loads a class for these types of its own signatures and reads the argument like a System.Object
+			// argument
+			case ElementType.VarZapSig:
+			case ElementType.NativeValueTypeZapSig:
+			case ElementType.CanonZapSig:
+				if (IsBoxedType(value.Type)) {
+					WriteFieldOrPropType(value.Type);
+					WriteElem(value.Type, value);
+					break;
+				}
+				goto default;
+
 			case ElementType.GenericInst:
 				if (argType is GenericInstSig) {
 					var genericTypeDef = GetTypeDef(argType);
@@ -576,9 +588,6 @@ namespace dnlib.DotNet.Writer {
 			case ElementType.CModOpt:
 			case ElementType.Internal:
 			case ElementType.CModInternal:
-			case ElementType.VarZapSig:
-			case ElementType.NativeValueTypeZapSig:
-			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.Sentinel:
 			case ElementType.Pinned:
