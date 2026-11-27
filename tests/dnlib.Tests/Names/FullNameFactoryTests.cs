@@ -198,7 +198,9 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("GenericParam(3)", genericParam.FullName);
 			Assert.Equal("GenericParam(3)", genericParam.TypeName);
 			Assert.Equal("", genericParam.Namespace);
-			Assert.Equal("GenericParam(3)", genericParam.ReflectionFullName);
+			// Like a normal generic parameter (System.Type.FullName is null)
+			Assert.Equal("", genericParam.ReflectionFullName);
+			Assert.Equal("GenericParam(3)", genericParam.ReflectionName);
 			Assert.Equal("GenericParam(3)&", new ByRefSig(genericParam).FullName);
 		}
 

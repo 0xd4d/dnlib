@@ -110,6 +110,40 @@ public static class Generic<T> {
 			}
 		}
 
+		// Fixed in this commit: ReflectionFullName of a generic parameter with a rid was its name ("T"). It's an
+		// empty string like the one of a normal generic parameter: System.Type.FullName is null.
+		[Theory]
+		[InlineData("00 02 01 08 3B {T}")]
+		[InlineData("00 02 01 08 3B {U}")]
+		[InlineData("00 02 01 08 1D 3B {T}")]
+		[InlineData("00 02 01 08 0F 3B {T}")]
+		[InlineData("00 02 01 08 3D 3B {T}")]
+		// The same types with a normal generic parameter, and types without a generic parameter
+		[InlineData("00 02 01 08 13 00")]
+		[InlineData("00 02 01 08 1D 13 00")]
+		[InlineData("00 02 01 08 3D 13 00")]
+		[InlineData("00 02 01 08 3E")]
+		[InlineData("00 02 01 08 3D 05")]
+		public void ReflectionFullNameIsTheFullNameThatTheRuntimeHas(string signature) {
+			var image = CreateImage(signature);
+			using (var module = ModuleDefMD.Load(image)) {
+				var method = module.ResolveMethod(methodRid)!;
+				var lastParam = method.MethodSig!.Params[1]!;
+				bool hasGenericParameter = signature.Contains("3B") || signature.Contains("13");
+				Assert.Equal(hasGenericParameter, lastParam.ReflectionFullName == string.Empty);
+				Assert.Equal(lastParam.ReflectionFullName, new TypeSpecUser(lastParam).ReflectionFullName);
+				Assert.NotEqual(string.Empty, lastParam.ReflectionName);
+				if (!IsRuntimeAsked)
+					return;
+
+				using (var loaded = new LoadedAssembly(image)) {
+					var runtimeType = loaded.Assembly.ManifestModule.ResolveMethod(method.MDToken.ToInt32())!.GetParameters()[1].ParameterType;
+					Assert.Equal(runtimeType.FullName ?? string.Empty, lastParam.ReflectionFullName);
+					Assert.Equal(runtimeType.Name, lastParam.ReflectionName);
+				}
+			}
+		}
+
 		// A generic parameter with a rid is never the type argument: in Generic<int>, the type of the
 		// parameter still is T (the type of a parameter with a normal generic parameter is int)
 		[Fact]

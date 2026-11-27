@@ -92,7 +92,7 @@ public static class Marker {
 					return "no signature";
 				var type = field.FieldSig.Type;
 				// The reflection name of a function pointer doesn't show its signature
-				if (type is FnPtrSig)
+				if (type is FnPtrSig || type is VarZapSig)
 					return type.FullName;
 				return WithoutAssemblyNames(type?.ReflectionFullName ?? "no type");
 			}
@@ -230,7 +230,7 @@ public static class Marker {
 				if (sig is null)
 					return "no signature";
 				// A generic parameter that doesn't exist has no reflection name: "!!0" is its dnlib name
-				string Name(TypeSig? type) => type is null ? "no type" : type is GenericSig ? type.FullName : WithoutAssemblyNames(type.ReflectionFullName);
+				string Name(TypeSig? type) => type is null ? "no type" : type is GenericSig || type is VarZapSig ? type.FullName : WithoutAssemblyNames(type.ReflectionFullName);
 				var parameters = sig.Params.Select(Name);
 				if (sig.ParamsAfterSentinel is not null)
 					parameters = parameters.Concat(new[] { "..." }).Concat(sig.ParamsAfterSentinel.Select(Name));
@@ -404,8 +404,9 @@ public static class Marker {
 				var type = module.ResolveTypeSpec(1)!.TypeSig;
 				if (type is null)
 					return "no type";
-				// The reflection name of a function pointer doesn't show its signature
-				if (type is FnPtrSig)
+				// The reflection name of a function pointer doesn't show its signature, and the reflection full
+				// name of a generic parameter with a rid is an empty string
+				if (type is FnPtrSig || type is VarZapSig)
 					return type.FullName;
 				return WithoutAssemblyNames(type.ReflectionFullName);
 			}

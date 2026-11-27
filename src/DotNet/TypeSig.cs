@@ -135,7 +135,8 @@ namespace dnlib.DotNet {
 		/// </summary>
 		internal static bool IsOrIsMadeOfGenericParameter(TypeSig? type) {
 			for (int i = 0; i < RecursionCounter.MAX_RECURSION_COUNT && type is not null; i++) {
-				if (type is GenericSig)
+				// A VarZapSig is a generic parameter too, the CLR loads the same type for it
+				if (type is GenericSig || type is VarZapSig)
 					return true;
 				if (!(type is NonLeafSig))
 					return false;
