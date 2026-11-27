@@ -735,7 +735,10 @@ namespace dnlib.DotNet {
 			case ElementType.VarZapSig:
 				if (!reader.TryReadCompressedUInt32(out num))
 					break;
-				result = new VarZapSig(num);
+				// The generic parameter is found when it's needed: its owner could be the method whose signature this is.
+				// The module is the one that is read, or the module of the reader's core library types.
+				if ((helper as ModuleDef ?? corLibTypes.Object.TypeDefOrRef?.Module) is ModuleDef ownerModule)
+					result = new VarZapSig(num, ownerModule);
 				break;
 
 			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ReadType()); break;

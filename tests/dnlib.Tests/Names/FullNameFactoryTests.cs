@@ -193,7 +193,8 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("System", canon.ReflectionNamespace);
 			Assert.Equal("System.__Canon[]", new SZArraySig(canon).FullName);
 
-			var genericParam = new VarZapSig(3);
+			// The module has no such row (and it wasn't read from a file), so the generic parameter isn't known
+			var genericParam = new VarZapSig(3, new ModuleDefUser("Test.dll"));
 			Assert.Equal("GenericParam(3)", genericParam.FullName);
 			Assert.Equal("GenericParam(3)", genericParam.TypeName);
 			Assert.Equal("", genericParam.Namespace);

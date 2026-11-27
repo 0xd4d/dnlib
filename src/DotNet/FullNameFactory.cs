@@ -1564,14 +1564,21 @@ namespace dnlib.DotNet {
 			case ElementType.Sentinel:
 				break;
 
-			case ElementType.VarZapSig:
-				// Its name is the name of the generic parameter, which isn't known here
-				if (createName) {
+			case ElementType.VarZapSig: {
+				// Like a GenericVar/GenericMVar if the generic parameter is known
+				var zapGenericParam = ((VarZapSig)typeSig).GenericParam;
+				if (isReflection && (flags & TYPESIG_ONLY_NAMESPACE) != 0) {
+					var ownerType = zapGenericParam?.Owner as TypeDef ?? (zapGenericParam?.Owner as MethodDef)?.DeclaringType;
+					if (ownerType is not null)
+						CreateNamespace(ownerType, true);
+				}
+				if (createName && (zapGenericParam is null || !AddName(zapGenericParam.Name))) {
 					sb.Append("GenericParam(");
 					sb.Append(((VarZapSig)typeSig).GenericParamRid);
 					sb.Append(')');
 				}
 				break;
+			}
 
 			case ElementType.NativeValueTypeZapSig:
 				// System.Reflection: "VALUETYPE" and the name of the next type

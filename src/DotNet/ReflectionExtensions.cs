@@ -90,8 +90,18 @@ namespace dnlib.DotNet {
 			if (a == typeof(UIntPtr)) return ElementType.U;
 			if (a == typeof(object)) return ElementType.Object;
 
+			if (a.IsNativeValueType2())
+				return ElementType.NativeValueTypeZapSig;
 			return a.IsValueType ? ElementType.ValueType : ElementType.Class;
 		}
+
+		/// <summary>
+		/// <c>true</c> if it's the CLR's native view of a type (<see cref="ElementType.NativeValueTypeZapSig"/> in
+		/// a signature, "VALUETYPE" and the name of the type in System.Reflection). It has an element type but
+		/// <see cref="Type.HasElementType"/> is <c>false</c>, and its <see cref="Type.Namespace"/> throws.
+		/// </summary>
+		internal static bool IsNativeValueType2([NotNullWhen(true)] this Type? a) =>
+			a is not null && !a.HasElementType && !a.IsGenericParameter && !a.IsGenericType && !a.IsFunctionPointer2() && a.GetElementType() is not null;
 
 		/// <summary>
 		/// <c>true</c> if the runtime has function pointer types (.NET 8+). Older runtimes use <see cref="IntPtr"/>
@@ -597,7 +607,7 @@ namespace dnlib.DotNet {
 		/// </summary>
 		/// <param name="type">this</param>
 		public static bool IsTypeDef([NotNullWhen(true)] this Type? type) =>
-			type is not null && !type.HasElementType && !type.IsGenericParameter && (!type.IsGenericType || type.IsGenericTypeDefinition);
+			type is not null && !type.HasElementType && !type.IsGenericParameter && (!type.IsGenericType || type.IsGenericTypeDefinition) && !type.IsNativeValueType2();
 
 		[return: NotNullIfNotNull(nameof(name))]
 		internal static string? Unescape(string? name) {

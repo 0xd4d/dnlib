@@ -117,10 +117,13 @@ public class Box<T> { }
 			// These two aren't made of other types
 			var canon = new CanonZapSig();
 			Assert.NotSame(canon, Assert.IsType<CanonZapSig>(importer.Import(canon)));
-			var genericParam = new VarZapSig(3);
+			// The rid is a row of the module that the signature was read from: that module is kept
+			var genericParam = new VarZapSig(3, library);
 			var importedGenericParam = Assert.IsType<VarZapSig>(importer.Import(genericParam));
 			Assert.NotSame(genericParam, importedGenericParam);
 			Assert.Equal(3U, importedGenericParam.GenericParamRid);
+			Assert.Same(library, importedGenericParam.OwnerModule);
+			Assert.True(new SigComparer().Equals(genericParam, importedGenericParam));
 			Assert.IsType<CanonZapSig>(Assert.IsType<SZArraySig>(importer.Import(new SZArraySig(canon))).Next);
 		}
 

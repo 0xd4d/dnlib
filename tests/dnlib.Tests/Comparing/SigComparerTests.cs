@@ -456,12 +456,14 @@ namespace dnlib.Tests.Comparing {
 			var int32 = module.CorLibTypes.Int32;
 			var comparer = new SigComparer();
 
-			Assert.True(comparer.Equals(new VarZapSig(1), new VarZapSig(1)));
-			Assert.Equal(comparer.GetHashCode(new VarZapSig(1)), comparer.GetHashCode(new VarZapSig(1)));
-			Assert.False(comparer.Equals(new VarZapSig(1), new VarZapSig(2)));
-			Assert.False(comparer.Equals((TypeSig)new VarZapSig(1), new GenericVar(0)));
-			Assert.False(comparer.Equals((TypeSig)new VarZapSig(1), new GenericVar(1)));
-			Assert.False(comparer.Equals((TypeSig)new GenericMVar(1), new VarZapSig(1)));
+			Assert.True(comparer.Equals(new VarZapSig(1, module), new VarZapSig(1, module)));
+			Assert.Equal(comparer.GetHashCode(new VarZapSig(1, module)), comparer.GetHashCode(new VarZapSig(1, module)));
+			Assert.False(comparer.Equals(new VarZapSig(1, module), new VarZapSig(2, module)));
+			Assert.False(comparer.Equals((TypeSig)new VarZapSig(1, module), new GenericVar(0)));
+			Assert.False(comparer.Equals((TypeSig)new VarZapSig(1, module), new GenericVar(1)));
+			Assert.False(comparer.Equals((TypeSig)new GenericMVar(1), new VarZapSig(1, module)));
+			// The rid is a row of a module: it's the same row if it's the same module
+			Assert.False(comparer.Equals(new VarZapSig(1, module), new VarZapSig(1, CreateModule("B"))));
 
 			Assert.True(comparer.Equals(new NativeValueTypeZapSig(int32), new NativeValueTypeZapSig(int32)));
 			Assert.Equal(comparer.GetHashCode(new NativeValueTypeZapSig(int32)), comparer.GetHashCode(new NativeValueTypeZapSig(int32)));
@@ -480,8 +482,8 @@ namespace dnlib.Tests.Comparing {
 			Assert.False(comparer.Equals((TypeSig)new CanonZapSig(), module.CorLibTypes.Object));
 
 			// A method with one of them isn't the method with the normal type
-			var withRid = MethodSig.CreateStatic(module.CorLibTypes.Void, new VarZapSig(1));
-			Assert.True(comparer.Equals(withRid, MethodSig.CreateStatic(module.CorLibTypes.Void, new VarZapSig(1))));
+			var withRid = MethodSig.CreateStatic(module.CorLibTypes.Void, new VarZapSig(1, module));
+			Assert.True(comparer.Equals(withRid, MethodSig.CreateStatic(module.CorLibTypes.Void, new VarZapSig(1, module))));
 			Assert.False(comparer.Equals(withRid, MethodSig.CreateStatic(module.CorLibTypes.Void, new GenericVar(0))));
 		}
 

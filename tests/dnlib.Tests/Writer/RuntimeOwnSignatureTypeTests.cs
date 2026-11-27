@@ -28,8 +28,8 @@ namespace dnlib.Tests.Writer {
 			method.MethodSig = MethodSig.CreateStatic(new CanonZapSig(),
 				new NativeValueTypeZapSig(types.Byte),
 				new SZArraySig(new NativeValueTypeZapSig(new NativeValueTypeZapSig(types.Int32))),
-				new VarZapSig(1),
-				new ByRefSig(new VarZapSig(0x1234)),
+				new VarZapSig(1, created.Module),
+				new ByRefSig(new VarZapSig(0x1234, created.Module)),
 				new CanonZapSig(),
 				types.String);
 
@@ -43,7 +43,18 @@ namespace dnlib.Tests.Writer {
 				Assert.Equal(new[] { "native System.Byte", "native native System.Int32[]", "GenericParam(1)", "GenericParam(4660)&", "System.__Canon", "System.String" },
 					signature.Params.Select(a => a!.FullName));
 				Assert.Equal(6, readMethod.Parameters.Count);
-				Assert.True(new SigComparer().Equals(method.MethodSig, signature));
+				// A rid is a row of a module: the signature that was read has the module that was read, which
+				// isn't the module that was written, so the two signatures aren't equal
+				Assert.False(new SigComparer().Equals(method.MethodSig, signature));
+				var sameModule = MethodSig.CreateStatic(new CanonZapSig(),
+					new NativeValueTypeZapSig(types.Byte),
+					new SZArraySig(new NativeValueTypeZapSig(new NativeValueTypeZapSig(types.Int32))),
+					new VarZapSig(1, module),
+					new ByRefSig(new VarZapSig(0x1234, module)),
+					new CanonZapSig(),
+					types.String);
+				Assert.True(new SigComparer().Equals(sameModule, signature));
+				Assert.Equal(new SigComparer().GetHashCode(sameModule), new SigComparer().GetHashCode(signature));
 			}
 		}
 
@@ -54,7 +65,7 @@ namespace dnlib.Tests.Writer {
 			created.AddField("Field", new NativeValueTypeZapSig(types.Int32));
 			var typeSpec = new TypeSpecUser(new SZArraySig(new CanonZapSig()));
 			var method = created.AddMethod("Method", OpCodes.Ldtoken.ToInstruction(typeSpec), OpCodes.Pop.ToInstruction(), OpCodes.Ret.ToInstruction());
-			method.Body!.Variables.Add(new Local(new VarZapSig(2)));
+			method.Body!.Variables.Add(new Local(new VarZapSig(2, created.Module)));
 
 			using (var module = created.WriteAndRead()) {
 				var type = CreatedModule.GetType(module);
@@ -73,7 +84,7 @@ namespace dnlib.Tests.Writer {
 			var created = new CreatedModule();
 			created.Type.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
 			var method = created.AddMethod("Method", OpCodes.Ret.ToInstruction());
-			method.MethodSig = MethodSig.CreateStatic(created.Module.CorLibTypes.Void, new GenericVar(0), new VarZapSig(1));
+			method.MethodSig = MethodSig.CreateStatic(created.Module.CorLibTypes.Void, new GenericVar(0), new VarZapSig(1, created.Module));
 
 			using (var module = created.WriteAndRead()) {
 				var signature = module.Find("Ns.Type", isReflectionName: true)!.FindMethod("Method")!.MethodSig!;
@@ -82,6 +93,20 @@ namespace dnlib.Tests.Writer {
 				Assert.False(signature.Params[1]!.IsGenericParameter);
 				Assert.True(signature.Params[1]!.ContainsGenericParameter);
 				Assert.False(new SigComparer().Equals(signature.Params[0], signature.Params[1]));
+
+				// It knows the module it was read from, so the generic parameter with that rid is known
+				var withRid = Assert.IsType<VarZapSig>(signature.Params[1]);
+				Assert.Same(module, withRid.OwnerModule);
+				Assert.Same(module.Find("Ns.Type", isReflectionName: true)!.GenericParameters[0], withRid.GenericParam);
+				Assert.Equal("T", withRid.FullName);
+				Assert.Equal("T", withRid.ReflectionName);
+				Assert.Equal("Ns", withRid.ReflectionNamespace);
+				Assert.Equal("T[]", new SZArraySig(withRid).FullName);
+				// With a rid that isn't a row, or in a module that wasn't read from a file, it only has the rid
+				Assert.Null(new VarZapSig(2, module).GenericParam);
+				Assert.Null(new VarZapSig(0, module).GenericParam);
+				Assert.Equal("GenericParam(2)", new VarZapSig(2, module).FullName);
+				Assert.Null(new VarZapSig(1, created.Module).GenericParam);
 				Assert.False(new NativeValueTypeZapSig(created.Module.CorLibTypes.Int32).ContainsGenericParameter);
 				Assert.True(new NativeValueTypeZapSig(new GenericMVar(0)).ContainsGenericParameter);
 				Assert.False(new CanonZapSig().ContainsGenericParameter);

@@ -4483,9 +4483,11 @@ namespace dnlib.DotNet
     }
     public sealed class VarZapSig : dnlib.DotNet.LeafSig
     {
-        public VarZapSig(uint genericParamRid) { }
+        public VarZapSig(uint genericParamRid, dnlib.DotNet.ModuleDef ownerModule) { }
         public override dnlib.DotNet.ElementType ElementType { get; }
+        public dnlib.DotNet.GenericParam? GenericParam { get; }
         public uint GenericParamRid { get; set; }
+        public dnlib.DotNet.ModuleDef OwnerModule { get; }
     }
     public enum VariantType : uint
     {

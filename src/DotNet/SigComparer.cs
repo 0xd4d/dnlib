@@ -531,7 +531,6 @@ namespace dnlib.DotNet {
 		const int HASHCODE_MAGIC_ET_MODULE = -299744851;
 		const int HASHCODE_MAGIC_ET_VARZAPSIG = 1620149107;
 		const int HASHCODE_MAGIC_ET_NATIVEVALUETYPEZAPSIG = -1183408423;
-		const int HASHCODE_MAGIC_ET_CANONZAPSIG = 902473519;
 		const int HASHCODE_MAGIC_ET_VALUEARRAY = -674970533;
 		const int HASHCODE_MAGIC_ET_GENERICINST = -2050514639;
 		const int HASHCODE_MAGIC_ET_VAR = 1288450097;
@@ -2338,8 +2337,10 @@ exit:;
 
 				case ElementType.VarZapSig:
 					// It's never equal to a GenericVar/GenericMVar, also in the CLR. The CLR can't compare two of
-					// them (bad image), dnlib says that they're equal if it's the same GenericParam rid.
-					result = ((VarZapSig)a).GenericParamRid == ((VarZapSig)b).GenericParamRid;
+					// them (bad image), dnlib says that they're equal if it's the same GenericParam row: the
+					// same rid in the same module.
+					result = ((VarZapSig)a).GenericParamRid == ((VarZapSig)b).GenericParamRid &&
+							((VarZapSig)a).OwnerModule == ((VarZapSig)b).OwnerModule;
 					break;
 
 				case ElementType.NativeValueTypeZapSig:
@@ -2484,7 +2485,12 @@ exit:;
 				break;
 
 			case ElementType.VarZapSig:
-				hash = HASHCODE_MAGIC_ET_VARZAPSIG + (int)((VarZapSig)a).GenericParamRid;
+				// It's the hash code of the generic parameter's System.Type (which it's equal to) if the generic
+				// parameter is known
+				if (((VarZapSig)a).GenericParam is GenericParam zapGenericParam)
+					hash = (zapGenericParam.Owner is MethodDef ? HASHCODE_MAGIC_ET_MVAR : HASHCODE_MAGIC_ET_VAR) + zapGenericParam.Number;
+				else
+					hash = HASHCODE_MAGIC_ET_VARZAPSIG + (int)((VarZapSig)a).GenericParamRid;
 				break;
 
 			case ElementType.NativeValueTypeZapSig:
@@ -2492,7 +2498,8 @@ exit:;
 				break;
 
 			case ElementType.CanonZapSig:
-				hash = HASHCODE_MAGIC_ET_CANONZAPSIG;
+				// The hash code of the System.Type System.__Canon (which it's equal to), see GetHashCode_TypeDef(Type)
+				hash = GetHashCode_TypeName("__Canon") + GetHashCode_TypeNamespace("System");
 				break;
 
 			case ElementType.End:
@@ -4000,11 +4007,26 @@ exit:;
 				}
 				break;
 
+			// The types of the CLR's own signatures aren't the normal types when signatures are compared, but
+			// the CLR loads the same type: the generic parameter itself (also if the owner is instantiated),
+			// System.__Canon, and its native view of a type.
+			case ElementType.VarZapSig:
+				result = ((VarZapSig)a).GenericParam is not null &&
+						b.IsGenericParameter &&
+						b.MetadataToken == (int)new MDToken(MD.Table.GenericParam, ((VarZapSig)a).GenericParamRid).Raw &&
+						(DontCompareTypeScope || Equals(((VarZapSig)a).OwnerModule, b.Module));
+				break;
+
+			case ElementType.NativeValueTypeZapSig:
+				result = b.IsNativeValueType2() && Equals(a.Next, b.GetElementType(), declaringType);
+				break;
+
+			case ElementType.CanonZapSig:
+				result = b.IsTypeDef() && !b.IsNested && b.Name == "__Canon" && b.Namespace == "System";
+				break;
+
 			case ElementType.Sentinel:
 			case ElementType.ValueArray:
-			case ElementType.VarZapSig:
-			case ElementType.NativeValueTypeZapSig:
-			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.End:
 			case ElementType.R:
@@ -4258,9 +4280,12 @@ exit:;
 					GetHashCode(aGenArgs, declaringType, modifiedA.GetModifiedGenericArguments(aGenArgs));
 				break;
 
+			case ElementType.NativeValueTypeZapSig:
+				hash = HASHCODE_MAGIC_ET_NATIVEVALUETYPEZAPSIG + GetHashCode(a.GetElementType(), declaringType);
+				break;
+
 			case ElementType.ValueArray:
 			case ElementType.VarZapSig:
-			case ElementType.NativeValueTypeZapSig:
 			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.End:

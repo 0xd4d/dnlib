@@ -43,7 +43,7 @@ namespace dnlib.Tests.Signatures {
 			case "pinned": return new PinnedSig(int32);
 			case "value array": return new ValueArraySig(int32, 4);
 			case "module": return new ModuleSig(1, int32);
-			case "generic parameter row": return new VarZapSig(1);
+			case "generic parameter row": return new VarZapSig(1, module);
 			case "native view": return new NativeValueTypeZapSig(int32);
 			case "canonical type": return new CanonZapSig();
 			default: throw new ArgumentException(kind);

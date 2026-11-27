@@ -829,10 +829,12 @@ namespace dnlib.DotNet {
 	/// a method that is referenced by the rid of its <c>GenericParam</c> row. The CLR only uses it in its
 	/// own signatures, but it also reads it in a method signature of a file: the type is then always the
 	/// generic parameter itself, also in an instantiated type or method. It's not equal to a
-	/// <see cref="GenericVar"/> or to a <see cref="GenericMVar"/> when signatures are compared.
+	/// <see cref="GenericVar"/> or to a <see cref="GenericMVar"/> when signatures are compared, but it's
+	/// equal to the <see cref="System.Type"/> of the generic parameter.
 	/// </summary>
 	public sealed class VarZapSig : LeafSig {
 		uint genericParamRid;
+		readonly ModuleDef ownerModule;
 
 		/// <inheritdoc/>
 		public override ElementType ElementType => ElementType.VarZapSig;
@@ -847,16 +849,33 @@ namespace dnlib.DotNet {
 		}
 
 		/// <summary>
+		/// Gets the module that has the <c>GenericParam</c> row: the module that the signature was read from.
+		/// Two instances are only equal if it's the same module.
+		/// </summary>
+		public ModuleDef OwnerModule => ownerModule;
+
+		/// <summary>
+		/// Gets the generic parameter with rid <see cref="GenericParamRid"/> in <see cref="OwnerModule"/>,
+		/// or <c>null</c> if the module wasn't read from a file or if it has no such row
+		/// </summary>
+		public GenericParam? GenericParam => ownerModule is ModuleDefMD readerModule ? readerModule.ResolveGenericParam(genericParamRid) : null;
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="genericParamRid">Rid of the <c>GenericParam</c> row</param>
-		public VarZapSig(uint genericParamRid) => this.genericParamRid = genericParamRid;
+		/// <param name="ownerModule">The module that has the row</param>
+		public VarZapSig(uint genericParamRid, ModuleDef ownerModule) {
+			this.genericParamRid = genericParamRid;
+			this.ownerModule = ownerModule;
+		}
 	}
 
 	/// <summary>
 	/// Represents a <see cref="dnlib.DotNet.ElementType.CanonZapSig"/>: <c>System.__Canon</c>. The CLR
 	/// only uses it in its own signatures, but it also reads it in a method signature of a file. It's not
-	/// equal to a reference to <c>System.__Canon</c> when signatures are compared.
+	/// equal to a reference to <c>System.__Canon</c> when signatures are compared, but it's equal to the
+	/// <see cref="System.Type"/> <c>System.__Canon</c>.
 	/// </summary>
 	public sealed class CanonZapSig : LeafSig {
 		/// <inheritdoc/>
