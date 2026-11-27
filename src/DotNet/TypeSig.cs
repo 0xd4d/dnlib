@@ -19,8 +19,8 @@ TypeSig								base class
 			GenericVar				Generic type parameter
 			GenericMVar				Generic method parameter
 		SentinelSig					Sentinel
-		VarZapSig				Generic parameter referenced by its GenericParam rid (internal CLR type, don't use it)
-		CanonZapSig				System.__Canon (internal CLR type, don't use it)
+		VarZapSig					Generic parameter referenced by its GenericParam rid (internal CLR type, don't use it)
+		CanonZapSig					System.__Canon (internal CLR type, don't use it)
 		FnPtrSig					Function pointer sig
 		GenericInstSig				Generic instance type (contains a generic type + all generic args)
 	NonLeafSig						base class for non-leaf types
@@ -35,7 +35,7 @@ TypeSig								base class
 		PinnedSig					Pinned
 		ValueArraySig				Value array (undocumented/not implemented by the CLR so don't use it)
 		ModuleSig					Module (undocumented/not implemented by the CLR so don't use it)
-		NativeValueTypeZapSig	Native view of the next type (internal CLR type, don't use it)
+		NativeValueTypeZapSig		Native view of the next type (internal CLR type, don't use it)
 */
 
 namespace dnlib.DotNet {
