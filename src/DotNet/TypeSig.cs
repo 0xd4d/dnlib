@@ -186,19 +186,23 @@ namespace dnlib.DotNet {
 		public bool IsValueTypeSig => this is ValueTypeSig;
 
 		/// <summary>
-		/// <c>true</c> if it's a <see cref="GenericSig"/>
+		/// <c>true</c> if it's a generic parameter: a <see cref="GenericSig"/> (<see cref="GenericVar"/> or
+		/// <see cref="GenericMVar"/>), or a <see cref="VarZapSig"/> (<see cref="System.Type.IsGenericParameter"/> is
+		/// <c>true</c> for the type that the CLR loads for it)
 		/// </summary>
-		public bool IsGenericParameter => this is GenericSig;
+		public bool IsGenericParameter => this is GenericSig || this is VarZapSig;
 
 		/// <summary>
-		/// <c>true</c> if it's a <see cref="GenericVar"/>
+		/// <c>true</c> if it's a generic parameter of a type: a <see cref="GenericVar"/>, or a <see cref="VarZapSig"/>
+		/// whose generic parameter is known and is owned by a type
 		/// </summary>
-		public bool IsGenericTypeParameter => this is GenericVar;
+		public bool IsGenericTypeParameter => this is GenericVar || (this as VarZapSig)?.GenericParam?.Owner is TypeDef;
 
 		/// <summary>
-		/// <c>true</c> if it's a <see cref="GenericMVar"/>
+		/// <c>true</c> if it's a generic parameter of a method: a <see cref="GenericMVar"/>, or a <see cref="VarZapSig"/>
+		/// whose generic parameter is known and is owned by a method
 		/// </summary>
-		public bool IsGenericMethodParameter => this is GenericMVar;
+		public bool IsGenericMethodParameter => this is GenericMVar || (this as VarZapSig)?.GenericParam?.Owner is MethodDef;
 
 		/// <summary>
 		/// <c>true</c> if it's a <see cref="SentinelSig"/>
@@ -879,8 +883,27 @@ namespace dnlib.DotNet {
 	/// <see cref="System.Type"/> <c>System.__Canon</c>.
 	/// </summary>
 	public sealed class CanonZapSig : LeafSig {
+		readonly ModuleDef ownerModule;
+
 		/// <inheritdoc/>
 		public override ElementType ElementType => ElementType.CanonZapSig;
+
+		/// <summary>
+		/// Gets the module that owns this signature. <c>System.__Canon</c> is a class of its core library.
+		/// </summary>
+		public ModuleDef OwnerModule => ownerModule;
+
+		/// <summary>
+		/// Gets a reference to <c>System.__Canon</c> in the core library of <see cref="OwnerModule"/>. The
+		/// assembly and the scope of this signature are the ones of this reference.
+		/// </summary>
+		public TypeRef TypeRef => ownerModule.CorLibTypes.GetTypeRef("System", "__Canon");
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="ownerModule">The module that owns this signature</param>
+		public CanonZapSig(ModuleDef ownerModule) => this.ownerModule = ownerModule;
 	}
 
 	/// <summary>

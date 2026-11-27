@@ -184,7 +184,18 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("VALUETYPESystem.Int32*[]", new SZArraySig(new PtrSig(native)).ReflectionFullName);
 			Assert.Equal("VALUETYPEVALUETYPESystem.Int32", new NativeValueTypeZapSig(native).ReflectionFullName);
 
-			var canon = new CanonZapSig();
+			var canon = new CanonZapSig(module);
+			// Changed in this commit: it has the module, and its assembly and scope are the core library like
+			// System.Type.Assembly of System.__Canon (they were null)
+			Assert.Same(module, canon.OwnerModule);
+			Assert.Same(module, canon.Module);
+			Assert.Same(CorLib.AssemblyRef, canon.DefinitionAssembly);
+			Assert.Same(CorLib.AssemblyRef, canon.Scope);
+			Assert.Equal("System.__Canon", canon.ScopeType!.FullName);
+			Assert.Same(CorLib.AssemblyRef, Assert.IsType<TypeRefUser>(canon.ScopeType).ResolutionScope);
+			Assert.Equal("System.__Canon, " + CorLib.AssemblyRef.FullName, canon.AssemblyQualifiedName);
+			Assert.Same(CorLib.AssemblyRef, new SZArraySig(canon).DefinitionAssembly);
+			Assert.Same(CorLib.AssemblyRef, new TypeSpecUser(new SZArraySig(canon)).DefinitionAssembly);
 			Assert.Equal("System.__Canon", canon.FullName);
 			Assert.Equal("__Canon", canon.TypeName);
 			Assert.Equal("System", canon.Namespace);

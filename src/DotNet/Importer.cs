@@ -961,7 +961,8 @@ namespace dnlib.DotNet {
 			// The rid is the one of a GenericParam row of the module it was read from: both are kept
 			case ElementType.VarZapSig: result = new VarZapSig(((VarZapSig)type).GenericParamRid, ((VarZapSig)type).OwnerModule); break;
 			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ImportOrNull(type.Next)); break;
-			case ElementType.CanonZapSig: result = new CanonZapSig(); break;
+			// System.__Canon of the core library of the module that imports it
+			case ElementType.CanonZapSig: result = new CanonZapSig(module); break;
 			case ElementType.Sentinel: result = new SentinelSig(); break;
 			case ElementType.Pinned: result = new PinnedSig(ImportOrNull(type.Next)); break;
 

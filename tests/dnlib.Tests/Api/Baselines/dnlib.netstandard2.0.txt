@@ -446,8 +446,10 @@ namespace dnlib.DotNet
     }
     public sealed class CanonZapSig : dnlib.DotNet.LeafSig
     {
-        public CanonZapSig() { }
+        public CanonZapSig(dnlib.DotNet.ModuleDef ownerModule) { }
         public override dnlib.DotNet.ElementType ElementType { get; }
+        public dnlib.DotNet.ModuleDef OwnerModule { get; }
+        public dnlib.DotNet.TypeRef TypeRef { get; }
     }
     public abstract class ClassLayout : dnlib.DotNet.IMDTokenProvider
     {

@@ -45,7 +45,7 @@ namespace dnlib.Tests.Signatures {
 			case "module": return new ModuleSig(1, int32);
 			case "generic parameter row": return new VarZapSig(1, module);
 			case "native view": return new NativeValueTypeZapSig(int32);
-			case "canonical type": return new CanonZapSig();
+			case "canonical type": return new CanonZapSig(module);
 			default: throw new ArgumentException(kind);
 			}
 		}
@@ -70,7 +70,8 @@ namespace dnlib.Tests.Signatures {
 		[InlineData("module", "IsModuleSig")]
 		// Fixed in this commit: the three kinds that the runtime uses in its own signatures and also reads in
 		// a method signature of a file had no TypeSig class
-		[InlineData("generic parameter row", "IsVarZapSig")]
+		// The row isn't known here (the module wasn't read from a file): not known whether it's owned by a type or a method
+		[InlineData("generic parameter row", "IsGenericParameter IsVarZapSig")]
 		[InlineData("native view", "IsNativeValueTypeZapSig")]
 		[InlineData("canonical type", "IsCanonZapSig")]
 		public void OnlyThePropertiesOfTheKindAreTrue(string kind, string expectedProperties) {

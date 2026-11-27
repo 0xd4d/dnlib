@@ -144,6 +144,50 @@ public static class Generic<T> {
 			}
 		}
 
+		// Changed in this commit: a generic parameter with a rid is a generic parameter (IsGenericParameter was
+		// only true for GenericVar/GenericMVar), of a type or of a method like its row says, and System.__Canon
+		// is in the core library (its assembly, scope and module were null). System.Reflection says the same.
+		[Theory]
+		[InlineData("00 02 01 08 3B {T}", true, true, false)]
+		[InlineData("00 02 01 08 3B {U}", true, false, true)]
+		[InlineData("00 02 01 08 13 00", true, true, false)]
+		[InlineData("00 02 01 08 1D 3B {T}", false, false, false)]
+		[InlineData("00 02 01 08 3D 3B {T}", false, false, false)]
+		[InlineData("00 02 01 08 3E", false, false, false)]
+		[InlineData("00 02 01 08 3D 05", false, false, false)]
+		public void KindAndAssemblyAreTheOnesThatTheRuntimeHas(string signature, bool isGenericParameter, bool isTypeParameter, bool isMethodParameter) {
+			var image = CreateImage(signature);
+			using (var module = ModuleDefMD.Load(image)) {
+				var method = module.ResolveMethod(methodRid)!;
+				var lastParam = method.MethodSig!.Params[1]!;
+				Assert.Equal(isGenericParameter, lastParam.IsGenericParameter);
+				Assert.Equal(isTypeParameter, lastParam.IsGenericTypeParameter);
+				Assert.Equal(isMethodParameter, lastParam.IsGenericMethodParameter);
+				bool isCanon = lastParam is CanonZapSig;
+				if (isCanon) {
+					Assert.True(lastParam.DefinitionAssembly.IsCorLib());
+					Assert.Same(module.CorLibTypes.AssemblyRef, lastParam.DefinitionAssembly);
+					Assert.Same(module.CorLibTypes.AssemblyRef, lastParam.Scope);
+					Assert.Same(module, lastParam.Module);
+					Assert.Equal("System.__Canon", lastParam.ScopeType!.FullName);
+					Assert.Equal("System.__Canon, " + module.CorLibTypes.AssemblyRef.FullName, lastParam.AssemblyQualifiedName);
+				}
+				if (!IsRuntimeAsked)
+					return;
+
+				using (var loaded = new LoadedAssembly(image)) {
+					var runtimeType = loaded.Assembly.ManifestModule.ResolveMethod(method.MDToken.ToInt32())!.GetParameters()[1].ParameterType;
+					Assert.Equal(runtimeType.IsGenericParameter, lastParam.IsGenericParameter);
+					Assert.Equal(runtimeType.IsGenericParameter && runtimeType.DeclaringMethod is null, lastParam.IsGenericTypeParameter);
+					Assert.Equal(runtimeType.IsGenericParameter && runtimeType.DeclaringMethod is not null, lastParam.IsGenericMethodParameter);
+					if (isCanon) {
+						Assert.Same(typeof(object).Assembly, runtimeType.Assembly);
+						Assert.Equal("System.__Canon, " + typeof(object).Assembly.FullName, runtimeType.AssemblyQualifiedName);
+					}
+				}
+			}
+		}
+
 		// A generic parameter with a rid is never the type argument: in Generic<int>, the type of the
 		// parameter still is T (the type of a parameter with a normal generic parameter is int)
 		[Fact]
@@ -177,9 +221,9 @@ public static class Generic<T> {
 
 				Assert.True(new SigComparer(SigComparerOptions.DontCompareTypeScope).Equals(new ClassSig(canonRef), runtimeType));
 				Assert.Equal(comparer.GetHashCode(new ClassSig(canonRef)), comparer.GetHashCode(runtimeType));
-				Assert.Equal(comparer.GetHashCode(new CanonZapSig()), comparer.GetHashCode(runtimeType));
+				Assert.Equal(comparer.GetHashCode(new CanonZapSig(module)), comparer.GetHashCode(runtimeType));
 				// But the two signatures aren't equal
-				Assert.False(comparer.Equals((TypeSig)new CanonZapSig(), new ClassSig(canonRef)));
+				Assert.False(comparer.Equals((TypeSig)new CanonZapSig(module), new ClassSig(canonRef)));
 			}
 			var genericParamImage = CreateImage("00 02 01 08 3B {T}");
 			using (var module = ModuleDefMD.Load(genericParamImage))

@@ -25,12 +25,12 @@ namespace dnlib.Tests.Writer {
 			var created = new CreatedModule();
 			var types = created.Module.CorLibTypes;
 			var method = created.AddMethod("Method", OpCodes.Ret.ToInstruction());
-			method.MethodSig = MethodSig.CreateStatic(new CanonZapSig(),
+			method.MethodSig = MethodSig.CreateStatic(new CanonZapSig(created.Module),
 				new NativeValueTypeZapSig(types.Byte),
 				new SZArraySig(new NativeValueTypeZapSig(new NativeValueTypeZapSig(types.Int32))),
 				new VarZapSig(1, created.Module),
 				new ByRefSig(new VarZapSig(0x1234, created.Module)),
-				new CanonZapSig(),
+				new CanonZapSig(created.Module),
 				types.String);
 
 			using (var module = created.WriteAndRead()) {
@@ -46,12 +46,12 @@ namespace dnlib.Tests.Writer {
 				// A rid is a row of a module: the signature that was read has the module that was read, which
 				// isn't the module that was written, so the two signatures aren't equal
 				Assert.False(new SigComparer().Equals(method.MethodSig, signature));
-				var sameModule = MethodSig.CreateStatic(new CanonZapSig(),
+				var sameModule = MethodSig.CreateStatic(new CanonZapSig(created.Module),
 					new NativeValueTypeZapSig(types.Byte),
 					new SZArraySig(new NativeValueTypeZapSig(new NativeValueTypeZapSig(types.Int32))),
 					new VarZapSig(1, module),
 					new ByRefSig(new VarZapSig(0x1234, module)),
-					new CanonZapSig(),
+					new CanonZapSig(created.Module),
 					types.String);
 				Assert.True(new SigComparer().Equals(sameModule, signature));
 				Assert.Equal(new SigComparer().GetHashCode(sameModule), new SigComparer().GetHashCode(signature));
@@ -63,7 +63,7 @@ namespace dnlib.Tests.Writer {
 			var created = new CreatedModule();
 			var types = created.Module.CorLibTypes;
 			created.AddField("Field", new NativeValueTypeZapSig(types.Int32));
-			var typeSpec = new TypeSpecUser(new SZArraySig(new CanonZapSig()));
+			var typeSpec = new TypeSpecUser(new SZArraySig(new CanonZapSig(created.Module)));
 			var method = created.AddMethod("Method", OpCodes.Ldtoken.ToInstruction(typeSpec), OpCodes.Pop.ToInstruction(), OpCodes.Ret.ToInstruction());
 			method.Body!.Variables.Add(new Local(new VarZapSig(2, created.Module)));
 
@@ -90,7 +90,13 @@ namespace dnlib.Tests.Writer {
 				var signature = module.Find("Ns.Type", isReflectionName: true)!.FindMethod("Method")!.MethodSig!;
 
 				Assert.True(signature.Params[0]!.IsGenericParameter);
-				Assert.False(signature.Params[1]!.IsGenericParameter);
+				// Changed in this commit: it's a generic parameter too (it was only true for a GenericVar/GenericMVar),
+				// but it's not a GenericSig and it's not equal to one
+				Assert.True(signature.Params[1]!.IsGenericParameter);
+				Assert.True(signature.Params[1]!.IsGenericTypeParameter);
+				Assert.False(signature.Params[1]!.IsGenericMethodParameter);
+				Assert.False(signature.Params[1] is GenericSig);
+				Assert.Null(signature.Params[1].ToGenericSig());
 				Assert.True(signature.Params[1]!.ContainsGenericParameter);
 				Assert.False(new SigComparer().Equals(signature.Params[0], signature.Params[1]));
 
@@ -109,7 +115,7 @@ namespace dnlib.Tests.Writer {
 				Assert.Null(new VarZapSig(1, created.Module).GenericParam);
 				Assert.False(new NativeValueTypeZapSig(created.Module.CorLibTypes.Int32).ContainsGenericParameter);
 				Assert.True(new NativeValueTypeZapSig(new GenericMVar(0)).ContainsGenericParameter);
-				Assert.False(new CanonZapSig().ContainsGenericParameter);
+				Assert.False(new CanonZapSig(created.Module).ContainsGenericParameter);
 			}
 		}
 	}

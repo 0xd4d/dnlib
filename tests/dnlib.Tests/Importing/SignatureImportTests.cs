@@ -115,8 +115,11 @@ public class Box<T> { }
 			AssertImported(new NativeValueTypeZapSig(Value));
 			AssertImported(new SZArraySig(new NativeValueTypeZapSig(new NativeValueTypeZapSig(Thing))));
 			// These two aren't made of other types
-			var canon = new CanonZapSig();
-			Assert.NotSame(canon, Assert.IsType<CanonZapSig>(importer.Import(canon)));
+			// System.__Canon is then the one of the core library of the module that imports it
+			var canon = new CanonZapSig(library);
+			var importedCanon = Assert.IsType<CanonZapSig>(importer.Import(canon));
+			Assert.NotSame(canon, importedCanon);
+			Assert.Same(target, importedCanon.OwnerModule);
 			// The rid is a row of the module that the signature was read from: that module is kept
 			var genericParam = new VarZapSig(3, library);
 			var importedGenericParam = Assert.IsType<VarZapSig>(importer.Import(genericParam));

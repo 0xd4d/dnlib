@@ -474,12 +474,12 @@ namespace dnlib.Tests.Comparing {
 			Assert.False(comparer.Equals((TypeSig)new NativeValueTypeZapSig(int32), new PinnedSig(int32)));
 
 			var canonRef = new TypeRefUser(module, "System", "__Canon", module.CorLibTypes.AssemblyRef);
-			Assert.True(comparer.Equals(new CanonZapSig(), new CanonZapSig()));
-			Assert.Equal(comparer.GetHashCode(new CanonZapSig()), comparer.GetHashCode(new CanonZapSig()));
-			Assert.False(comparer.Equals((TypeSig)new CanonZapSig(), new ClassSig(canonRef)));
-			Assert.False(comparer.Equals((TypeSig)new ClassSig(canonRef), new CanonZapSig()));
-			Assert.False(comparer.Equals((IType)canonRef, new CanonZapSig()));
-			Assert.False(comparer.Equals((TypeSig)new CanonZapSig(), module.CorLibTypes.Object));
+			Assert.True(comparer.Equals(new CanonZapSig(module), new CanonZapSig(module)));
+			Assert.Equal(comparer.GetHashCode(new CanonZapSig(module)), comparer.GetHashCode(new CanonZapSig(module)));
+			Assert.False(comparer.Equals((TypeSig)new CanonZapSig(module), new ClassSig(canonRef)));
+			Assert.False(comparer.Equals((TypeSig)new ClassSig(canonRef), new CanonZapSig(module)));
+			Assert.False(comparer.Equals((IType)canonRef, new CanonZapSig(module)));
+			Assert.False(comparer.Equals((TypeSig)new CanonZapSig(module), module.CorLibTypes.Object));
 
 			// A method with one of them isn't the method with the normal type
 			var withRid = MethodSig.CreateStatic(module.CorLibTypes.Void, new VarZapSig(1, module));

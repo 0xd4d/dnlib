@@ -742,7 +742,11 @@ namespace dnlib.DotNet {
 				break;
 
 			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ReadType()); break;
-			case ElementType.CanonZapSig: result = new CanonZapSig(); break;
+			case ElementType.CanonZapSig:
+				// The module is found like the one of a VarZapSig
+				if ((helper as ModuleDef ?? corLibTypes.Object.TypeDefOrRef?.Module) is ModuleDef canonOwnerModule)
+					result = new CanonZapSig(canonOwnerModule);
+				break;
 
 			case ElementType.GenericInst:
 				// The CLR only loads the generic instance if the byte is CLASS and the type is a class, or if it's
