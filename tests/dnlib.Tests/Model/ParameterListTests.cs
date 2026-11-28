@@ -210,5 +210,69 @@ namespace dnlib.Tests.Model {
 			Assert.Equal(new Parameter?[] { null, list[0], list[1] }, copy);
 			Assert.Equal(new[] { list[0], list[1] }, list.ToArray());
 		}
+
+		// A Parameter that isn't in a method's list: it only has the values it was created with
+		[Fact]
+		public void AParameterCanBeCreatedWithoutAMethod() {
+			var module = new ModuleDefUser("Module.dll");
+			var type = module.CorLibTypes.Int32;
+
+			var first = new Parameter(1);
+			var second = new Parameter(2, type);
+			var third = new Parameter(3, 2);
+			var fourth = new Parameter(4, 3, type);
+			var returnParameter = new Parameter(-1, -1);
+
+			Assert.Equal((1, 1), (first.Index, first.MethodSigIndex));
+			Assert.Null(first.Type);
+			Assert.Equal((2, 2), (second.Index, second.MethodSigIndex));
+			Assert.Same(type, second.Type);
+			Assert.Equal((3, 2), (third.Index, third.MethodSigIndex));
+			Assert.Equal((4, 3), (fourth.Index, fourth.MethodSigIndex));
+			Assert.Same(type, fourth.Type);
+			// Without a method, no ParamDef can be created
+			first.CreateParamDef();
+			Assert.Null(first.ParamDef);
+			// A parameter without a name is shown as A_<index>, and the return value as RET_PARAM
+			Assert.Equal("A_1", first.ToString());
+			Assert.True(returnParameter.IsReturnTypeParameter);
+			Assert.Equal("RET_PARAM", returnParameter.ToString());
+		}
+
+		[Fact]
+		public void AParameterWithANameIsShownWithItsName() {
+			var module = CreateModule(out var type);
+			var method = AddMethod(type, MethodSig.CreateStatic(module.CorLibTypes.Void, module.CorLibTypes.Int32));
+			var parameter = method.Parameters[0];
+			parameter.CreateParamDef();
+			parameter.Name = "count";
+
+			Assert.Equal("count", parameter.ToString());
+			Assert.Equal("RET_PARAM", method.Parameters.ReturnParameter.ToString());
+		}
+
+		// The list's enumerator can't be reset
+		[Fact]
+		public void TheEnumeratorOfTheParametersCanNotBeReset() {
+			var module = CreateModule(out var type);
+			var method = AddMethod(type, MethodSig.CreateStatic(module.CorLibTypes.Void, module.CorLibTypes.Int32));
+			System.Collections.IEnumerator enumerator = method.Parameters.GetEnumerator();
+
+			Assert.True(enumerator.MoveNext());
+			Assert.Throws<NotSupportedException>(() => enumerator.Reset());
+		}
+
+		// When a signature gets fewer parameters, the list gets shorter once it's updated
+		[Fact]
+		public void TheListGetsShorterIfTheSignatureHasFewerParameters() {
+			var module = CreateModule(out var type);
+			var method = AddMethod(type, MethodSig.CreateStatic(module.CorLibTypes.Void, module.CorLibTypes.Int32, module.CorLibTypes.String));
+			Assert.Equal(2, method.Parameters.Count);
+
+			method.MethodSig = MethodSig.CreateStatic(module.CorLibTypes.Void, module.CorLibTypes.Int32);
+			method.Parameters.UpdateParameterTypes();
+
+			Assert.Single(method.Parameters);
+		}
 	}
 }
