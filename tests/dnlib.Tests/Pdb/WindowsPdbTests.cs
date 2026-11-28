@@ -394,6 +394,51 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// A Windows PDB can have the source link data, the source server data and the source code of a document
+		// (embedded source). The COM reader reads the source link and source server data again.
+		[Fact]
+		public void SourceLinkSourceServerAndEmbeddedSourceAreWritten() {
+			SkipUnlessWindows();
+			var sourceLink = Encoding.UTF8.GetBytes("{\"documents\":{\"/_/*\":\"https://example.com/*\"}}");
+			var sourceServer = Encoding.UTF8.GetBytes("SRCSRV: ini ------------------------------------------------\r\nVERSION=2\r\nSRCSRV: end ------------------------------------------------\r\n");
+			CompiledAssembly written;
+			using (var module = Load(DebugInfoSource.CompiledWithWindowsPdb)) {
+				module.CustomDebugInfos.Clear();
+				module.CustomDebugInfos.Add(new PdbSourceLinkCustomDebugInfo(sourceLink));
+				module.CustomDebugInfos.Add(new PdbSourceServerCustomDebugInfo(sourceServer));
+				var document = module.PdbState!.Documents.First();
+				document.CustomDebugInfos.Add(new PdbEmbeddedSourceCustomDebugInfo(new byte[] { 0, 0, 0, 0 }.Concat(Encoding.UTF8.GetBytes("class C { }")).ToArray()));
+				written = Write(module, PdbFileKind.WindowsPDB);
+			}
+
+			using (var module = Load(written, PdbReaderOptions.MicrosoftComReader)) {
+				Assert.Equal(sourceLink, Assert.Single(module.CustomDebugInfos.OfType<PdbSourceLinkCustomDebugInfo>()).FileBlob);
+				Assert.Equal(sourceServer, Assert.Single(module.CustomDebugInfos.OfType<PdbSourceServerCustomDebugInfo>()).FileBlob);
+			}
+		}
+
+		// The PDB is written to a file if there's no stream: the file name of the options, or the module's file
+		// name with the extension .pdb
+		[Theory, InlineData(true), InlineData(false)]
+		public void WindowsPdbIsWrittenToAFile(bool withPdbFileName) {
+			SkipUnlessWindows();
+			using (var directory = new TempDirectory())
+			using (var module = Load(DebugInfoSource.CompiledWithWindowsPdb)) {
+				module.PdbState!.PdbFileKind = PdbFileKind.WindowsPDB;
+				var moduleFile = directory.GetPath("Written.dll");
+				var pdbFile = withPdbFileName ? directory.GetPath("Other.pdb") : directory.GetPath("Written.pdb");
+				var options = new ModuleWriterOptions(module) { WritePdb = true };
+				if (withPdbFileName)
+					options.PdbFileName = pdbFile;
+
+				module.Write(moduleFile, options);
+
+				Assert.True(File.Exists(pdbFile));
+				using (var written = ModuleDefMD.Load(moduleFile, new ModuleCreationOptions { PdbFileOrData = pdbFile, TryToLoadPdbFromDisk = false }))
+					Assert.NotNull(written.PdbState);
+			}
+		}
+
 		// Writes the Windows fixture with a Windows PDB and the options, returns the files
 		static CompiledAssembly WriteWithPdbOptions(PdbWriterOptions pdbOptions, ChecksumAlgorithm algorithm = ChecksumAlgorithm.SHA256) {
 			using (var module = Load(Windows)) {
