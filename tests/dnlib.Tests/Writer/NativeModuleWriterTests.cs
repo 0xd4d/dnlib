@@ -99,6 +99,23 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// NativeWrite() to a file and to a stream with the default options
+		[Fact]
+		public void NativeWriteToAFileOrAStream() {
+			var image = Fixtures.Fixtures.Features.Image;
+			using (var original = ModuleDefMD.Load(image))
+			using (var directory = new TempDirectory()) {
+				var file = directory.GetPath("Written.exe");
+				original.NativeWrite(file, null);
+				var stream = new MemoryStream();
+				original.NativeWrite(stream);
+
+				using (var fromFile = ModuleDefMD.Load(File.ReadAllBytes(file)))
+					ModuleComparer.AssertEqual(original, fromFile, new ModuleDumpOptions { MaxStack = true });
+				Assert.Equal(File.ReadAllBytes(file), stream.ToArray());
+			}
+		}
+
 		// The offsets of fields in the PE optional header (PE32, the fixture is a 32-bit file)
 		const int fileAlignmentOffset = 36;
 		const int numberOfRvaAndSizesOffset = 92;

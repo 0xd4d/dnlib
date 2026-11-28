@@ -80,6 +80,21 @@ namespace dnlib.Tests.Reading {
 			}
 		}
 
+		// A coded token whose tag bits name no table (eg. tag 3 of a HasConstant, which only has 3 tables), and one
+		// whose rid is too big for a token, are invalid
+		[Fact]
+		public void CodedTokenWithAnInvalidTagOrRidIsNull() {
+			foreach (var pair in resolvers) {
+				var codedToken = pair.Key;
+				for (uint tag = (uint)codedToken.TableTypes.Length; tag < (1U << codedToken.Bits); tag++)
+					Assert.Null(pair.Value((1U << codedToken.Bits) | tag));
+				Assert.Null(pair.Value(uint.MaxValue));
+			}
+			// The tags of a CustomAttributeType that aren't used
+			Assert.Null(module.ResolveCustomAttributeType((1U << 3) | 0));
+			Assert.Null(module.ResolveCustomAttributeType((1U << 3) | 4));
+		}
+
 		[Fact]
 		public void TokenOfEveryTableWithObjectsIsResolved() {
 			var tablesWithObjects = new[] {
