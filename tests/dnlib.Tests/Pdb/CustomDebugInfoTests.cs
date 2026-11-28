@@ -240,6 +240,24 @@ namespace dnlib.Tests.Pdb {
 				AddAsyncStep(method, new PdbAsyncStepInfo(instructions[0], otherMethod, instructionOfAnotherMethod));
 				break;
 			}
+			case "dynamic local variables without flags":
+				method.CustomDebugInfos.Add(new PdbDynamicLocalVariablesCustomDebugInfo(null!));
+				break;
+			case "primary constructor information without a blob":
+				method.DeclaringType!.CustomDebugInfos.Add(new PrimaryConstructorInformationBlobDebugInfo(null!));
+				break;
+			case "hoisted local scopes of a method without a body": {
+				var noBody = new MethodDefUser("NoBody", MethodSig.CreateInstance(module.CorLibTypes.Void), MethodAttributes.Abstract | MethodAttributes.Virtual);
+				method.DeclaringType!.Methods.Add(noBody);
+				noBody.CustomDebugInfos.Add(new PdbStateMachineHoistedLocalScopesCustomDebugInfo());
+				break;
+			}
+			case "async method information of a method without a body": {
+				var noBody = new MethodDefUser("NoBody", MethodSig.CreateInstance(module.CorLibTypes.Void), MethodAttributes.Abstract | MethodAttributes.Virtual);
+				method.DeclaringType!.Methods.Add(noBody);
+				noBody.CustomDebugInfos.Add(new PdbAsyncMethodCustomDebugInfo(method));
+				break;
+			}
 			default:
 				throw new ArgumentException(what);
 			}
@@ -266,6 +284,10 @@ namespace dnlib.Tests.Pdb {
 		[InlineData("async step without a breakpoint instruction", "BreakpointInstruction is null")]
 		[InlineData("async step with a breakpoint in a method without a body", "Method has no body")]
 		[InlineData("async step with an instruction that the breakpoint method does not have", "Couldn't find an instruction")]
+		[InlineData("dynamic local variables without flags", "Dynamic flags is null")]
+		[InlineData("primary constructor information without a blob", "Primary constructor information blob is null")]
+		[InlineData("hoisted local scopes of a method without a body", "Method has no body")]
+		[InlineData("async method information of a method without a body", "Method has no body")]
 		public void InfoThatCanNotBeWrittenIsAnError(string what, string expectedError) {
 			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(module => AddInvalidInfo(module, what)));
 			Assert.Contains(expectedError, exception.Message);
