@@ -221,6 +221,27 @@ namespace dnlib.Tests.Loading {
 			}
 		}
 
+		// The overloads of an address without a layout: the image is a loaded image
+		[Fact]
+		public void AnAddressHasAnImageWithTheMemoryLayout() {
+			var memoryImage = CreateMemoryLayout(Image);
+			var memory = Marshal.AllocHGlobal(memoryImage.Length);
+			try {
+				Marshal.Copy(memoryImage, 0, memory, memoryImage.Length);
+				var context = new ModuleContext();
+
+				using (var module = ModuleDefMD.Load(memory))
+					AssertIsTheExpectedModule(module);
+				using (var module = ModuleDefMD.Load(memory, context)) {
+					Assert.Same(context, module.Context);
+					AssertIsTheExpectedModule(module);
+				}
+			}
+			finally {
+				Marshal.FreeHGlobal(memory);
+			}
+		}
+
 		// A module that was created in memory (System.Reflection.Emit) has no file and no PE image.
 		// Fixed in this commit: on .NET, dnlib tried to read a file with the name of the module (FileNotFoundException).
 		[Fact]
