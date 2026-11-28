@@ -257,5 +257,59 @@ namespace dnlib.Tests.Emit {
 			}
 			return Assert.Single(matches);
 		}
+
+		// Every overload reads the same body: from the whole body (header, code, exception handlers), with a reader
+		// or a byte array and with the exception handlers in another array, or from the code with the values of a
+		// header
+		[Fact]
+		public void EveryOverloadReadsTheSameBody() {
+			var opResolver = module.Value;
+			var method = new MethodDefUser("M", MethodSig.CreateStatic(opResolver.CorLibTypes.Void));
+			var parameters = method.Parameters;
+			var gpContext = new GenericParamContext();
+			// A tiny header (code size 7)
+			var body = Concat(new byte[] { (7 << 2) | 2 }, sixNopsAndRet);
+			DataReader Reader() => ByteArrayDataReaderFactory.CreateReader(body);
+
+			var bodies = new[] {
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), method),
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), method, gpContext),
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), parameters),
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), parameters, gpContext),
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), parameters, gpContext, null),
+				MethodBodyReader.CreateCilBody(opResolver, body, null, parameters),
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), null, parameters),
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), null, parameters, gpContext),
+				MethodBodyReader.CreateCilBody(opResolver, Reader(), null, parameters, gpContext, null),
+				MethodBodyReader.CreateCilBody(opResolver, sixNopsAndRet, null, parameters, 0x0013, 8, 7, 0),
+				MethodBodyReader.CreateCilBody(opResolver, sixNopsAndRet, null, parameters, 0x0013, 8, 7, 0, gpContext),
+			};
+			Assert.All(bodies, a => Assert.Equal(7, a.Instructions.Count));
+
+			var readers = new[] {
+				new MethodBodyReader(opResolver, Reader(), method),
+				new MethodBodyReader(opResolver, Reader(), method, gpContext),
+				new MethodBodyReader(opResolver, Reader(), parameters),
+				new MethodBodyReader(opResolver, Reader(), parameters, gpContext),
+				new MethodBodyReader(opResolver, Reader(), null, parameters),
+				new MethodBodyReader(opResolver, Reader(), null, parameters, gpContext),
+			};
+			foreach (var reader in readers) {
+				Assert.True(reader.Read());
+				Assert.Equal(7, reader.CreateCilBody().Instructions.Count);
+			}
+			// Code with more bytes than a method can have is an empty body
+			Assert.Empty(MethodBodyReader.CreateCilBody(opResolver, sixNopsAndRet, null, parameters, 0x0013, 8, 0x40000000, 0).Instructions);
+			// A token is resolved without a generic context too
+			Assert.Null(((IInstructionOperandResolver)opResolver).ResolveToken(0x70FFFFFF));
+		}
+
+		// A header that isn't a method header can't be read
+		[Fact]
+		public void ABodyThatIsNotAMethodBodyIsNotRead() {
+			var reader = new MethodBodyReader(module.Value, ByteArrayDataReaderFactory.CreateReader(new byte[] { 0 }), new List<Parameter>());
+
+			Assert.False(reader.Read());
+		}
 	}
 }
