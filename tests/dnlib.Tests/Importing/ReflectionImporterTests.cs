@@ -290,6 +290,34 @@ namespace dnlib.Tests.Importing {
 			Assert.Equal("System.Int64", signature.RetType!.FullName);
 		}
 
+		// A field whose type is a function pointer is the reflection field only if the function pointer has the same
+		// kind (managed or unmanaged), calling convention, return type and parameters
+		[Fact]
+		public void FunctionPointerFieldsAreComparedWithReflectionFields() {
+			var module = CreateModule();
+			var types = module.CorLibTypes;
+			// The FunctionPointers class is nested in this class
+			var outer = new TypeRefUser(module, typeof(ReflectionImporterTests).Namespace, nameof(ReflectionImporterTests), new AssemblyRefUser(typeof(ReflectionImporterTests).Assembly.GetName()));
+			var owner = new TypeRefUser(module, "", nameof(FunctionPointers), outer);
+			MemberRef Field(string name, MethodSig sig) => new MemberRefUser(module, name, new FieldSig(new FnPtrSig(sig)), owner);
+			var comparer = new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
+			var managed = typeof(FunctionPointers).GetField(nameof(FunctionPointers.Managed))!;
+			var unmanaged = typeof(FunctionPointers).GetField(nameof(FunctionPointers.Unmanaged))!;
+			var managedSig = MethodSig.CreateStatic(types.Void, types.Int32, types.String);
+			var cdeclSig = new MethodSig(CallingConvention.C, 0, types.Int64, types.Byte);
+
+			Assert.True(comparer.Equals(Field("Managed", managedSig), managed));
+			Assert.True(comparer.Equals(Field("Unmanaged", cdeclSig), unmanaged));
+			// Another kind or calling convention
+			Assert.False(comparer.Equals(Field("Managed", new MethodSig(CallingConvention.C, 0, types.Void, types.Int32, types.String)), managed));
+			Assert.False(comparer.Equals(Field("Unmanaged", new MethodSig(CallingConvention.StdCall, 0, types.Int64, types.Byte)), unmanaged));
+			// Another return type, other parameters, and parameters after a sentinel (reflection doesn't have them)
+			Assert.False(comparer.Equals(Field("Managed", MethodSig.CreateStatic(types.Int32, types.Int32, types.String)), managed));
+			Assert.False(comparer.Equals(Field("Managed", MethodSig.CreateStatic(types.Void, types.Int32)), managed));
+			var varArg = new MethodSig(CallingConvention.VarArg, 0, types.Void, types.Int32, types.String) { ParamsAfterSentinel = new List<TypeSig?> { types.Int32 } };
+			Assert.False(comparer.Equals(Field("Managed", varArg), managed));
+		}
+
 		// Fixed in 9d66dba3
 		[Fact]
 		public void FunctionPointerInAGenericArgument() {
