@@ -201,6 +201,20 @@ public sealed class SealedClass { public class Nested { } }
 			derived.Remove(null);
 		}
 
+		// An event's invoke method (C# has none, but IL has .fire) is removed from the event too
+		[Fact]
+		public void RemovingAnInvokeMethodRemovesItFromItsEvent() {
+			var derived = Find("Derived");
+			var changed = derived.FindEvent("Changed")!;
+			var raise = derived.FindMethod("Method", MethodSig.CreateInstance(CorLibTypes.Void))!;
+			changed.InvokeMethod = raise;
+
+			derived.Remove(raise);
+
+			Assert.Null(changed.InvokeMethod);
+			Assert.Contains(changed, derived.Events);
+		}
+
 		[Fact]
 		public void KindsOfTypes() {
 			Assert.True(Find("Derived").IsClass);
