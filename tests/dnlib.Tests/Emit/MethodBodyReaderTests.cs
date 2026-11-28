@@ -311,5 +311,20 @@ namespace dnlib.Tests.Emit {
 
 			Assert.False(reader.Read());
 		}
+
+		// ldarg with a 2-byte index (the long form, InlineVar), and the 'unaligned.' prefix with its 1-byte operand
+		[Fact]
+		public void LongArgumentIndexAndUnalignedPrefixAreRead() {
+			// ldarg 0, unaligned. 1, ldind.i1, pop, ret
+			var code = new byte[] { 0xFE, 0x09, 0x00, 0x00, 0xFE, 0x12, 0x01, 0x46, 0x26, 0x2A };
+			var body = Concat(new byte[] { (byte)((code.Length << 2) | 2) }, code);
+			var method = new MethodDefUser("M", MethodSig.CreateStatic(module.Value.CorLibTypes.Void, new PtrSig(module.Value.CorLibTypes.SByte)));
+
+			var read = MethodBodyReader.CreateCilBody(module.Value, ByteArrayDataReaderFactory.CreateReader(body), method.Parameters);
+
+			Assert.Equal(new[] { Code.Ldarg, Code.Unaligned, Code.Ldind_I1, Code.Pop, Code.Ret }, read.Instructions.Select(a => a.OpCode.Code));
+			Assert.Same(method.Parameters[0], read.Instructions[0].Operand);
+			Assert.Equal((byte)1, read.Instructions[1].Operand);
+		}
 	}
 }
