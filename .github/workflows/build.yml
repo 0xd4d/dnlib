@@ -72,6 +72,12 @@ jobs:
         shell: bash
         run: tests/test-aot.sh
 
+      # The tool of tests/coverage.sh --roslyn. It isn't in dnlib.sln and the coverage jobs don't use it, so
+      # nothing else notices if it no longer compiles.
+      - name: Build the coverage highlighter
+        shell: bash
+        run: dotnet build -c Release tests/coverage-highlighter
+
       - name: Check formatting
         shell: bash
         run: |

@@ -18,6 +18,7 @@ updates:
     directories:
       - /src
       - /Examples
+      - /tests/coverage-highlighter
     schedule:
       interval: weekly
     cooldown:
