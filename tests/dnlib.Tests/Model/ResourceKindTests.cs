@@ -121,6 +121,19 @@ namespace dnlib.Tests.Model {
 			}
 		}
 
+		// A File row and a ManifestResource row can have custom attributes: their coded HasCustomAttribute tokens
+		// are resolved to the rows
+		[Fact]
+		public void FileAndManifestResourceRowsAreHasCustomAttributeTokens() {
+			using (var module = ModuleDefMD.Load(image.Value)) {
+				Assert.True(CodedToken.HasCustomAttribute.Encode(new MDToken(Table.File, 1), out uint fileToken));
+				Assert.True(CodedToken.HasCustomAttribute.Encode(new MDToken(Table.ManifestResource, 3), out uint resourceToken));
+
+				Assert.Equal("data.bin", Assert.IsAssignableFrom<FileDef>(module.ResolveHasCustomAttribute(fileToken)).Name);
+				Assert.Equal("InAFile", Assert.IsAssignableFrom<ManifestResource>(module.ResolveHasCustomAttribute(resourceToken)).Name);
+			}
+		}
+
 		[Fact]
 		public void EveryKindOfResourceSurvivesAnotherWrite() {
 			using (var module = ModuleDefMD.Load(image.Value)) {
