@@ -235,6 +235,65 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// The rows of the references that instructions use (TypeRef, MemberRef, TypeSpec, MethodSpec), also when
+		// the tokens are kept: then they keep their rows, and so do the StandAloneSig rows (the signatures of
+		// locals and indirect calls)
+		[Theory, InlineData(false), InlineData(true)]
+		public void RidsOfReferences(bool preserveTokens) {
+			var rids = new List<(IMDTokenProvider Reference, uint Rid)>();
+			var standAloneSigRids = new List<(uint Original, uint Written)>();
+			var fixture = Fixtures.Fixtures.Features;
+			using (var module = ModuleDefMD.Load(fixture.Image)) {
+				var operands = module.GetTypes().SelectMany(a => a.Methods).Where(a => a.Body is not null)
+					.SelectMany(a => a.Body!.Instructions).Select(a => a.Operand).OfType<IMDTokenProvider>()
+					.Where(a => a is TypeRef || a is MemberRef || a is TypeSpec || a is MethodSpec).Distinct().ToList();
+				var options = new ModuleWriterOptions(module);
+				if (preserveTokens)
+					options.MetadataOptions.Flags |= MetadataFlags.PreserveAll;
+				options.WriterEvent += (sender, e) => {
+					if (e.Event != ModuleWriterEvent.End)
+						return;
+					var metadata = e.Writer.Metadata;
+					foreach (var operand in operands) {
+						uint rid = operand switch {
+							TypeRef a => metadata.GetRid(a),
+							MemberRef a => metadata.GetRid(a),
+							TypeSpec a => metadata.GetRid(a),
+							MethodSpec a => metadata.GetRid(a),
+							_ => throw new InvalidOperationException(),
+						};
+						rids.Add((operand, rid));
+					}
+					if (preserveTokens) {
+						for (uint rid = 1; rid <= module.TablesStream.StandAloneSigTable.Rows; rid++) {
+							// A signature with a generic parameter is a new object every time it's resolved, it's
+							// not the one the writer has
+							var sig = module.ResolveStandAloneSig(rid)!;
+							if (!((IContainsGenericParameter)sig).ContainsGenericParameter)
+								standAloneSigRids.Add((rid, metadata.GetRid(sig)));
+						}
+					}
+					// A reference that isn't in the module has no row
+					Assert.Equal(0U, metadata.GetRid(new TypeRefUser(module, "Ns", "NotInTheModule")));
+					Assert.Equal(0U, metadata.GetRid(new TypeSpecUser(module.CorLibTypes.Int32)));
+					Assert.Equal(0U, metadata.GetRid(new MemberRefUser(module, "NotInTheModule")));
+					Assert.Equal(0U, metadata.GetRid(new MethodSpecUser()));
+					Assert.Equal(0U, metadata.GetRid(new StandAloneSigUser()));
+				};
+				module.Write(new MemoryStream(), options);
+			}
+
+			Assert.Contains(rids, a => a.Reference is MemberRef);
+			Assert.Contains(rids, a => a.Reference is TypeSpec);
+			Assert.Contains(rids, a => a.Reference is MethodSpec);
+			Assert.All(rids, a => Assert.NotEqual(0U, a.Rid));
+			if (preserveTokens) {
+				Assert.All(rids, a => Assert.Equal(a.Reference.Rid, a.Rid));
+				Assert.NotEmpty(standAloneSigRids);
+				Assert.All(standAloneSigRids, a => Assert.Equal(a.Original, a.Written));
+			}
+		}
+
 		// The state machine and custom debug info rows of the portable PDB
 		[Fact]
 		public void RidsOfPdbCustomDebugInfos() {

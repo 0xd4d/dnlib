@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using dnlib.DotNet;
+using dnlib.DotNet.Emit;
 using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
 using dnlib.TestUtils;
@@ -153,6 +154,48 @@ public class After {
 				Assert.NotEqual(GetMemberTokens(originalModule, "After"), GetMemberTokens(module, "After"));
 			}
 			Assert.Equal(0, AssemblyRunner.RunEntryPoint(written));
+		}
+
+		// A member that was removed but that an instruction still uses has no row: that's an error, with and without
+		// the option that keeps the tokens. (An instruction can't use a parameter, an event or a property in a valid
+		// method, but the API allows it.)
+		[Theory]
+		[InlineData("type", 0)]
+		[InlineData("field", 0)]
+		[InlineData("method", 0)]
+		[InlineData("parameter", 0)]
+		[InlineData("event", 0)]
+		[InlineData("property", 0)]
+		[InlineData("type", MetadataFlags.PreserveAll)]
+		[InlineData("field", MetadataFlags.PreserveAll)]
+		[InlineData("method", MetadataFlags.PreserveAll)]
+		[InlineData("parameter", MetadataFlags.PreserveAll)]
+		[InlineData("event", MetadataFlags.PreserveAll)]
+		[InlineData("property", MetadataFlags.PreserveAll)]
+		public void ARemovedMemberThatIsStillUsedIsAnError(string what, MetadataFlags flags) {
+			using (var module = ModuleDefMD.Load(original.Value)) {
+				var after = module.Find("After", isReflectionName: true)!;
+				var main = module.Find("Program", isReflectionName: true)!.FindMethod("Main")!;
+				var afterMethod = after.FindMethod("AfterMethod")!;
+				IMDTokenProvider removed;
+				switch (what) {
+				case "type": removed = after; module.Types.Remove(after); break;
+				case "field": removed = after.Fields[0]; after.Fields.RemoveAt(0); break;
+				case "method": removed = afterMethod; after.Methods.Remove(afterMethod); break;
+				case "parameter": removed = afterMethod.ParamDefs[0]; afterMethod.ParamDefs.RemoveAt(0); break;
+				case "event": removed = after.Events[0]; after.Events.RemoveAt(0); break;
+				case "property": removed = after.Properties[0]; after.Properties.RemoveAt(0); break;
+				default: throw new ArgumentException(what);
+				}
+				main.Body!.Instructions.Insert(0, OpCodes.Pop.ToInstruction());
+				main.Body.Instructions.Insert(0, new Instruction(OpCodes.Ldtoken, removed));
+
+				var options = new ModuleWriterOptions(module);
+				options.MetadataOptions.Flags |= flags;
+				var exception = Assert.Throws<ModuleWriterException>(() => module.Write(new MemoryStream(), options));
+
+				Assert.Contains("is not defined in this module", exception.Message);
+			}
 		}
 	}
 }
