@@ -18,7 +18,69 @@ namespace dnlib.Tests.Model {
 	public class PropertyGetterTests {
 		static readonly Lazy<ModuleDefMD> module = new Lazy<ModuleDefMD>(() => ModuleDefMD.Load(Fixtures.Fixtures.Features.Image));
 
-		public static TheoryData<string> ObjectKinds => new TheoryData<string> { "module", "user" };
+		public static TheoryData<string> ObjectKinds => new TheoryData<string> { "module", "user", "debug info" };
+
+		// The method bodies, signatures, custom attributes and the debug info of a module with a PDB
+		internal static IEnumerable<object> GetDebugInfoObjects(ModuleDefMD module) {
+			yield return module.PdbState!;
+			foreach (var document in module.PdbState!.Documents)
+				yield return document;
+			foreach (var info in module.CustomDebugInfos)
+				yield return info;
+			foreach (var type in module.GetTypes()) {
+				foreach (var ca in type.CustomAttributes) {
+					yield return ca;
+					foreach (var argument in ca.ConstructorArguments)
+						yield return argument;
+					foreach (var named in ca.NamedArguments)
+						yield return named;
+				}
+				foreach (var method in type.Methods) {
+					yield return method.MethodSig!;
+					foreach (var parameter in method.Parameters)
+						yield return parameter;
+					if (method.MethodSig?.RetType is TypeSig retType)
+						yield return retType;
+					foreach (var info in method.CustomDebugInfos)
+						yield return info;
+					var body = method.Body;
+					if (body is null)
+						continue;
+					yield return body;
+					foreach (var instruction in body.Instructions) {
+						yield return instruction;
+						if (instruction.SequencePoint is not null)
+							yield return instruction.SequencePoint;
+					}
+					foreach (var handler in body.ExceptionHandlers)
+						yield return handler;
+					foreach (var local in body.Variables)
+						yield return local;
+					if (body.PdbMethod?.Scope is dnlib.DotNet.Pdb.PdbScope scope) {
+						yield return body.PdbMethod;
+						foreach (var o in GetScopeObjects(scope))
+							yield return o;
+					}
+				}
+			}
+		}
+
+		static IEnumerable<object> GetScopeObjects(dnlib.DotNet.Pdb.PdbScope scope) {
+			yield return scope;
+			foreach (var local in scope.Variables)
+				yield return local;
+			foreach (var constant in scope.Constants)
+				yield return constant;
+			if (scope.ImportScope is not null) {
+				yield return scope.ImportScope;
+				foreach (var import in scope.ImportScope.Imports)
+					yield return import;
+			}
+			foreach (var child in scope.Scopes) {
+				foreach (var o in GetScopeObjects(child))
+					yield return o;
+			}
+		}
 
 		// The public properties and the properties of the interfaces that the type implements explicitly
 		static IEnumerable<MethodInfo> GetGetters(Type type) {
@@ -43,7 +105,9 @@ namespace dnlib.Tests.Model {
 
 		[Theory, MemberData(nameof(ObjectKinds))]
 		public void EveryPropertyCanBeRead(string kind) {
-			var objects = (kind == "module" ? PropertySetterTests.GetObjectsOfTheModule(module.Value) : PropertySetterTests.GetUserObjects())
+			using var debugInfoModule = kind == "debug info" ? dnlib.Tests.Pdb.DebugInfoSource.Load() : null;
+			var objects = (kind == "module" ? PropertySetterTests.GetObjectsOfTheModule(module.Value) :
+				kind == "user" ? PropertySetterTests.GetUserObjects() : GetDebugInfoObjects(debugInfoModule!))
 				.Where(a => a.GetType().Namespace != "dnlib.DotNet.Writer").ToList();
 			int getters = 0;
 			foreach (var o in objects) {

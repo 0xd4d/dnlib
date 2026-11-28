@@ -167,7 +167,7 @@ namespace dnlib.Tests.Model {
 			Assert.Equal("CustomMarshaler (guid, native, System.Object, cookie)", new CustomMarshalType("guid", "native", type, "cookie").ToString());
 		}
 
-		public static TheoryData<string> ObjectKinds => new TheoryData<string> { "module", "user" };
+		public static TheoryData<string> ObjectKinds => new TheoryData<string> { "module", "user", "debug info" };
 
 		static IEnumerable<PropertyInfo> GetSettableProperties(Type type) =>
 			type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -175,15 +175,18 @@ namespace dnlib.Tests.Model {
 
 		[Theory, MemberData(nameof(ObjectKinds))]
 		public void EveryPropertyKeepsTheValueItIsSetTo(string kind) {
-			var objects = kind == "module" ? GetObjectsOfTheModule(module.Value).ToList() : GetUserObjects().ToList();
+			using var debugInfoModule = kind == "debug info" ? dnlib.Tests.Pdb.DebugInfoSource.Load() : null;
+			var objects = kind == "module" ? GetObjectsOfTheModule(module.Value).ToList() :
+				kind == "user" ? GetUserObjects().ToList() : PropertyGetterTests.GetDebugInfoObjects(debugInfoModule!).ToList();
 			int properties = 0;
 			foreach (var o in objects) {
 				foreach (var property in GetSettableProperties(o.GetType())) {
 					var value = property.GetValue(o);
 					property.SetValue(o, value);
 					var after = property.GetValue(o);
-					// A value type is a copy, a reference type must be the same object
-					if (value is null || value.GetType().IsValueType)
+					// A value type is a copy, a reference type must be the same object. A string can be stored as a
+					// UTF8String (eg. the name of a parameter is the name of its ParamDef), so it's an equal string.
+					if (value is null || value.GetType().IsValueType || value is string)
 						Assert.Equal(value, after);
 					else
 						Assert.Same(value, after);
