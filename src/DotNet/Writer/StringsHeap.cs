@@ -14,6 +14,9 @@ namespace dnlib.DotNet.Writer {
 		readonly Dictionary<UTF8String, uint> cachedDict = new Dictionary<UTF8String, uint>(UTF8StringEqualityComparer.Instance);
 		readonly List<UTF8String> cached = new List<UTF8String>();
 		uint nextOffset = 1;
+		// The offset of the empty string: 0, or the offset of a zero byte if the first byte of the original heap
+		// isn't zero (the string at offset 0 isn't empty then)
+		uint emptyStringOffset;
 		byte[]? originalData;
 		Dictionary<uint, byte[]>? userRawData;
 		readonly Dictionary<UTF8String, StringsOffsetInfo> toStringsOffsetInfo = new Dictionary<UTF8String, StringsOffsetInfo>(UTF8StringEqualityComparer.Instance);
@@ -56,6 +59,10 @@ namespace dnlib.DotNet.Writer {
 			originalData = reader.ToArray();
 			nextOffset = (uint)originalData.Length;
 			Populate(ref reader);
+			if (originalData[0] != 0) {
+				int zeroIndex = Array.IndexOf(originalData, (byte)0);
+				emptyStringOffset = zeroIndex >= 0 ? (uint)zeroIndex : AddToCache(UTF8String.Empty);
+			}
 		}
 
 		void Populate(ref DataReader reader) {
@@ -166,7 +173,7 @@ namespace dnlib.DotNet.Writer {
 			if (isReadOnly)
 				throw new ModuleWriterException("Trying to modify #Strings when it's read-only");
 			if (UTF8String.IsNullOrEmpty(s))
-				return 0;
+				return emptyStringOffset;
 
 			if (toStringsOffsetInfo.TryGetValue(s, out var info))
 				return info.StringsId;
