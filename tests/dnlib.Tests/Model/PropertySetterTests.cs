@@ -79,6 +79,71 @@ namespace dnlib.Tests.Model {
 			yield return new FileDefUser("File.bin", 0, null);
 			yield return new ClassLayoutUser(4, 8);
 			yield return new DeclSecurityUser();
+			// Signatures and marshal types
+			yield return new GenericInstSig(new ClassSig(types.Object.TypeDefOrRef), types.Int32);
+			yield return new ArraySig(types.Int32, 2);
+			yield return new ValueArraySig(types.Int32, 3);
+			yield return new ModuleSig(1, types.Int32);
+			yield return new VarZapSig(1, user);
+			yield return MethodSig.CreateStatic(types.Void);
+			yield return new FieldSig(types.Int32);
+			yield return new RawMarshalType(new byte[] { 1 });
+			yield return new FixedSysStringMarshalType(4);
+			yield return new SafeArrayMarshalType(VariantType.I4, types.Object.TypeDefOrRef);
+			yield return new FixedArrayMarshalType(4, NativeType.I4);
+			yield return new ArrayMarshalType(NativeType.I4, 1, 2, 3);
+			yield return new CustomMarshalType("guid", "native", types.Object.TypeDefOrRef, "cookie");
+			yield return new InterfaceMarshalType(NativeType.IUnknown, 1);
+			// Options of the writer
+			yield return new dnlib.DotNet.Writer.Cor20HeaderOptions();
+			yield return new dnlib.DotNet.Writer.PEHeadersOptions();
+			yield return new dnlib.DotNet.Writer.MetadataHeaderOptions();
+			yield return new dnlib.DotNet.Writer.TablesHeapOptions();
+		}
+
+		// The constructors that take some of the values
+		[Fact]
+		public void TheConstructorsStoreTheirValues() {
+			var types = new ModuleDefUser("User.dll").CorLibTypes;
+			var type = types.Object.TypeDefOrRef;
+
+			Assert.Equal(type, new SafeArrayMarshalType(type).UserDefinedSubType);
+			Assert.Equal(VariantType.NotInitialized, new SafeArrayMarshalType(type).VariantType);
+			Assert.Equal("guid", new CustomMarshalType("guid").Guid);
+			Assert.Equal("native", new CustomMarshalType("guid", "native").NativeTypeName);
+			Assert.Same(type, new CustomMarshalType("guid", "native", type).CustomMarshaler);
+			Assert.Throws<ArgumentException>(() => new InterfaceMarshalType(NativeType.I4, 1));
+			Assert.Equal(1U, new GenericVar(1).Number);
+			Assert.Equal(2U, new GenericMVar(2).Number);
+			Assert.Equal(ElementType.Sentinel, new SentinelSig().ElementType);
+
+			var array = new ArraySig(types.Int32);
+			Assert.Equal(0U, array.Rank);
+			Assert.Empty(array.GetSizes());
+			var withBounds = new ArraySig(types.Int32, 2, (IEnumerable<uint>)new uint[] { 3 }, (IEnumerable<int>)new[] { 1, 0 });
+			Assert.Equal(new uint[] { 3 }, withBounds.GetSizes());
+			Assert.Equal(new[] { 1, 0 }, withBounds.GetLowerBounds());
+			Assert.Equal(2U, new ArraySig(types.Int32, 2U, (IEnumerable<uint>)new uint[0], (IEnumerable<int>)new int[0]).Rank);
+			var szArray = new SZArraySig(types.Int32);
+			Assert.Equal(1U, szArray.Rank);
+			Assert.Empty(szArray.GetSizes());
+			Assert.Empty(szArray.GetLowerBounds());
+			Assert.Throws<NotSupportedException>(() => szArray.Rank = 2);
+
+			var flags = dnlib.DotNet.MD.ComImageFlags.ILOnly;
+			Assert.Equal(flags, new dnlib.DotNet.Writer.Cor20HeaderOptions(flags).Flags);
+			var cor20 = new dnlib.DotNet.Writer.Cor20HeaderOptions(2, 5, flags);
+			Assert.Equal((ushort)2, cor20.MajorRuntimeVersion);
+			Assert.Equal((ushort)5, cor20.MinorRuntimeVersion);
+		}
+
+		// The text of a marshal type has its values
+		[Fact]
+		public void MarshalTypesAreShownWithTheirValues() {
+			var type = new ModuleDefUser("User.dll").CorLibTypes.Object.TypeDefOrRef;
+
+			Assert.Equal("SafeArray (I4, System.Object)", new SafeArrayMarshalType(VariantType.I4, type).ToString());
+			Assert.Equal("CustomMarshaler (guid, native, System.Object, cookie)", new CustomMarshalType("guid", "native", type, "cookie").ToString());
 		}
 
 		public static TheoryData<string> ObjectKinds => new TheoryData<string> { "module", "user" };
