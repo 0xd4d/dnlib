@@ -239,7 +239,8 @@ namespace dnlib.DotNet {
 			if (addr != IntPtr.Zero && addr != new IntPtr(-1))
 				return Load(addr, options, imageLayout);
 			var location = mod.FullyQualifiedName;
-			if (String2.IsNullOrEmpty(location) || location[0] == '<')
+			// A dynamic module's name is "<In Memory Module>" (.NET Framework) or "RefEmit_InMemoryManifestModule" (.NET)
+			if (String2.IsNullOrEmpty(location) || location[0] == '<' || mod is System.Reflection.Emit.ModuleBuilder)
 				throw new InvalidOperationException($"Module {mod} has no HINSTANCE");
 			return Load(location, options);
 		}

@@ -192,5 +192,43 @@ namespace dnlib.Tests.Loading {
 			Assert.Throws<BadImageFormatException>(() => ModuleDefMD.Load(new MemoryStream(new byte[] { (byte)'M', (byte)'Z', 0, 0 })));
 			Assert.ThrowsAny<IOException>(() => ModuleDefMD.Load(Path.Combine(Path.GetTempPath(), "dnlib-test-file-that-does-not-exist.dll")));
 		}
+
+		// The overloads with a context or options: the module gets them
+		[Fact]
+		public void TheOverloadsWithAContextUseIt() {
+			var context = new ModuleContext();
+			var runtimeModule = typeof(LoadPathTests).Module;
+			var memory = Marshal.AllocHGlobal(Image.Length);
+			try {
+				Marshal.Copy(Image, 0, memory, Image.Length);
+				var modules = new[] {
+					ModuleDefMD.Load(runtimeModule, context),
+					ModuleDefMD.Load(runtimeModule, new ModuleCreationOptions(context)),
+					ModuleDefMD.Load(runtimeModule, context, ImageLayout.Memory),
+					ModuleDefMD.Load(new PEImage(Image), context),
+					ModuleDefMD.Load(new PEImage(Image), new ModuleCreationOptions(context)),
+					ModuleDefMD.Load(memory, context, ImageLayout.File),
+				};
+				foreach (var module in modules) {
+					Assert.Same(context, module.Context);
+					module.Dispose();
+				}
+				using (var module = ModuleDefMD.Load(new PEImage(Image)))
+					AssertIsTheExpectedModule(module);
+			}
+			finally {
+				Marshal.FreeHGlobal(memory);
+			}
+		}
+
+		// A module that was created in memory (System.Reflection.Emit) has no file and no PE image.
+		// Fixed in this commit: on .NET, dnlib tried to read a file with the name of the module (FileNotFoundException).
+		[Fact]
+		public void ADynamicModuleCanNotBeRead() {
+			var assemblyBuilder = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(new System.Reflection.AssemblyName("Dynamic"), System.Reflection.Emit.AssemblyBuilderAccess.Run);
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule("Dynamic");
+
+			Assert.Throws<InvalidOperationException>(() => ModuleDefMD.Load(moduleBuilder));
+		}
 	}
 }
