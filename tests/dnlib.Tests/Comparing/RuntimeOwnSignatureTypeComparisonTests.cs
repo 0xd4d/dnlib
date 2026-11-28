@@ -21,6 +21,8 @@ namespace dnlib.Tests.Comparing {
 
 		[Fact]
 		public void AGenericParameterByItsRidIsTheReflectionGenericParameter() {
+			// Mono's reflection has other tokens for generic parameters
+			Assert.SkipWhen(Type.GetType("Mono.Runtime") is not null, "Mono's generic parameters have other tokens");
 			var type = module.Value.Find(typeof(Generic<>).FullName!, isReflectionName: true)!;
 			var genericParam = type.GenericParameters[0];
 			var sig = new VarZapSig(genericParam.Rid, module.Value);

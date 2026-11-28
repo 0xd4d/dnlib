@@ -322,7 +322,7 @@ namespace dnlib.Tests.Emit {
 
 			var read = MethodBodyReader.CreateCilBody(module.Value, ByteArrayDataReaderFactory.CreateReader(body), method.Parameters);
 
-			Assert.Equal(new[] { Code.Ldarg, Code.Unaligned, Code.Ldind_I1, Code.Pop, Code.Ret }, read.Instructions.Select(a => a.OpCode.Code));
+			Assert.Equal(new[] { Code.Ldarg, Code.Unaligned, Code.Ldind_I1, Code.Pop, Code.Ret }, read.Instructions.Select(a => a.OpCode.Code).ToArray());
 			Assert.Same(method.Parameters[0], read.Instructions[0].Operand);
 			Assert.Equal((byte)1, read.Instructions[1].Operand);
 		}
