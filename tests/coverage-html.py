@@ -16,9 +16,12 @@ the wrong lines.
 """
 import argparse
 import collections
+import hashlib
 import html
+import json
 import os
 import re
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
@@ -248,20 +251,99 @@ def tokenize_interpolated_string(text, tokens, start, position, verbatim):
     return position
 
 
-def highlight_lines(text):
-    """Returns the HTML of every line of text, which has '\n' line terminators only"""
-    tokens = []
-    try:
-        tokenize(text, tokens)
-        ok = "".join(value for _, value in tokens) == text
-    except RecursionError:
-        ok = False
-    if not ok:
-        # A bug in the tokenizer must not lose or change code
-        return None
+# Semantic highlighting (--roslyn): the kinds of Roslyn's classifier -> CSS class. Kinds that aren't here
+# have no color (eg. punctuation, locals, parameters). The classes of the tokenizer above are used for the same
+# things, the new ones are f (method), v (property, field, enum member), e (escape in a string), o (operator).
+# Kinds with the same color in Neovim (see the colors in STYLE) have the same class.
+ROSLYN_CLASSES = {
+    "keyword": "k", "keyword - control": "k", "preprocessor keyword": "r", "excluded code": "m",
+    "class name": "t", "record class name": "t", "delegate name": "t", "struct name": "t", "record struct name": "t",
+    "interface name": "t", "enum name": "t", "type parameter name": "t", "namespace name": "t", "event name": "t",
+    "method name": "f", "extension method name": "f", "property name": "v", "field name": "v", "enum member name": "v",
+    "string": "s", "string - verbatim": "s", "string - escape character": "e", "number": "n", "comment": "m",
+    "operator": "o", "operator - overloaded": "o",
+}
+
+
+class RoslynClassifications:
+    """The output of the tool in coverage-highlighter: the classified spans of every source file"""
+
+    def __init__(self, path):
+        with open(path, encoding="utf-8") as file:
+            data = json.load(file)
+        # All parts of a doc comment (text, tags, attributes) are shown the same
+        self.classes = [ROSLYN_CLASSES.get(kind, "d" if kind.startswith("xml doc comment") else None) for kind in data["kinds"]]
+        self.files = data["files"]
+
+    def tokenize(self, source_file, source_bytes, text):
+        """Returns the (kind, text) tokens of text (the decoded source_bytes with its original line
+        terminators), or None if the file wasn't classified or has changed since"""
+        entry = self.files.get(source_file)
+        if entry is None or entry["sha256"] != hashlib.sha256(source_bytes).hexdigest():
+            return None
+        if max(text, default="") > "\uffff":
+            # The offsets are UTF-16 code units, they're not Python's indexes if a char needs 2 of them
+            units = text.encode("utf-16-le", "surrogatepass")
+
+            def get(start, end):
+                return units[2 * start:2 * end].decode("utf-16-le", "surrogatepass")
+            length = len(units) // 2
+        else:
+            def get(start, end):
+                return text[start:end]
+            length = len(text)
+        tokens = []
+        position = 0
+        spans = entry["spans"]
+        for index in range(0, len(spans), 3):
+            start, kind = spans[index], self.classes[spans[index + 2]]
+            end = start + spans[index + 1]
+            # start < position: a name that is also classified as "static symbol", the first one is used
+            if kind is None or start < position or end > length:
+                continue
+            if start != position:
+                tokens.append(("", get(position, start)))
+            tokens.append((kind, get(start, end)))
+            position = end
+        tokens.append(("", get(position, length)))
+        return tokens
+
+
+def highlight_lines(text, source_file=None, source_bytes=None, raw_text=None, roslyn=None):
+    """Returns the HTML of every line of text, which has '\n' line terminators only.
+
+    roslyn: if not None, its classification of the file (source_bytes, decoded: raw_text) is used and not the
+    tokenizer of this script.
+    """
+    tokens = None
+    if roslyn is not None:
+        tokens = roslyn.tokenize(source_file, source_bytes, raw_text)
+        if tokens is not None:
+            tokens = [(kind, NEW_LINE.sub("\n", value)) for kind, value in tokens]
+            if "".join(value for _, value in tokens) != text:
+                tokens = None
+        if tokens is None:
+            print(f"warning: {source_file}: no Roslyn classification of this version of the file, the tokenizer of this script is used", file=sys.stderr)
+    if tokens is None:
+        tokens = []
+        try:
+            tokenize(text, tokens)
+            ok = "".join(value for _, value in tokens) == text
+        except RecursionError:
+            ok = False
+        if not ok:
+            # A bug in the tokenizer must not lose or change code
+            return None
+    # Tokens of the same kind next to each other need only one element (eg. the parts of a doc comment)
+    merged = []
+    for kind, value in tokens:
+        if merged and merged[-1][0] == kind:
+            merged[-1] = (kind, merged[-1][1] + value)
+        elif value:
+            merged.append((kind, value))
     lines = []
     line = []
-    for kind, value in tokens:
+    for kind, value in merged:
         pieces = value.split("\n")
         for index, piece in enumerate(pieces):
             if index != 0:
@@ -274,20 +356,28 @@ def highlight_lines(text):
     return lines
 
 
+DARK_COLORS = """--bg: #0d1117; --fg: #e6edf3; --dim: #8b949e; --border: #30363d;
+  --head: #161b22; --c: #12361f; --u: #4a1b1b; --p: #3f3200; --cn: #3fb950; --un: #f85149; --pn: #d29922; --link: #58a6ff;
+  --code-bg: #1d2021; --code-fg: #d4be98; --keyword: #ea6962; --type: #d8a657; --method: #a9b665; --member: #7daea3;
+  --string: #89b482; --escape: #a9b665; --number: #d3869b; --comment: #928374; --directive: #d3869b; --operator: #e78a4e;"""
+
 STYLE = """
 :root { color-scheme: light dark; --bg: #fff; --fg: #1f2328; --dim: #6e7781; --border: #d0d7de; --head: #f6f8fa;
   --c: #d7f5dd; --u: #ffd8d3; --p: #fff1b8; --cn: #1a7f37; --un: #cf222e; --pn: #9a6700; --link: #0969da;
-  /* The code: they must be readable on the --c, --u and --p backgrounds too */
-  --keyword: #0033b3; --type: #00627a; --string: #8c3a00; --number: #7a3e9d; --comment: #5c6670; --directive: #6f42c1; }
-@media (prefers-color-scheme: dark) { :root { --bg: #0d1117; --fg: #e6edf3; --dim: #8b949e; --border: #30363d;
-  --head: #161b22; --c: #12361f; --u: #4a1b1b; --p: #3f3200; --cn: #3fb950; --un: #f85149; --pn: #d29922; --link: #58a6ff;
-  --keyword: #79c0ff; --type: #56d4dd; --string: #ffa657; --number: #d2a8ff; --comment: #9aa4af; --directive: #d2a8ff; } }
+  /* The code. The colors are the ones Neovim shows C# code with if it uses the Roslyn language server and
+     the gruvbox-material color scheme (light and dark). They must be readable on --c, --u and --p too. */
+  --code-bg: #f9f5d7; --code-fg: #654735; --keyword: #c14a4a; --type: #b47109; --method: #6c782e; --member: #45707a;
+  --string: #4c7a5d; --escape: #6c782e; --number: #945e80; --comment: #928374; --directive: #945e80; --operator: #c35e0a; }
+/* The dark colors: if the browser wants them and "light" isn't selected in the page, or if "dark" is selected */
+@media (prefers-color-scheme: dark) { :root:not([data-theme=light]) { DARK_COLORS } }
+:root[data-theme=dark] { color-scheme: dark; DARK_COLORS }
+:root[data-theme=light] { color-scheme: light; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 14px system-ui, sans-serif; }
 a { color: var(--link); text-decoration: none; } a:hover { text-decoration: underline; }
 header { position: sticky; top: 0; z-index: 1; background: var(--head); border-bottom: 1px solid var(--border);
   padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; }
 header h1 { font-size: 15px; margin: 0; } header .dim, .dim { color: var(--dim); }
-button { font: inherit; padding: 1px 8px; }
+button, select { font: inherit; padding: 1px 8px; }
 main { padding: 12px 16px; }
 table { border-collapse: collapse; margin-bottom: 24px; }
 th, td { padding: 3px 10px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
@@ -310,12 +400,34 @@ pre span::before { content: attr(data-b) "  " counter(line); display: inline-blo
 .c { background: var(--c); } .u { background: var(--u); } .p { background: var(--p); }
 pre span.c::before { border-right-color: var(--cn); } pre span.u::before { border-right-color: var(--un); }
 pre span.p::before { border-right-color: var(--pn); }
-pre i { font-style: normal; } .k { color: var(--keyword); } .t { color: var(--type); } .s { color: var(--string); }
-.n { color: var(--number); } .m, .d { color: var(--comment); font-style: italic; } .r { color: var(--directive); }
+pre { background: var(--code-bg); color: var(--code-fg); }
+pre i { font-style: normal; } .k { color: var(--keyword); } .t { color: var(--type); font-style: italic; }
+.f { color: var(--method); } .v { color: var(--member); } .s { color: var(--string); } .e { color: var(--escape); }
+.n { color: var(--number); } .o { color: var(--operator); } .m, .d { color: var(--comment); font-style: italic; }
+.r { color: var(--directive); font-style: italic; }
 /* The block the prev/next buttons jumped to */
 pre span.cur::before { color: var(--fg); font-weight: 700; border-right-width: 7px; padding-right: calc(1ch - 4px); }
 pre span:target { outline: 2px solid var(--link); outline-offset: -2px; }
 .legend span { padding: 0 6px; margin-right: 4px; }
+"""
+
+STYLE = STYLE.replace("DARK_COLORS", DARK_COLORS)
+
+# In the <head>: the selected colors are set before the page is shown
+THEME_HEAD_SCRIPT = "try{var t=localStorage.getItem('coverage-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}"
+THEME_SELECT = ('<label class="dim">colors: <select id="theme"><option value="">browser setting</option>'
+                '<option value="light">light</option><option value="dark">dark</option></select></label>')
+THEME_SCRIPT = """
+(function () {
+  var select = document.getElementById('theme');
+  select.value = document.documentElement.dataset.theme || '';
+  select.onchange = function () {
+    if (select.value) document.documentElement.dataset.theme = select.value;
+    else delete document.documentElement.dataset.theme;
+    // Remembered for all pages of the report
+    try { if (select.value) localStorage.setItem('coverage-theme', select.value); else localStorage.removeItem('coverage-theme'); } catch (e) { }
+  };
+})();
 """
 
 FILE_SCRIPT = """
@@ -359,7 +471,7 @@ FILE_SCRIPT = """
   document.getElementById('next').onclick = function () { go(1); };
   document.getElementById('prev').onclick = function () { go(-1); };
   document.addEventListener('keydown', function (e) {
-    if (e.ctrlKey || e.altKey || e.metaKey || /input|textarea/i.test(e.target.tagName)) return;
+    if (e.ctrlKey || e.altKey || e.metaKey || /input|textarea|select/i.test(e.target.tagName)) return;
     if (e.key === 'n') go(1); else if (e.key === 'p') go(-1);
   });
   // Line numbers aren't elements: a click left of the code sets the #L anchor
@@ -402,8 +514,9 @@ INDEX_SCRIPT = """
 def page(title, header, body, script, style_path):
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><title>{html.escape(title)}</title>'
             f'<meta name="viewport" content="width=device-width, initial-scale=1">'
-            f'<link rel="stylesheet" href="{style_path}"></head>\n<body><header>{header}</header>\n{body}\n'
-            f'<script>{script}</script></body></html>\n')
+            f'<link rel="stylesheet" href="{style_path}"><script>{THEME_HEAD_SCRIPT}</script></head>\n'
+            f'<body><header>{header}{THEME_SELECT}</header>\n{body}\n'
+            f'<script>{THEME_SCRIPT}{script}</script></body></html>\n')
 
 
 def totals_text(totals):
@@ -413,11 +526,13 @@ def totals_text(totals):
             f'<span class="dim">({totals.covered_branches} of {totals.branches})</span></span>')
 
 
-def write_file_page(output_directory, source_directory, source_file, lines, totals):
+def write_file_page(output_directory, source_directory, source_file, lines, totals, roslyn):
     depth = source_file.count("/") + 1
-    with open(os.path.join(source_directory, source_file), encoding="utf-8-sig", errors="replace") as file:
-        text = NEW_LINE.sub("\n", file.read())
-    source_lines = highlight_lines(text)
+    with open(os.path.join(source_directory, source_file), "rb") as file:
+        source_bytes = file.read()
+    raw_text = source_bytes.decode("utf-8-sig", errors="replace")
+    text = NEW_LINE.sub("\n", raw_text)
+    source_lines = highlight_lines(text, source_file, source_bytes, raw_text, roslyn)
     if source_lines is None:
         print(f"warning: {source_file}: the syntax highlighting failed, the code is shown without it", file=sys.stderr)
         source_lines = [html.escape(line, quote=False) for line in text.split("\n")]
@@ -486,9 +601,28 @@ def write_index(output_directory, file_totals, cobertura_files):
     return total
 
 
+def classify_with_roslyn(source_directory, output_directory):
+    """Runs the tool in coverage-highlighter. Returns None if it failed."""
+    project = os.path.join(os.path.dirname(os.path.abspath(__file__)), "coverage-highlighter")
+    classifications_file = os.path.join(output_directory, "roslyn-classifications.json")
+    try:
+        subprocess.run(["dotnet", "run", "-c", "Release", "--project", project, "--", os.path.abspath(source_directory), classifications_file], check=True)
+        return RoslynClassifications(classifications_file)
+    except (OSError, subprocess.CalledProcessError) as error:
+        print(f"error: --roslyn: {error}", file=sys.stderr)
+        return None
+    finally:
+        # It's not part of the report
+        if os.path.exists(classifications_file):
+            os.remove(classifications_file)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--output", default="coverage/html", help="directory of the report (default: coverage/html)")
+    parser.add_argument("--roslyn", action="store_true", help="semantic highlighting: types, methods, fields, parameters "
+                        "etc. have their own colors. Slower (it compiles dnlib's code with Roslyn) and needs the .NET SDK; "
+                        "without it, a tokenizer in this script colors keywords, strings, comments etc.")
     parser.add_argument("source_directory", help="full path of dnlib's src directory")
     parser.add_argument("cobertura_files", nargs="+")
     args = parser.parse_args()
@@ -500,10 +634,15 @@ def main():
     os.makedirs(args.output, exist_ok=True)
     with open(os.path.join(args.output, "style.css"), "w", encoding="utf-8", newline="\n") as file:
         file.write(STYLE)
+    roslyn = None
+    if args.roslyn:
+        roslyn = classify_with_roslyn(args.source_directory, args.output)
+        if roslyn is None:
+            return 1
     file_totals = {}
     for source_file, lines in files.items():
         file_totals[source_file] = Totals(lines)
-        write_file_page(args.output, args.source_directory, source_file, lines, file_totals[source_file])
+        write_file_page(args.output, args.source_directory, source_file, lines, file_totals[source_file], roslyn)
     total = write_index(args.output, file_totals, args.cobertura_files)
     print(f"HTML report: {os.path.abspath(os.path.join(args.output, 'index.html'))} "
           f"({len(files)} files, {percent_text(total.covered, total.lines)} of the lines covered)")

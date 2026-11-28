@@ -1,0 +1,4 @@
+<Project>
+  <!-- Empty: this tool isn't a test project, it must not get the settings of ../Directory.Build.props
+       (signing, a reference to dnlib) -->
+</Project>

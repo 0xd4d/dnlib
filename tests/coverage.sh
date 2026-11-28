@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs the tests and prints which lines of dnlib they execute, per source directory.
 #
-# usage: tests/coverage.sh [--slow] [--html] [--minimum <percent>] [leg...]
+# usage: tests/coverage.sh [--slow] [--html] [--roslyn] [--minimum <percent>] [leg...]
 #
 # --minimum fails (exit code 1) if less than that percentage of dnlib's lines is covered, so a change that
 # removes tests or adds a lot of untested code is noticed.
@@ -9,6 +9,9 @@
 # --html also writes an HTML report that shows dnlib's source code with the covered and the uncovered lines:
 # open tests/coverage/html/index.html in a browser. It's written by coverage-html.py, which can also merge
 # the reports of several runs (eg. the ones of the Windows and Ubuntu CI jobs).
+#
+# --roslyn is --html with semantic highlighting: types, methods, fields etc. have their own colors. It's slower,
+# the code is compiled with Roslyn (the tool in coverage-highlighter).
 #
 # The arguments are those of tests/test.sh. The default is the net10.0 leg only; with several legs, a line is
 # covered if any leg covers it. The reports are written to tests/coverage/ (Cobertura XML, one per leg).
@@ -26,11 +29,15 @@ options=()
 legs=()
 summary_options=()
 html=0
+html_options=()
 while [ $# -gt 0 ]; do
 	if [ "$1" = "--slow" ]; then
 		options+=("$1")
 	elif [ "$1" = "--html" ]; then
 		html=1
+	elif [ "$1" = "--roslyn" ]; then
+		html=1
+		html_options+=("$1")
 	elif [ "$1" = "--minimum" ]; then
 		summary_options+=(--minimum "$2")
 		shift
@@ -66,7 +73,7 @@ if ! command -v python3 >/dev/null; then
 fi
 # The HTML report is written first: it's also wanted when the coverage is below the minimum
 if [ $html = 1 ]; then
-	$python coverage-html.py --output coverage/html "$source_directory" coverage/*.cobertura.xml
+	$python coverage-html.py ${html_options[@]+"${html_options[@]}"} --output coverage/html "$source_directory" coverage/*.cobertura.xml
 fi
 
 $python coverage-summary.py ${summary_options[@]+"${summary_options[@]}"} "$source_directory" coverage/*.cobertura.xml | tee coverage/summary.txt
