@@ -242,6 +242,31 @@ namespace dnlib.Tests.Importing {
 			public delegate*<int, string, void> Managed;
 			public delegate* unmanaged[Cdecl]<byte, long> Unmanaged;
 			public List<delegate*<int, void>[]>? InGenericArgument;
+			public delegate* unmanaged[Stdcall]<void> Stdcall;
+			public delegate* unmanaged[Thiscall]<void> Thiscall;
+			public delegate* unmanaged[Fastcall]<void> Fastcall;
+			public delegate* unmanaged<void> PlatformDefault;
+			public delegate* unmanaged[Stdcall, SuppressGCTransition]<void> StdcallWithoutGCTransition;
+			public delegate* unmanaged[MemberFunction]<void> MemberFunction;
+		}
+
+		// The calling convention of an unmanaged function pointer: one of the four that the signature can have
+		// (C, StdCall, ThisCall, FastCall), or 'unmanaged' with the CallConv* types as modifiers of the return type
+		[Theory]
+		[InlineData("Stdcall", CallingConvention.StdCall)]
+		[InlineData("Thiscall", CallingConvention.ThisCall)]
+		[InlineData("Fastcall", CallingConvention.FastCall)]
+		[InlineData("PlatformDefault", CallingConvention.Unmanaged)]
+		[InlineData("StdcallWithoutGCTransition", CallingConvention.Unmanaged)]
+		[InlineData("MemberFunction", CallingConvention.Unmanaged)]
+		public void CallingConventionsOfUnmanagedFunctionPointers(string field, CallingConvention expected) {
+			var fieldInfo = typeof(FunctionPointers).GetField(field)!;
+			var imported = CreateImporter().Import(fieldInfo);
+
+			var signature = Assert.IsType<FnPtrSig>(imported.FieldSig!.Type).MethodSig!;
+			Assert.Equal(expected, signature.CallingConvention);
+			// The imported field is the field of the type
+			Assert.True(new SigComparer().Equals(imported, fieldInfo));
 		}
 
 		// Fixed in e9d791e4: function pointer types (.NET 8) weren't supported
