@@ -94,7 +94,28 @@ namespace dnlib.Tests.Model {
 			yield return new ArrayMarshalType(NativeType.I4, 1, 2, 3);
 			yield return new CustomMarshalType("guid", "native", types.Object.TypeDefOrRef, "cookie");
 			yield return new InterfaceMarshalType(NativeType.IUnknown, 1);
-			// Options of the writer
+			// Other objects of a module
+			var method = new MethodDefUser("Method", MethodSig.CreateStatic(types.Void));
+			yield return new CustomAttribute(new MemberRefUser(user, ".ctor", MethodSig.CreateInstance(types.Void), types.GetTypeRef("System", "ObsoleteAttribute")));
+			yield return new CANamedArgument(true, types.Int32, "Field", new CAArgument(types.Int32, 1));
+			yield return new SecurityAttribute(types.GetTypeRef("System.Security.Permissions", "SecurityPermissionAttribute"));
+			yield return new EmbeddedResource("Embedded", new byte[] { 1 });
+			yield return new AssemblyLinkedResource("Linked", new AssemblyRefUser("Other"), dnlib.DotNet.ManifestResourceAttributes.Public);
+			yield return new LinkedResource("File", new FileDefUser("file.bin", 0, null), dnlib.DotNet.ManifestResourceAttributes.Public);
+			yield return new AssemblyNameInfo();
+			yield return new MethodExportInfo("Export");
+			yield return new Resolver(new AssemblyResolver());
+			yield return new dnlib.DotNet.Emit.CilBody();
+			yield return new dnlib.DotNet.Pdb.PdbConstant("Constant", types.Int32, 1);
+			yield return new dnlib.DotNet.Pdb.PdbForwardMethodInfoCustomDebugInfo(method);
+			yield return new dnlib.DotNet.Pdb.PdbForwardModuleInfoCustomDebugInfo(method);
+			yield return new dnlib.DotNet.Pdb.PdbTupleElementNames();
+			yield return new dnlib.W32Resources.ResourceData(new dnlib.W32Resources.ResourceName(1));
+			yield return new dnlib.W32Resources.ResourceDirectoryUser(new dnlib.W32Resources.ResourceName("Name"));
+			// Options and parts of the writer
+			yield return new dnlib.DotNet.Writer.ModuleWriter(user);
+			yield return new dnlib.DotNet.Writer.ImportDirectory(false);
+			yield return new dnlib.DotNet.Writer.PESection(".text", 0x60000020);
 			yield return new dnlib.DotNet.Writer.Cor20HeaderOptions();
 			yield return new dnlib.DotNet.Writer.PEHeadersOptions();
 			yield return new dnlib.DotNet.Writer.MetadataHeaderOptions();
