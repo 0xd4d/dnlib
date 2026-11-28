@@ -36,6 +36,40 @@ namespace dnlib.Tests.Importing {
 			public static Generic<T> Create() => new Generic<T>();
 		}
 
+		// The test assembly read by dnlib: the reflection types and members of this assembly are its definitions
+		static readonly Lazy<ModuleDefMD> thisModule = new Lazy<ModuleDefMD>(() => ModuleDefMD.Load(typeof(ReflectionImporterTests).Module));
+
+		[Fact]
+		public void TypesAndMembersOfTheModuleItselfAreItsDefinitionsWithTheOption() {
+			var module = thisModule.Value;
+			var importer = new Importer(module, ImporterOptions.TryToUseDefs);
+
+			var type = Assert.IsAssignableFrom<TypeDef>(importer.Import(typeof(Generic<>)));
+			Assert.Same(module.Find(typeof(Generic<>).FullName!, isReflectionName: true), type);
+			Assert.IsAssignableFrom<FieldDef>(importer.Import(typeof(Generic<>).GetField("Value")!));
+			Assert.IsAssignableFrom<MethodDef>(importer.Import(typeof(Generic<>).GetMethod("Create")!));
+			// Without the option, they're references to the module itself
+			var typeRef = Assert.IsAssignableFrom<TypeRef>(new Importer(module).Import(typeof(ReflectionImporterTests)));
+			Assert.Same(module, typeRef.ResolutionScope);
+		}
+
+		// A type of another module of the target module's assembly is in a ModuleRef. An assembly reference that the
+		// target module has is used with the option.
+		[Fact]
+		public void TheScopeOfAnImportedTypeIsAModuleRefOrAnExistingAssemblyRef() {
+			var thisAssemblyName = typeof(ReflectionImporterTests).Assembly.GetName().Name!;
+			var sameAssemblyOtherModule = new ModuleDefUser("Other.netmodule");
+			new AssemblyDefUser(thisAssemblyName).Modules.Add(sameAssemblyOtherModule);
+			var typeRef = Assert.IsAssignableFrom<TypeRef>(new Importer(sameAssemblyOtherModule).Import(typeof(ReflectionImporterTests)));
+			Assert.Equal(typeof(ReflectionImporterTests).Module.ScopeName, Assert.IsAssignableFrom<ModuleRef>(typeRef.ResolutionScope).Name);
+
+			var target = CreateModule();
+			var existing = new AssemblyRefUser(typeof(Uri).Assembly.GetName());
+			target.UpdateRowId(existing);
+			var importedUri = Assert.IsAssignableFrom<TypeRef>(new Importer(target, ImporterOptions.TryToUseExistingAssemblyRefs).Import(typeof(Uri)));
+			Assert.Equal(typeof(Uri).Assembly.GetName().Name, ((AssemblyRef)importedUri.ResolutionScope!).Name);
+		}
+
 		[Fact]
 		public void TypeIsATypeRefToItsAssembly() {
 			var imported = CreateImporter().Import(typeof(Uri));
