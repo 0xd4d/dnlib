@@ -8,6 +8,7 @@ using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Writer;
 using dnlib.IO;
+using dnlib.PE;
 using dnlib.TestUtils;
 using dnlib.W32Resources;
 using Xunit;
@@ -251,6 +252,28 @@ namespace dnlib.Tests.Win32Resources {
 			Assert.True(new ResourceName(1) < new ResourceName(2));
 			Assert.True(new ResourceName("A") < new ResourceName("b"));
 			Assert.True(new ResourceName("a") < new ResourceName("B"));
+			// The other comparison operators
+			Assert.True(new ResourceName(1) <= new ResourceName(1));
+			Assert.True(new ResourceName(2) > new ResourceName(1));
+			Assert.True(new ResourceName(2) >= new ResourceName(2));
+			Assert.True(new ResourceName(1) != new ResourceName(2));
+			Assert.False(new ResourceName("a") != new ResourceName("A"));
+		}
+
+		// The data of a resource of the PE image is found by its type, name and language, and an entry is shown
+		// with its name
+		[Fact]
+		public void TheDataOfAResourceIsFoundInThePEImage() {
+			using (var module = ModuleDefMD.Load(compiledExe.Value)) {
+				var peImage = module.Metadata.PEImage;
+				var version = peImage.Win32Resources!.Find(versionType)!;
+				var name = Assert.IsAssignableFrom<ResourceDirectory>(version.Directories[0]);
+				var data = name.Data[0];
+
+				Assert.Same(data, peImage.FindWin32ResourceData(versionType, name.Name, data.Name));
+				Assert.Null(peImage.FindWin32ResourceData(99, 1, 0));
+				Assert.Equal(name.Name.ToString(), name.ToString());
+			}
 		}
 
 		[Fact]

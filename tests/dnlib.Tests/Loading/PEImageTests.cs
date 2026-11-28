@@ -172,6 +172,28 @@ namespace dnlib.Tests.Loading {
 			}
 		}
 
+		// The fields of the debug directory entries, and rounding up to an alignment
+		[Fact]
+		public void DebugDirectoryEntriesHaveTheirFields() {
+			using (var image = new PEImage(Image))
+			using (var peReader = new PEReader(ImmutableArray.Create(Image))) {
+				var expected = peReader.ReadDebugDirectory();
+				var entries = image.ImageDebugDirectories;
+				Assert.Equal(expected.Length, entries.Count);
+				for (int i = 0; i < entries.Count; i++) {
+					Assert.Equal(0U, entries[i].Characteristics);
+					Assert.Equal((FileOffset)expected[i].DataPointer, entries[i].PointerToRawData);
+				}
+			}
+			Assert.Equal((RVA)0x2000, ((RVA)0x1001).AlignUp(0x1000));
+			Assert.Equal((FileOffset)0x400, ((FileOffset)0x201).AlignUp(0x200));
+		}
+
+		// A layout that isn't a file or a loaded image
+		[Fact]
+		public void AnInvalidLayoutIsRejected() =>
+			Assert.Throws<ArgumentException>(() => new PEImage(Image, (ImageLayout)7, verify: true));
+
 		// In a loaded image, everything is at its RVA
 		[Fact]
 		public void AddressesAreTheOffsetsInALoadedImage() {
