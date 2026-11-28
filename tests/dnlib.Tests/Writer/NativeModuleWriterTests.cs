@@ -121,6 +121,43 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// The sections of the original file and the writer's parts, while the module is written. They don't exist
+		// before Write().
+		[Fact]
+		public void TheOriginalSectionsAreKnownWhileTheModuleIsWritten() {
+			using (var module = ModuleDefMD.Load(Image)) {
+				var options = new NativeModuleWriterOptions(module, optimizeImageSize: true);
+				var writer = new NativeModuleWriter(module, options);
+				Assert.Throws<InvalidOperationException>(() => writer.Sections);
+				Assert.Throws<InvalidOperationException>(() => writer.OrigSections);
+				Assert.Throws<InvalidOperationException>(() => writer.TextSection);
+				Assert.Same(module, writer.ModuleDefMD);
+				Assert.True(writer.IsNativeWriter);
+				bool asked = false;
+				// The original sections are freed when the file has been written: they're asked for before that
+				options.WriterEvent += (sender, e) => {
+					if (e.Event != ModuleWriterEvent.BeginWriteChunks)
+						return;
+					var nativeWriter = Assert.IsType<NativeModuleWriter>(e.Writer);
+					Assert.Equal(module.Metadata.PEImage.ImageSectionHeaders.Count, nativeWriter.OrigSections.Count);
+					Assert.All(nativeWriter.OrigSections, a => Assert.Contains("FO:", a.ToString()));
+					// Sections has the sections that the writer adds to the original ones
+					Assert.NotNull(nativeWriter.Sections);
+					Assert.NotNull(nativeWriter.TextSection);
+					Assert.Same(options, nativeWriter.Options);
+					_ = nativeWriter.RsrcSection;
+					asked = true;
+				};
+				var stream = new MemoryStream();
+				writer.Write(stream);
+				Assert.True(asked);
+				// The options can be replaced
+				var otherOptions = new NativeModuleWriterOptions(module, optimizeImageSize: false);
+				writer.Options = otherOptions;
+				Assert.Same(otherOptions, writer.Options);
+			}
+		}
+
 		// NativeWrite() to a file and to a stream with the default options
 		[Fact]
 		public void NativeWriteToAFileOrAStream() {
