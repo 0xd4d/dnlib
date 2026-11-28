@@ -11,7 +11,7 @@ namespace dnlib.IO {
 		public override void ReadBytes(uint offset, void* destination, int length) {
 			var p = (byte*)destination;
 			for (int i = 0; i < length; i++)
-				*p = 0;
+				p[i] = 0;
 		}
 		public override void ReadBytes(uint offset, byte[] destination, int destinationIndex, int length) {
 			for (int i = 0; i < length; i++)
