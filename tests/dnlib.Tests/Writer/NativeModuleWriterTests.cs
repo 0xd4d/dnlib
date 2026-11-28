@@ -99,6 +99,28 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// Without values in the options, the writer calculates the characteristics (32 or 64 bit, DLL or EXE) and
+		// the subsystem, and the entry point can be set in the options
+		[Fact]
+		public void HeaderValuesThatTheOptionsDoNotHaveAreCalculated() {
+			using (var module = ModuleDefMD.Load(Image)) {
+				var options = new NativeModuleWriterOptions(module, optimizeImageSize: true);
+				options.PEHeadersOptions.Characteristics = null;
+				options.PEHeadersOptions.Subsystem = null;
+				options.Cor20HeaderOptions.EntryPoint = 0;
+				var stream = new MemoryStream();
+				module.NativeWrite(stream, options);
+
+				using (var peReader = new PEReader(ImmutableArray.Create(stream.ToArray()))) {
+					var headers = peReader.PEHeaders;
+					Assert.True((headers.CoffHeader.Characteristics & System.Reflection.PortableExecutable.Characteristics.Dll) != 0);
+					Assert.True((headers.CoffHeader.Characteristics & System.Reflection.PortableExecutable.Characteristics.Bit32Machine) != 0);
+					Assert.Equal(System.Reflection.PortableExecutable.Subsystem.WindowsCui, headers.PEHeader!.Subsystem);
+					Assert.Equal(0, headers.CorHeader!.EntryPointTokenOrRelativeVirtualAddress);
+				}
+			}
+		}
+
 		// NativeWrite() to a file and to a stream with the default options
 		[Fact]
 		public void NativeWriteToAFileOrAStream() {
