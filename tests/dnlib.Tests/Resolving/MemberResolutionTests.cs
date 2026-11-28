@@ -32,6 +32,10 @@ public class MostDerived : Derived { }
 public struct Struct {
 	public override string ToString() => null;
 }
+public class WithStaticConstructor {
+	public static int Value;
+	static WithStaticConstructor() { Value = 1; }
+}
 ";
 		readonly ModuleDefMD module;
 		readonly TypeDef baseType, derived, mostDerived;
@@ -272,6 +276,50 @@ public struct Struct {
 
 			Assert.Same(baseType.FindEvent("Changed"), mostDerived.FindEventCheckBaseType("Changed"));
 			Assert.Null(mostDerived.FindEventCheckBaseType("CHANGED"));
+		}
+
+		// The virtual method of a struct is found in the struct's own methods (the CLR's unboxed copy of it)
+		[Fact]
+		public void MemberRefResolvesToAVirtualMethodOfAStruct() {
+			var structType = module.Find("Struct", isReflectionName: true)!;
+			var reference = CreateMethodRef(structType, "ToString", MethodSig.CreateInstance(CorLib.String));
+
+			Assert.Same(structType.FindMethod("ToString"), structType.Resolve(reference));
+			// A method that the struct doesn't have isn't found in a base type: a struct inherits nothing
+			Assert.Null(structType.Resolve(CreateMethodRef(structType, "Missing", MethodSig.CreateInstance(CorLib.Void))));
+		}
+
+		[Fact]
+		public void MemberRefResolvesToAStaticConstructor() {
+			var type = module.Find("WithStaticConstructor", isReflectionName: true)!;
+			var reference = CreateMethodRef(type, ".cctor", MethodSig.CreateStatic(CorLib.Void));
+
+			Assert.Same(type.FindStaticConstructor(), type.Resolve(reference));
+			// A .cctor with another signature
+			Assert.Null(type.Resolve(CreateMethodRef(type, ".cctor", MethodSig.CreateStatic(CorLib.Int32))));
+		}
+
+		// Several virtual methods with the same name and signature in one type (only possible in IL): the CLR
+		// uses the last one that creates a new slot, or else the first one that overrides a base type's method
+		[Theory, InlineData(false), InlineData(true)]
+		public void MemberRefResolvesToTheVirtualMethodTheCLRUses(bool lastIsNewSlot) {
+			var user = new ModuleDefUser("User.dll");
+			var types = user.CorLibTypes;
+			var baseUser = new TypeDefUser("Ns", "Base", types.Object.TypeDefOrRef);
+			var derivedUser = new TypeDefUser("Ns", "Derived", baseUser);
+			user.Types.Add(baseUser);
+			user.Types.Add(derivedUser);
+			var sig = MethodSig.CreateInstance(types.Void);
+			const MethodAttributes virtualMethod = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
+			baseUser.Methods.Add(new MethodDefUser("M", sig, virtualMethod | MethodAttributes.NewSlot));
+			var first = new MethodDefUser("M", sig, virtualMethod);
+			var last = new MethodDefUser("M", sig, virtualMethod | (lastIsNewSlot ? MethodAttributes.NewSlot : 0));
+			derivedUser.Methods.Add(first);
+			derivedUser.Methods.Add(last);
+
+			var resolved = derivedUser.Resolve(new MemberRefUser(user, "M", sig, derivedUser));
+
+			Assert.Same(lastIsNewSlot ? last : first, resolved);
 		}
 	}
 }
