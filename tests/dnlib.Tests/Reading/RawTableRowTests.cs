@@ -106,6 +106,9 @@ namespace dnlib.Tests.Reading {
 					Assert.Equal((uint)column + 1, GetColumn(row, column));
 					Assert.Equal(mdTable.Columns[column].Name, parameters[column].Name);
 				}
+				// A column that the table doesn't have is 0
+				Assert.Equal(0U, GetColumn(row, parameters.Length));
+				Assert.Equal(0U, GetColumn(row, -1));
 				count++;
 			}
 			Assert.True(count >= 53, $"Only {count} tables were checked");
