@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using dnlib.DotNet;
@@ -465,6 +466,33 @@ namespace dnlib.Tests.Resolving {
 			finally {
 				DisposeAll(resolver);
 			}
+		}
+
+		// A file with the assembly's name that isn't a .NET file is skipped
+		[Fact]
+		public void AFileThatIsNotAnAssemblyIsSkipped() {
+			var libraryDirectory = directory.GetPath("notanassembly");
+			Directory.CreateDirectory(libraryDirectory);
+			File.WriteAllBytes(Path.Combine(libraryDirectory, "DnlibTestNotAnAssembly.dll"), new byte[] { 1, 2, 3, 4 });
+			var resolver = CreateResolver(libraryDirectory);
+
+			Assert.Null(resolver.Resolve(CreateReference("DnlibTestNotAnAssembly", "1.0.0.0"), sourceModule: null));
+		}
+
+		sealed class PrivatePathsResolver : AssemblyResolver {
+			public IEnumerable<string> GetPrivatePaths(ModuleDef? module) => GetModulePrivateSearchPaths(module);
+		}
+
+		// A module that wasn't read from a file, or that isn't in an assembly, has no private search paths
+		[Fact]
+		public void AModuleWithoutAFileOrAnAssemblyHasNoPrivateSearchPaths() {
+			var resolver = new PrivatePathsResolver();
+			var inAssembly = new ModuleDefUser("InAssembly.dll");
+			new AssemblyDefUser("InAssembly").Modules.Add(inAssembly);
+
+			Assert.Empty(resolver.GetPrivatePaths(null));
+			Assert.Empty(resolver.GetPrivatePaths(new ModuleDefUser("NoAssembly.dll")));
+			Assert.Empty(resolver.GetPrivatePaths(inAssembly));
 		}
 	}
 }
