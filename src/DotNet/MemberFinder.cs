@@ -728,6 +728,9 @@ namespace dnlib.DotNet {
 				case ElementType.MVar:
 				case ElementType.Internal:
 				case ElementType.CModInternal:
+				case ElementType.VarZapSig:
+				case ElementType.NativeValueTypeZapSig:
+				case ElementType.CanonZapSig:
 				case ElementType.Module:
 				case ElementType.Sentinel:
 				case ElementType.Pinned:

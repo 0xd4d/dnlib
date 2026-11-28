@@ -36,6 +36,7 @@ public class B : Attribute {
 public class NotAnAttribute {
 	public NotAnAttribute(object value) { }
 }
+public class G<T, U> where U : struct { }
 [A(1)]
 public class Marker { }
 ";
@@ -236,6 +237,88 @@ public class Marker { }
 			}
 			else
 				ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadWithTheRuntime(image));
+		}
+
+		// The bytes are the value of the attribute and the parameter of A's constructor gets another type: both
+		// are added to the end of the #Blob heap
+		static byte[] CreateImageWithConstructorParameter(string parameterType, string attributeBytes) {
+			uint constructorRid;
+			byte[] type;
+			using (var module = ModuleDefMD.Load(baseImage)) {
+				constructorRid = module.Find("A", isReflectionName: true)!.FindMethod(".ctor")!.Rid;
+				var genericParameters = module.Find("G`2", isReflectionName: true)!.GenericParameters;
+				switch (parameterType) {
+				case "System.__Canon (3E)": type = new byte[] { 0x3E }; break;
+				case "generic parameter T of G (3B)": type = new byte[] { 0x3B, (byte)genericParameters[0].Rid }; break;
+				case "generic parameter U of G, a value type (3B)": type = new byte[] { 0x3B, (byte)genericParameters[1].Rid }; break;
+				case "native Int32 (3D 08)": type = new byte[] { 0x3D, 0x08 }; break;
+				case "native Object (3D 1C)": type = new byte[] { 0x3D, 0x1C }; break;
+				default: throw new ArgumentException(parameterType);
+				}
+			}
+			var bytes = ParseBytes(attributeBytes);
+			// An instance method with 1 parameter that returns void
+			var signature = new byte[] { 0x20, 0x01, 0x01 }.Concat(type).ToArray();
+			int heapLength = new MetadataBlock(baseImage).GetStream("#Blob").Data.Length;
+			var block = new MetadataBlock(new MetadataPatcher(baseImage)
+				.SetCell(Table.CustomAttribute, attributeRid, "Value", (uint)heapLength)
+				.SetCell(Table.Method, constructorRid, "Signature", (uint)(heapLength + 1 + bytes.Length)).ToArray());
+			block.RemoveStream(ClrReaderComparison.PaddingStreamName);
+			var heap = block.GetStream("#Blob");
+			heap.Data = heap.Data.Concat(new[] { (byte)bytes.Length }).Concat(bytes).Concat(new[] { (byte)signature.Length }).Concat(signature).ToArray();
+			return block.Write();
+		}
+
+		// The elements of an array are arguments too
+		static string DescribeRuntimeArgument(CustomAttributeTypedArgument argument) =>
+			argument.Value is IEnumerable<CustomAttributeTypedArgument> list ? "[" + string.Join(",", list.Select(DescribeRuntimeArgument)) + "]" : DescribeRuntimeValue(argument.Value);
+
+		// The argument that the runtime reads, the attribute isn't created: its constructor would get an object
+		// as a value of another type
+		static string ReadDataWithTheRuntime(byte[] image) {
+			try {
+				using (var loaded = new LoadedAssembly(image)) {
+					var type = loaded.Assembly.ManifestModule.ResolveType(new MDToken(Table.TypeDef, markerRid).ToInt32());
+					return DescribeRuntimeArgument(CustomAttributeData.GetCustomAttributes(type).Single().ConstructorArguments.Single());
+				}
+			}
+			catch (Exception ex) {
+				return "throws " + ex.GetType().Name;
+			}
+		}
+
+		// Fixed in this commit: a constructor parameter whose type is one of the types of the runtime's own
+		// signatures (3B: a generic parameter, 3D: a native value type, 3E: System.__Canon) wasn't read, dnlib
+		// only had the bytes of the attribute. The runtime loads a class for these types and reads the argument
+		// like a System.Object argument: the type of the value and the value. The writer writes it the same way.
+		[Theory]
+		[InlineData("System.__Canon (3E)", "01 00 08 05 00 00 00 00 00", "Int32:5", "Int32:5")]
+		[InlineData("System.__Canon (3E)", "01 00 0E S:abc 00 00", "'abc'", "'abc'")]
+		[InlineData("System.__Canon (3E)", "01 00 50 S:Marker 00 00", "typeof(Marker)", "typeof(Marker)")]
+		[InlineData("System.__Canon (3E)", "01 00 1D 08 02 00 00 00 01 00 00 00 02 00 00 00 00 00", "[Int32:1,Int32:2]", "[Int32:1,Int32:2]")]
+		[InlineData("System.__Canon (3E)", "01 00 08 05 00 00 00 01 00 54 0E S:Named S:abc", "Int32:5 Named='abc'", "Int32:5")]
+		[InlineData("System.__Canon (3E)", "01 00 1C 00 00", "not read", "throws CustomAttributeFormatException")]
+		[InlineData("generic parameter T of G (3B)", "01 00 08 05 00 00 00 00 00", "Int32:5", "Int32:5")]
+		[InlineData("generic parameter T of G (3B)", "01 00 0E S:abc 00 00", "'abc'", "'abc'")]
+		// The runtime doesn't read an argument whose type is a value type that isn't an enum
+		[InlineData("generic parameter U of G, a value type (3B)", "01 00 08 05 00 00 00 00 00", "Int32:5", "throws ArgumentException")]
+		[InlineData("native Int32 (3D 08)", "01 00 08 05 00 00 00 00 00", "Int32:5", "Int32:5")]
+		[InlineData("native Int32 (3D 08)", "01 00 0E S:abc 00 00", "'abc'", "'abc'")]
+		[InlineData("native Object (3D 1C)", "01 00 08 05 00 00 00 00 00", "Int32:5", "Int32:5")]
+		public void ConstructorParameterOfARuntimeOwnType(string parameterType, string attributeBytes, string expectedDnlib, string expectedRuntime) {
+			var image = CreateImageWithConstructorParameter(parameterType, attributeBytes);
+
+			ClrReaderComparison.AssertRead(expectedDnlib, ReadWithDnlib(image), expectedRuntime, () => ReadDataWithTheRuntime(image));
+
+			// The writer writes the same bytes: dnlib reads the same from the file that it wrote
+			using (var module = ModuleDefMD.Load(image)) {
+				var attribute = module.ResolveTypeDef(markerRid)!.CustomAttributes.Single();
+				bool wasRead = !attribute.IsRawBlob;
+				var stream = new System.IO.MemoryStream();
+				module.Write(stream);
+				Assert.Equal(expectedDnlib, ReadWithDnlib(stream.ToArray()));
+				Assert.Equal(expectedDnlib != "not read", wasRead);
+			}
 		}
 
 		// The Type column of the attribute's row is the token of its constructor: the row * 8 + the table

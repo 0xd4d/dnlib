@@ -1564,6 +1564,39 @@ namespace dnlib.DotNet {
 			case ElementType.Sentinel:
 				break;
 
+			case ElementType.VarZapSig: {
+				// Like a GenericVar/GenericMVar if the generic parameter is known
+				var zapGenericParam = ((VarZapSig)typeSig).GenericParam;
+				if (isReflection && (flags & TYPESIG_ONLY_NAMESPACE) != 0) {
+					var ownerType = zapGenericParam?.Owner as TypeDef ?? (zapGenericParam?.Owner as MethodDef)?.DeclaringType;
+					if (ownerType is not null)
+						CreateNamespace(ownerType, true);
+				}
+				if (createName && (zapGenericParam is null || !AddName(zapGenericParam.Name))) {
+					sb.Append("GenericParam(");
+					sb.Append(((VarZapSig)typeSig).GenericParamRid);
+					sb.Append(')');
+				}
+				break;
+			}
+
+			case ElementType.NativeValueTypeZapSig:
+				// System.Reflection: "VALUETYPE" and the name of the next type
+				if (createName)
+					sb.Append(isReflection ? "VALUETYPE" : "native ");
+				CreateTypeSigName(typeSig.Next, flags);
+				break;
+
+			case ElementType.CanonZapSig:
+				if (createNamespace) {
+					sb.Append("System");
+					if (createName)
+						sb.Append('.');
+				}
+				if (createName)
+					sb.Append("__Canon");
+				break;
+
 			case ElementType.End:
 			case ElementType.R:
 			case ElementType.Internal:
@@ -1967,6 +2000,11 @@ namespace dnlib.DotNet {
 				result = GetDefinitionAssembly(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
 				break;
 
+			// System.__Canon is a class of the core library
+			case ElementType.CanonZapSig:
+				result = GetDefinitionAssembly(((CanonZapSig)typeSig).TypeRef);
+				break;
+
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.Array:
@@ -1975,6 +2013,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetDefinitionAssembly(typeSig.Next);
 				break;
@@ -1988,6 +2027,7 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:
@@ -2037,6 +2077,11 @@ namespace dnlib.DotNet {
 				result = GetScopeType(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
 				break;
 
+			// System.__Canon is a class of the core library
+			case ElementType.CanonZapSig:
+				result = GetScopeType(((CanonZapSig)typeSig).TypeRef);
+				break;
+
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.Array:
@@ -2045,6 +2090,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetScopeType(typeSig.Next);
 				break;
@@ -2056,6 +2102,7 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:
@@ -2105,6 +2152,11 @@ namespace dnlib.DotNet {
 				result = GetScope(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
 				break;
 
+			// System.__Canon is a class of the core library
+			case ElementType.CanonZapSig:
+				result = GetScope(((CanonZapSig)typeSig).TypeRef);
+				break;
+
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.Array:
@@ -2113,6 +2165,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetScope(typeSig.Next);
 				break;
@@ -2124,6 +2177,7 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:
@@ -2173,6 +2227,11 @@ namespace dnlib.DotNet {
 				result = GetOwnerModule(((TypeDefOrRefSig)typeSig).TypeDefOrRef);
 				break;
 
+			// System.__Canon is a class of the core library
+			case ElementType.CanonZapSig:
+				result = GetOwnerModule(((CanonZapSig)typeSig).TypeRef);
+				break;
+
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.Array:
@@ -2181,6 +2240,7 @@ namespace dnlib.DotNet {
 			case ElementType.CModOpt:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				result = GetOwnerModule(typeSig.Next);
 				break;
@@ -2192,6 +2252,7 @@ namespace dnlib.DotNet {
 			case ElementType.Var:
 			case ElementType.MVar:
 			case ElementType.FnPtr:
+			case ElementType.VarZapSig:
 			case ElementType.Sentinel:
 			case ElementType.End:
 			case ElementType.R:

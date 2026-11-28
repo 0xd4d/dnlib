@@ -219,6 +219,7 @@ namespace dnlib.DotNet {
 
 			case ElementType.Var:
 			case ElementType.MVar:
+			case ElementType.VarZapSig:
 				res = true;
 				break;
 
@@ -238,6 +239,7 @@ namespace dnlib.DotNet {
 			case ElementType.SZArray:
 			case ElementType.Pinned:
 			case ElementType.ValueArray:
+			case ElementType.NativeValueTypeZapSig:
 			case ElementType.Module:
 				res = ContainsGenericParameterInternal(((NonLeafSig)type).Next);
 				break;
@@ -252,6 +254,7 @@ namespace dnlib.DotNet {
 			case ElementType.R:
 			case ElementType.Internal:
 			case ElementType.CModInternal:
+			case ElementType.CanonZapSig:
 			case ElementType.Sentinel:
 			default:
 				res = false;

@@ -26,12 +26,13 @@ public static class Marker {
 	public static int Field;
 	public static System.Collections.Generic.List<int> List;
 	public static System.DateTime Date;
+	public static System.Nullable<int> Nullable;
 	public static void Method(int a, string b) { }
 }
 ";
 		static readonly byte[] baseImage = ClrReaderComparison.CreateBaseImage(Source);
 		static readonly uint fieldRid, methodRid;
-		static readonly string objectToken, listToken, dateTimeToken, markerToken;
+		static readonly string objectToken, listToken, dateTimeToken, markerToken, nullableToken;
 
 		static ClrSignatureRuleTests() {
 			using (var module = ModuleDefMD.Load(baseImage)) {
@@ -42,6 +43,7 @@ public static class Marker {
 				listToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "List`1"));
 				dateTimeToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "DateTime"));
 				markerToken = GetCodedToken(type);
+				nullableToken = GetCodedToken(module.GetTypeRefs().Single(a => a.Name == "Nullable`1"));
 			}
 		}
 
@@ -52,10 +54,10 @@ public static class Marker {
 			return token.ToString("X2");
 		}
 
-		// The bytes as hex numbers. {Object}, {List}, {DateTime} and {Marker} are the tokens of these types,
+		// The bytes as hex numbers. {Object}, {List}, {DateTime}, {Nullable} and {Marker} are the tokens of these types,
 		// {TypeSpec} is the token of the first row of the TypeSpec table.
 		static byte[] ParseSignature(string signature) =>
-			signature.Replace("{Object}", objectToken).Replace("{List}", listToken).Replace("{DateTime}", dateTimeToken).Replace("{Marker}", markerToken).Replace("{TypeSpec}", "06")
+			signature.Replace("{Object}", objectToken).Replace("{List}", listToken).Replace("{DateTime}", dateTimeToken).Replace("{Marker}", markerToken).Replace("{Nullable}", nullableToken).Replace("{TypeSpec}", "06")
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(a => Convert.ToByte(a, 16)).ToArray();
 
 		// Adds the signature to the end of the #Blob heap. The field or the method then has that signature.
@@ -90,7 +92,7 @@ public static class Marker {
 					return "no signature";
 				var type = field.FieldSig.Type;
 				// The reflection name of a function pointer doesn't show its signature
-				if (type is FnPtrSig)
+				if (type is FnPtrSig || type is VarZapSig)
 					return type.FullName;
 				return WithoutAssemblyNames(type?.ReflectionFullName ?? "no type");
 			}
@@ -194,6 +196,27 @@ public static class Marker {
 		[InlineData("06 1B 00 00 01", "System.Void ()", "System.Void()")]
 		[InlineData("06 1B 00 01 08 0E", "System.Int32 (System.String)", "System.Int32(System.String)")]
 		[InlineData("06 1B 06 08", "<<<NULL>>>", "throws COMException")]
+		// The runtime's own element types (see the method signatures below): not in a field signature
+		[InlineData("06 3D 05", "VALUETYPESystem.Byte", "throws COMException")]
+		[InlineData("06 3E", "System.__Canon", "throws COMException")]
+		[InlineData("06 3B 01", "GenericParam(1)", "throws COMException")]
+		// Fixed in this commit: a function pointer whose signature has the calling convention of a property (8)
+		// or of a generic method instantiation (A) had no method signature, and with A the bytes after it
+		// were read as something else. The runtime reads a method signature whatever the calling convention is.
+		[InlineData("06 1B 08 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 28 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 08 01 08 0E", "System.Int32 (System.String)", "System.Int32(System.String)")]
+		[InlineData("06 1B 0A 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 05 00 01", "System.Void ()", "System.Void(...)")]
+		[InlineData("06 1B 09 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 0B 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 0C 00 01", "System.Void ()", "System.Void()")]
+		[InlineData("06 1B 07 00 01", "<<<NULL>>>", "throws TypeLoadException")]
+		[InlineData("06 1B 07 01 08", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 06 01", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 0D 00 01", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 0E 00 01", "<<<NULL>>>", "throws COMException")]
+		[InlineData("06 1B 0F 00 01", "<<<NULL>>>", "throws COMException")]
 		public void FieldType(string signature, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(signature);
 
@@ -207,7 +230,7 @@ public static class Marker {
 				if (sig is null)
 					return "no signature";
 				// A generic parameter that doesn't exist has no reflection name: "!!0" is its dnlib name
-				string Name(TypeSig? type) => type is null ? "no type" : type is GenericSig ? type.FullName : WithoutAssemblyNames(type.ReflectionFullName);
+				string Name(TypeSig? type) => type is null ? "no type" : type is GenericSig || type is VarZapSig ? type.FullName : WithoutAssemblyNames(type.ReflectionFullName);
 				var parameters = sig.Params.Select(Name);
 				if (sig.ParamsAfterSentinel is not null)
 					parameters = parameters.Concat(new[] { "..." }).Concat(sig.ParamsAfterSentinel.Select(Name));
@@ -296,6 +319,50 @@ public static class Marker {
 		[InlineData("00 03 01 08 41 0E 41 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 03 01 41 08 0E 08", "System.Void(System.Int32,System.String,System.Int32)", "throws TypeLoadException")]
 		[InlineData("00 01 01 45 08", "System.Void(System.Int32)", "System.Void(System.Int32)")]
+		// The byte before the token of the generic type of a generic instance (15): 12 = a class, 11 = a value
+		// type. The runtime only checks whether it's 12: with any other byte, the type must be a value type.
+		[InlineData("00 01 01 15 11 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 12 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "throws TypeLoadException")]
+		[InlineData("00 01 01 15 08 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 00 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 13 {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 1C {Nullable} 01 08", "System.Void(System.Nullable`1[[System.Int32]])", "System.Void(System.Nullable`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 12 {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "System.Void(System.Collections.Generic.List`1[[System.Int32]])")]
+		[InlineData("00 01 01 15 11 {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "throws TypeLoadException")]
+		[InlineData("00 01 01 15 08 {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "throws TypeLoadException")]
+		[InlineData("00 01 01 15 1C {List} 01 08", "System.Void(System.Collections.Generic.List`1[[System.Int32]])", "throws TypeLoadException")]
+		// Fixed in this commit: dnlib didn't read the element types 3B, 3D and 3E, which the runtime only uses in
+		// its own signatures but also reads in a method signature of a file. 3D = the native view of the type that
+		// follows ("VALUETYPE" in System.Reflection), 3E = System.__Canon, 3B = the generic parameter with the
+		// rid that follows (the module of these tests has none; dnlib has no name for it, only the rid).
+		// The runtime only loads the method if the type is the last one of the signature, dnlib reads it
+		// everywhere. 3F (a type of another module, a ModuleSig in dnlib) isn't here: the runtime crashes.
+		[InlineData("00 01 01 3D 05", "System.Void(VALUETYPESystem.Byte)", "System.Void(VALUETYPESystem.Byte)")]
+		[InlineData("00 01 01 3D 11 {DateTime}", "System.Void(VALUETYPESystem.DateTime)", "System.Void(VALUETYPESystem.DateTime)")]
+		[InlineData("00 01 01 3D 12 {Object}", "System.Void(VALUETYPESystem.Object)", "System.Void(VALUETYPESystem.Object)")]
+		[InlineData("00 01 01 3D 0E", "System.Void(VALUETYPESystem.String)", "System.Void(VALUETYPESystem.String)")]
+		[InlineData("00 01 01 3D 1D 05", "System.Void(VALUETYPESystem.Byte[])", "System.Void(VALUETYPESystem.Byte[])")]
+		[InlineData("00 01 01 1D 3D 05", "System.Void(VALUETYPESystem.Byte[])", "System.Void(VALUETYPESystem.Byte[])")]
+		[InlineData("00 01 01 10 3D 05", "System.Void(VALUETYPESystem.Byte&)", "System.Void(VALUETYPESystem.Byte&)")]
+		[InlineData("00 01 01 0F 3D 05", "System.Void(VALUETYPESystem.Byte*)", "System.Void(VALUETYPESystem.Byte*)")]
+		[InlineData("00 01 01 3D 3D 05", "System.Void(VALUETYPEVALUETYPESystem.Byte)", "System.Void(VALUETYPEVALUETYPESystem.Byte)")]
+		[InlineData("00 01 01 20 {Object} 3D 05", "System.Void(VALUETYPESystem.Byte)", "System.Void(VALUETYPESystem.Byte)")]
+		[InlineData("00 01 01 3D 20 {Object} 05", "System.Void(VALUETYPESystem.Byte)", "System.Void(VALUETYPESystem.Byte)")]
+		[InlineData("00 00 3D 05", "VALUETYPESystem.Byte()", "VALUETYPESystem.Byte()")]
+		[InlineData("00 02 01 08 3D 05", "System.Void(System.Int32,VALUETYPESystem.Byte)", "System.Void(System.Int32,VALUETYPESystem.Byte)")]
+		[InlineData("00 02 01 3D 05 08", "System.Void(VALUETYPESystem.Byte,System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 01 01 3E", "System.Void(System.__Canon)", "System.Void(System.__Canon)")]
+		[InlineData("00 01 01 1D 3E", "System.Void(System.__Canon[])", "System.Void(System.__Canon[])")]
+		[InlineData("00 00 3E", "System.__Canon()", "System.__Canon()")]
+		[InlineData("00 02 01 3E 08", "System.Void(System.__Canon,System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 01 01 3B 01", "System.Void(GenericParam(1))", "throws BadImageFormatException")]
+		[InlineData("00 01 01 3B 00", "System.Void(GenericParam(0))", "throws BadImageFormatException")]
+		[InlineData("00 02 01 3B 01 08", "System.Void(GenericParam(1),System.Int32)", "throws TypeLoadException")]
+		[InlineData("00 01 01 3C 08", "System.Void(no type)", "throws BadImageFormatException")]
+		[InlineData("00 01 01 3A 08", "System.Void(no type)", "throws BadImageFormatException")]
+		[InlineData("00 01 01 23 08", "System.Void(no type)", "throws BadImageFormatException")]
+		[InlineData("00 02 01 1B 0A 00 01 08", "System.Void((fnptr),System.Int32)", "System.Void(System.Void(),System.Int32)")]
+		[InlineData("00 02 01 1B 08 00 01 08", "System.Void((fnptr),System.Int32)", "System.Void(System.Void(),System.Int32)")]
 		[InlineData("00 01 01 1E 00", "System.Void(!!0)", "throws BadImageFormatException")]
 		public void MethodSignature(string signature, string expectedDnlib, string expectedRuntime) {
 			var image = CreateImage(signature, Table.Method);
@@ -337,8 +404,9 @@ public static class Marker {
 				var type = module.ResolveTypeSpec(1)!.TypeSig;
 				if (type is null)
 					return "no type";
-				// The reflection name of a function pointer doesn't show its signature
-				if (type is FnPtrSig)
+				// The reflection name of a function pointer doesn't show its signature, and the reflection full
+				// name of a generic parameter with a rid is an empty string
+				if (type is FnPtrSig || type is VarZapSig)
 					return type.FullName;
 				return WithoutAssemblyNames(type.ReflectionFullName);
 			}

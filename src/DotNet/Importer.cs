@@ -291,6 +291,7 @@ namespace dnlib.DotNet {
 			case ElementType.ByRef: result = new ByRefSig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
 			case ElementType.SZArray: result = new SZArraySig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType, null, modifiedType?.GetElementType())); break;
 			case ElementType.FnPtr: result = ImportFnPtr(type, declaringType, modifiedType); break;
+			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ImportAsTypeSigOrNull(type.GetElementType(), declaringType)); break;
 			case ElementType.ValueType: result = new ValueTypeSig(CreateTypeDefOrRef(type)); break;
 			case ElementType.Class: result = new ClassSig(CreateTypeDefOrRef(type)); break;
 			case ElementType.Var: result = new GenericVar((uint)type.GenericParameterPosition, gpContext.Type); break;
@@ -325,6 +326,8 @@ namespace dnlib.DotNet {
 			case ElementType.R:
 			case ElementType.Internal:
 			case ElementType.CModInternal:
+			case ElementType.VarZapSig:
+			case ElementType.CanonZapSig:
 			case ElementType.Module:
 			case ElementType.End:
 			default:
@@ -955,6 +958,11 @@ namespace dnlib.DotNet {
 			case ElementType.CModReqd: result = new CModReqdSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
 			case ElementType.CModOpt: result = new CModOptSig(ImportOrNull(((ModifierSig)type).Modifier), ImportOrNull(type.Next)); break;
 			case ElementType.Module: result = new ModuleSig(((ModuleSig)type).Index, ImportOrNull(type.Next)); break;
+			// The rid is the one of a GenericParam row of the module it was read from: both are kept
+			case ElementType.VarZapSig: result = new VarZapSig(((VarZapSig)type).GenericParamRid, ((VarZapSig)type).OwnerModule); break;
+			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ImportOrNull(type.Next)); break;
+			// System.__Canon of the core library of the module that imports it
+			case ElementType.CanonZapSig: result = new CanonZapSig(module); break;
 			case ElementType.Sentinel: result = new SentinelSig(); break;
 			case ElementType.Pinned: result = new PinnedSig(ImportOrNull(type.Next)); break;
 

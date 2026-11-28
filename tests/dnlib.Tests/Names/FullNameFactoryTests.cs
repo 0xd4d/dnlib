@@ -168,6 +168,53 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("System.Void (System.Int32,...,System.String)", FullNameFactory.MethodBaseSigFullName(varArgSig));
 		}
 
+		// Fixed in this commit: the three kinds of types of the runtime's own signatures had no TypeSig class.
+		// System.Reflection shows the native view of a type as "VALUETYPE" and the type's name, and
+		// System.__Canon like the class. It shows a generic parameter by its name, which dnlib doesn't know:
+		// the signature only has the rid of the GenericParam row.
+		[Fact]
+		public void NamesOfTheTypesOfTheRuntimesOwnSignatures() {
+			var native = new NativeValueTypeZapSig(CorLib.Int32);
+			Assert.Equal("native System.Int32", native.FullName);
+			Assert.Equal("native Int32", native.TypeName);
+			Assert.Equal("System", native.Namespace);
+			Assert.Equal("VALUETYPESystem.Int32", native.ReflectionFullName);
+			Assert.Equal("VALUETYPEInt32", native.ReflectionName);
+			Assert.Equal("native System.Int32*[]", new SZArraySig(new PtrSig(native)).FullName);
+			Assert.Equal("VALUETYPESystem.Int32*[]", new SZArraySig(new PtrSig(native)).ReflectionFullName);
+			Assert.Equal("VALUETYPEVALUETYPESystem.Int32", new NativeValueTypeZapSig(native).ReflectionFullName);
+
+			var canon = new CanonZapSig(module);
+			// Changed in this commit: it has the module, and its assembly and scope are the core library like
+			// System.Type.Assembly of System.__Canon (they were null)
+			Assert.Same(module, canon.OwnerModule);
+			Assert.Same(module, canon.Module);
+			Assert.Same(CorLib.AssemblyRef, canon.DefinitionAssembly);
+			Assert.Same(CorLib.AssemblyRef, canon.Scope);
+			Assert.Equal("System.__Canon", canon.ScopeType!.FullName);
+			Assert.Same(CorLib.AssemblyRef, Assert.IsType<TypeRefUser>(canon.ScopeType).ResolutionScope);
+			Assert.Equal("System.__Canon, " + CorLib.AssemblyRef.FullName, canon.AssemblyQualifiedName);
+			Assert.Same(CorLib.AssemblyRef, new SZArraySig(canon).DefinitionAssembly);
+			Assert.Same(CorLib.AssemblyRef, new TypeSpecUser(new SZArraySig(canon)).DefinitionAssembly);
+			Assert.Equal("System.__Canon", canon.FullName);
+			Assert.Equal("__Canon", canon.TypeName);
+			Assert.Equal("System", canon.Namespace);
+			Assert.Equal("System.__Canon", canon.ReflectionFullName);
+			Assert.Equal("__Canon", canon.ReflectionName);
+			Assert.Equal("System", canon.ReflectionNamespace);
+			Assert.Equal("System.__Canon[]", new SZArraySig(canon).FullName);
+
+			// The module has no such row (and it wasn't read from a file), so the generic parameter isn't known
+			var genericParam = new VarZapSig(3, new ModuleDefUser("Test.dll"));
+			Assert.Equal("GenericParam(3)", genericParam.FullName);
+			Assert.Equal("GenericParam(3)", genericParam.TypeName);
+			Assert.Equal("", genericParam.Namespace);
+			// Like a normal generic parameter (System.Type.FullName is null)
+			Assert.Equal("", genericParam.ReflectionFullName);
+			Assert.Equal("GenericParam(3)", genericParam.ReflectionName);
+			Assert.Equal("GenericParam(3)&", new ByRefSig(genericParam).FullName);
+		}
+
 		// Two kinds of types that only the runtime itself uses (dnlib reads them): their names have the number
 		[Fact]
 		public void NamesOfValueArraysAndModuleTypes() {

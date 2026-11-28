@@ -444,6 +444,13 @@ namespace dnlib.DotNet
         public bool ReservedByCLR { get; set; }
         public dnlib.DotNet.CallingConvention GetCallingConvention() { }
     }
+    public sealed class CanonZapSig : dnlib.DotNet.LeafSig
+    {
+        public CanonZapSig(dnlib.DotNet.ModuleDef ownerModule) { }
+        public override dnlib.DotNet.ElementType ElementType { get; }
+        public dnlib.DotNet.ModuleDef OwnerModule { get; }
+        public dnlib.DotNet.TypeRef TypeRef { get; }
+    }
     public abstract class ClassLayout : dnlib.DotNet.IMDTokenProvider
     {
         protected uint classSize;
@@ -668,6 +675,9 @@ namespace dnlib.DotNet
         CModOpt = 32,
         Internal = 33,
         CModInternal = 34,
+        VarZapSig = 59,
+        NativeValueTypeZapSig = 61,
+        CanonZapSig = 62,
         Module = 63,
         Sentinel = 65,
         Pinned = 69,
@@ -3012,6 +3022,11 @@ namespace dnlib.DotNet
         NotInitialized = 4294967294u,
         RawBlob = 4294967295u,
     }
+    public sealed class NativeValueTypeZapSig : dnlib.DotNet.NonLeafSig
+    {
+        public NativeValueTypeZapSig(dnlib.DotNet.TypeSig? nextSig) { }
+        public override dnlib.DotNet.ElementType ElementType { get; }
+    }
     public abstract class NonLeafSig : dnlib.DotNet.TypeSig
     {
         protected NonLeafSig(dnlib.DotNet.TypeSig? nextSig) { }
@@ -4104,6 +4119,7 @@ namespace dnlib.DotNet
         public string FullName { get; }
         public bool IsArray { get; }
         public bool IsByRef { get; }
+        public bool IsCanonZapSig { get; }
         public bool IsClassSig { get; }
         public bool IsCorLibType { get; }
         public bool IsFunctionPointer { get; }
@@ -4113,6 +4129,7 @@ namespace dnlib.DotNet
         public bool IsGenericTypeParameter { get; }
         public bool IsModifier { get; }
         public bool IsModuleSig { get; }
+        public bool IsNativeValueTypeZapSig { get; }
         public bool IsOptionalModifier { get; }
         public bool IsPinned { get; }
         public bool IsPointer { get; }
@@ -4125,6 +4142,7 @@ namespace dnlib.DotNet
         public bool IsValueArray { get; }
         public bool IsValueType { get; }
         public bool IsValueTypeSig { get; }
+        public bool IsVarZapSig { get; }
         public dnlib.DotNet.MDToken MDToken { get; }
         public dnlib.DotNet.ModuleDef? Module { get; }
         public dnlib.DotNet.ModuleDef ModuleOrThrow { get; }
@@ -4315,6 +4333,14 @@ namespace dnlib.DotNet
     {
         public ValueTypeSig(dnlib.DotNet.ITypeDefOrRef? typeDefOrRef) { }
         public override dnlib.DotNet.ElementType ElementType { get; }
+    }
+    public sealed class VarZapSig : dnlib.DotNet.LeafSig
+    {
+        public VarZapSig(uint genericParamRid, dnlib.DotNet.ModuleDef ownerModule) { }
+        public override dnlib.DotNet.ElementType ElementType { get; }
+        public dnlib.DotNet.GenericParam? GenericParam { get; }
+        public uint GenericParamRid { get; set; }
+        public dnlib.DotNet.ModuleDef OwnerModule { get; }
     }
     public enum VariantType : uint
     {

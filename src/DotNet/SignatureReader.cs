@@ -525,17 +525,23 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Reads the signature
 		/// </summary>
+		/// <param name="isFnPtr"><c>true</c> if it's the signature of a function pointer</param>
 		/// <returns>A new <see cref="CallingConventionSig"/> instance or <c>null</c> if invalid signature</returns>
-		CallingConventionSig? ReadSig() {
+		CallingConventionSig? ReadSig(bool isFnPtr = false) {
 			if (!recursionCounter.Increment()) {
 				// Skip it so the rest of the signature is read from the correct position
-				SkipSig();
+				SkipSig(isFnPtr);
 				return null;
 			}
 
 			CallingConventionSig? result;
 			var callingConvention = (CallingConvention)reader.ReadByte();
-			switch (callingConvention & CallingConvention.Mask) {
+			var kind = callingConvention & CallingConvention.Mask;
+			// The signature of a function pointer is a method signature: the CLR also reads it if its calling
+			// convention is the one of a property or of a generic method instantiation
+			if (isFnPtr && (kind == CallingConvention.Property || kind == CallingConvention.GenericInst))
+				kind = CallingConvention.Default;
+			switch (kind) {
 			case CallingConvention.Default:
 			case CallingConvention.C:
 			case CallingConvention.StdCall:
@@ -693,7 +699,7 @@ namespace dnlib.DotNet {
 			case ElementType.ByRef: result = new ByRefSig(ReadType()); break;
 			case ElementType.ValueType: result = new ValueTypeSig(ReadTypeDefOrRef(allowTypeSpec)); break;
 			case ElementType.Class: result = new ClassSig(ReadTypeDefOrRef(allowTypeSpec)); break;
-			case ElementType.FnPtr: result = new FnPtrSig(ReadSig()); break;
+			case ElementType.FnPtr: result = new FnPtrSig(ReadSig(isFnPtr: true)); break;
 			case ElementType.SZArray: result = new SZArraySig(ReadType()); break;
 			case ElementType.CModReqd: result = new CModReqdSig(ReadTypeDefOrRef(true), ReadType()); break;
 			case ElementType.CModOpt: result = new CModOptSig(ReadTypeDefOrRef(true), ReadType()); break;
@@ -724,9 +730,29 @@ namespace dnlib.DotNet {
 				result = new ModuleSig(num, ReadType());
 				break;
 
+			// The CLR uses the next three in its own signatures, but it also reads them in a method signature
+			// of a file (not in a field signature)
+			case ElementType.VarZapSig:
+				if (!reader.TryReadCompressedUInt32(out num))
+					break;
+				// The generic parameter is found when it's needed: its owner could be the method whose signature this is.
+				// The module is the one that is read, or the module of the reader's core library types.
+				if ((helper as ModuleDef ?? corLibTypes.Object.TypeDefOrRef?.Module) is ModuleDef ownerModule)
+					result = new VarZapSig(num, ownerModule);
+				break;
+
+			case ElementType.NativeValueTypeZapSig: result = new NativeValueTypeZapSig(ReadType()); break;
+			case ElementType.CanonZapSig:
+				// The module is found like the one of a VarZapSig
+				if ((helper as ModuleDef ?? corLibTypes.Object.TypeDefOrRef?.Module) is ModuleDef canonOwnerModule)
+					result = new CanonZapSig(canonOwnerModule);
+				break;
+
 			case ElementType.GenericInst:
+				// The CLR only loads the generic instance if the byte is CLASS and the type is a class, or if it's
+				// any other byte and the type is a value type
 				if (IsGenericInstTypeKindIgnored())
-					nextType = new ClassSig(ReadTypeDefOrRef(false));
+					nextType = new ValueTypeSig(ReadTypeDefOrRef(false));
 				else
 					nextType = ReadType();
 				// The CLR only allows up to 0xFFFF generic arguments
@@ -843,11 +869,12 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Skips a signature without using recursion. Called when the recursion limit has been reached.
-		/// It accepts the same data as <see cref="ReadSig()"/>.
+		/// It accepts the same data as <see cref="ReadSig(bool)"/>.
 		/// </summary>
-		void SkipSig() {
+		/// <param name="isFnPtr"><c>true</c> if it's the signature of a function pointer</param>
+		void SkipSig(bool isFnPtr) {
 			var stack = new List<SkipItem>();
-			SkipSigHeader(stack);
+			SkipSigHeader(stack, isFnPtr);
 			SkipItems(stack);
 		}
 
@@ -920,12 +947,14 @@ namespace dnlib.DotNet {
 			case ElementType.I:
 			case ElementType.U:
 			case ElementType.Object:
+			case ElementType.CanonZapSig:
 				return;
 
 			case ElementType.Ptr:
 			case ElementType.ByRef:
 			case ElementType.SZArray:
 			case ElementType.Pinned:
+			case ElementType.NativeValueTypeZapSig:
 				stack.Add(new SkipItem(SkipKind.Types, 1));
 				return;
 
@@ -933,6 +962,7 @@ namespace dnlib.DotNet {
 			case ElementType.Class:
 			case ElementType.Var:
 			case ElementType.MVar:
+			case ElementType.VarZapSig:
 				reader.TryReadCompressedUInt32(out _);
 				return;
 
@@ -950,7 +980,7 @@ namespace dnlib.DotNet {
 				return;
 
 			case ElementType.FnPtr:
-				SkipSigHeader(stack);
+				SkipSigHeader(stack, isFnPtr: true);
 				return;
 
 			// The next type comes first so it's pushed last
@@ -992,8 +1022,9 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// The generic type of a generic instance is <c>CLASS</c> or <c>VALUETYPE</c> followed by a token. The CLR
-		/// reads that byte but ignores its value (<c>SigPointer::GetGenericInstType()</c>), so any other byte followed
-		/// by a token is a generic type too. If the next byte is such a byte, it's read and <c>true</c> is returned.
+		/// reads that byte and only checks whether it's <c>CLASS</c> (<c>SigPointer::GetGenericInstType()</c>): any
+		/// other byte followed by a token is a generic value type. If the next byte is such a byte (not
+		/// <c>CLASS</c>, not <c>VALUETYPE</c>), it's read and <c>true</c> is returned.
 		/// </summary>
 		bool IsGenericInstTypeKindIgnored() {
 			if (reader.BytesLeft == 0)
@@ -1038,13 +1069,18 @@ namespace dnlib.DotNet {
 
 		/// <summary>
 		/// Reads the calling convention and counts of a signature, and pushes the types that must
-		/// be skipped. Same checks as <see cref="ReadSig()"/>. If it's invalid, nothing is pushed.
+		/// be skipped. Same checks as <see cref="ReadSig(bool)"/>. If it's invalid, nothing is pushed.
 		/// </summary>
 		/// <param name="stack">Things to skip, the last element is skipped first</param>
-		void SkipSigHeader(List<SkipItem> stack) {
+		/// <param name="isFnPtr"><c>true</c> if it's the signature of a function pointer</param>
+		void SkipSigHeader(List<SkipItem> stack, bool isFnPtr) {
 			var callingConvention = (CallingConvention)reader.ReadByte();
 			uint count;
-			switch (callingConvention & CallingConvention.Mask) {
+			var kind = callingConvention & CallingConvention.Mask;
+			// Like ReadSig(): it's a method signature
+			if (isFnPtr && kind == CallingConvention.GenericInst)
+				kind = CallingConvention.Default;
+			switch (kind) {
 			case CallingConvention.Default:
 			case CallingConvention.C:
 			case CallingConvention.StdCall:

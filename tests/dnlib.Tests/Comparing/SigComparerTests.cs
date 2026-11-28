@@ -445,6 +445,48 @@ namespace dnlib.Tests.Comparing {
 			Assert.False(comparer.Equals(array, new ArraySig(module.CorLibTypes.Int32, 3U, new uint[] { 3, 4 }, new[] { 0, 1 })));
 		}
 
+		// Fixed in this commit: the three kinds of types of the runtime's own signatures had no TypeSig class.
+		// The runtime never says that one of them is the same as the normal type when it compares signatures
+		// (a method isn't found, measured with .NET 10): a generic parameter by the rid of its row isn't the
+		// generic parameter by its number, System.__Canon isn't a reference to the class System.__Canon.
+		// The runtime can't compare two of them at all (the file is bad), dnlib says that they're equal.
+		[Fact]
+		public void TypesOfTheRuntimesOwnSignaturesAreOnlyEqualToTheSameKind() {
+			var module = CreateModule("A");
+			var int32 = module.CorLibTypes.Int32;
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(new VarZapSig(1, module), new VarZapSig(1, module)));
+			Assert.Equal(comparer.GetHashCode(new VarZapSig(1, module)), comparer.GetHashCode(new VarZapSig(1, module)));
+			Assert.False(comparer.Equals(new VarZapSig(1, module), new VarZapSig(2, module)));
+			Assert.False(comparer.Equals((TypeSig)new VarZapSig(1, module), new GenericVar(0)));
+			Assert.False(comparer.Equals((TypeSig)new VarZapSig(1, module), new GenericVar(1)));
+			Assert.False(comparer.Equals((TypeSig)new GenericMVar(1), new VarZapSig(1, module)));
+			// The rid is a row of a module: it's the same row if it's the same module
+			Assert.False(comparer.Equals(new VarZapSig(1, module), new VarZapSig(1, CreateModule("B"))));
+
+			Assert.True(comparer.Equals(new NativeValueTypeZapSig(int32), new NativeValueTypeZapSig(int32)));
+			Assert.Equal(comparer.GetHashCode(new NativeValueTypeZapSig(int32)), comparer.GetHashCode(new NativeValueTypeZapSig(int32)));
+			Assert.False(comparer.Equals(new NativeValueTypeZapSig(int32), new NativeValueTypeZapSig(module.CorLibTypes.String)));
+			Assert.False(comparer.Equals((TypeSig)new NativeValueTypeZapSig(int32), int32));
+			Assert.False(comparer.Equals((TypeSig)int32, new NativeValueTypeZapSig(int32)));
+			Assert.False(comparer.Equals(new NativeValueTypeZapSig(int32), new NativeValueTypeZapSig(new NativeValueTypeZapSig(int32))));
+			Assert.False(comparer.Equals((TypeSig)new NativeValueTypeZapSig(int32), new PinnedSig(int32)));
+
+			var canonRef = new TypeRefUser(module, "System", "__Canon", module.CorLibTypes.AssemblyRef);
+			Assert.True(comparer.Equals(new CanonZapSig(module), new CanonZapSig(module)));
+			Assert.Equal(comparer.GetHashCode(new CanonZapSig(module)), comparer.GetHashCode(new CanonZapSig(module)));
+			Assert.False(comparer.Equals((TypeSig)new CanonZapSig(module), new ClassSig(canonRef)));
+			Assert.False(comparer.Equals((TypeSig)new ClassSig(canonRef), new CanonZapSig(module)));
+			Assert.False(comparer.Equals((IType)canonRef, new CanonZapSig(module)));
+			Assert.False(comparer.Equals((TypeSig)new CanonZapSig(module), module.CorLibTypes.Object));
+
+			// A method with one of them isn't the method with the normal type
+			var withRid = MethodSig.CreateStatic(module.CorLibTypes.Void, new VarZapSig(1, module));
+			Assert.True(comparer.Equals(withRid, MethodSig.CreateStatic(module.CorLibTypes.Void, new VarZapSig(1, module))));
+			Assert.False(comparer.Equals(withRid, MethodSig.CreateStatic(module.CorLibTypes.Void, new GenericVar(0))));
+		}
+
 		// Two element types that only the runtime itself uses: a fixed size array of values, and a type in
 		// another module of the assembly. dnlib reads them, so it compares them too.
 		[Fact]

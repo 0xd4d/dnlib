@@ -21,7 +21,7 @@ namespace dnlib.TestUtils {
 		public bool Pdb { get; set; }
 
 		/// <summary>
-		/// Extra ilasm options, eg. <c>/PE64</c>, <c>/X64</c>, <c>/MDV=v1.1.4322</c>, <c>/MSV=1.0</c>, <c>/FLAGS=2</c>.
+		/// Extra ilasm options, eg. <c>-PE64</c>, <c>-X64</c>, <c>-MDV=v1.1.4322</c>, <c>-MSV=1.0</c>, <c>-FLAGS=2</c>.
 		/// Run <c>ilasm</c> without arguments to see all of them.
 		/// </summary>
 		public List<string> ExtraArguments { get; } = new List<string>();
