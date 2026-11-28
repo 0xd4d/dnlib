@@ -147,6 +147,9 @@ th { background: var(--head); cursor: pointer; user-select: none; }
 tr.total td { font-weight: 600; }
 .bar { display: inline-block; width: 90px; height: 9px; background: var(--un); vertical-align: middle; }
 .bar i { display: block; height: 100%; background: var(--cn); }
+/* The same width for every percentage ("100.0%" is the widest), or the bars left of it wouldn't line up */
+.pct { display: inline-block; width: 6ch; margin-left: 1ch; text-align: right; font-variant-numeric: tabular-nums; }
+td { font-variant-numeric: tabular-nums; }
 input[type=search] { font: inherit; padding: 2px 6px; width: 260px; }
 pre { margin: 0; font: 12.5px/1.45 ui-monospace, "Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace; tab-size: 4;
   counter-reset: line; width: max-content; min-width: 100%; }
@@ -271,7 +274,7 @@ def table_row(name, link, totals, css_class=""):
     line_percent = percent(totals.covered, totals.lines)
     name_html = f'<a href="{html.escape(link)}">{html.escape(name)}</a>' if link else html.escape(name)
     return (f'<tr class="{css_class}"><td data-v="{html.escape(name)}">{name_html}</td>'
-            f'<td data-v="{line_percent:.3f}"><span class="bar"><i style="width:{line_percent:.1f}%"></i></span> {percent_text(totals.covered, totals.lines)}</td>'
+            f'<td data-v="{line_percent:.3f}"><span class="bar"><i style="width:{line_percent:.1f}%"></i></span><span class="pct">{percent_text(totals.covered, totals.lines)}</span></td>'
             f'<td data-v="{totals.lines - totals.covered}">{totals.lines - totals.covered}</td>'
             f'<td data-v="{totals.covered}">{totals.covered}</td><td data-v="{totals.lines}">{totals.lines}</td>'
             f'<td data-v="{percent(totals.covered_branches, totals.branches):.3f}">{percent_text(totals.covered_branches, totals.branches)}</td>'
@@ -295,7 +298,7 @@ def write_index(output_directory, file_totals, cobertura_files):
     header = f'<h1>dnlib test coverage</h1>{totals_text(total)}<span class="dim">{len(file_totals)} files, {len(cobertura_files)} report(s) merged</span>'
     body = (f'<main><h2>Directories</h2><table>{TABLE_HEAD.format("directory")}<tbody>{directory_rows}</tbody>'
             f'<tfoot>{table_row("TOTAL", None, total, "total")}</tfoot></table>'
-            f'<h2>Files</h2><p><input type="search" id="filter" placeholder="Filter files" autofocus> '
+            f'<h2>Files</h2><p><input type="search" id="filter" placeholder="Filter files"> '
             f'<span class="dim">Click a column to sort</span></p>'
             f'<table id="files">{TABLE_HEAD.format("file")}<tbody>{file_rows}</tbody></table></main>')
     with open(os.path.join(output_directory, "index.html"), "w", encoding="utf-8", newline="\n") as file:
