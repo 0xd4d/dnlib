@@ -319,7 +319,7 @@ public class MarkerAttribute<T> : Attribute { }
 		}
 
 		static byte[] CreateKeyPair() {
-			using (var rsa = new System.Security.Cryptography.RSACryptoServiceProvider(1024)) {
+			using (var rsa = new System.Security.Cryptography.RSACryptoServiceProvider(2048)) {
 				var blob = rsa.ExportCspBlob(includePrivateParameters: true);
 				blob[4] = 0x00;
 				blob[5] = 0x24;
