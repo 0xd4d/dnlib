@@ -129,5 +129,29 @@ namespace dnlib.Tests.Comparing {
 			Assert.False(new SigComparer().Equals(nestedRef, notNested));
 			Assert.False(new SigComparer().Equals(notNested, nestedExported));
 		}
+
+		// References to another assembly that forwards the type (a facade) are the same type as references to the
+		// type's assembly if both resolve to the same type
+		[Fact]
+		public void ReferencesThatResolveToTheSameTypeAreEqual() {
+			var type = new TypeDefUser("Ns", "Type", libSecond.CorLibTypes.Object.TypeDefOrRef) { Attributes = TypeAttributes.Public };
+			libSecond.Types.Add(type);
+			libMain.ExportedTypes.Add(ExportedByTheMainModule);
+			facade.ExportedTypes.Add(ForwardedByAnotherAssembly);
+			var resolver = new AssemblyResolver { UseGAC = false };
+			resolver.AddToCache(libMain);
+			resolver.AddToCache(facade);
+			// The forwarder in the facade is resolved with the facade's context
+			foreach (var module in new[] { app, facade, libMain, libSecond })
+				module.Context = new ModuleContext(resolver);
+			var throughTheFacade = new TypeRefUser(app, "Ns", "Type", AssemblyReference("Facade"));
+			var exportedThroughTheFacade = new ExportedTypeUser(app, 0, "Ns", "Type", TypeAttributes.Public, AssemblyReference("Facade"));
+			var exportedFromLib = new ExportedTypeUser(app, 0, "Ns", "Type", TypeAttributes.Public, AssemblyReference("Lib"));
+			Assert.Same(type, throughTheFacade.Resolve());
+
+			Assert.True(new SigComparer().Equals(throughTheFacade, FromAnotherAssembly));
+			Assert.True(new SigComparer().Equals(exportedThroughTheFacade, exportedFromLib));
+			Assert.True(new SigComparer().Equals(throughTheFacade, exportedFromLib));
+		}
 	}
 }
