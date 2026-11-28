@@ -258,5 +258,100 @@ namespace dnlib.Tests.Pdb {
 					Assert.Contains(DebugInfoSource.GetRootScope(writtenModule, "Sum").Constants, a => a.Name == "Wrong");
 			}
 		}
+
+		// An enum type of the module with the underlying type
+		static TypeSig CreateEnum(ModuleDef module, string name, TypeSig underlyingType) {
+			var type = new TypeDefUser("Ns", name, module.CorLibTypes.GetTypeRef("System", "Enum")) { Attributes = TypeAttributes.Public | TypeAttributes.Sealed };
+			type.Fields.Add(new FieldDefUser("value__", new FieldSig(underlyingType), FieldAttributes.Public | FieldAttributes.SpecialName | FieldAttributes.RTSpecialName));
+			module.Types.Add(type);
+			return new ValueTypeSig(type);
+		}
+
+		// The value of an enum constant is stored as its underlying type, followed by the enum type
+		[Fact]
+		public void ConstantsOfEnumsWithEveryUnderlyingType() {
+			var constants = WriteAndRead(module => {
+				var types = module.CorLibTypes;
+				return new[] {
+					new Constant("BoolEnum", CreateEnum(module, "BoolEnum", types.Boolean), true),
+					new Constant("CharEnum", CreateEnum(module, "CharEnum", types.Char), 'c'),
+					new Constant("SByteEnum", CreateEnum(module, "SByteEnum", types.SByte), (sbyte)-1),
+					new Constant("ByteEnum", CreateEnum(module, "ByteEnum", types.Byte), (byte)1),
+					new Constant("ShortEnum", CreateEnum(module, "ShortEnum", types.Int16), (short)-2),
+					new Constant("UShortEnum", CreateEnum(module, "UShortEnum", types.UInt16), (ushort)2),
+					new Constant("IntEnum", CreateEnum(module, "IntEnum", types.Int32), -3),
+					new Constant("UIntEnum", CreateEnum(module, "UIntEnum", types.UInt32), 3U),
+					new Constant("LongEnum", CreateEnum(module, "LongEnum", types.Int64), -4L),
+					new Constant("ULongEnum", CreateEnum(module, "ULongEnum", types.UInt64), 4UL),
+					// An enum of another assembly that can't be resolved: the value says what the underlying type is
+					new Constant("UnresolvedEnum", new ValueTypeSig(new TypeRefUser(module, "Ns", "Unresolved", new AssemblyRefUser("Missing"))), (short)9),
+				};
+			}, out var writtenModule);
+
+			using (writtenModule) {
+				Assert.Equal(true, constants["BoolEnum"].Value);
+				Assert.Equal('c', constants["CharEnum"].Value);
+				Assert.Equal((sbyte)-1, constants["SByteEnum"].Value);
+				Assert.Equal((byte)1, constants["ByteEnum"].Value);
+				Assert.Equal((short)-2, constants["ShortEnum"].Value);
+				Assert.Equal((ushort)2, constants["UShortEnum"].Value);
+				Assert.Equal(-3, constants["IntEnum"].Value);
+				Assert.Equal(3U, constants["UIntEnum"].Value);
+				Assert.Equal(-4L, constants["LongEnum"].Value);
+				Assert.Equal(4UL, constants["ULongEnum"].Value);
+				Assert.Equal((short)9, constants["UnresolvedEnum"].Value);
+				Assert.Equal("Ns.IntEnum", constants["IntEnum"].Type!.FullName);
+				Assert.Equal("Ns.Unresolved", constants["UnresolvedEnum"].Type!.FullName);
+			}
+		}
+
+		// A pointer or a by-ref constant (only possible in IL) has the type it points to, and no value (null)
+		[Fact]
+		public void PointerAndByRefConstants() {
+			var constants = WriteAndRead(module => new[] {
+				new Constant("Pointer", new PtrSig(module.CorLibTypes.Int32), null),
+				new Constant("ByRef", new ByRefSig(module.CorLibTypes.Int64), null),
+			}, out var writtenModule);
+
+			using (writtenModule) {
+				Assert.Equal("System.Int32*", constants["Pointer"].Type!.FullName);
+				Assert.Equal("System.Int64&", constants["ByRef"].Type!.FullName);
+				Assert.Null(constants["Pointer"].Value);
+			}
+		}
+
+		// The value of a Decimal or DateTime constant must be a decimal or a DateTime, and the value of another
+		// struct can only be its bytes
+		[Theory]
+		[InlineData("Decimal", "Expected a Decimal constant")]
+		[InlineData("DateTime", "Expected a DateTime constant")]
+		[InlineData("Guid", "Unsupported constant")]
+		public void ValueOfAStructThatIsNotItsTypeIsAnError(string typeName, string expectedMessage) {
+			using (var module = DebugInfoSource.Load()) {
+				DebugInfoSource.GetRootScope(module, "Sum").Constants.Add(new PdbConstant("Wrong", CoreLibraryType(module, typeName, isValueType: true), "text"));
+
+				var exception = Assert.Throws<ModuleWriterException>(() => RoundTrip.WriteWithPortablePdb(module, preserveMetadata: true));
+				Assert.Contains(expectedMessage, exception.Message);
+
+				var written = RoundTrip.WriteWithPortablePdb(module, preserveMetadata: true, options => options.Logger = DummyLogger.NoThrowInstance);
+				using (var writtenModule = RoundTrip.LoadWithPdb(written.Image, written.Pdb!))
+					Assert.Contains(DebugInfoSource.GetRootScope(writtenModule, "Sum").Constants, a => a.Name == "Wrong");
+			}
+		}
+
+		// The value of another struct, or of a class (it's null in C#), can be its bytes
+		[Fact]
+		public void BytesAreTheValueOfAStructOrAClass() {
+			var constants = WriteAndRead(module => new[] {
+				new Constant("Struct", CoreLibraryType(module, "Guid", isValueType: true), new byte[16]),
+				new Constant("Class", CoreLibraryType(module, "Version", isValueType: false), new byte[] { 1, 2 }),
+			}, out var writtenModule);
+
+			using (writtenModule) {
+				Assert.Equal(new byte[16], constants["Struct"].Value);
+				Assert.Equal("System.Guid", constants["Struct"].Type!.FullName);
+				Assert.Equal(new byte[] { 1, 2 }, constants["Class"].Value);
+			}
+		}
 	}
 }
