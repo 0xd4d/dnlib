@@ -211,5 +211,47 @@ public class Marked { }
 				Assert.Contains(found.CustomAttributes.Keys, a => a.TypeFullName == "InfoAttribute");
 			}
 		}
+
+		// The operand of an instruction with a token or a signature can be any object; the ones that the finder
+		// knows are found. Only an invalid method has eg. an event or a generic parameter as an operand, but it can
+		// be created with the API.
+		[Fact]
+		public void OperandsOfEveryKindAreFound() {
+			var created = new dnlib.Tests.Writer.CreatedModule();
+			var testModule = created.Module;
+			var library = new AssemblyRefUser("Library", new System.Version(1, 0, 0, 0));
+			var inTypeSig = new TypeRefUser(testModule, "Library", "InTypeSig", library);
+			var inLocal = new TypeRefUser(testModule, "Library", "InLocal", library);
+			var inTypeSpec = new TypeRefUser(testModule, "Library", "InTypeSpec", library);
+			var eventDef = new EventDefUser("Event", testModule.CorLibTypes.Object.TypeDefOrRef);
+			var propertyDef = new PropertyDefUser("Property", PropertySig.CreateStatic(testModule.CorLibTypes.Int32));
+			var genericParam = new GenericParamUser(0, GenericParamAttributes.NonVariant, "T");
+			created.Type.Events.Add(eventDef);
+			created.Type.Properties.Add(propertyDef);
+			created.Type.GenericParameters.Add(genericParam);
+			var typeSpec = new TypeSpecUser(new SZArraySig(new ClassSig(inTypeSpec)));
+			var method = created.AddMethod("Method",
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Ldtoken, eventDef),
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Ldtoken, propertyDef),
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Ldtoken, genericParam),
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Ldtoken, new ClassSig(inTypeSig)),
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Calli, new LocalSig(new ClassSig(inLocal))),
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Ldtoken, typeSpec),
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Ldtoken, created.Type),
+				new dnlib.DotNet.Emit.Instruction(dnlib.DotNet.Emit.OpCodes.Ldtoken, "not a member"),
+				dnlib.DotNet.Emit.OpCodes.Ret.ToInstruction());
+
+			var found = new MemberFinder().FindAll(testModule);
+
+			Assert.Contains(eventDef, found.EventDefs.Keys);
+			Assert.Contains(propertyDef, found.PropertyDefs.Keys);
+			Assert.Contains(genericParam, found.GenericParams.Keys);
+			Assert.Contains(inTypeSig, found.TypeRefs.Keys);
+			Assert.Contains(inLocal, found.TypeRefs.Keys);
+			Assert.Contains(typeSpec, found.TypeSpecs.Keys);
+			Assert.Contains(inTypeSpec, found.TypeRefs.Keys);
+			Assert.Contains(created.Type, found.TypeDefs.Keys);
+			Assert.Contains(method, found.MethodDefs.Keys);
+		}
 	}
 }

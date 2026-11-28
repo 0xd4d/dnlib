@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.MD;
+using dnlib.IO;
 using dnlib.TestUtils;
 using Xunit;
 
@@ -418,6 +419,110 @@ namespace dnlib.Tests.Signatures {
 				Assert.Equal("System.Int32", methodSig.Params[0]?.FullName);
 				Assert.Null(methodSig.Params[1]);
 			}
+		}
+
+		// A function pointer whose signature has a function pointer ... nested too deeply: the reader skips the
+		// signature at the limit, so the parameters after it are still read. Every kind of signature can be at
+		// the limit.
+		public static TheoryData<string, byte[]> InnermostSignatures => new TheoryData<string, byte[]> {
+			{ "method", new byte[] { DefaultCall, 2, Void, I4, String } },
+			{ "generic method", new byte[] { GenericFlag, 1, 1, Void, MVar, 0 } },
+			{ "method with this", new byte[] { HasThisFlag, 0, Void } },
+			{ "vararg method", new byte[] { VarArgCall, 2, Void, I4, Sentinel, String } },
+			{ "field", new byte[] { FieldCall, I4 } },
+			{ "property", new byte[] { PropertyCall, 1, I4, String } },
+			{ "local", new byte[] { LocalCall, 2, I4, String } },
+			// A function pointer with the calling convention of a generic method instance is read as a method signature
+			{ "generic method instance", new byte[] { GenericInstCall, 1, Void, I4 } },
+			{ "unknown calling convention", new byte[] { 0x0F } },
+		};
+
+		[Theory, MemberData(nameof(InnermostSignatures))]
+		public void ParameterAfterAFunctionPointerThatIsNestedTooDeeplyIsRead(string description, byte[] innermostSignature) {
+			Assert.NotEmpty(description);
+			// static void(FnPtr(static void(FnPtr(...))), string)
+			var signature = new List<byte> { DefaultCall, 2, Void };
+			for (int i = 0; i < 150; i++)
+				signature.AddRange(new byte[] { FnPtr, DefaultCall, 1, Void });
+			signature.Add(FnPtr);
+			signature.AddRange(innermostSignature);
+			signature.Add(String);
+
+			var methodSig = Assert.IsType<MethodSig>(ReadSig(signature.ToArray()));
+
+			Assert.Equal(2, methodSig.Params.Count);
+			Assert.Equal(ElementType.String, methodSig.Params[1]!.ElementType);
+		}
+
+		// The overloads that read a signature from a blob of the module, from a DataReader, or with a helper that
+		// isn't a module all read the same signature
+		[Fact]
+		public void EveryOverloadReadsTheSameSignature() {
+			byte[] methodSig = { DefaultCall, 1, Void, I4 };
+			byte[] typeSig = { SZArray, String };
+			var gpContext = new GenericParamContext();
+			var corLib = module.CorLibTypes;
+			var sigs = new[] {
+				SignatureReader.ReadSig(module, methodSig, gpContext),
+				SignatureReader.ReadSig(module, ByteArrayDataReaderFactory.CreateReader(methodSig)),
+				SignatureReader.ReadSig(module, ByteArrayDataReaderFactory.CreateReader(methodSig), gpContext),
+				SignatureReader.ReadSig(module, corLib, methodSig),
+				SignatureReader.ReadSig(module, corLib, ByteArrayDataReaderFactory.CreateReader(methodSig)),
+			};
+			Assert.All(sigs, a => Assert.Equal("System.Void (System.Int32)", Assert.IsType<MethodSig>(a).ToString()));
+			var types = new[] {
+				SignatureReader.ReadTypeSig(module, typeSig, gpContext),
+				SignatureReader.ReadTypeSig(module, ByteArrayDataReaderFactory.CreateReader(typeSig)),
+				SignatureReader.ReadTypeSig(module, ByteArrayDataReaderFactory.CreateReader(typeSig), gpContext),
+				SignatureReader.ReadTypeSig(module, corLib, typeSig),
+				SignatureReader.ReadTypeSig(module, corLib, ByteArrayDataReaderFactory.CreateReader(typeSig)),
+				SignatureReader.ReadTypeSig(module, corLib, typeSig, gpContext, out _),
+			};
+			Assert.All(types, a => Assert.Equal("System.String[]", a!.FullName));
+		}
+
+		// The blobs of the module: the signature of a field, of a method and of a type spec
+		[Fact]
+		public void SignaturesAreReadFromTheBlobsOfTheModule() {
+			var type = module.Find("MyClass", isReflectionName: true)!;
+			var constructor = type.FindDefaultConstructor()!;
+			Assert.True(module.TablesStream.TryReadMethodRow(constructor.Rid, out var row));
+
+			Assert.IsType<MethodSig>(SignatureReader.ReadSig(module, row.Signature));
+			Assert.IsType<MethodSig>(module.ReadSignature(row.Signature));
+			// A method signature isn't a type: the reader reads the calling convention byte as an element type
+			Assert.Null(SignatureReader.ReadTypeSig(module, uint.MaxValue));
+			Assert.Null(SignatureReader.ReadTypeSig(module, uint.MaxValue, out var extraData));
+			Assert.Null(extraData);
+			Assert.Null(module.ReadTypeSignature(uint.MaxValue));
+			Assert.Null(module.ReadTypeSignature(uint.MaxValue, new GenericParamContext()));
+			Assert.Null(module.ReadTypeSignature(uint.MaxValue, out _));
+			Assert.Null(module.ReadTypeSignature(uint.MaxValue, new GenericParamContext(), out _));
+		}
+
+		// Converts the address 0x1234 of a runtime type to System.Int64
+		sealed class AddressHelper : ISignatureReaderHelper {
+			readonly ModuleDefMD module;
+			public AddressHelper(ModuleDefMD module) => this.module = module;
+			public ITypeDefOrRef? ResolveTypeDefOrRef(uint codedToken, GenericParamContext gpContext) => module.ResolveTypeDefOrRef(codedToken, gpContext);
+			public TypeSig? ConvertRTInternalAddress(IntPtr address) => address == new IntPtr(0x1234) ? module.CorLibTypes.Int64 : null;
+		}
+
+		static byte[] Address(int value) => IntPtr.Size == 4 ? BitConverter.GetBytes(value) : BitConverter.GetBytes((long)value);
+
+		// The runtime's own signatures can have the address of a type. A helper that knows the runtime converts it.
+		[Fact]
+		public void TheAddressOfARuntimeTypeIsConvertedByTheHelper() {
+			var helper = new AddressHelper(module);
+			var corLib = module.CorLibTypes;
+
+			Assert.Equal("System.Int64", SignatureReader.ReadTypeSig(helper, corLib, new byte[] { Internal }.Concat(Address(0x1234)).ToArray())!.FullName);
+			var required = SignatureReader.ReadTypeSig(helper, corLib, new byte[] { CModInternal, 1 }.Concat(Address(0x1234)).Concat(new[] { I4 }).ToArray());
+			Assert.Equal("System.Int64", Assert.IsType<CModReqdSig>(required).Modifier!.FullName);
+			var optional = SignatureReader.ReadTypeSig(helper, corLib, new byte[] { CModInternal, 0 }.Concat(Address(0x1234)).Concat(new[] { I4 }).ToArray());
+			Assert.Equal("System.Int64", Assert.IsType<CModOptSig>(optional).Modifier!.FullName);
+			// An address that the helper doesn't know
+			Assert.Null(SignatureReader.ReadTypeSig(helper, corLib, new byte[] { Internal }.Concat(Address(0x4321)).ToArray()));
 		}
 	}
 }

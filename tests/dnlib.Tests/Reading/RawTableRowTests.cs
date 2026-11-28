@@ -60,7 +60,20 @@ namespace dnlib.Tests.Reading {
 			}
 		}
 
-		[Theory, MemberData(nameof(TablesWithRows))]
+		public static TheoryData<Table> AllTables {
+			get {
+				var tables = new TheoryData<Table>();
+				foreach (var mdTable in module.TablesStream.MDTables) {
+					// Not every table number is a table
+					if (GetRowReader(mdTable.Table) is not null)
+						tables.Add(mdTable.Table);
+				}
+				return tables;
+			}
+		}
+
+		// Also in a table without rows (eg. a table of a portable PDB)
+		[Theory, MemberData(nameof(AllTables))]
 		public void RowThatDoesNotExistIsNotRead(Table table) {
 			var mdTable = module.TablesStream.Get(table)!;
 
