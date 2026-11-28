@@ -16,7 +16,7 @@ namespace dnlib.Tests.Model {
 	public class PropertySetterTests {
 		static readonly Lazy<ModuleDefMD> module = new Lazy<ModuleDefMD>(() => ModuleDefMD.Load(Fixtures.Fixtures.Features.Image));
 
-		static IEnumerable<object> GetObjectsOfTheModule(ModuleDefMD module) {
+		internal static IEnumerable<object> GetObjectsOfTheModule(ModuleDefMD module) {
 			yield return module;
 			yield return module.Assembly!;
 			foreach (var type in module.GetTypes()) {
@@ -51,7 +51,7 @@ namespace dnlib.Tests.Model {
 			for (uint rid = 1; rid <= module.TablesStream.ManifestResourceTable.Rows; rid++) yield return module.ResolveManifestResource(rid)!;
 		}
 
-		static IEnumerable<object> GetUserObjects() {
+		internal static IEnumerable<object> GetUserObjects() {
 			var user = new ModuleDefUser("User.dll");
 			var types = user.CorLibTypes;
 			yield return user;
