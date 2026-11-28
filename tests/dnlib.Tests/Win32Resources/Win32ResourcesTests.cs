@@ -343,5 +343,39 @@ namespace dnlib.Tests.Win32Resources {
 				Assert.Equal(0U, (uint)chunk.GetRVA((ResourceData?)null));
 			}
 		}
+
+		// The same name in two directories is read once from the written file, and both directories have it
+		[Fact]
+		public void ANameThatIsInTwoDirectoriesIsReadForBoth() {
+			byte[] written;
+			using (var module = ModuleDefMD.Load(compiledExe.Value)) {
+				var root = module.Win32Resources!.Root!;
+				Add(root, "FIRSTTYPE", "SHARED", CreateData(1033, new byte[] { 1 }));
+				Add(root, "SECONDTYPE", "SHARED", CreateData(1033, new byte[] { 2 }));
+				written = Write(module);
+			}
+
+			using (var module = ModuleDefMD.Load(written)) {
+				var resources = module.Win32Resources!;
+				Assert.Equal(new byte[] { 1 }, resources.Find("FIRSTTYPE", "SHARED", 1033)!.CreateReader().ToArray());
+				Assert.Equal(new byte[] { 2 }, resources.Find("SECONDTYPE", "SHARED", 1033)!.CreateReader().ToArray());
+			}
+		}
+
+		// Win32 resources created with the API: setting the same root again changes nothing, without a root
+		// nothing is found, and they can be disposed twice
+		[Fact]
+		public void ResourcesCreatedWithTheApi() {
+			var resources = new Win32ResourcesUser();
+			Assert.Null(resources.Find(3));
+			var root = new ResourceDirectoryUser(new ResourceName("root"));
+			resources.Root = root;
+			resources.Root = root;
+			Assert.Same(root, resources.Root);
+			Assert.Null(resources.Find(3));
+
+			resources.Dispose();
+			resources.Dispose();
+		}
 	}
 }
