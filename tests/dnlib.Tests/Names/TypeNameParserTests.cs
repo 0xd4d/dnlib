@@ -439,5 +439,25 @@ namespace dnlib.Tests.Names {
 			Assert.Equal(assembly.Name, readBack.Name);
 			Assert.Equal(assembly.Culture, readBack.Culture);
 		}
+
+		// The old names of the OrThrow methods still work
+		[Fact]
+		public void TheObsoleteThrowMethodsAreTheOrThrowMethods() {
+			var module = CreateModule();
+#pragma warning disable CS0618 // Obsolete
+			Assert.Equal("System.String", TypeNameParser.ParseReflectionThrow(module, "System.String", null).FullName);
+			Assert.Equal("System.String", TypeNameParser.ParseReflectionThrow(module, "System.String", null, new GenericParamContext()).FullName);
+			Assert.Equal("System.String[]", TypeNameParser.ParseAsTypeSigReflectionThrow(module, "System.String[]", null).FullName);
+			Assert.Equal("System.String[]", TypeNameParser.ParseAsTypeSigReflectionThrow(module, "System.String[]", null, new GenericParamContext()).FullName);
+			Assert.ThrowsAny<Exception>(() => TypeNameParser.ParseReflectionThrow(module, "[", null));
+			var typeDef = new TypeDefUser("Ns", "Type", module.CorLibTypes.Object.TypeDefOrRef);
+			module.Types.Add(typeDef);
+			// A reference to a type of its own module, resolved with the module's context
+			module.Context = ModuleDef.CreateModuleContext();
+			var typeRef = new TypeRefUser(module, "Ns", "Type", module);
+			Assert.Same(typeDef, typeRef.ResolveThrow());
+			Assert.Same(typeDef, typeRef.ResolveThrow(module));
+#pragma warning restore CS0618
+		}
 	}
 }
