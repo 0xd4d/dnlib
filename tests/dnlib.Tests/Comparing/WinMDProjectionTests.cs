@@ -30,6 +30,11 @@ namespace dnlib.Tests.Comparing {
 		[InlineData("Windows.Foundation", "DateTime", "System.DateTimeOffset", "System.Runtime", true)]
 		[InlineData("Windows.Foundation", "Point", "Windows.Foundation.Point", "System.Runtime.WindowsRuntime", true)]
 		[InlineData("Windows.Foundation.Collections", "IVector`1", "System.Collections.Generic.IList`1", "System.Runtime", false)]
+		// The other assemblies of projected types
+		[InlineData("Windows.Foundation.Numerics", "Vector2", "System.Numerics.Vector2", "System.Numerics.Vectors", true)]
+		[InlineData("Windows.UI.Xaml.Input", "ICommand", "System.Windows.Input.ICommand", "System.ObjectModel", false)]
+		[InlineData("Windows.Foundation", "EventRegistrationToken", "System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "System.Runtime.InteropServices.WindowsRuntime", true)]
+		[InlineData("Windows.UI.Xaml", "CornerRadius", "Windows.UI.Xaml.CornerRadius", "System.Runtime.WindowsRuntime.UI.Xaml", true)]
 		public void TypeRefIsProjected(string @namespace, string name, string expectedFullName, string expectedAssembly, bool expectedIsValueType) {
 			var projected = WinMDHelpers.ToCLR(module, WindowsRuntimeType(@namespace, name), out bool isValueType);
 
@@ -251,6 +256,24 @@ namespace dnlib.Tests.Comparing {
 
 			Assert.True(new SigComparer(options).Equals(uri, typeof(Uri)));
 			Assert.True(new SigComparer(options).Equals(close, typeof(IDisposable).GetMethod(nameof(IDisposable.Dispose))!));
+		}
+
+		// Only Close of IClosable is projected: a member of a generic instance (its class is a TypeSpec) is projected
+		// only if the generic type is projected to IDisposable, which no generic type is
+		[Fact]
+		public void MembersOfGenericInstancesAreNotProjected() {
+			var signature = MethodSig.CreateInstance(module.CorLibTypes.Void);
+			var vectorOfInt = new TypeSpecUser(new GenericInstSig(new ClassSig(WindowsRuntimeType("Windows.Foundation.Collections", "IVector`1")), module.CorLibTypes.Int32));
+			var notGeneric = new TypeSpecUser(new SZArraySig(module.CorLibTypes.Int32));
+			var otherGeneric = new TypeSpecUser(new GenericInstSig(new ClassSig(WindowsRuntimeType("Windows.Foundation", "NotProjected`1")), module.CorLibTypes.Int32));
+
+			Assert.Null(WinMDHelpers.ToCLR(module, new MemberRefUser(module, "Close", signature, vectorOfInt)));
+			Assert.Null(WinMDHelpers.ToCLR(module, new MemberRefUser(module, "Close", signature, notGeneric)));
+			Assert.Null(WinMDHelpers.ToCLR(module, new MemberRefUser(module, "Close", signature, otherGeneric)));
+			Assert.Null(WinMDHelpers.ToCLR(module, (MemberRef?)null));
+			Assert.Null(WinMDHelpers.ToCLR(module, (MethodDef?)null));
+			Assert.Null(WinMDHelpers.ToCLR(module, (ExportedType?)null));
+			Assert.Null(WinMDHelpers.ToCLR(module, (TypeDef?)null));
 		}
 	}
 }
