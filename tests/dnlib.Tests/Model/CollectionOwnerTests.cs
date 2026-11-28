@@ -1,6 +1,7 @@
 // dnlib: See LICENSE.txt for more info
 
 using System;
+using System.Collections.Generic;
 using dnlib.DotNet;
 using dnlib.TestUtils;
 using Xunit;
@@ -164,6 +165,112 @@ namespace dnlib.Tests.Model {
 				Assert.Null(inner.DeclaringType);
 				Assert.Null(inner.Module);
 			}
+		}
+
+		// Every list of a type that owns its items: an item that another type owns can't be added, and Clear()
+		// resets the owner of all items
+		public static TheoryData<string> TypeLists => new TheoryData<string> { "Fields", "Methods", "Events", "Properties", "GenericParameters", "NestedTypes" };
+
+		static object CreateItem(string list, string name) => list switch {
+			"Fields" => new FieldDefUser(name, new FieldSig(new ModuleDefUser().CorLibTypes.Int32)),
+			"Methods" => CreateMethod(name),
+			"Events" => new EventDefUser(name, null),
+			"Properties" => new PropertyDefUser(name, null),
+			"GenericParameters" => new GenericParamUser(0, GenericParamAttributes.NonVariant, name),
+			"NestedTypes" => new TypeDefUser(name),
+			_ => throw new ArgumentException(list),
+		};
+
+		// The lists have different item types: these are the operations that the tests need
+		sealed class AnyList {
+			public Action<object> Add = null!;
+			public Action Clear = null!;
+			public Func<int> Count = null!;
+		}
+
+		static AnyList Wrap<T>(IList<T> list) => new AnyList { Add = a => list.Add((T)a), Clear = list.Clear, Count = () => list.Count };
+
+		static AnyList GetList(TypeDef type, string list) => list switch {
+			"Fields" => Wrap(type.Fields),
+			"Methods" => Wrap(type.Methods),
+			"Events" => Wrap(type.Events),
+			"Properties" => Wrap(type.Properties),
+			"GenericParameters" => Wrap(type.GenericParameters),
+			"NestedTypes" => Wrap(type.NestedTypes),
+			_ => throw new ArgumentException(list),
+		};
+
+		static object? GetOwner(object item) => item switch {
+			FieldDef a => a.DeclaringType,
+			MethodDef a => a.DeclaringType,
+			EventDef a => a.DeclaringType,
+			PropertyDef a => a.DeclaringType,
+			GenericParam a => a.Owner,
+			TypeDef a => a.DeclaringType,
+			_ => throw new ArgumentException(),
+		};
+
+		[Theory, MemberData(nameof(TypeLists))]
+		public void AnItemOfAnotherTypeCanNotBeAdded(string list) {
+			var owner = new TypeDefUser("Owner");
+			var other = new TypeDefUser("Other");
+			var item = CreateItem(list, "Item");
+			GetList(owner, list).Add(item);
+
+			Assert.Throws<InvalidOperationException>(() => GetList(other, list).Add(item));
+
+			Assert.Same(owner, GetOwner(item));
+			Assert.Equal(0, GetList(other, list).Count());
+		}
+
+		[Theory, MemberData(nameof(TypeLists))]
+		public void ClearResetsTheOwnerOfTheItemsOfAType(string list) {
+			var type = new TypeDefUser("Type");
+			var first = CreateItem(list, "First");
+			var second = CreateItem(list, "Second");
+			GetList(type, list).Add(first);
+			GetList(type, list).Add(second);
+
+			GetList(type, list).Clear();
+
+			Assert.Equal(0, GetList(type, list).Count());
+			Assert.Null(GetOwner(first));
+			Assert.Null(GetOwner(second));
+		}
+
+		// A type of a module can't be a nested type
+		[Fact]
+		public void ATypeOfAModuleCanNotBeANestedType() {
+			var module = new ModuleDefUser("Module");
+			var type = new TypeDefUser("Ns", "Type");
+			module.Types.Add(type);
+
+			Assert.Throws<InvalidOperationException>(() => new TypeDefUser("Outer").NestedTypes.Add(type));
+			Assert.Same(module, type.Module);
+		}
+
+		// Setting DeclaringType adds the type to the nested types of its new declaring type and removes it from the
+		// old one. Setting the same declaring type again changes nothing.
+		[Fact]
+		public void SettingTheDeclaringTypeMovesANestedType() {
+			var first = new TypeDefUser("First");
+			var second = new TypeDefUser("Second");
+			var nested = new TypeDefUser("Nested");
+
+			nested.DeclaringType = first;
+			nested.DeclaringType = first;
+			Assert.Same(nested, Assert.Single(first.NestedTypes));
+
+			nested.DeclaringType = second;
+			Assert.Empty(first.NestedTypes);
+			Assert.Same(nested, Assert.Single(second.NestedTypes));
+			Assert.Same(second, nested.DeclaringTypeOrThrow);
+			Assert.Same(second, ((IMemberRef)nested).DeclaringType);
+			Assert.Same(second, ((IMemberRef)nested).DeclaringTypeOrThrow);
+
+			nested.DeclaringType = null;
+			Assert.Empty(second.NestedTypes);
+			Assert.ThrowsAny<InvalidOperationException>(() => nested.DeclaringTypeOrThrow);
 		}
 	}
 }

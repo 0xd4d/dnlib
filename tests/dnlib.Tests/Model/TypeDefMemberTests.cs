@@ -243,5 +243,115 @@ public sealed class SealedClass { public class Nested { } }
 			Assert.Null(Find("IInterface").BaseType);
 			Assert.Equal("System.MulticastDelegate", Find("Callback").BaseType!.FullName);
 		}
+
+		// Members are also found in a base type; the variants without a type or signature only use the name
+		[Fact]
+		public void MembersAreFoundInABaseType() {
+			var derived = Find("Derived");
+			var handler = Find("Base").FindEvent("BaseEvent")!.EventType;
+
+			Assert.Equal("BaseField", derived.FindFieldCheckBaseType("BaseField")!.Name);
+			Assert.Null(derived.FindFieldCheckBaseType("DoesNotExist"));
+			Assert.Equal("BaseProperty", derived.FindPropertyCheckBaseType("BaseProperty")!.Name);
+			Assert.Null(derived.FindPropertyCheckBaseType("DoesNotExist"));
+			Assert.Equal("BaseEvent", derived.FindEventCheckBaseType("BaseEvent", handler)!.Name);
+			Assert.Equal("BaseEvent", derived.FindEventCheckBaseType("BaseEvent", handler, SigComparerOptions.DontCompareTypeScope)!.Name);
+			Assert.Null(derived.FindEventCheckBaseType("DoesNotExist", handler));
+		}
+
+		// A null name or signature finds nothing
+		[Fact]
+		public void NothingIsFoundWithoutANameOrASignature() {
+			var derived = Find("Derived");
+			var method = derived.FindMethod("Method")!;
+			var field = derived.FindField("Field")!;
+
+			Assert.Null(derived.FindMethod(null, method.MethodSig, 0, null));
+			Assert.Null(derived.FindField(null, field.FieldSig, 0, null));
+			Assert.Null(derived.FindEvent(null, Find("Base").FindEvent("BaseEvent")!.EventType, 0, null));
+			Assert.Null(derived.FindProperty(null, derived.FindProperty("Number")!.PropertySig, 0, null));
+			Assert.Null(derived.Resolve(null, 0));
+		}
+
+		// A MemberRef with a signature that is neither a method nor a field signature resolves to nothing
+		[Fact]
+		public void AMemberRefWithAnotherSignatureIsNotResolved() {
+			var derived = Find("Derived");
+			var memberRef = new MemberRefUser(module, "Field", (FieldSig?)null, derived);
+
+			Assert.Null(derived.Resolve(memberRef));
+			memberRef.Signature = derived.FindField("Field")!.FieldSig;
+			Assert.Same(derived.FindField("Field"), derived.Resolve(memberRef));
+		}
+
+		[Fact]
+		public void GetTypesReturnsAllNestedTypes() {
+			var sealedClass = Find("SealedClass");
+
+			Assert.Equal(new[] { "SealedClass/Nested" }, sealedClass.GetTypes().Select(a => a.FullName));
+			Assert.Empty(Find("Struct").GetTypes());
+		}
+
+		[Fact]
+		public void NumberOfGenericParametersOfAType() {
+			var type = new TypeDefUser("Generic`2");
+			type.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
+			type.GenericParameters.Add(new GenericParamUser(1, GenericParamAttributes.NonVariant, "U"));
+
+			Assert.Equal(2, ((IGenericParameterProvider)type).NumberOfGenericParameters);
+			Assert.Equal(0, ((IGenericParameterProvider)Find("Struct")).NumberOfGenericParameters);
+			Assert.Equal(0, ((ITypeOrMethodDef)type).TypeOrMethodDefTag);
+		}
+
+		// Setting the packing size or the class size creates a ClassLayout row
+		[Fact]
+		public void SettingTheLayoutCreatesAClassLayout() {
+			var type = new TypeDefUser("Type");
+			Assert.Null(type.ClassLayout);
+			Assert.Equal(ushort.MaxValue, type.PackingSize);
+
+			type.PackingSize = 4;
+			Assert.NotNull(type.ClassLayout);
+			Assert.Equal(4, type.PackingSize);
+			Assert.Equal(0U, type.ClassSize);
+
+			var other = new TypeDefUser("Other");
+			other.ClassSize = 12;
+			Assert.Equal(12U, other.ClassSize);
+			Assert.Equal(0, other.PackingSize);
+		}
+
+		// A type in the core library itself derives from a TypeDef, not a TypeRef
+		[Fact]
+		public void EnumsAndDelegatesOfTheCoreLibrary() {
+			var corLib = new ModuleDefUser("mscorlib.dll");
+			new AssemblyDefUser("mscorlib", new Version(4, 0, 0, 0)).Modules.Add(corLib);
+			var systemObject = new TypeDefUser("System", "Object");
+			var systemEnum = new TypeDefUser("System", "Enum", systemObject);
+			var multicastDelegate = new TypeDefUser("System", "MulticastDelegate", systemObject);
+			var anEnum = new TypeDefUser("System", "AnEnum", systemEnum) { Attributes = TypeAttributes.Sealed };
+			var aDelegate = new TypeDefUser("System", "ADelegate", multicastDelegate) { Attributes = TypeAttributes.Sealed };
+			var other = new TypeDefUser("System", "Other", systemObject);
+			foreach (var type in new[] { systemObject, systemEnum, multicastDelegate, anEnum, aDelegate, other })
+				corLib.Types.Add(type);
+
+			Assert.True(anEnum.IsEnum);
+			Assert.False(anEnum.IsDelegate);
+			Assert.True(aDelegate.IsDelegate);
+			Assert.False(aDelegate.IsEnum);
+			Assert.False(other.IsEnum);
+			Assert.False(other.IsDelegate);
+		}
+
+		// A base type that's a TypeSpec (eg. a generic instance) isn't System.Enum or System.MulticastDelegate
+		[Fact]
+		public void ATypeSpecBaseTypeIsNeitherAnEnumNorADelegate() {
+			var enumRef = module.CorLibTypes.GetTypeRef("System", "Enum");
+			var type = new TypeDefUser("Ns", "Type", new TypeSpecUser(new ClassSig(enumRef)));
+			module.Types.Add(type);
+
+			Assert.False(type.IsEnum);
+			Assert.False(type.IsDelegate);
+		}
 	}
 }
