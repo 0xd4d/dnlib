@@ -128,11 +128,160 @@ def percent_text(covered, total):
 # numbers would then be wrong
 NEW_LINE = re.compile("\r\n|[\r\n\u0085  ]")
 
+# C# syntax highlighting. The token kinds are also the CSS classes: k keyword, t name of a declared type,
+# s string or char, n number, m comment, d doc comment, r preprocessor directive, "" the rest.
+# The code isn't parsed, eg. a contextual keyword such as "var" is colored wherever it's used as a name.
+KEYWORDS = frozenset("""
+abstract as base bool break byte case catch char checked class const continue decimal default delegate do
+double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface
+internal is lock long namespace new null object operator out override params private protected public readonly
+ref return sbyte sealed short sizeof stackalloc static string struct switch this throw true try typeof uint
+ulong unchecked unsafe ushort using virtual void volatile while
+and async await dynamic global managed nameof nint not notnull nuint or partial record required scoped
+unmanaged var when where with yield
+""".split())
+# Only keywords before these: property and event accessors
+ACCESSOR_KEYWORDS = frozenset("get set init add remove".split())
+ACCESSOR_END = re.compile(r"\s*(?:[;{]|=>)")
+# The next name is the name of the new type
+TYPE_KEYWORDS = frozenset("class struct interface enum record".split())
+TYPE_NAME = re.compile(r"(\s+)(@?[^\W\d]\w*)")
+_TOKEN = r"""
+  (?P<d>///[^\n]*)
+| (?P<m>//[^\n]*|/\*.*?(?:\*/|\Z))
+| (?P<raw>\$*"{3,})
+| (?P<interpolated>\$@"|@\$"|\$")
+| (?P<s>@"(?:[^"]|"")*(?:"|\Z)
+      |"(?:\\.|[^"\\\n])*(?:"|(?=\n)|\Z)
+      |'(?:\\(?:x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|.)|[^\\'\n])')
+| (?P<n>\b(?:0[xX][0-9A-Fa-f_]+|0[bB][01_]+|[0-9][0-9_]*(?:\.[0-9][0-9_]*)?(?:[eE][+-]?[0-9]+)?)[uUlLfFdDmM]*)
+| (?P<name>@?[^\W\d]\w*)
+| (?P<r>(?:(?<=\n)|\A)[ \t]*\#[^\n]*)
+"""
+TOKEN = re.compile(_TOKEN, re.S | re.X)
+# In the {} of an interpolated string, the end must be found: the '}' that isn't in (), [] or {}, or a ':'
+# there, it starts the format string (eg. {value:X8})
+HOLE_TOKEN = re.compile(_TOKEN + r"| (?P<open>[(\[{]) | (?P<close>[)\]}]) | (?P<colon>(?<!:):(?!:))", re.S | re.X)
+
+
+def tokenize(text, tokens, position=0, in_hole=False):
+    """Appends (kind, text) of all of text to tokens. text has '\n' line terminators only.
+
+    in_hole: text[position] is the first char in the {} of an interpolated string, it returns at its end.
+    Returns the new position.
+    """
+    pattern = HOLE_TOKEN if in_hole else TOKEN
+    depth = 0
+    while True:
+        match = pattern.search(text, position)
+        if match is None:
+            tokens.append(("", text[position:]))
+            return len(text)
+        if match.start() != position:
+            tokens.append(("", text[position:match.start()]))
+        kind = match.lastgroup
+        value = match.group()
+        position = match.end()
+        if kind == "name":
+            if value in KEYWORDS or (value in ACCESSOR_KEYWORDS and ACCESSOR_END.match(text, position)):
+                tokens.append(("k", value))
+                type_name = TYPE_NAME.match(text, position) if value in TYPE_KEYWORDS else None
+                if type_name and type_name.group(2) not in KEYWORDS:
+                    tokens.append(("", type_name.group(1)))
+                    tokens.append(("t", type_name.group(2)))
+                    position = type_name.end()
+            else:
+                tokens.append(("", value))
+        elif kind == "interpolated":
+            position = tokenize_interpolated_string(text, tokens, match.start(), position, "@" in value)
+        elif kind == "raw":
+            # Raw string: it ends at as many quotes as it starts with. An interpolated one isn't split.
+            quotes = value.lstrip("$")
+            end = re.compile('(?<!")' + quotes + '(?!")').search(text, position)
+            position = end.end() if end else len(text)
+            tokens.append(("s", text[match.start():position]))
+        elif kind == "open":
+            depth += 1
+            tokens.append(("", value))
+        elif kind == "close" or kind == "colon":
+            if depth == 0:
+                return match.start()
+            if kind == "close":
+                depth -= 1
+            tokens.append(("", value))
+        else:
+            tokens.append((kind, value))
+
+
+def tokenize_interpolated_string(text, tokens, start, position, verbatim):
+    """Appends the tokens of the interpolated string at text[start], its text starts at text[position]. The
+    code in its {} isn't a string. Returns the position after the string."""
+    while position < len(text):
+        char = text[position]
+        if char == '"':
+            if verbatim and text.startswith('""', position):
+                position += 2
+                continue
+            position += 1
+            break
+        if char == "\n" and not verbatim:
+            break
+        if char == "\\" and not verbatim:
+            position += 2
+        elif char == "{" and not text.startswith("{{", position):
+            tokens.append(("s", text[start:position]))
+            tokens.append(("", "{"))
+            position = start = tokenize(text, tokens, position + 1, in_hole=True)
+            # The format string, or code that wasn't understood: it's part of the string up to the '}'
+            while position < len(text) and text[position] not in '}"\n':
+                position += 1
+            if position < len(text) and text[position] == "}":
+                tokens.append(("s", text[start:position]))
+                tokens.append(("", "}"))
+                position = start = position + 1
+        elif char in "{}":
+            position += 2
+        else:
+            position += 1
+    position = min(position, len(text))
+    tokens.append(("s", text[start:position]))
+    return position
+
+
+def highlight_lines(text):
+    """Returns the HTML of every line of text, which has '\n' line terminators only"""
+    tokens = []
+    try:
+        tokenize(text, tokens)
+        ok = "".join(value for _, value in tokens) == text
+    except RecursionError:
+        ok = False
+    if not ok:
+        # A bug in the tokenizer must not lose or change code
+        return None
+    lines = []
+    line = []
+    for kind, value in tokens:
+        pieces = value.split("\n")
+        for index, piece in enumerate(pieces):
+            if index != 0:
+                lines.append("".join(line))
+                line = []
+            if piece:
+                escaped = html.escape(piece, quote=False)
+                line.append(f"<i class={kind}>{escaped}</i>" if kind else escaped)
+    lines.append("".join(line))
+    return lines
+
+
 STYLE = """
 :root { color-scheme: light dark; --bg: #fff; --fg: #1f2328; --dim: #6e7781; --border: #d0d7de; --head: #f6f8fa;
-  --c: #d7f5dd; --u: #ffd8d3; --p: #fff1b8; --cn: #1a7f37; --un: #cf222e; --pn: #9a6700; --link: #0969da; }
+  --c: #d7f5dd; --u: #ffd8d3; --p: #fff1b8; --cn: #1a7f37; --un: #cf222e; --pn: #9a6700; --link: #0969da;
+  /* The code: they must be readable on the --c, --u and --p backgrounds too */
+  --keyword: #0033b3; --type: #00627a; --string: #8c3a00; --number: #7a3e9d; --comment: #5c6670; --directive: #6f42c1; }
 @media (prefers-color-scheme: dark) { :root { --bg: #0d1117; --fg: #e6edf3; --dim: #8b949e; --border: #30363d;
-  --head: #161b22; --c: #12361f; --u: #4a1b1b; --p: #3f3200; --cn: #3fb950; --un: #f85149; --pn: #d29922; --link: #58a6ff; } }
+  --head: #161b22; --c: #12361f; --u: #4a1b1b; --p: #3f3200; --cn: #3fb950; --un: #f85149; --pn: #d29922; --link: #58a6ff;
+  --keyword: #79c0ff; --type: #56d4dd; --string: #ffa657; --number: #d2a8ff; --comment: #9aa4af; --directive: #d2a8ff; } }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 14px system-ui, sans-serif; }
 a { color: var(--link); text-decoration: none; } a:hover { text-decoration: underline; }
 header { position: sticky; top: 0; z-index: 1; background: var(--head); border-bottom: 1px solid var(--border);
@@ -161,6 +310,8 @@ pre span::before { content: attr(data-b) "  " counter(line); display: inline-blo
 .c { background: var(--c); } .u { background: var(--u); } .p { background: var(--p); }
 pre span.c::before { border-right-color: var(--cn); } pre span.u::before { border-right-color: var(--un); }
 pre span.p::before { border-right-color: var(--pn); }
+pre i { font-style: normal; } .k { color: var(--keyword); } .t { color: var(--type); } .s { color: var(--string); }
+.n { color: var(--number); } .m, .d { color: var(--comment); font-style: italic; } .r { color: var(--directive); }
 /* The block the prev/next buttons jumped to */
 pre span.cur::before { color: var(--fg); font-weight: 700; border-right-width: 7px; padding-right: calc(1ch - 4px); }
 pre span:target { outline: 2px solid var(--link); outline-offset: -2px; }
@@ -178,8 +329,11 @@ FILE_SCRIPT = """
     else blocks.push(block = [line]);
   });
   var current = -1, scrollAfter = -1;
-  // Where the first line of a block is put: below the header, with 2 lines above it
-  function topOffset() { return document.querySelector('header').offsetHeight + 2 * blocks[0][0].offsetHeight; }
+  // Where the first line of a block is put: a third down the window, so the code above it is seen too (but
+  // always below the header)
+  function topOffset() {
+    return Math.max(document.querySelector('header').offsetHeight + 2 * blocks[0][0].offsetHeight, Math.round(window.innerHeight / 3));
+  }
   function go(direction) {
     if (!blocks.length) return;
     var index = -1, i;
@@ -262,7 +416,11 @@ def totals_text(totals):
 def write_file_page(output_directory, source_directory, source_file, lines, totals):
     depth = source_file.count("/") + 1
     with open(os.path.join(source_directory, source_file), encoding="utf-8-sig", errors="replace") as file:
-        source_lines = NEW_LINE.split(file.read())
+        text = NEW_LINE.sub("\n", file.read())
+    source_lines = highlight_lines(text)
+    if source_lines is None:
+        print(f"warning: {source_file}: the syntax highlighting failed, the code is shown without it", file=sys.stderr)
+        source_lines = [html.escape(line, quote=False) for line in text.split("\n")]
     if source_lines and source_lines[-1] == "":
         source_lines.pop()
     last_line = max(lines) if lines else 0
@@ -271,14 +429,14 @@ def write_file_page(output_directory, source_directory, source_file, lines, tota
         source_lines += [""] * (last_line - len(source_lines))
 
     parts = []
-    for number, text in enumerate(source_lines, 1):
+    for number, text in enumerate(source_lines, 1):  # text is HTML
         line = lines.get(number)
         attributes = f' id="L{number}"'
         if line is not None:
             attributes += f' class="{line.state}"'
             if line.branches:
                 attributes += f' data-b="{line.covered_branches}/{line.branches}"'
-        parts.append(f"<span{attributes}>{html.escape(text, quote=False)}\n</span>")
+        parts.append(f"<span{attributes}>{text}\n</span>")
 
     header = (f'<h1><a href="{"../" * depth}index.html">coverage</a> / {html.escape(source_file)}</h1>{totals_text(totals)}'
               f'<span><button id="prev" title="Previous uncovered code (p)">▲ prev</button> '
