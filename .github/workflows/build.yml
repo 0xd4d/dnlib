@@ -129,8 +129,8 @@ jobs:
         with:
           global-json-file: global.json
 
-      # The versions are in .config/dotnet-tools.json, which Dependabot updates
-      - name: Install dotnet-coverage and ReportGenerator
+      # The version is in .config/dotnet-tools.json, which Dependabot updates
+      - name: Install dotnet-coverage
         shell: bash
         run: dotnet tool restore
 

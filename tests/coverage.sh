@@ -7,13 +7,13 @@
 # removes tests or adds a lot of untested code is noticed.
 #
 # --html also writes an HTML report that shows dnlib's source code with the covered and the uncovered lines:
-# open tests/coverage/html/index.html in a browser.
+# open tests/coverage/html/index.html in a browser. It's written by coverage-html.py, which can also merge
+# the reports of several runs (eg. the ones of the Windows and Ubuntu CI jobs).
 #
 # The arguments are those of tests/test.sh. The default is the net10.0 leg only; with several legs, a line is
 # covered if any leg covers it. The reports are written to tests/coverage/ (Cobertura XML, one per leg).
 #
-# Needs dotnet-coverage and, for --html, ReportGenerator. They're local tools (their versions are in
-# .config/dotnet-tools.json): dotnet tool restore
+# Needs dotnet-coverage, a local tool (its version is in .config/dotnet-tools.json): dotnet tool restore
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -39,10 +39,6 @@ while [ $# -gt 0 ]; do
 	fi
 	shift
 done
-if [ $html = 1 ] && ! dotnet tool run reportgenerator -help >/dev/null 2>&1; then
-	echo "ReportGenerator wasn't found. Install it with: dotnet tool restore" >&2
-	exit 1
-fi
 if [ ${#legs[@]} -eq 0 ]; then
 	legs=(net10.0)
 fi
@@ -70,11 +66,7 @@ if ! command -v python3 >/dev/null; then
 fi
 # The HTML report is written first: it's also wanted when the coverage is below the minimum
 if [ $html = 1 ]; then
-	# The reports also have the code of the .NET SDK and of the tests, only dnlib is wanted. ReportGenerator
-	# expands the '*' itself and merges the legs.
-	dotnet tool run reportgenerator "-reports:coverage/*.cobertura.xml" -targetdir:coverage/html \
-		-reporttypes:Html "-assemblyfilters:+dnlib" -verbosity:Warning
-	echo "HTML report: $(pwd)/coverage/html/index.html"
+	$python coverage-html.py --output coverage/html "$source_directory" coverage/*.cobertura.xml
 fi
 
 $python coverage-summary.py ${summary_options[@]+"${summary_options[@]}"} "$source_directory" coverage/*.cobertura.xml | tee coverage/summary.txt
