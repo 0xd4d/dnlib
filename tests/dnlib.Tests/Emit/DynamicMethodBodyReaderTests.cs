@@ -528,5 +528,17 @@ namespace dnlib.Tests.Emit {
 			Assert.Equal(ExceptionHandlerType.Finally, finallyHandler.HandlerType);
 			Assert.Equal(Code.Endfinally, finallyHandler.HandlerStart!.OpCode.Code);
 		}
+
+		// A signature of a dynamic method can have the address of a runtime type (ELEMENT_TYPE_INTERNAL). The type
+		// at the address is found by creating a method in a dynamic assembly whose local has that type.
+		[Fact]
+		public void TheTypeAtTheAddressOfARuntimeTypeIsFound() {
+			SkipOnMono();
+			var address = typeof(Uri).TypeHandle.Value;
+
+			Assert.Same(typeof(Uri), MethodTableToTypeConverter.Convert(address));
+			// The second time, it's the type that was found the first time
+			Assert.Same(typeof(Uri), MethodTableToTypeConverter.Convert(address));
+		}
 	}
 }
