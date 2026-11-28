@@ -277,5 +277,119 @@ namespace dnlib.Tests.Names {
 			Assert.Equal("", FullNameFactory.Name((IType?)null, isReflection: true, sb: null));
 			Assert.Equal("", FullNameFactory.Namespace((IType?)null, isReflection: true, sb: null));
 		}
+
+		const string Null = "<<<NULL>>>";
+
+		// The methods for a specific kind of type write "<<<NULL>>>" for null, and so do the methods that take
+		// an ITypeDefOrRef for a missing part, eg. a TypeSpec without a signature
+		[Fact]
+		public void NullIsWrittenAsNull() {
+			Assert.Equal(Null, FullNameFactory.FullName((TypeRef?)null, false));
+			Assert.Equal(Null, FullNameFactory.Name((TypeRef?)null, false));
+			Assert.Equal(Null, FullNameFactory.Namespace((TypeRef?)null, false));
+			Assert.Equal(Null, FullNameFactory.AssemblyQualifiedName((TypeRef?)null));
+			Assert.Equal(Null, FullNameFactory.FullName((TypeDef?)null, false));
+			Assert.Equal(Null, FullNameFactory.Name((TypeDef?)null, false));
+			Assert.Equal(Null, FullNameFactory.Namespace((TypeDef?)null, false));
+			Assert.Equal(Null, FullNameFactory.AssemblyQualifiedName((TypeDef?)null));
+			Assert.Equal(Null, FullNameFactory.FullName((TypeSpec?)null, false));
+			Assert.Equal(Null, FullNameFactory.Name((TypeSpec?)null, false));
+			Assert.Equal(Null, FullNameFactory.Namespace((TypeSpec?)null, false));
+			Assert.Equal(Null, FullNameFactory.AssemblyQualifiedName((TypeSpec?)null));
+			Assert.Equal(Null, FullNameFactory.FullName((TypeSig?)null, false));
+			Assert.Equal(Null, FullNameFactory.Name((TypeSig?)null, false));
+			Assert.Equal(Null, FullNameFactory.Namespace((TypeSig?)null, false));
+			Assert.Equal(Null, FullNameFactory.AssemblyQualifiedName((TypeSig?)null));
+			Assert.Equal(Null, FullNameFactory.FullName((ExportedType?)null, false));
+			Assert.Equal(Null, FullNameFactory.Name((ExportedType?)null, false));
+			Assert.Equal(Null, FullNameFactory.Namespace((ExportedType?)null, false));
+			Assert.Equal(Null, FullNameFactory.AssemblyQualifiedName((ExportedType?)null));
+		}
+
+		// The type of a signature can be any ITypeDefOrRef: a TypeSpec (only an invalid file has one) has the
+		// names of its signature, and null is written as null
+		[Fact]
+		public void TypeSpecOrNullInATypeSignature() {
+			var typeSpec = new TypeSpecUser(new SZArraySig(CorLib.Int32));
+			var withTypeSpec = new ClassSig(typeSpec);
+			var withNull = new ClassSig(null);
+
+			Assert.Equal("System.Int32[]", FullNameFactory.FullName(withTypeSpec, false));
+			Assert.Equal("Int32[]", FullNameFactory.Name(withTypeSpec, false));
+			Assert.Equal("System", FullNameFactory.Namespace(withTypeSpec, false));
+			Assert.StartsWith("System.Int32[], ", FullNameFactory.AssemblyQualifiedName(withTypeSpec));
+			Assert.Equal(Null, FullNameFactory.FullName(withNull, false));
+			Assert.Equal(Null, FullNameFactory.Name(withNull, false));
+			Assert.Equal(Null, FullNameFactory.Namespace(withNull, false));
+			// The type and its assembly are both missing
+			Assert.Equal(Null + ", " + Null, FullNameFactory.AssemblyQualifiedName(withNull));
+			// A modifier that is a TypeSpec
+			var modified = new CModReqdSig(typeSpec, CorLib.Int32);
+			Assert.Equal("System.Int32 modreq(System.Int32[])", FullNameFactory.FullName(modified, false));
+		}
+
+		// A TypeSpec without a signature
+		[Fact]
+		public void TypeSpecWithoutASignature() {
+			var typeSpec = new TypeSpecUser((TypeSig?)null);
+
+			Assert.Equal(Null, FullNameFactory.FullName(typeSpec, false));
+			Assert.Equal(Null, FullNameFactory.Name(typeSpec, false));
+			Assert.Equal(Null, FullNameFactory.Namespace(typeSpec, false));
+			Assert.Equal(Null, FullNameFactory.AssemblyQualifiedName(typeSpec));
+			Assert.Null(FullNameFactory.ScopeType(typeSpec));
+			Assert.Null(FullNameFactory.Scope(typeSpec));
+			Assert.Null(FullNameFactory.DefinitionAssembly(typeSpec));
+		}
+
+		// The module and the assembly that a reference is in
+		[Fact]
+		public void OwnerModuleAndDefinitionAssembly() {
+			var typeSpec = new TypeSpecUser(new ClassSig(nestedRef));
+			var exportedType = new ExportedTypeUser(module, 0, "Ns", "Exported", TypeAttributes.Public, new AssemblyRefUser(library.Assembly!));
+
+			Assert.Same(module, FullNameFactory.OwnerModule(nestedRef));
+			Assert.Same(library, FullNameFactory.OwnerModule(nested));
+			Assert.Same(module, FullNameFactory.OwnerModule(typeSpec));
+			Assert.Same(module, FullNameFactory.OwnerModule(new ClassSig(nestedRef)));
+			Assert.Same(module, FullNameFactory.OwnerModule(exportedType));
+			Assert.Null(FullNameFactory.OwnerModule((TypeRef?)null));
+			Assert.Null(FullNameFactory.OwnerModule((ExportedType?)null));
+			Assert.Null(FullNameFactory.OwnerModule((TypeSig?)null));
+			Assert.Equal("Library", FullNameFactory.DefinitionAssembly(typeSpec)!.Name);
+			Assert.Equal("Library", FullNameFactory.DefinitionAssembly(new ClassSig(typeSpec))!.Name);
+			Assert.Same(nestedRef, FullNameFactory.ScopeType(new ClassSig(typeSpec)));
+			Assert.Equal(LibraryName, FullNameFactory.Scope(new ClassSig(typeSpec))!.ScopeName);
+		}
+
+		// An event's type can have generic arguments of the declaring type
+		[Fact]
+		public void EventNameWithGenericArguments() {
+			var handler = new TypeSpecUser(new GenericVar(0));
+
+			Assert.Equal("System.Int32 Ns.Type::Changed", FullNameFactory.EventFullName("Ns.Type", "Changed", handler, new TypeSig[] { CorLib.Int32 }));
+			Assert.Equal("!0 Ns.Type::Changed", FullNameFactory.EventFullName("Ns.Type", "Changed", handler));
+		}
+
+		// A type signature with the generic arguments of a type and of a method
+		[Fact]
+		public void TypeSignatureWithGenericArguments() {
+			var sig = new GenericInstSig(new ClassSig(nestedRef), new GenericVar(0), new GenericMVar(0));
+
+			Assert.Equal("Ns.Outer`1/Nested<System.Int32,System.String>", FullNameFactory.FullName(sig, false, null, new TypeSig[] { CorLib.Int32 }, new TypeSig[] { CorLib.String }));
+			Assert.Equal("Ns.Outer`1/Nested<System.Int32,!!0>", FullNameFactory.FullName(sig, false, null, new TypeSig[] { CorLib.Int32 }, null));
+			Assert.Equal("Ns.Outer`1/Nested<!0,System.String>", FullNameFactory.FullName(sig, false, null, null, new TypeSig[] { CorLib.String }));
+		}
+
+		// A ']' in an assembly name is escaped in an assembly qualified name inside a generic argument
+		[Fact]
+		public void ClosingBracketInAnAssemblyNameIsEscaped() {
+			var other = new TypeRefUser(module, "Ns", "Other", new AssemblyRefUser("Odd]Name", new Version(1, 0, 0, 0)));
+			var sig = new GenericInstSig(new ClassSig(nestedRef), new ClassSig(other));
+
+			var name = FullNameFactory.AssemblyQualifiedName(sig);
+
+			Assert.Contains("[Ns.Other, Odd\\]Name, Version=1.0.0.0", name);
+		}
 	}
 }
