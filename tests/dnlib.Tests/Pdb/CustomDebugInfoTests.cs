@@ -142,6 +142,32 @@ namespace dnlib.Tests.Pdb {
 			}
 		}
 
+		// The steps of an async method: the yield instruction is in the method, the breakpoint (where it continues)
+		// can be in another method (the MoveNext() of its state machine)
+		[Fact]
+		public void AsyncStepsWithABreakpointInAnotherMethod() {
+			var written = ChangeAndWrite(module => {
+				var method = DebugInfoSource.GetMethod(module, "Sum");
+				var other = DebugInfoSource.GetMethod(module, "NoLocals");
+				var info = new PdbAsyncMethodCustomDebugInfo(method);
+				info.CatchHandlerInstruction = method.Body!.Instructions[1];
+				info.StepInfos.Add(new PdbAsyncStepInfo(method.Body.Instructions[0], other, other.Body!.Instructions[other.Body.Instructions.Count - 1]));
+				info.StepInfos.Add(new PdbAsyncStepInfo(method.Body.Instructions[1], method, method.Body.Instructions[2]));
+				method.CustomDebugInfos.Add(info);
+			});
+
+			using (var module = RoundTrip.LoadWithPdb(written.Image, written.Pdb!)) {
+				var method = DebugInfoSource.GetMethod(module, "Sum");
+				var other = DebugInfoSource.GetMethod(module, "NoLocals");
+				var info = Single<PdbAsyncMethodCustomDebugInfo>(method.CustomDebugInfos);
+				Assert.Same(method.Body!.Instructions[1], info.CatchHandlerInstruction);
+				Assert.Equal(2, info.StepInfos.Count);
+				Assert.Same(other, info.StepInfos[0].BreakpointMethod);
+				Assert.Same(other.Body!.Instructions[other.Body.Instructions.Count - 1], info.StepInfos[0].BreakpointInstruction);
+				Assert.Same(method.Body.Instructions[2], info.StepInfos[1].BreakpointInstruction);
+			}
+		}
+
 		// Custom debug info that only a Windows PDB can store is an error when a portable PDB is written
 		[Fact]
 		public void WindowsPdbOnlyKindIsAnErrorInAPortablePdb() {
@@ -240,6 +266,24 @@ namespace dnlib.Tests.Pdb {
 				AddAsyncStep(method, new PdbAsyncStepInfo(instructions[0], otherMethod, instructionOfAnotherMethod));
 				break;
 			}
+			case "dynamic local variables without flags":
+				method.CustomDebugInfos.Add(new PdbDynamicLocalVariablesCustomDebugInfo(null!));
+				break;
+			case "primary constructor information without a blob":
+				method.DeclaringType!.CustomDebugInfos.Add(new PrimaryConstructorInformationBlobDebugInfo(null!));
+				break;
+			case "hoisted local scopes of a method without a body": {
+				var noBody = new MethodDefUser("NoBody", MethodSig.CreateInstance(module.CorLibTypes.Void), MethodAttributes.Abstract | MethodAttributes.Virtual);
+				method.DeclaringType!.Methods.Add(noBody);
+				noBody.CustomDebugInfos.Add(new PdbStateMachineHoistedLocalScopesCustomDebugInfo());
+				break;
+			}
+			case "async method information of a method without a body": {
+				var noBody = new MethodDefUser("NoBody", MethodSig.CreateInstance(module.CorLibTypes.Void), MethodAttributes.Abstract | MethodAttributes.Virtual);
+				method.DeclaringType!.Methods.Add(noBody);
+				noBody.CustomDebugInfos.Add(new PdbAsyncMethodCustomDebugInfo(method));
+				break;
+			}
 			default:
 				throw new ArgumentException(what);
 			}
@@ -266,6 +310,10 @@ namespace dnlib.Tests.Pdb {
 		[InlineData("async step without a breakpoint instruction", "BreakpointInstruction is null")]
 		[InlineData("async step with a breakpoint in a method without a body", "Method has no body")]
 		[InlineData("async step with an instruction that the breakpoint method does not have", "Couldn't find an instruction")]
+		[InlineData("dynamic local variables without flags", "Dynamic flags is null")]
+		[InlineData("primary constructor information without a blob", "Primary constructor information blob is null")]
+		[InlineData("hoisted local scopes of a method without a body", "Method has no body")]
+		[InlineData("async method information of a method without a body", "Method has no body")]
 		public void InfoThatCanNotBeWrittenIsAnError(string what, string expectedError) {
 			var exception = Assert.Throws<ModuleWriterException>(() => ChangeAndWrite(module => AddInvalidInfo(module, what)));
 			Assert.Contains(expectedError, exception.Message);

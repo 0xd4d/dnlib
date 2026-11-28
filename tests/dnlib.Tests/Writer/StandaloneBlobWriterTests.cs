@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using dnlib.DotNet;
@@ -100,6 +101,55 @@ namespace dnlib.Tests.Writer {
 			Assert.Equal(new[] { "TypeSig is null" }, helper.Errors);
 			SignatureWriter.Write(helper, (CallingConventionSig?)null);
 			Assert.Equal(2, helper.Errors.Count);
+		}
+
+		// The types of the runtime's own signatures: a fixed size array (ValueArray, type, size) and a type of another
+		// module (Module, module number, type). They're read again.
+		[Fact]
+		public void ValueArrayAndModuleSignaturesAreWritten() {
+			var helper = new Helper();
+			var valueArray = new ValueArraySig(module.CorLibTypes.Int32, 3);
+			var moduleSig = new ModuleSig(2, module.CorLibTypes.String);
+
+			var valueArrayBytes = SignatureWriter.Write(helper, valueArray);
+			var moduleBytes = SignatureWriter.Write(helper, moduleSig);
+
+			Assert.Empty(helper.Errors);
+			Assert.Equal(new byte[] { (byte)ElementType.ValueArray, (byte)ElementType.I4, 3 }, valueArrayBytes);
+			Assert.Equal(new byte[] { (byte)ElementType.Module, 2, (byte)ElementType.String }, moduleBytes);
+			Assert.Equal(3U, Assert.IsType<ValueArraySig>(SignatureReader.ReadTypeSig(module, valueArrayBytes)).Size);
+			Assert.Equal(2U, Assert.IsType<ModuleSig>(SignatureReader.ReadTypeSig(module, moduleBytes)).Index);
+		}
+
+		// A type whose element type is the address of a runtime type: dnlib has no class for it
+		sealed class InternalSig : LeafSig {
+			public override ElementType ElementType => ElementType.Internal;
+		}
+
+		// Signatures that can't be written: the writer reports an error and writes something in their place
+		[Fact]
+		public void SignaturesThatCanNotBeWrittenAreErrors() {
+			void AssertError(Func<Helper, byte[]> write, string expectedError) {
+				var helper = new Helper();
+				write(helper);
+				Assert.Contains(helper.Errors, a => a.Contains(expectedError));
+			}
+			var types = module.CorLibTypes;
+			TypeSig deep = types.Int32;
+			for (int i = 0; i < 200; i++)
+				deep = new SZArraySig(deep);
+
+			// A type of the runtime that can't be in a file (an address)
+			AssertError(a => SignatureWriter.Write(a, new InternalSig()), "Unknown or unsupported element type");
+			AssertError(a => SignatureWriter.Write(a, deep), "Infinite recursion");
+			// A method, field and local signature in a signature too deep
+			AssertError(a => SignatureWriter.Write(a, new FieldSig(deep)), "Infinite recursion");
+			AssertError(a => SignatureWriter.Write(a, MethodSig.CreateStatic(deep)), "Infinite recursion");
+			AssertError(a => SignatureWriter.Write(a, new LocalSig(deep)), "Infinite recursion");
+			AssertError(a => SignatureWriter.Write(a, new GenericInstMethodSig(deep)), "Infinite recursion");
+			// A class without a type
+			var helper = new Helper();
+			Assert.Equal(new byte[] { (byte)ElementType.Class, 0 }, SignatureWriter.Write(helper, new ClassSig(null)));
 		}
 
 		[Fact]

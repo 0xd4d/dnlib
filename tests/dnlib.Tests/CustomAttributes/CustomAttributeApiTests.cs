@@ -206,5 +206,28 @@ namespace dnlib.Tests.CustomAttributes {
 			Assert.True(clone.IsProperty);
 			Assert.Equal("Values", clone.Name);
 		}
+
+		// The attributes of a collection are found by their type: by its full name, or by comparing the type
+		[Fact]
+		public void AttributesAreFoundAndRemovedByTheirType() {
+			var some = new CustomAttribute(CreateConstructor());
+			var other = new CustomAttribute(new MemberRefUser(module, ".ctor", MethodSig.CreateInstance(Types.Void), new TypeRefUser(module, "Ns", "OtherAttribute", module)));
+			var secondSome = new CustomAttribute(CreateConstructor(Types.Int32));
+			var collection = new CustomAttributeCollection { some, other, secondSome };
+			var someType = new TypeRefUser(module, "Ns", "SomeAttribute", module);
+
+			Assert.Same(some, collection.Find(someType));
+			Assert.Same(some, collection.Find(someType, SigComparerOptions.DontCompareTypeScope));
+			Assert.Equal(new[] { some, secondSome }, collection.FindAll(someType));
+			Assert.Equal(new[] { some, secondSome }, collection.FindAll(someType, SigComparerOptions.DontCompareTypeScope));
+			Assert.Null(collection.Find(new TypeRefUser(module, "Ns", "Missing", module)));
+			Assert.Null(collection.Find((string?)null));
+			Assert.Empty(collection.FindAll((string?)null));
+
+			collection.RemoveAll((string?)null);
+			Assert.Equal(3, collection.Count);
+			collection.RemoveAll("Ns.SomeAttribute");
+			Assert.Same(other, Assert.Single(collection));
+		}
 	}
 }

@@ -60,7 +60,20 @@ namespace dnlib.Tests.Reading {
 			}
 		}
 
-		[Theory, MemberData(nameof(TablesWithRows))]
+		public static TheoryData<Table> AllTables {
+			get {
+				var tables = new TheoryData<Table>();
+				foreach (var mdTable in module.TablesStream.MDTables) {
+					// Not every table number is a table
+					if (GetRowReader(mdTable.Table) is not null)
+						tables.Add(mdTable.Table);
+				}
+				return tables;
+			}
+		}
+
+		// Also in a table without rows (eg. a table of a portable PDB)
+		[Theory, MemberData(nameof(AllTables))]
 		public void RowThatDoesNotExistIsNotRead(Table table) {
 			var mdTable = module.TablesStream.Get(table)!;
 
@@ -93,6 +106,9 @@ namespace dnlib.Tests.Reading {
 					Assert.Equal((uint)column + 1, GetColumn(row, column));
 					Assert.Equal(mdTable.Columns[column].Name, parameters[column].Name);
 				}
+				// A column that the table doesn't have is 0
+				Assert.Equal(0U, GetColumn(row, parameters.Length));
+				Assert.Equal(0U, GetColumn(row, -1));
 				count++;
 			}
 			Assert.True(count >= 53, $"Only {count} tables were checked");

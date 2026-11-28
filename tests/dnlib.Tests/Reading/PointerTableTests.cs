@@ -49,6 +49,14 @@ namespace dnlib.Tests.Reading {
 				// The parameters are still in the order of their methods, so they need no pointer table
 				Assert.Equal(0U, tables.ParamPtrTable.Rows);
 				Assert.True(tables.FieldPtrTable.Rows > 10);
+
+				// The raw rows of the pointer tables can be read: each points to a row of the member table
+				Assert.True(tables.TryReadFieldPtrRow(1, out var fieldPtr));
+				Assert.InRange(fieldPtr.Field, 1U, tables.FieldTable.Rows);
+				Assert.True(tables.TryReadMethodPtrRow(tables.MethodPtrTable.Rows, out var methodPtr));
+				Assert.InRange(methodPtr.Method, 1U, tables.MethodTable.Rows);
+				Assert.False(tables.TryReadFieldPtrRow(0, out _));
+				Assert.False(tables.TryReadMethodPtrRow(tables.MethodPtrTable.Rows + 1, out _));
 			}
 		}
 

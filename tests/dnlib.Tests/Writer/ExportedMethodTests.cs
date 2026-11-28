@@ -198,5 +198,25 @@ public static class Functions {
 				Assert.NotNull(module.Find("Functions", isReflectionName: true)!.FindMethod("First"));
 			}
 		}
+
+		// The options of an exported method are the flags of its vtable: methods with other options are in
+		// other vtables
+		[Fact]
+		public void TheOptionsOfAnExportAreTheFlagsOfItsVTable() {
+			var written = WriteWithExports(Machine.AMD64, functions => {
+				functions.FindMethod("First")!.ExportInfo = new MethodExportInfo("ExportedFirst", null, MethodExportInfoOptions.FromUnmanaged | MethodExportInfoOptions.FromUnmanagedRetainAppDomain);
+				functions.FindMethod("Second")!.ExportInfo = new MethodExportInfo("ExportedSecond", null, MethodExportInfoOptions.FromUnmanaged | MethodExportInfoOptions.CallMostDerived);
+			});
+
+			using (var module = ModuleDefMD.Load(written)) {
+				var vtables = module.VTableFixups!.VTables;
+				Assert.Equal(2, vtables.Count);
+				Assert.Contains(vtables, a => (a.Flags & VTableFlags.FromUnmanagedRetainAppDomain) != 0);
+				Assert.Contains(vtables, a => (a.Flags & VTableFlags.CallMostDerived) != 0);
+				var functions = module.Find("Functions", isReflectionName: true)!;
+				Assert.Equal(MethodExportInfoOptions.FromUnmanaged | MethodExportInfoOptions.FromUnmanagedRetainAppDomain, functions.FindMethod("First")!.ExportInfo!.Options);
+				Assert.Equal(MethodExportInfoOptions.FromUnmanaged | MethodExportInfoOptions.CallMostDerived, functions.FindMethod("Second")!.ExportInfo!.Options);
+			}
+		}
 	}
 }

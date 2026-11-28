@@ -8,6 +8,7 @@ using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Writer;
 using dnlib.IO;
+using dnlib.PE;
 using dnlib.TestUtils;
 using dnlib.W32Resources;
 using Xunit;
@@ -251,6 +252,28 @@ namespace dnlib.Tests.Win32Resources {
 			Assert.True(new ResourceName(1) < new ResourceName(2));
 			Assert.True(new ResourceName("A") < new ResourceName("b"));
 			Assert.True(new ResourceName("a") < new ResourceName("B"));
+			// The other comparison operators
+			Assert.True(new ResourceName(1) <= new ResourceName(1));
+			Assert.True(new ResourceName(2) > new ResourceName(1));
+			Assert.True(new ResourceName(2) >= new ResourceName(2));
+			Assert.True(new ResourceName(1) != new ResourceName(2));
+			Assert.False(new ResourceName("a") != new ResourceName("A"));
+		}
+
+		// The data of a resource of the PE image is found by its type, name and language, and an entry is shown
+		// with its name
+		[Fact]
+		public void TheDataOfAResourceIsFoundInThePEImage() {
+			using (var module = ModuleDefMD.Load(compiledExe.Value)) {
+				var peImage = module.Metadata.PEImage;
+				var version = peImage.Win32Resources!.Find(versionType)!;
+				var name = Assert.IsAssignableFrom<ResourceDirectory>(version.Directories[0]);
+				var data = name.Data[0];
+
+				Assert.Same(data, peImage.FindWin32ResourceData(versionType, name.Name, data.Name));
+				Assert.Null(peImage.FindWin32ResourceData(99, 1, 0));
+				Assert.Equal(name.Name.ToString(), name.ToString());
+			}
 		}
 
 		[Fact]
@@ -319,6 +342,40 @@ namespace dnlib.Tests.Win32Resources {
 				Assert.Equal(0U, (uint)chunk.GetFileOffset("OTHERNAME"));
 				Assert.Equal(0U, (uint)chunk.GetRVA((ResourceData?)null));
 			}
+		}
+
+		// The same name in two directories is read once from the written file, and both directories have it
+		[Fact]
+		public void ANameThatIsInTwoDirectoriesIsReadForBoth() {
+			byte[] written;
+			using (var module = ModuleDefMD.Load(compiledExe.Value)) {
+				var root = module.Win32Resources!.Root!;
+				Add(root, "FIRSTTYPE", "SHARED", CreateData(1033, new byte[] { 1 }));
+				Add(root, "SECONDTYPE", "SHARED", CreateData(1033, new byte[] { 2 }));
+				written = Write(module);
+			}
+
+			using (var module = ModuleDefMD.Load(written)) {
+				var resources = module.Win32Resources!;
+				Assert.Equal(new byte[] { 1 }, resources.Find("FIRSTTYPE", "SHARED", 1033)!.CreateReader().ToArray());
+				Assert.Equal(new byte[] { 2 }, resources.Find("SECONDTYPE", "SHARED", 1033)!.CreateReader().ToArray());
+			}
+		}
+
+		// Win32 resources created with the API: setting the same root again changes nothing, without a root
+		// nothing is found, and they can be disposed twice
+		[Fact]
+		public void ResourcesCreatedWithTheApi() {
+			var resources = new Win32ResourcesUser();
+			Assert.Null(resources.Find(3));
+			var root = new ResourceDirectoryUser(new ResourceName("root"));
+			resources.Root = root;
+			resources.Root = root;
+			Assert.Same(root, resources.Root);
+			Assert.Null(resources.Find(3));
+
+			resources.Dispose();
+			resources.Dispose();
 		}
 	}
 }

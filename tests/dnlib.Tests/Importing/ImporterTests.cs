@@ -450,5 +450,75 @@ namespace dnlib.Tests.Importing {
 
 			Assert.IsAssignableFrom<MemberRef>(imported);
 		}
+
+		// A mapper that doesn't replace anything: the base class's methods return null, so everything is imported
+		sealed class MapperThatMapsNothing : ImportMapper {
+		}
+
+		[Fact]
+		public void AMapperThatReturnsNullChangesNothing() {
+			var source = CreateSourceModule(out var type, out var method, out var field);
+			var target = CreateModule("Target");
+			var importer = new Importer(target, 0, new GenericParamContext(), new MapperThatMapsNothing());
+			var memberRef = new MemberRefUser(source, "Method", method.MethodSig, new TypeRefUser(source, "Ns", "Source", source));
+
+			Assert.Equal("Ns.Source", importer.Import(type).FullName);
+			Assert.Equal(method.FullName, importer.Import(method).FullName);
+			Assert.Equal(field.FullName, importer.Import(field).FullName);
+			Assert.Equal(memberRef.FullName, importer.Import(memberRef).FullName);
+			Assert.Equal("System.Uri", importer.Import(typeof(Uri)).FullName);
+			Assert.Equal("System.Uri", importer.Import((ITypeDefOrRef)new TypeRefUser(source, "System", "Uri", source.CorLibTypes.AssemblyRef)).FullName);
+		}
+
+		// The other ways to import a System.Type
+		[Fact]
+		public void TheOverloadsThatImportASystemType() {
+			var target = CreateModule("Target");
+			var importer = new Importer(target, new GenericParamContext());
+
+			Assert.Equal("System.Uri", importer.ImportOrNull(typeof(Uri))!.FullName);
+			Assert.Null(importer.ImportOrNull((Type?)null));
+#pragma warning disable CS0618 // Obsolete
+			Assert.Equal("System.Uri", importer.ImportDeclaringType(typeof(Uri))!.FullName);
+#pragma warning restore CS0618
+			var withModifier = importer.ImportOrNull(typeof(int), new[] { typeof(System.Runtime.CompilerServices.IsVolatile) }, null)!;
+			Assert.Equal("System.Int32 modreq(System.Runtime.CompilerServices.IsVolatile)", withModifier.FullName);
+			Assert.Null(importer.ImportAsTypeSigOrNull((Type?)null));
+		}
+
+		// The types of the runtime's own signatures and a sentinel are copied
+		[Fact]
+		public void TheRuntimesOwnSignatureTypesAreImported() {
+			var source = CreateModule("Source");
+			var importer = new Importer(CreateModule("Target"));
+
+			var valueArray = Assert.IsType<ValueArraySig>(importer.Import(new ValueArraySig(source.CorLibTypes.Int32, 4)));
+			Assert.Equal(4U, valueArray.Size);
+			var moduleSig = Assert.IsType<ModuleSig>(importer.Import(new ModuleSig(3, source.CorLibTypes.Int32)));
+			Assert.Equal(3U, moduleSig.Index);
+			Assert.IsType<SentinelSig>(importer.Import(new SentinelSig()));
+		}
+
+		// An IType can be any kind of type
+		[Fact]
+		public void AnITypeOfEveryKindIsImported() {
+			CreateSourceModule(out var type, out _, out _);
+			var importer = new Importer(CreateModule("Target"));
+
+			Assert.Equal("Ns.Source", importer.ImportOrNull((IType)type)!.FullName);
+			Assert.Equal("Ns.Source[]", importer.ImportOrNull((IType)new SZArraySig(new ClassSig(type)))!.FullName);
+			Assert.Null(importer.ImportOrNull((IType?)null));
+		}
+
+		// A TypeRef whose scope is the module that has it is a reference to that module's assembly
+		[Fact]
+		public void ATypeRefToItsOwnModuleIsAReferenceToTheModulesAssembly() {
+			var source = CreateModule("Source");
+			var typeRef = new TypeRefUser(source, "Ns", "InSource", source);
+
+			var imported = Assert.IsAssignableFrom<TypeRef>(new Importer(CreateModule("Target")).Import(typeRef));
+
+			Assert.Equal("Source", Assert.IsAssignableFrom<AssemblyRef>(imported.ResolutionScope).Name);
+		}
 	}
 }

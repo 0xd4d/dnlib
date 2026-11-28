@@ -119,6 +119,219 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// The rows that belong to a type or a member: constants, custom attributes, marshal info, layouts, the
+		// event and property maps, P/Invoke info, initial values, and the rows of the assembly (files, exported
+		// types, resources). Each item has its own row and the written row has the same values.
+		[Fact]
+		public void RidsOfRowsThatBelongToAnotherRow() {
+			var rids = new Dictionary<Table, List<uint>>();
+			var constants = new Dictionary<uint, object?>();
+			var moduleRefs = new Dictionary<uint, string>();
+			var exportedTypes = new Dictionary<uint, string>();
+			var resources = new Dictionary<uint, string>();
+			var implMaps = new Dictionary<uint, string>();
+			var classLayouts = new Dictionary<uint, (ushort, uint)>();
+			void Add(Table table, uint rid) {
+				Assert.NotEqual(0U, rid);
+				if (!rids.TryGetValue(table, out var list))
+					rids.Add(table, list = new List<uint>());
+				list.Add(rid);
+			}
+			var written = Write((module, metadata) => {
+				foreach (var type in module.GetTypes()) {
+					foreach (var ca in type.CustomAttributes)
+						Add(Table.CustomAttribute, metadata.GetCustomAttributeRid(ca));
+					if (type.ClassLayout is not null) {
+						uint rid = metadata.GetClassLayoutRid(type);
+						Add(Table.ClassLayout, rid);
+						classLayouts.Add(rid, (type.ClassLayout.PackingSize, type.ClassLayout.ClassSize));
+					}
+					else
+						Assert.Equal(0U, metadata.GetClassLayoutRid(type));
+					if (type.DeclaringType is not null)
+						Add(Table.NestedClass, metadata.GetNestedClassRid(type));
+					else
+						Assert.Equal(0U, metadata.GetNestedClassRid(type));
+					if (type.Events.Count > 0)
+						Add(Table.EventMap, metadata.GetEventMapRid(type));
+					if (type.Properties.Count > 0)
+						Add(Table.PropertyMap, metadata.GetPropertyMapRid(type));
+					foreach (var ds in type.DeclSecurities)
+						Add(Table.DeclSecurity, metadata.GetRid(ds));
+					foreach (var field in type.Fields) {
+						if (field.Constant is not null) {
+							uint rid = metadata.GetConstantRid(field);
+							Add(Table.Constant, rid);
+							constants.Add(rid, field.Constant.Value);
+						}
+						if (field.MarshalType is not null)
+							Add(Table.FieldMarshal, metadata.GetFieldMarshalRid(field));
+						if (field.FieldOffset is not null)
+							Add(Table.FieldLayout, metadata.GetFieldLayoutRid(field));
+						else
+							Assert.Equal(0U, metadata.GetFieldLayoutRid(field));
+						if (field.HasFieldRVA)
+							Add(Table.FieldRVA, metadata.GetFieldRVARid(field));
+					}
+					foreach (var method in type.Methods) {
+						if (method.SemanticsAttributes != 0)
+							Add(Table.MethodSemantics, metadata.GetMethodSemanticsRid(method));
+						if (method.ImplMap is not null) {
+							uint rid = metadata.GetImplMapRid(method);
+							Add(Table.ImplMap, rid);
+							implMaps.Add(rid, method.ImplMap.Name);
+							uint moduleRefRid = metadata.GetRid(method.ImplMap.Module!);
+							Assert.NotEqual(0U, moduleRefRid);
+							moduleRefs[moduleRefRid] = method.ImplMap.Module!.Name;
+						}
+						else
+							Assert.Equal(0U, metadata.GetImplMapRid(method));
+						foreach (var parameter in method.ParamDefs) {
+							if (parameter.Constant is not null)
+								Add(Table.Constant, metadata.GetConstantRid(parameter));
+							if (parameter.MarshalType is not null)
+								Add(Table.FieldMarshal, metadata.GetFieldMarshalRid(parameter));
+						}
+					}
+				}
+				foreach (var exportedType in module.ExportedTypes) {
+					uint rid = metadata.GetRid(exportedType);
+					Add(Table.ExportedType, rid);
+					exportedTypes.Add(rid, exportedType.FullName);
+				}
+				foreach (var resource in module.Resources) {
+					uint rid = metadata.GetManifestResourceRid(resource);
+					Add(Table.ManifestResource, rid);
+					resources.Add(rid, resource.Name);
+				}
+				// Something the module doesn't have has no row
+				Assert.Equal(0U, metadata.GetRid(new ModuleRefUser(module, "NotInTheModule")));
+				Assert.Equal(0U, metadata.GetRid(new FileDefUser("NotInTheModule", 0, null)));
+				Assert.Equal(0U, metadata.GetRid(new ExportedTypeUser(module, 0, "Ns", "NotInTheModule", 0, null)));
+				Assert.Equal(0U, metadata.GetManifestResourceRid(new EmbeddedResource("NotInTheModule", new byte[0])));
+				Assert.Equal(0U, metadata.GetCustomAttributeRid(new dnlib.DotNet.CustomAttribute(null)));
+				Assert.Equal(0U, metadata.GetRid(new DeclSecurityUser()));
+			}, change: module => module.Resources.Add(new EmbeddedResource("Added.bin", new byte[] { 1, 2, 3 })));
+
+			foreach (var table in new[] { Table.CustomAttribute, Table.ClassLayout, Table.NestedClass, Table.EventMap, Table.PropertyMap,
+				Table.Constant, Table.FieldMarshal, Table.FieldLayout, Table.FieldRVA, Table.MethodSemantics, Table.ImplMap,
+				Table.ExportedType, Table.ManifestResource })
+				Assert.True(rids.ContainsKey(table), table.ToString());
+			using (var writtenModule = ModuleDefMD.Load(written.Image)) {
+				foreach (var item in rids) {
+					var rows = writtenModule.TablesStream.Get(item.Key)!.Rows;
+					Assert.All(item.Value, rid => Assert.InRange(rid, 1U, rows));
+					Assert.Equal(item.Value.Count, item.Value.Distinct().Count());
+				}
+				Assert.All(constants, a => Assert.Equal(a.Value, writtenModule.ResolveConstant(a.Key)!.Value));
+				Assert.All(moduleRefs, a => Assert.Equal(a.Value, writtenModule.ResolveModuleRef(a.Key)!.Name.String));
+				Assert.All(exportedTypes, a => Assert.Equal(a.Value, writtenModule.ResolveExportedType(a.Key)!.FullName));
+				Assert.All(resources, a => Assert.Equal(a.Value, writtenModule.ResolveManifestResource(a.Key)!.Name.String));
+				Assert.All(implMaps, a => Assert.Equal(a.Value, writtenModule.ResolveImplMap(a.Key)!.Name.String));
+				Assert.All(classLayouts, a => {
+					var row = writtenModule.ResolveClassLayout(a.Key)!;
+					Assert.Equal(a.Value, (row.PackingSize, row.ClassSize));
+				});
+			}
+		}
+
+		// The rows of the references that instructions use (TypeRef, MemberRef, TypeSpec, MethodSpec), also when
+		// the tokens are kept: then they keep their rows, and so do the StandAloneSig rows (the signatures of
+		// locals and indirect calls)
+		[Theory, InlineData(false), InlineData(true)]
+		public void RidsOfReferences(bool preserveTokens) {
+			var rids = new List<(IMDTokenProvider Reference, uint Rid)>();
+			var standAloneSigRids = new List<(uint Original, uint Written)>();
+			var fixture = Fixtures.Fixtures.Features;
+			using (var module = ModuleDefMD.Load(fixture.Image)) {
+				var operands = module.GetTypes().SelectMany(a => a.Methods).Where(a => a.Body is not null)
+					.SelectMany(a => a.Body!.Instructions).Select(a => a.Operand).OfType<IMDTokenProvider>()
+					.Where(a => a is TypeRef || a is MemberRef || a is TypeSpec || a is MethodSpec).Distinct().ToList();
+				var options = new ModuleWriterOptions(module);
+				if (preserveTokens)
+					options.MetadataOptions.Flags |= MetadataFlags.PreserveAll;
+				options.WriterEvent += (sender, e) => {
+					if (e.Event != ModuleWriterEvent.End)
+						return;
+					var metadata = e.Writer.Metadata;
+					foreach (var operand in operands) {
+						uint rid = operand switch {
+							TypeRef a => metadata.GetRid(a),
+							MemberRef a => metadata.GetRid(a),
+							TypeSpec a => metadata.GetRid(a),
+							MethodSpec a => metadata.GetRid(a),
+							_ => throw new InvalidOperationException(),
+						};
+						rids.Add((operand, rid));
+					}
+					if (preserveTokens) {
+						for (uint rid = 1; rid <= module.TablesStream.StandAloneSigTable.Rows; rid++) {
+							// A signature with a generic parameter is a new object every time it's resolved, it's
+							// not the one the writer has
+							var sig = module.ResolveStandAloneSig(rid)!;
+							if (!((IContainsGenericParameter)sig).ContainsGenericParameter)
+								standAloneSigRids.Add((rid, metadata.GetRid(sig)));
+						}
+					}
+					// A reference that isn't in the module has no row
+					Assert.Equal(0U, metadata.GetRid(new TypeRefUser(module, "Ns", "NotInTheModule")));
+					Assert.Equal(0U, metadata.GetRid(new TypeSpecUser(module.CorLibTypes.Int32)));
+					Assert.Equal(0U, metadata.GetRid(new MemberRefUser(module, "NotInTheModule")));
+					Assert.Equal(0U, metadata.GetRid(new MethodSpecUser()));
+					Assert.Equal(0U, metadata.GetRid(new StandAloneSigUser()));
+				};
+				module.Write(new MemoryStream(), options);
+			}
+
+			Assert.Contains(rids, a => a.Reference is MemberRef);
+			Assert.Contains(rids, a => a.Reference is TypeSpec);
+			Assert.Contains(rids, a => a.Reference is MethodSpec);
+			Assert.All(rids, a => Assert.NotEqual(0U, a.Rid));
+			if (preserveTokens) {
+				Assert.All(rids, a => Assert.Equal(a.Reference.Rid, a.Rid));
+				Assert.NotEmpty(standAloneSigRids);
+				Assert.All(standAloneSigRids, a => Assert.Equal(a.Original, a.Written));
+			}
+		}
+
+		// The state machine and custom debug info rows of the portable PDB
+		[Fact]
+		public void RidsOfPdbCustomDebugInfos() {
+			int stateMachines = 0, customDebugInfos = 0;
+			Write((module, metadata) => {
+				foreach (var method in module.GetTypes().SelectMany(a => a.Methods)) {
+					foreach (var cdi in method.CustomDebugInfos) {
+						if (cdi is PdbAsyncMethodCustomDebugInfo asyncMethod) {
+							Assert.NotEqual(0U, metadata.GetStateMachineMethodRid(asyncMethod));
+							stateMachines++;
+						}
+						else if (cdi is PdbIteratorMethodCustomDebugInfo iteratorMethod) {
+							Assert.NotEqual(0U, metadata.GetStateMachineMethodRid(iteratorMethod));
+							stateMachines++;
+						}
+						else if (metadata.GetCustomDebugInfoRid(cdi) != 0)
+							customDebugInfos++;
+					}
+				}
+			});
+
+			Assert.True(stateMachines > 0);
+			Assert.True(customDebugInfos > 0);
+		}
+
+		// Without a PDB, there are no PDB rows
+		[Fact]
+		public void PdbCustomDebugInfosHaveNoRidIfNoPdbIsWritten() {
+			Write((module, metadata) => {
+				var method = module.GetTypes().SelectMany(a => a.Methods).First(a => a.CustomDebugInfos.OfType<PdbIteratorMethodCustomDebugInfo>().Any());
+				var iteratorMethod = method.CustomDebugInfos.OfType<PdbIteratorMethodCustomDebugInfo>().First();
+
+				Assert.Equal(0U, metadata.GetStateMachineMethodRid(iteratorMethod));
+				Assert.Equal(0U, metadata.GetStateMachineMethodRid(new PdbAsyncMethodCustomDebugInfo(method)));
+				Assert.Equal(0U, metadata.GetCustomDebugInfoRid(new PdbDynamicLocalsCustomDebugInfo()));
+			}, writePdb: false);
+		}
+
 		// The rows of the portable PDB's tables, checked with System.Reflection.Metadata
 		[Fact]
 		public void RidsOfPdbRows() {

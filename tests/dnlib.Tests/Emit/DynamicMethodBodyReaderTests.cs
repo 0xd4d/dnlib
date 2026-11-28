@@ -389,5 +389,156 @@ namespace dnlib.Tests.Emit {
 				Assert.Equal(new[] { Code.Nop, Code.Leave_S, Code.Pop, Code.Leave_S, Code.Ldc_I4_5, Code.Ret }, GetCodes(Read(fromBytes)));
 			}
 		}
+
+		// The same method read with the option that lets the runtime find the declaring type of a member handle
+		[Fact]
+		public void MembersAreReadWithTheOptionThatGuessesTheirDeclaringType() {
+			SkipOnMono();
+			var dynamicMethod = new DynamicMethod("Guess", typeof(int), Type.EmptyTypes, typeof(DynamicMethodBodyReaderTests).Module);
+			var il = dynamicMethod.GetILGenerator();
+			il.Emit(ReflectionOpCodes.Ldsfld, typeof(DynamicMethodBodyReaderTests).GetField(nameof(StaticField))!);
+			il.Emit(ReflectionOpCodes.Call, typeof(DynamicMethodBodyReaderTests).GetMethod(nameof(Twice))!);
+			il.Emit(ReflectionOpCodes.Ret);
+			var guess = (Func<int>)dynamicMethod.CreateDelegate(typeof(Func<int>));
+			var module = CreateModule();
+
+			var reader = new DynamicMethodBodyReader(module, guess, new Importer(module, ImporterOptions.TryToUseDefs), DynamicMethodBodyReaderOptions.GuessDeclaringType);
+			Assert.True(reader.Read());
+			var instructions = reader.GetMethod().Body!.Instructions;
+
+			Assert.Equal("System.Int32 dnlib.Tests.Emit.DynamicMethodBodyReaderTests::StaticField", Assert.IsAssignableFrom<IField>(instructions[0].Operand).FullName);
+			Assert.Equal("System.Int32 dnlib.Tests.Emit.DynamicMethodBodyReaderTests::Twice(System.Int32)", Assert.IsAssignableFrom<IMethod>(instructions[1].Operand).FullName);
+		}
+
+		// The constructor with an importer, and RestoreMethod() that puts the code into a method of a module
+		[Fact]
+		public void TheBodyIsRestoredIntoAMethod() {
+			SkipOnMono();
+			var dynamicMethod = new DynamicMethod("Seven", typeof(int), Type.EmptyTypes);
+			var il = dynamicMethod.GetILGenerator();
+			il.Emit(ReflectionOpCodes.Ldc_I4_7);
+			il.Emit(ReflectionOpCodes.Ret);
+			var seven = (Func<int>)dynamicMethod.CreateDelegate(typeof(Func<int>));
+			var module = CreateModule();
+			// The instructions, locals and exception handlers are put into the body that the method has
+			var method = new MethodDefUser("Seven", MethodSig.CreateStatic(module.CorLibTypes.Int32)) { Body = new CilBody() };
+
+			var reader = new DynamicMethodBodyReader(module, seven, new Importer(module));
+			Assert.True(reader.Read());
+			reader.RestoreMethod(method);
+
+			Assert.Equal(new[] { Code.Ldc_I4_7, Code.Ret }, GetCodes(method));
+			Assert.True(method.Body!.InitLocals);
+			Assert.True(method.Body.MaxStack >= 1);
+		}
+
+		// The reader only reads a dynamic method or a delegate of one
+		[Fact]
+		public void OnlyADynamicMethodIsRead() {
+			SkipOnMono();
+			var module = CreateModule();
+
+			Assert.Throws<ArgumentNullException>(() => new DynamicMethodBodyReader(module, null!));
+			Assert.ThrowsAny<Exception>(() => new DynamicMethodBodyReader(module, "not a method"));
+			Assert.ThrowsAny<Exception>(() => new DynamicMethodBodyReader(module, (Func<int>)(() => 1)));
+		}
+
+		// A dynamic method that calls another dynamic method: the other method has no token, the reader can't read it
+		[Fact]
+		public void ACallOfAnotherDynamicMethodIsNotRead() {
+			SkipOnMono();
+			var callee = new DynamicMethod("Callee", typeof(int), Type.EmptyTypes);
+			var calleeIL = callee.GetILGenerator();
+			calleeIL.Emit(ReflectionOpCodes.Ldc_I4_1);
+			calleeIL.Emit(ReflectionOpCodes.Ret);
+			var caller = new DynamicMethod("Caller", typeof(int), Type.EmptyTypes);
+			var il = caller.GetILGenerator();
+			il.Emit(ReflectionOpCodes.Call, callee);
+			il.Emit(ReflectionOpCodes.Ret);
+			var callerDelegate = (Func<int>)caller.CreateDelegate(typeof(Func<int>));
+			Assert.Equal(1, callerDelegate());
+
+			var reader = new DynamicMethodBodyReader(CreateModule(), callerDelegate);
+
+			Assert.ThrowsAny<Exception>(() => reader.Read());
+		}
+
+		// Exception handlers with a filter and a finally block, in the bytes of a method created with DynamicILInfo
+		//
+		//   IL_0000: nop           try {
+		//   IL_0001: leave.s IL_000A
+		//   IL_0003: pop           } filter {
+		//   IL_0004: ldc.i4.1
+		//   IL_0005: endfilter     } {
+		//   IL_0007: pop
+		//   IL_0008: leave.s IL_000A }
+		//   IL_000A: nop           try {
+		//   IL_000B: leave.s IL_000E
+		//   IL_000D: endfinally    } finally { }
+		//   IL_000E: ldc.i4.5
+		//   IL_000F: ret
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void FilterAndFinallyHandlersOfAMethodThatWasCreatedFromBytes(bool fatExceptionHandlers) {
+			SkipOnMono();
+			var dynamicMethod = new DynamicMethod("FilterAndFinally", typeof(int), Type.EmptyTypes);
+			var info = dynamicMethod.GetDynamicILInfo();
+			info.SetCode(new byte[] { 0x00, 0xDE, 0x07, 0x26, 0x17, 0xFE, 0x11, 0x26, 0xDE, 0x00, 0x00, 0xDE, 0x01, 0xDC, 0x1B, 0x2A }, 2);
+			info.SetLocalSignature(SignatureHelper.GetLocalVarSigHelper().GetSignature());
+			byte[] handlers;
+			if (fatExceptionHandlers) {
+				handlers = new byte[] {
+					0x41, 52, 0, 0,                 // fat exception handlers, 4 + 2 * 24 bytes
+					1, 0, 0, 0,                     // filter
+					0, 0, 0, 0, 3, 0, 0, 0,         // try: offset 0, 3 bytes
+					7, 0, 0, 0, 3, 0, 0, 0,         // handler: offset 7, 3 bytes
+					3, 0, 0, 0,                     // filter: offset 3
+					2, 0, 0, 0,                     // finally
+					10, 0, 0, 0, 3, 0, 0, 0,        // try: offset 10, 3 bytes
+					13, 0, 0, 0, 1, 0, 0, 0,        // handler: offset 13, 1 byte
+					0, 0, 0, 0,
+				};
+			}
+			else {
+				handlers = new byte[] {
+					0x01, 28, 0, 0,                 // exception handlers, 4 + 2 * 12 bytes
+					1, 0,                           // filter
+					0, 0, 3,                        // try: offset 0, 3 bytes
+					7, 0, 3,                        // handler: offset 7, 3 bytes
+					3, 0, 0, 0,                     // filter: offset 3
+					2, 0,                           // finally
+					10, 0, 3,                       // try: offset 10, 3 bytes
+					13, 0, 1,                       // handler: offset 13, 1 byte
+					0, 0, 0, 0,
+				};
+			}
+			info.SetExceptions(handlers);
+			var fromBytes = (Func<int>)dynamicMethod.CreateDelegate(typeof(Func<int>));
+			Assert.Equal(5, fromBytes());
+
+			var body = Read(fromBytes).Body!;
+
+			Assert.Equal(2, body.ExceptionHandlers.Count);
+			var filter = body.ExceptionHandlers[0];
+			Assert.Equal(ExceptionHandlerType.Filter, filter.HandlerType);
+			Assert.Same(body.Instructions[2], filter.FilterStart);
+			Assert.Same(body.Instructions[5], filter.HandlerStart);
+			var finallyHandler = body.ExceptionHandlers[1];
+			Assert.Equal(ExceptionHandlerType.Finally, finallyHandler.HandlerType);
+			Assert.Equal(Code.Endfinally, finallyHandler.HandlerStart!.OpCode.Code);
+		}
+
+		// A signature of a dynamic method can have the address of a runtime type (ELEMENT_TYPE_INTERNAL). The type
+		// at the address is found by creating a method in a dynamic assembly whose local has that type.
+		[Fact]
+		public void TheTypeAtTheAddressOfARuntimeTypeIsFound() {
+			SkipOnMono();
+			var address = typeof(Uri).TypeHandle.Value;
+
+			Assert.Same(typeof(Uri), MethodTableToTypeConverter.Convert(address));
+			// The second time, it's the type that was found the first time
+			Assert.Same(typeof(Uri), MethodTableToTypeConverter.Convert(address));
+		}
 	}
 }

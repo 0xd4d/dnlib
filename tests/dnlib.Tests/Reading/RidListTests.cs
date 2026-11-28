@@ -1,11 +1,14 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.Tests.Writer;
 using Xunit;
 
@@ -105,5 +108,65 @@ namespace dnlib.Tests.Reading {
 					Assert.Empty(type.FindMethod("NoParameters" + i)!.ParamDefs);
 			}
 		}
+
+		// A RidList is a range of rows (the members of a type) or a list of rows (eg. with a FieldPtr table, or the
+		// rows a lookup found)
+		[Fact]
+		public void ARangeIsEnumeratedAndIndexed() {
+			var list = RidList.Create(5, 3);
+
+			Assert.Equal(3, list.Count);
+			Assert.Equal(new uint[] { 5, 6, 7 }, list.ToArray());
+			Assert.Equal(5U, list[0]);
+			Assert.Equal(7U, list[2]);
+			Assert.Equal(0U, list[3]);
+			Assert.Equal(0U, list[-1]);
+		}
+
+		[Fact]
+		public void AListIsEnumeratedAndIndexed() {
+			var list = RidList.Create(new uint[] { 9, 2, 4 });
+
+			Assert.Equal(3, list.Count);
+			Assert.Equal(new uint[] { 9, 2, 4 }, list.ToArray());
+			Assert.Equal(9U, list[0]);
+			Assert.Equal(4U, list[2]);
+			Assert.Equal(0U, list[3]);
+			Assert.Equal(0U, list[-1]);
+		}
+
+		[Fact]
+		public void TheEmptyListHasNoRids() {
+			Assert.Equal(0, RidList.Empty.Count);
+			Assert.Empty(RidList.Empty);
+			Assert.Equal(0U, RidList.Empty[0]);
+		}
+
+		// The struct enumerator (foreach), and the boxed one (IEnumerable<uint>, IEnumerable)
+		[Fact]
+		public void TheEnumeratorReturnsEveryRidOnceAndThenStops() {
+			foreach (var list in new[] { RidList.Create(5, 2), RidList.Create(new uint[] { 5, 6 }) }) {
+				var e = list.GetEnumerator();
+				Assert.True(e.MoveNext());
+				Assert.Equal(5U, e.Current);
+				Assert.True(e.MoveNext());
+				Assert.Equal(6U, ((System.Collections.IEnumerator)e).Current);
+				Assert.False(e.MoveNext());
+				Assert.Equal(0U, e.Current);
+				Assert.False(e.MoveNext());
+				Assert.Throws<NotSupportedException>(() => ((System.Collections.IEnumerator)e).Reset());
+				e.Dispose();
+
+				var items = new List<uint>();
+				foreach (uint rid in (System.Collections.IEnumerable)list)
+					items.Add(rid);
+				Assert.Equal(new uint[] { 5, 6 }, items);
+				Assert.Equal(new uint[] { 5, 6 }, ((IEnumerable<uint>)list).ToList());
+			}
+		}
+
+		[Fact]
+		public void AListMustNotBeNull() =>
+			Assert.Throws<ArgumentNullException>(() => RidList.Create(null!));
 	}
 }

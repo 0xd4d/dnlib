@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using dnlib.DotNet.MD;
 using dnlib.DotNet.Writer;
 using Xunit;
 
@@ -48,6 +49,12 @@ namespace dnlib.Tests.Writer {
 			}
 			case "instruction with an operand that has no token":
 				created.AddMethod("Method", new Instruction(OpCodes.Ldtoken, new object()), OpCodes.Pop.ToInstruction(), OpCodes.Ret.ToInstruction());
+				break;
+			case "instruction with a token of a row that isn't a type or a member":
+				created.AddMethod("Method", new Instruction(OpCodes.Ldtoken, new InterfaceImplUser(Types.Object.TypeDefOrRef)), OpCodes.Pop.ToInstruction(), OpCodes.Ret.ToInstruction());
+				break;
+			case "constant without a value":
+				created.AddField("Field", Types.Int32).Constant = new ConstantUser(null, ElementType.I4);
 				break;
 			case "method body of an unknown kind":
 				created.AddMethod("Method").MethodBody = new UnknownMethodBody();
@@ -112,6 +119,8 @@ namespace dnlib.Tests.Writer {
 		[InlineData("initial value with another size than the field", "initial value size != size of field type")]
 		[InlineData("exported types that are nested in each other", "infinite Implementation loop")]
 		[InlineData("instruction with an operand that has no token", "Invalid instruction operand")]
+		[InlineData("instruction with a token of a row that isn't a type or a member", "Invalid IMDTokenProvider")]
+		[InlineData("constant without a value", "Constant is null")]
 		[InlineData("method body of an unknown kind", "Unsupported method body")]
 		[InlineData("method without a signature", "CallingConventionSig is null")]
 		[InlineData("method with 65536 locals", "Too many locals")]
@@ -242,6 +251,47 @@ namespace dnlib.Tests.Writer {
 					errors.Add(string.Format(format, args));
 			}
 			public bool IgnoresEvent(LoggerEvent loggerEvent) => loggerEvent != LoggerEvent.Error;
+		}
+
+		// The token of an instruction can be the row of a signature or of the assembly. A reader only returns
+		// types and members, so the tokens are read from the method's code.
+		[Fact]
+		public void TokensOfASignatureAndOfTheAssemblyAreWritten() {
+			var signature = new StandAloneSigUser(new LocalSig(Types.Int32));
+			created.AddMethod("Method",
+				new Instruction(OpCodes.Ldtoken, signature), OpCodes.Pop.ToInstruction(),
+				new Instruction(OpCodes.Ldtoken, created.Module.Assembly!), OpCodes.Pop.ToInstruction(),
+				OpCodes.Ret.ToInstruction());
+
+			using (var module = created.WriteAndRead()) {
+				var method = CreatedModule.GetType(module).FindMethod("Method")!;
+				// A tiny header (1 byte), then ldtoken (0xD0) and its token
+				var code = module.Metadata.PEImage.CreateReader(method.RVA);
+				code.ReadByte();
+				Assert.Equal(0xD0, code.ReadByte());
+				Assert.Equal(Table.StandAloneSig, new MDToken(code.ReadUInt32()).Table);
+				code.ReadByte();
+				Assert.Equal(0xD0, code.ReadByte());
+				Assert.Equal(new MDToken(Table.Assembly, 1), new MDToken(code.ReadUInt32()));
+			}
+		}
+
+		// The same resource object twice in the list of resources has one row
+		[Fact]
+		public void AResourceThatIsTwiceInTheListHasOneRow() {
+			var embedded = new EmbeddedResource("Embedded", new byte[] { 1 });
+			var inAssembly = new AssemblyLinkedResource("InAssembly", new AssemblyRefUser("Other"), ManifestResourceAttributes.Public);
+			var file = new FileDefUser("data.bin", dnlib.DotNet.FileAttributes.ContainsNoMetadata, new byte[0]);
+			var inFile = new LinkedResource("InFile", file, ManifestResourceAttributes.Public);
+			// Another resource in the same file
+			var alsoInFile = new LinkedResource("AlsoInFile", file, ManifestResourceAttributes.Public);
+			foreach (var resource in new Resource[] { embedded, inAssembly, inFile, alsoInFile, embedded, inAssembly, inFile })
+				created.Module.Resources.Add(resource);
+
+			using (var module = created.WriteAndRead()) {
+				Assert.Equal(4U, module.TablesStream.ManifestResourceTable.Rows);
+				Assert.Equal(1U, module.TablesStream.FileTable.Rows);
+			}
 		}
 	}
 }

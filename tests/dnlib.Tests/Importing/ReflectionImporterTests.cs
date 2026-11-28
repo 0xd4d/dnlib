@@ -36,6 +36,40 @@ namespace dnlib.Tests.Importing {
 			public static Generic<T> Create() => new Generic<T>();
 		}
 
+		// The test assembly read by dnlib: the reflection types and members of this assembly are its definitions
+		static readonly Lazy<ModuleDefMD> thisModule = new Lazy<ModuleDefMD>(() => ModuleDefMD.Load(typeof(ReflectionImporterTests).Module));
+
+		[Fact]
+		public void TypesAndMembersOfTheModuleItselfAreItsDefinitionsWithTheOption() {
+			var module = thisModule.Value;
+			var importer = new Importer(module, ImporterOptions.TryToUseDefs);
+
+			var type = Assert.IsAssignableFrom<TypeDef>(importer.Import(typeof(Generic<>)));
+			Assert.Same(module.Find(typeof(Generic<>).FullName!, isReflectionName: true), type);
+			Assert.IsAssignableFrom<FieldDef>(importer.Import(typeof(Generic<>).GetField("Value")!));
+			Assert.IsAssignableFrom<MethodDef>(importer.Import(typeof(Generic<>).GetMethod("Create")!));
+			// Without the option, they're references to the module itself
+			var typeRef = Assert.IsAssignableFrom<TypeRef>(new Importer(module).Import(typeof(ReflectionImporterTests)));
+			Assert.Same(module, typeRef.ResolutionScope);
+		}
+
+		// A type of another module of the target module's assembly is in a ModuleRef. An assembly reference that the
+		// target module has is used with the option.
+		[Fact]
+		public void TheScopeOfAnImportedTypeIsAModuleRefOrAnExistingAssemblyRef() {
+			var thisAssemblyName = typeof(ReflectionImporterTests).Assembly.GetName().Name!;
+			var sameAssemblyOtherModule = new ModuleDefUser("Other.netmodule");
+			new AssemblyDefUser(thisAssemblyName).Modules.Add(sameAssemblyOtherModule);
+			var typeRef = Assert.IsAssignableFrom<TypeRef>(new Importer(sameAssemblyOtherModule).Import(typeof(ReflectionImporterTests)));
+			Assert.Equal(typeof(ReflectionImporterTests).Module.ScopeName, Assert.IsAssignableFrom<ModuleRef>(typeRef.ResolutionScope).Name);
+
+			var target = CreateModule();
+			var existing = new AssemblyRefUser(typeof(Uri).Assembly.GetName());
+			target.UpdateRowId(existing);
+			var importedUri = Assert.IsAssignableFrom<TypeRef>(new Importer(target, ImporterOptions.TryToUseExistingAssemblyRefs).Import(typeof(Uri)));
+			Assert.Equal(typeof(Uri).Assembly.GetName().Name, ((AssemblyRef)importedUri.ResolutionScope!).Name);
+		}
+
 		[Fact]
 		public void TypeIsATypeRefToItsAssembly() {
 			var imported = CreateImporter().Import(typeof(Uri));
@@ -242,6 +276,31 @@ namespace dnlib.Tests.Importing {
 			public delegate*<int, string, void> Managed;
 			public delegate* unmanaged[Cdecl]<byte, long> Unmanaged;
 			public List<delegate*<int, void>[]>? InGenericArgument;
+			public delegate* unmanaged[Stdcall]<void> Stdcall;
+			public delegate* unmanaged[Thiscall]<void> Thiscall;
+			public delegate* unmanaged[Fastcall]<void> Fastcall;
+			public delegate* unmanaged<void> PlatformDefault;
+			public delegate* unmanaged[Stdcall, SuppressGCTransition]<void> StdcallWithoutGCTransition;
+			public delegate* unmanaged[MemberFunction]<void> MemberFunction;
+		}
+
+		// The calling convention of an unmanaged function pointer: one of the four that the signature can have
+		// (C, StdCall, ThisCall, FastCall), or 'unmanaged' with the CallConv* types as modifiers of the return type
+		[Theory]
+		[InlineData("Stdcall", CallingConvention.StdCall)]
+		[InlineData("Thiscall", CallingConvention.ThisCall)]
+		[InlineData("Fastcall", CallingConvention.FastCall)]
+		[InlineData("PlatformDefault", CallingConvention.Unmanaged)]
+		[InlineData("StdcallWithoutGCTransition", CallingConvention.Unmanaged)]
+		[InlineData("MemberFunction", CallingConvention.Unmanaged)]
+		public void CallingConventionsOfUnmanagedFunctionPointers(string field, CallingConvention expected) {
+			var fieldInfo = typeof(FunctionPointers).GetField(field)!;
+			var imported = CreateImporter().Import(fieldInfo);
+
+			var signature = Assert.IsType<FnPtrSig>(imported.FieldSig!.Type).MethodSig!;
+			Assert.Equal(expected, signature.CallingConvention);
+			// The imported field is the field of the type
+			Assert.True(new SigComparer().Equals(imported, fieldInfo));
 		}
 
 		// Fixed in e9d791e4: function pointer types (.NET 8) weren't supported
@@ -263,6 +322,34 @@ namespace dnlib.Tests.Importing {
 			var signature = Assert.IsType<FnPtrSig>(imported.FieldSig!.Type).MethodSig!;
 			Assert.Equal(CallingConvention.C, signature.CallingConvention);
 			Assert.Equal("System.Int64", signature.RetType!.FullName);
+		}
+
+		// A field whose type is a function pointer is the reflection field only if the function pointer has the same
+		// kind (managed or unmanaged), calling convention, return type and parameters
+		[Fact]
+		public void FunctionPointerFieldsAreComparedWithReflectionFields() {
+			var module = CreateModule();
+			var types = module.CorLibTypes;
+			// The FunctionPointers class is nested in this class
+			var outer = new TypeRefUser(module, typeof(ReflectionImporterTests).Namespace, nameof(ReflectionImporterTests), new AssemblyRefUser(typeof(ReflectionImporterTests).Assembly.GetName()));
+			var owner = new TypeRefUser(module, "", nameof(FunctionPointers), outer);
+			MemberRef Field(string name, MethodSig sig) => new MemberRefUser(module, name, new FieldSig(new FnPtrSig(sig)), owner);
+			var comparer = new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
+			var managed = typeof(FunctionPointers).GetField(nameof(FunctionPointers.Managed))!;
+			var unmanaged = typeof(FunctionPointers).GetField(nameof(FunctionPointers.Unmanaged))!;
+			var managedSig = MethodSig.CreateStatic(types.Void, types.Int32, types.String);
+			var cdeclSig = new MethodSig(CallingConvention.C, 0, types.Int64, types.Byte);
+
+			Assert.True(comparer.Equals(Field("Managed", managedSig), managed));
+			Assert.True(comparer.Equals(Field("Unmanaged", cdeclSig), unmanaged));
+			// Another kind or calling convention
+			Assert.False(comparer.Equals(Field("Managed", new MethodSig(CallingConvention.C, 0, types.Void, types.Int32, types.String)), managed));
+			Assert.False(comparer.Equals(Field("Unmanaged", new MethodSig(CallingConvention.StdCall, 0, types.Int64, types.Byte)), unmanaged));
+			// Another return type, other parameters, and parameters after a sentinel (reflection doesn't have them)
+			Assert.False(comparer.Equals(Field("Managed", MethodSig.CreateStatic(types.Int32, types.Int32, types.String)), managed));
+			Assert.False(comparer.Equals(Field("Managed", MethodSig.CreateStatic(types.Void, types.Int32)), managed));
+			var varArg = new MethodSig(CallingConvention.VarArg, 0, types.Void, types.Int32, types.String) { ParamsAfterSentinel = new List<TypeSig?> { types.Int32 } };
+			Assert.False(comparer.Equals(Field("Managed", varArg), managed));
 		}
 
 		// Fixed in 9d66dba3

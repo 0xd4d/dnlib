@@ -96,6 +96,8 @@ namespace dnlib.Tests.Resolving {
 		[InlineData(".NETFramework,Version=v4.5", FrameworkRedirectVersion.Net45)]
 		[InlineData(".NETFramework,Version=v4.8.1", FrameworkRedirectVersion.Net481)]
 		[InlineData(".NETFramework,Version=v3.5", FrameworkRedirectVersion.Net35)]
+		[InlineData(".NETFramework,Version=v3.0", FrameworkRedirectVersion.Net30)]
+		[InlineData(".NETFramework,Version=v2.0", FrameworkRedirectVersion.Net20)]
 		// A version that isn't known is the newest known version below it
 		[InlineData(".NETFramework,Version=v4.9", FrameworkRedirectVersion.Net481)]
 		public void FrameworkVersionOfAModuleIsInItsTargetFrameworkAttribute(string targetFramework, FrameworkRedirectVersion expected) {
@@ -144,6 +146,48 @@ namespace dnlib.Tests.Resolving {
 				FrameworkRedirect.ApplyFrameworkRedirect(ref reference, (ModuleDef?)null);
 				Assert.Equal(new Version(1, 0, 5000, 0), reference.Version);
 			}
+		}
+
+		// Every .NET Framework 4 version has a table: System.Runtime has the version of that framework
+		[Theory]
+		[InlineData(FrameworkRedirectVersion.Net46)]
+		[InlineData(FrameworkRedirectVersion.Net461)]
+		[InlineData(FrameworkRedirectVersion.Net462)]
+		[InlineData(FrameworkRedirectVersion.Net47)]
+		[InlineData(FrameworkRedirectVersion.Net471)]
+		public void EveryFrameworkVersionRedirectsSystemRuntime(FrameworkRedirectVersion version) {
+			var reference = CreateReference("System.Runtime", "4.0.0.0", MicrosoftToken);
+
+			Assert.True(FrameworkRedirect.TryApplyFrameworkRedirect(reference, version, out var redirected));
+			Assert.True(FrameworkRedirect.TryApplyFrameworkRedirect(reference, FrameworkRedirectVersion.Net451, out var net451));
+			Assert.True(redirected.Version >= net451.Version);
+		}
+
+		// The version of the source module's runtime, and the old methods for CLR 2.0 and CLR 4.0
+		[Fact]
+		public void ReferenceIsRedirectedForTheRuntimeOfTheSourceModule() {
+			using (var module = CompileWithTargetFramework(".NETFramework,Version=v4.5.1")) {
+				Assert.True(FrameworkRedirect.TryApplyFrameworkRedirect(CreateReference("mscorlib", "2.0.0.0", EcmaToken), module, out var redirected));
+				Assert.Equal(new Version(4, 0, 0, 0), redirected.Version);
+				module.RuntimeVersion = dnlib.DotNet.MD.MDHeaderRuntimeVersion.MS_CLR_20;
+				Assert.True(FrameworkRedirect.TryApplyFrameworkRedirect(CreateReference("mscorlib", "1.0.5000.0", EcmaToken), module, out redirected));
+				Assert.Equal(new Version(2, 0, 0, 0), redirected.Version);
+				module.RuntimeVersion = "v1.0.3705";
+				Assert.False(FrameworkRedirect.TryApplyFrameworkRedirect(CreateReference("mscorlib", "1.0.5000.0", EcmaToken), module, out _));
+				Assert.False(FrameworkRedirect.TryApplyFrameworkRedirect(CreateReference("mscorlib", "1.0.5000.0", EcmaToken), (ModuleDef?)null, out _));
+			}
+#pragma warning disable CS0618 // Obsolete
+			IAssembly v2 = CreateReference("mscorlib", "1.0.5000.0", EcmaToken);
+			FrameworkRedirect.ApplyFrameworkRedirectV2(ref v2);
+			Assert.Equal(new Version(2, 0, 0, 0), v2.Version);
+			IAssembly v4 = CreateReference("mscorlib", "2.0.0.0", EcmaToken);
+			FrameworkRedirect.ApplyFrameworkRedirectV4(ref v4);
+			Assert.Equal(new Version(4, 0, 0, 0), v4.Version);
+			Assert.True(FrameworkRedirect.TryApplyFrameworkRedirectV2(CreateReference("mscorlib", "1.0.5000.0", EcmaToken), out var redirectedV2));
+			Assert.Equal(new Version(2, 0, 0, 0), redirectedV2.Version);
+			Assert.True(FrameworkRedirect.TryApplyFrameworkRedirectV4(CreateReference("mscorlib", "2.0.0.0", EcmaToken), out var redirectedV4));
+			Assert.Equal(new Version(4, 0, 0, 0), redirectedV4.Version);
+#pragma warning restore CS0618
 		}
 	}
 }

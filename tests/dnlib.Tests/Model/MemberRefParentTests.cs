@@ -85,5 +85,46 @@ namespace dnlib.Tests.Model {
 			Assert.Equal("System.Void Method()", method.FullName);
 			Assert.Throws<NullValueException>(() => method.DeclaringTypeOrThrow);
 		}
+
+		// The name of the declaring type and the assembly it's defined in, for every kind of parent
+		[Fact]
+		public void DeclaringTypeNameAndAssemblyOfEveryKindOfParent() {
+			var type = new TypeDefUser("Ns", "Type", module.CorLibTypes.Object.TypeDefOrRef);
+			module.Types.Add(type);
+			var definition = new MethodDefUser("Method", signature, MethodAttributes.Static);
+			type.Methods.Add(definition);
+			var ofMethod = new MemberRefUser(module, "Method", signature, definition);
+			var ofModuleRef = new MemberRefUser(module, "Global", signature, new ModuleRefUser(module, "other.netmodule"));
+			var ofType = new MemberRefUser(module, "Method", signature, new TypeRefUser(module, "Ns", "Type", new AssemblyRefUser("Other")));
+			var noParent = new MemberRefUser(module, "Method", signature);
+
+			Assert.Equal("Type", ofMethod.GetDeclaringTypeName());
+			Assert.Equal("<Module>", ofModuleRef.GetDeclaringTypeName());
+			Assert.Equal("Type", ofType.GetDeclaringTypeName());
+			Assert.Null(noParent.GetDeclaringTypeName());
+			Assert.Equal("Ns.Type", ofMethod.GetDeclaringTypeFullName());
+			Assert.Null(noParent.GetDeclaringTypeFullName());
+			Assert.Equal("Asm", ofMethod.GetDefinitionAssembly()!.Name);
+			Assert.Equal("Asm", ofModuleRef.GetDefinitionAssembly()!.Name);
+			Assert.Equal("Other", ofType.GetDefinitionAssembly()!.Name);
+			Assert.Null(noParent.GetDefinitionAssembly());
+		}
+
+		// A reference that isn't in a module, or whose module has no assembly or no module with that name, has the
+		// global type <Module> of the module that the ModuleRef names
+		[Fact]
+		public void TheGlobalTypeOfAModuleThatIsNotFoundIsModule() {
+			var noAssembly = new ModuleDefUser("NoAssembly.dll");
+			var inNoModule = new MemberRefUser(null, "Global", signature, new ModuleRefUser(null, "other.netmodule"));
+			var inModuleWithoutAssembly = new MemberRefUser(noAssembly, "Global", signature, new ModuleRefUser(noAssembly, "other.netmodule"));
+			var otherWithoutGlobalType = new ModuleDefUser("empty.netmodule");
+			module.Assembly!.Modules.Add(otherWithoutGlobalType);
+			otherWithoutGlobalType.Types.Clear();
+			var inModuleWithoutGlobalType = new MemberRefUser(module, "Global", signature, new ModuleRefUser(module, "empty.netmodule"));
+
+			Assert.Equal("<Module>", inNoModule.DeclaringType!.Name);
+			Assert.Equal("<Module>", inModuleWithoutAssembly.DeclaringType!.Name);
+			Assert.Equal("<Module>", inModuleWithoutGlobalType.DeclaringType!.Name);
+		}
 	}
 }

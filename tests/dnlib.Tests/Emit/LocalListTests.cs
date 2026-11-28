@@ -73,6 +73,10 @@ namespace dnlib.Tests.Emit {
 			Assert.Equal(-1, old.Index);
 			Assert.Equal(0, replacement.Index);
 			Assert.DoesNotContain(old, locals);
+			// LocalList.Contains() itself (Assert.Contains would enumerate the list)
+			bool containsOld = locals.Contains(old), containsReplacement = locals.Contains(replacement);
+			Assert.False(containsOld);
+			Assert.True(containsReplacement);
 
 			locals.Clear();
 			Assert.Empty(locals);

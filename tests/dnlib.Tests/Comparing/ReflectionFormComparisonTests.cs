@@ -227,5 +227,50 @@ namespace dnlib.Tests.Comparing {
 			Assert.False(comparer.Equals((TypeRef?)null, typeof(Uri)));
 			Assert.False(comparer.Equals((MemberRef?)null, typeof(Uri).GetMethod("get_IsFile")));
 		}
+
+		// A type signature and an exported type as an IType, and other kinds of ITypes that are never a reflection type
+		[Fact]
+		public void EveryKindOfITypeIsComparedWithAReflectionType() {
+			var comparer = new SigComparer();
+			var typeRef = CreateTypeRef(typeof(Uri));
+
+			Assert.True(comparer.Equals((IType)new ClassSig(typeRef), typeof(Uri)));
+			Assert.True(comparer.Equals((IType)CreateExportedType(typeof(Uri)), typeof(Uri)));
+			Assert.False(comparer.Equals((IType)new ClassSig(typeRef), typeof(Version)));
+		}
+
+		// A nested exported type isn't a type that isn't nested, and the other way around
+		[Fact]
+		public void ANestedExportedTypeIsOnlyANestedReflectionType() {
+			var comparer = new SigComparer();
+			var nestedExported = new ExportedTypeUser(module, 0, string.Empty, "SpecialFolder", TypeAttributes.NestedPublic, CreateExportedType(typeof(Environment)));
+			var notNested = new ExportedTypeUser(module, 0, "System", "SpecialFolder", TypeAttributes.Public, AssemblyOf(typeof(Environment)));
+
+			Assert.False(comparer.Equals(nestedExported, typeof(Environment)));
+			Assert.False(comparer.Equals(notNested, typeof(Environment.SpecialFolder)));
+			Assert.False(comparer.Equals(nestedExported, typeof(Uri)));
+		}
+
+		public static class GenericMethods {
+			public static T Identity<T>(T value) => value;
+		}
+
+		// A reflection method instantiated with its own generic parameters is the generic method definition: a
+		// MemberRef to the generic method. A MethodSpec is compared with the instantiation.
+		[Fact]
+		public void AGenericMethodInstantiatedWithItsOwnParametersIsTheDefinition() {
+			var comparer = new SigComparer(SigComparerOptions.CompareMethodFieldDeclaringType);
+			var definition = typeof(GenericMethods).GetMethod(nameof(GenericMethods.Identity))!;
+			var withOwnParameters = definition.MakeGenericMethod(definition.GetGenericArguments());
+			// GenericMethods is nested in this class
+			var methodsRef = new TypeRefUser(module, "", nameof(GenericMethods), CreateTypeRef(typeof(ReflectionFormComparisonTests)));
+			var memberRef = new MemberRefUser(module, nameof(GenericMethods.Identity), MethodSig.CreateStaticGeneric(1, new GenericMVar(0), new GenericMVar(0)), methodsRef);
+			var methodSpec = new MethodSpecUser(memberRef, new GenericInstMethodSig(module.CorLibTypes.Int32));
+
+			Assert.True(comparer.Equals(memberRef, withOwnParameters));
+			Assert.True(comparer.Equals((IMethod)methodSpec, definition.MakeGenericMethod(typeof(int))));
+			Assert.False(comparer.Equals((IMethod)methodSpec, definition.MakeGenericMethod(typeof(long))));
+			Assert.False(comparer.Equals(memberRef, definition.MakeGenericMethod(typeof(int))));
+		}
 	}
 }

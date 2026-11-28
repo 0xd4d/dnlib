@@ -282,5 +282,104 @@ namespace dnlib.Tests.CustomAttributes {
 				Assert.Equal(expected, Assert.Single(read.ConstructorArguments).Value);
 			}
 		}
+
+		CustomAttribute WriteAndReadAttribute(CustomAttribute attribute) {
+			created.Type.CustomAttributes.Add(attribute);
+			var module = created.WriteAndRead();
+			return Assert.Single(CreatedModule.GetType(module).CustomAttributes);
+		}
+
+		// A string argument can be a System.String instead of a UTF8String
+		[Fact]
+		public void AStringValueIsWrittenLikeAUTF8String() {
+			var attribute = new CustomAttribute(CreateConstructor(Types.String));
+			attribute.ConstructorArguments.Add(new CAArgument(Types.String, "text"));
+
+			var read = WriteAndReadAttribute(attribute);
+
+			Assert.Equal("text", ((UTF8String)read.ConstructorArguments[0].Value!).String);
+		}
+
+		// The CLR reads an argument whose type is a class (eg. an interface) like a System.Object argument: the
+		// value has its type before it. A class of the module, and a generic instance of a class of the module.
+		[Fact]
+		public void AnArgumentOfAClassTypeIsWrittenWithTheTypeOfItsValue() {
+			var someClass = new TypeDefUser("Ns", "SomeClass", Types.Object.TypeDefOrRef);
+			created.Module.Types.Add(someClass);
+			var genericClass = new TypeDefUser("Ns", "GenericClass`1", Types.Object.TypeDefOrRef);
+			genericClass.GenericParameters.Add(new GenericParamUser(0, GenericParamAttributes.NonVariant, "T"));
+			created.Module.Types.Add(genericClass);
+			var instance = new GenericInstSig(new ClassSig(genericClass), Types.Int32);
+			var attribute = new CustomAttribute(CreateConstructor(new ClassSig(someClass), instance));
+			// The argument has the type of the boxed value, like an argument of a System.Object parameter
+			attribute.ConstructorArguments.Add(new CAArgument(Types.Int32, 5));
+			attribute.ConstructorArguments.Add(new CAArgument(Types.String, new UTF8String("x")));
+			created.Type.CustomAttributes.Add(attribute);
+
+			// The constructor's parameters are read with the module's types
+			using (var module = created.WriteAndRead()) {
+				var read = Assert.Single(CreatedModule.GetType(module).CustomAttributes);
+				Assert.Equal(5, read.ConstructorArguments[0].Value);
+				Assert.Equal(ElementType.I4, read.ConstructorArguments[0].Type!.ElementType);
+				Assert.Equal("x", ((UTF8String)read.ConstructorArguments[1].Value!).String);
+			}
+		}
+
+		// An enum nested in a generic type that can't be resolved: the value is written as an integer without an error
+		[Fact]
+		public void AnArgumentOfAnUnresolvedGenericInstanceIsWrittenAsAnEnumValue() {
+			var unresolved = new GenericInstSig(new ValueTypeSig(new TypeRefUser(created.Module, "Ns", "Outer`1", new AssemblyRefUser("Missing"))), Types.Int32);
+			var attribute = new CustomAttribute(CreateConstructor(unresolved));
+			attribute.ConstructorArguments.Add(new CAArgument(unresolved, 7));
+
+			created.Type.CustomAttributes.Add(attribute);
+			var image = created.Write();
+
+			using (var module = ModuleDefMD.Load(image)) {
+				var read = Assert.Single(CreatedModule.GetType(module).CustomAttributes);
+				Assert.Equal(7, read.ConstructorArguments[0].Value);
+			}
+		}
+
+		// Named arguments of type object with a value of every small primitive type have the type of the value
+		[Theory]
+		[InlineData(typeof(sbyte))]
+		[InlineData(typeof(ulong))]
+		[InlineData(typeof(float))]
+		public void ABoxedNamedArgumentHasTheTypeOfItsValue(Type type) {
+			var valueType = created.Module.ImportAsTypeSig(type);
+			var value = Convert.ChangeType(3, type);
+			var attribute = new CustomAttribute(CreateConstructor());
+			attribute.NamedArguments.Add(new CANamedArgument(true, Types.Object, "Value", new CAArgument(valueType, value)));
+
+			var read = WriteAndReadAttribute(attribute);
+
+			var argument = Assert.Single(read.NamedArguments).Argument;
+			Assert.Equal(value, argument.Value);
+			Assert.Equal(valueType.ElementType, argument.Type!.ElementType);
+		}
+
+		// object { object[] { object[] { ... } } } nested too deeply
+		[Fact]
+		public void ArgumentsNestedTooDeeplyAreAnError() {
+			var objectArray = new SZArraySig(Types.Object);
+			var value = new CAArgument(Types.Int32, 1);
+			for (int i = 0; i < 200; i++)
+				value = new CAArgument(Types.Object, new CAArgument(objectArray, new List<CAArgument> { value }));
+			var attribute = new CustomAttribute(CreateConstructor(Types.Object));
+			attribute.ConstructorArguments.Add(value);
+
+			AssertIsAWriterError(attribute, "Infinite recursion");
+		}
+
+		// A parameter without a type: the type of the argument is used
+		[Fact]
+		public void AParameterWithoutATypeIsAnError() {
+			var constructor = new MemberRefUser(created.Module, ".ctor", MethodSig.CreateInstance(Types.Void, new TypeSig?[] { null }!), Types.GetTypeRef("System", "SomeAttribute"));
+			var attribute = new CustomAttribute(constructor);
+			attribute.ConstructorArguments.Add(new CAArgument(Types.Int32, 5));
+
+			AssertIsAWriterError(attribute, "argument type is null");
+		}
 	}
 }

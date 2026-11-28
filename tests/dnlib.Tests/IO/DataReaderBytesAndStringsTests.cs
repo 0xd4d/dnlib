@@ -54,6 +54,46 @@ namespace dnlib.Tests.IO {
 			}
 		}
 
+		// More bytes than the 4 that the aligned stream copies at a time, and a rest
+		[Theory, MemberData(nameof(Kinds))]
+		public unsafe void ManyBytesAreReadIntoNativeMemory(DataStreamKind kind) {
+			var bytes = Enumerable.Range(1, 11).Select(a => (byte)a).ToArray();
+			using (var source = TestDataReader.Create(kind, bytes)) {
+				var reader = source.Reader;
+				var destination = new byte[13];
+
+				fixed (byte* p = destination)
+					reader.ReadBytes(p + 1, 11);
+
+				Assert.Equal(new byte[] { 0 }.Concat(bytes).Concat(new byte[] { 0 }), destination);
+			}
+		}
+
+		// The stream of a reader factory that was disposed has no data: every byte is 0.
+		// Fixed in this commit: only the first byte was set to 0 when it was read into native memory.
+		[Fact]
+		public unsafe void TheEmptyStreamReadsZeros() {
+			var stream = EmptyDataStream.Instance;
+			var destination = new byte[] { 1, 2, 3, 4, 5 };
+
+			fixed (byte* p = destination)
+				stream.ReadBytes(0, p, 4);
+			Assert.Equal(new byte[] { 0, 0, 0, 0, 5 }, destination);
+
+			destination = new byte[] { 1, 2, 3 };
+			stream.ReadBytes(0, destination, 1, 2);
+			Assert.Equal(new byte[] { 1, 0, 0 }, destination);
+			Assert.Equal(0, stream.ReadByte(0));
+			Assert.Equal(0, stream.ReadUInt16(0));
+			Assert.Equal(0U, stream.ReadUInt32(0));
+			Assert.Equal(0UL, stream.ReadUInt64(0));
+			Assert.Equal(0f, stream.ReadSingle(0));
+			Assert.Equal(0.0, stream.ReadDouble(0));
+			Assert.Equal("", stream.ReadUtf16String(0, 3));
+			Assert.Equal("", stream.ReadString(0, 3, System.Text.Encoding.UTF8));
+			Assert.False(stream.TryGetOffsetOf(0, 10, 0, out _));
+		}
+
 		[Theory, MemberData(nameof(Kinds))]
 		public unsafe void ReadBytesWithTooManyBytesThrowsAndDoesNotMoveTheReader(DataStreamKind kind) {
 			using (var source = TestDataReader.Create(kind, 1, 2, 3, 4, 5)) {

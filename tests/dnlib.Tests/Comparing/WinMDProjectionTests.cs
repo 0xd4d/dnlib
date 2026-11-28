@@ -30,6 +30,11 @@ namespace dnlib.Tests.Comparing {
 		[InlineData("Windows.Foundation", "DateTime", "System.DateTimeOffset", "System.Runtime", true)]
 		[InlineData("Windows.Foundation", "Point", "Windows.Foundation.Point", "System.Runtime.WindowsRuntime", true)]
 		[InlineData("Windows.Foundation.Collections", "IVector`1", "System.Collections.Generic.IList`1", "System.Runtime", false)]
+		// The other assemblies of projected types
+		[InlineData("Windows.Foundation.Numerics", "Vector2", "System.Numerics.Vector2", "System.Numerics.Vectors", true)]
+		[InlineData("Windows.UI.Xaml.Input", "ICommand", "System.Windows.Input.ICommand", "System.ObjectModel", false)]
+		[InlineData("Windows.Foundation", "EventRegistrationToken", "System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken", "System.Runtime.InteropServices.WindowsRuntime", true)]
+		[InlineData("Windows.UI.Xaml", "CornerRadius", "Windows.UI.Xaml.CornerRadius", "System.Runtime.WindowsRuntime.UI.Xaml", true)]
 		public void TypeRefIsProjected(string @namespace, string name, string expectedFullName, string expectedAssembly, bool expectedIsValueType) {
 			var projected = WinMDHelpers.ToCLR(module, WindowsRuntimeType(@namespace, name), out bool isValueType);
 
@@ -205,6 +210,70 @@ namespace dnlib.Tests.Comparing {
 			Assert.Equal(new Version(2, 0, 0, 0), WinMDHelpers.ToCLR(oldModule, uri)!.DefinitionAssembly!.Version);
 			// No module: the default version
 			Assert.Equal(new Version(4, 0, 0, 0), WinMDHelpers.ToCLR(null, uri)!.DefinitionAssembly!.Version);
+		}
+
+		// The definition of a projected type in a Windows Runtime module is compared as the projected type: with a
+		// reference, an exported type, a definition and a System.Type
+		[Fact]
+		public void SigComparerComparesTheProjectedDefinitions() {
+			var winmd = CreateWindowsRuntimeModule(out var closable, out var close);
+			var uri = new TypeDefUser("Windows.Foundation", "Uri") { Attributes = TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.WindowsRuntime };
+			winmd.Types.Add(uri);
+			var projectedUri = WinMDHelpers.ToCLR(module, WindowsRuntimeType("Windows.Foundation", "Uri"))!;
+			var systemUri = new TypeRefUser(module, "System", "Uri", (AssemblyRef)projectedUri.ResolutionScope!);
+			var exportedUri = new ExportedTypeUser(module, 0, "System", "Uri", TypeAttributes.Public, (AssemblyRef)projectedUri.ResolutionScope!);
+			var comparer = new SigComparer();
+
+			Assert.True(comparer.Equals(uri, systemUri));
+			Assert.True(comparer.Equals(uri, exportedUri));
+			Assert.True(comparer.Equals((IType)uri, systemUri));
+			Assert.Equal(comparer.GetHashCode(systemUri), comparer.GetHashCode(uri));
+			// Two projected definitions are equal, also if they're different objects
+			var otherWinmd = CreateWindowsRuntimeModule(out _, out _);
+			var otherUri = new TypeDefUser("Windows.Foundation", "Uri") { Attributes = uri.Attributes };
+			otherWinmd.Types.Add(otherUri);
+			Assert.True(comparer.Equals(uri, otherUri));
+			Assert.False(new SigComparer(SigComparerOptions.DontProjectWinMDRefs).Equals(uri, systemUri));
+
+			// IClosable.Close() is IDisposable.Dispose()
+			const SigComparerOptions options = SigComparerOptions.CompareMethodFieldDeclaringType;
+			var disposable = WinMDHelpers.ToCLR(module, WindowsRuntimeType("Windows.Foundation", "IClosable"))!;
+			var disposeRef = new MemberRefUser(module, "Dispose", MethodSig.CreateInstance(module.CorLibTypes.Void), disposable);
+			Assert.True(new SigComparer(options).Equals(close, disposeRef));
+			Assert.True(new SigComparer(options).Equals((IMethod)close, disposeRef));
+			Assert.Equal(new SigComparer(options).GetHashCode(disposeRef), new SigComparer(options).GetHashCode(close));
+			var otherClose = CreateWindowsRuntimeModule(out _, out var otherCloseMethod);
+			Assert.True(new SigComparer(options).Equals(close, otherCloseMethod));
+		}
+
+		// The projected definitions are compared with reflection's types and methods too
+		[Fact]
+		public void SigComparerComparesTheProjectedDefinitionsWithReflection() {
+			var winmd = CreateWindowsRuntimeModule(out var closable, out var close);
+			var uri = new TypeDefUser("Windows.Foundation", "Uri") { Attributes = TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.WindowsRuntime };
+			winmd.Types.Add(uri);
+			const SigComparerOptions options = SigComparerOptions.CompareMethodFieldDeclaringType | SigComparerOptions.DontCompareTypeScope;
+
+			Assert.True(new SigComparer(options).Equals(uri, typeof(Uri)));
+			Assert.True(new SigComparer(options).Equals(close, typeof(IDisposable).GetMethod(nameof(IDisposable.Dispose))!));
+		}
+
+		// Only Close of IClosable is projected: a member of a generic instance (its class is a TypeSpec) is projected
+		// only if the generic type is projected to IDisposable, which no generic type is
+		[Fact]
+		public void MembersOfGenericInstancesAreNotProjected() {
+			var signature = MethodSig.CreateInstance(module.CorLibTypes.Void);
+			var vectorOfInt = new TypeSpecUser(new GenericInstSig(new ClassSig(WindowsRuntimeType("Windows.Foundation.Collections", "IVector`1")), module.CorLibTypes.Int32));
+			var notGeneric = new TypeSpecUser(new SZArraySig(module.CorLibTypes.Int32));
+			var otherGeneric = new TypeSpecUser(new GenericInstSig(new ClassSig(WindowsRuntimeType("Windows.Foundation", "NotProjected`1")), module.CorLibTypes.Int32));
+
+			Assert.Null(WinMDHelpers.ToCLR(module, new MemberRefUser(module, "Close", signature, vectorOfInt)));
+			Assert.Null(WinMDHelpers.ToCLR(module, new MemberRefUser(module, "Close", signature, notGeneric)));
+			Assert.Null(WinMDHelpers.ToCLR(module, new MemberRefUser(module, "Close", signature, otherGeneric)));
+			Assert.Null(WinMDHelpers.ToCLR(module, (MemberRef?)null));
+			Assert.Null(WinMDHelpers.ToCLR(module, (MethodDef?)null));
+			Assert.Null(WinMDHelpers.ToCLR(module, (ExportedType?)null));
+			Assert.Null(WinMDHelpers.ToCLR(module, (TypeDef?)null));
 		}
 	}
 }

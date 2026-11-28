@@ -99,6 +99,82 @@ namespace dnlib.Tests.Writer {
 			}
 		}
 
+		// Without values in the options, the writer calculates the characteristics (32 or 64 bit, DLL or EXE) and
+		// the subsystem, and the entry point can be set in the options
+		[Fact]
+		public void HeaderValuesThatTheOptionsDoNotHaveAreCalculated() {
+			using (var module = ModuleDefMD.Load(Image)) {
+				var options = new NativeModuleWriterOptions(module, optimizeImageSize: true);
+				options.PEHeadersOptions.Characteristics = null;
+				options.PEHeadersOptions.Subsystem = null;
+				options.Cor20HeaderOptions.EntryPoint = 0;
+				var stream = new MemoryStream();
+				module.NativeWrite(stream, options);
+
+				using (var peReader = new PEReader(ImmutableArray.Create(stream.ToArray()))) {
+					var headers = peReader.PEHeaders;
+					Assert.True((headers.CoffHeader.Characteristics & System.Reflection.PortableExecutable.Characteristics.Dll) != 0);
+					Assert.True((headers.CoffHeader.Characteristics & System.Reflection.PortableExecutable.Characteristics.Bit32Machine) != 0);
+					Assert.Equal(System.Reflection.PortableExecutable.Subsystem.WindowsCui, headers.PEHeader!.Subsystem);
+					Assert.Equal(0, headers.CorHeader!.EntryPointTokenOrRelativeVirtualAddress);
+				}
+			}
+		}
+
+		// The sections of the original file and the writer's parts, while the module is written. They don't exist
+		// before Write().
+		[Fact]
+		public void TheOriginalSectionsAreKnownWhileTheModuleIsWritten() {
+			using (var module = ModuleDefMD.Load(Image)) {
+				var options = new NativeModuleWriterOptions(module, optimizeImageSize: true);
+				var writer = new NativeModuleWriter(module, options);
+				Assert.Throws<InvalidOperationException>(() => writer.Sections);
+				Assert.Throws<InvalidOperationException>(() => writer.OrigSections);
+				Assert.Throws<InvalidOperationException>(() => writer.TextSection);
+				Assert.Same(module, writer.ModuleDefMD);
+				Assert.True(writer.IsNativeWriter);
+				bool asked = false;
+				// The original sections are freed when the file has been written: they're asked for before that
+				options.WriterEvent += (sender, e) => {
+					if (e.Event != ModuleWriterEvent.BeginWriteChunks)
+						return;
+					var nativeWriter = Assert.IsType<NativeModuleWriter>(e.Writer);
+					Assert.Equal(module.Metadata.PEImage.ImageSectionHeaders.Count, nativeWriter.OrigSections.Count);
+					Assert.All(nativeWriter.OrigSections, a => Assert.Contains("FO:", a.ToString()));
+					// Sections has the sections that the writer adds to the original ones
+					Assert.NotNull(nativeWriter.Sections);
+					Assert.NotNull(nativeWriter.TextSection);
+					Assert.Same(options, nativeWriter.Options);
+					_ = nativeWriter.RsrcSection;
+					asked = true;
+				};
+				var stream = new MemoryStream();
+				writer.Write(stream);
+				Assert.True(asked);
+				// The options can be replaced
+				var otherOptions = new NativeModuleWriterOptions(module, optimizeImageSize: false);
+				writer.Options = otherOptions;
+				Assert.Same(otherOptions, writer.Options);
+			}
+		}
+
+		// NativeWrite() to a file and to a stream with the default options
+		[Fact]
+		public void NativeWriteToAFileOrAStream() {
+			var image = Fixtures.Fixtures.Features.Image;
+			using (var original = ModuleDefMD.Load(image))
+			using (var directory = new TempDirectory()) {
+				var file = directory.GetPath("Written.exe");
+				original.NativeWrite(file, null);
+				var stream = new MemoryStream();
+				original.NativeWrite(stream);
+
+				using (var fromFile = ModuleDefMD.Load(File.ReadAllBytes(file)))
+					ModuleComparer.AssertEqual(original, fromFile, new ModuleDumpOptions { MaxStack = true });
+				Assert.Equal(File.ReadAllBytes(file), stream.ToArray());
+			}
+		}
+
 		// The offsets of fields in the PE optional header (PE32, the fixture is a 32-bit file)
 		const int fileAlignmentOffset = 36;
 		const int numberOfRvaAndSizesOffset = 92;
