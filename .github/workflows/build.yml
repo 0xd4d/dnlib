@@ -129,14 +129,14 @@ jobs:
         with:
           global-json-file: global.json
 
-      # The version is in .config/dotnet-tools.json, which Dependabot updates
-      - name: Install dotnet-coverage
+      # The versions are in .config/dotnet-tools.json, which Dependabot updates
+      - name: Install dotnet-coverage and ReportGenerator
         shell: bash
         run: dotnet tool restore
 
       - name: Test with coverage
         shell: bash
-        run: tests/coverage.sh --minimum ${{ matrix.minimum }} net10.0
+        run: tests/coverage.sh --html --minimum ${{ matrix.minimum }} net10.0
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
