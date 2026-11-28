@@ -135,5 +135,19 @@ namespace dnlib.Tests.CustomAttributes {
 
 			Assert.Equal(isRaw, ca.IsRawBlob);
 		}
+
+		// A boxed enum in an object argument: ENUM (0x55), the enum's type name, the value (an int: the enum can't
+		// be resolved)
+		[Fact]
+		public void ABoxedEnumHasItsTypeName() {
+			var blob = Blob(new byte[] { 0x55 }.Concat(SerString("Ns.Color")).Concat(new byte[] { 3, 0, 0, 0, 0, 0 }).ToArray());
+
+			var ca = Read(blob, Ctor(Types.Object));
+
+			Assert.False(ca.IsRawBlob);
+			var argument = ca.ConstructorArguments[0];
+			Assert.Equal("Ns.Color", argument.Type!.FullName);
+			Assert.Equal(3, argument.Value);
+		}
 	}
 }
