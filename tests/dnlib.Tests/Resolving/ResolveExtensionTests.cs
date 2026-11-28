@@ -163,5 +163,25 @@ namespace dnlib.Tests.Resolving {
 			Assert.Null(new MethodSpecUser(missing, instantiation).ResolveMethodDef());
 			Assert.Throws<MemberRefResolveException>(() => new MethodSpecUser(missing, instantiation).ResolveMethodDefOrThrow());
 		}
+
+		// The old names of the OrThrow methods still work
+		[Fact]
+		public void TheObsoleteThrowMethodsAreTheOrThrowMethods() {
+			var fieldRef = new MemberRefUser(app, "Field", new FieldSig(CorLib.Int32), baseTypeRef);
+			var methodRef = new MemberRefUser(app, "Method", MethodSig.CreateStatic(CorLib.Void), baseTypeRef);
+			var exportedType = new ExportedTypeUser(app, 0, "Ns", "Base", TypeAttributes.Public, new AssemblyRefUser(library.Assembly!));
+			var derivedRef = new TypeRefUser(app, "Ns", "Generic`1", new AssemblyRefUser(library.Assembly!));
+#pragma warning disable CS0618 // Obsolete
+			Assert.Same(baseType, baseTypeRef.ResolveTypeDefThrow());
+			Assert.Equal("Ns.Base", derivedRef.GetBaseTypeThrow()!.FullName);
+			Assert.Same(field, ((IField)fieldRef).ResolveFieldDefThrow());
+			Assert.Same(method, ((IMethod)methodRef).ResolveMethodDefThrow());
+			Assert.Same(field, fieldRef.ResolveThrow());
+			Assert.Same(field, fieldRef.ResolveFieldThrow());
+			Assert.Same(method, methodRef.ResolveMethodThrow());
+			Assert.Same(baseType, exportedType.ResolveThrow());
+			Assert.ThrowsAny<ResolveException>(() => missingTypeRef.ResolveTypeDefThrow());
+#pragma warning restore CS0618
+		}
 	}
 }
