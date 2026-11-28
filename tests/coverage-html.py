@@ -161,25 +161,47 @@ pre span::before { content: attr(data-b) "  " counter(line); display: inline-blo
 .c { background: var(--c); } .u { background: var(--u); } .p { background: var(--p); }
 pre span.c::before { border-right-color: var(--cn); } pre span.u::before { border-right-color: var(--un); }
 pre span.p::before { border-right-color: var(--pn); }
+/* The block the prev/next buttons jumped to */
+pre span.cur::before { color: var(--fg); font-weight: 700; border-right-width: 7px; padding-right: calc(1ch - 4px); }
 pre span:target { outline: 2px solid var(--link); outline-offset: -2px; }
 .legend span { padding: 0 6px; margin-right: 4px; }
 """
 
 FILE_SCRIPT = """
 (function () {
-  var blocks = [], previous = null;
+  // The blocks of lines next to each other that are not covered or have branches that aren't covered
+  var blocks = [], block = null;
   document.querySelectorAll('pre span').forEach(function (line) {
     var bad = line.classList.contains('u') || line.classList.contains('p');
-    if (bad && !previous) blocks.push(line);
-    previous = bad ? line : null;
+    if (!bad) block = null;
+    else if (block) block.push(line);
+    else blocks.push(block = [line]);
   });
+  var current = -1, scrollAfter = -1;
+  // Where the first line of a block is put: below the header, with 2 lines above it
+  function topOffset() { return document.querySelector('header').offsetHeight + 2 * blocks[0][0].offsetHeight; }
   function go(direction) {
     if (!blocks.length) return;
-    var middle = window.scrollY + window.innerHeight / 3, target = null;
-    if (direction > 0) { for (var i = 0; i < blocks.length; i++) if (blocks[i].offsetTop > middle + 4) { target = blocks[i]; break; } }
-    else { for (var j = blocks.length - 1; j >= 0; j--) if (blocks[j].offsetTop < middle - 4) { target = blocks[j]; break; } }
-    if (target) window.scrollTo(0, target.offsetTop - window.innerHeight / 3);
+    var index = -1, i;
+    if (current >= 0 && Math.abs(window.scrollY - scrollAfter) < 2) {
+      // Not scrolled since the last jump. The position can't be used: at the end of the file, a block can't
+      // be scrolled to the top
+      index = current + direction;
+    }
+    else {
+      var position = window.scrollY + topOffset();
+      if (direction > 0) { for (i = 0; i < blocks.length; i++) if (blocks[i][0].offsetTop > position + 2) { index = i; break; } }
+      else { for (i = blocks.length - 1; i >= 0; i--) if (blocks[i][0].offsetTop < position - 2) { index = i; break; } }
+    }
+    if (index < 0 || index >= blocks.length) return;
+    if (current >= 0) blocks[current].forEach(function (line) { line.classList.remove('cur'); });
+    current = index;
+    blocks[current].forEach(function (line) { line.classList.add('cur'); });
+    window.scrollTo(window.scrollX, Math.max(0, blocks[current][0].offsetTop - topOffset()));
+    scrollAfter = window.scrollY;
+    document.getElementById('position').textContent = (current + 1) + ' of ' + blocks.length;
   }
+  document.getElementById('position').textContent = blocks.length + (blocks.length === 1 ? ' block' : ' blocks');
   document.getElementById('next').onclick = function () { go(1); };
   document.getElementById('prev').onclick = function () { go(-1); };
   document.addEventListener('keydown', function (e) {
@@ -260,7 +282,7 @@ def write_file_page(output_directory, source_directory, source_file, lines, tota
 
     header = (f'<h1><a href="{"../" * depth}index.html">coverage</a> / {html.escape(source_file)}</h1>{totals_text(totals)}'
               f'<span><button id="prev" title="Previous uncovered code (p)">▲ prev</button> '
-              f'<button id="next" title="Next uncovered code (n)">▼ next</button> <span class="dim">uncovered (keys: p, n)</span></span>'
+              f'<button id="next" title="Next uncovered code (n)">▼ next</button> <span class="dim">red or yellow block (keys: p, n): <span id="position"></span></span></span>'
               f'<span class="legend"><span class="c">covered</span><span class="p">some branches not covered</span>'
               f'<span class="u">not covered</span></span>')
     body = f'<pre>{"".join(parts)}</pre>'
