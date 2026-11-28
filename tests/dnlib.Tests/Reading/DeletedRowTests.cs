@@ -68,6 +68,33 @@ public class _DeletedType { }
 			}
 		}
 
+		// Events and properties are deleted like methods (the name and RTSpecialName), and an exported type only by
+		// its name: the CLR ignores the flag of an exported type
+		[Fact]
+		public void DeletedEventsPropertiesAndExportedTypesAreNotInTheLists() {
+			var image = CreateImage(hasDeletedRows: true, kept => {
+				var module = kept.Module!;
+				var handler = module.CorLibTypes.GetTypeRef("System", "EventHandler");
+				kept.Events.Add(new EventDefUser("KeptEvent", handler));
+				kept.Events.Add(new EventDefUser("_DeletedEvent", handler, dnlib.DotNet.EventAttributes.RTSpecialName));
+				kept.Events.Add(new EventDefUser("_DeletedEventWithoutTheFlag", handler));
+				var propertySig = PropertySig.CreateInstance(module.CorLibTypes.Int32);
+				kept.Properties.Add(new PropertyDefUser("KeptProperty", propertySig));
+				kept.Properties.Add(new PropertyDefUser("_DeletedProperty", propertySig, dnlib.DotNet.PropertyAttributes.RTSpecialName));
+				kept.Properties.Add(new PropertyDefUser("_DeletedPropertyWithoutTheFlag", propertySig));
+				var other = new AssemblyRefUser("Other", new Version(1, 0, 0, 0));
+				module.ExportedTypes.Add(new ExportedTypeUser(module, 0, "Ns", "KeptExported", dnlib.DotNet.TypeAttributes.Public, other));
+				module.ExportedTypes.Add(new ExportedTypeUser(module, 0, "Ns", "_DeletedExported", dnlib.DotNet.TypeAttributes.Public, other));
+			});
+
+			using (var module = ModuleDefMD.Load(image)) {
+				var kept = module.Find("Kept", isReflectionName: true)!;
+				Assert.Equal(new[] { "KeptEvent", "_DeletedEventWithoutTheFlag" }, kept.Events.Select(a => a.Name.String));
+				Assert.Equal(new[] { "KeptProperty", "_DeletedPropertyWithoutTheFlag" }, kept.Properties.Select(a => a.Name.String));
+				Assert.Equal(new[] { "KeptExported" }, module.ExportedTypes.Select(a => a.TypeName.String));
+			}
+		}
+
 		// The rows are still there and can be read by their tokens
 		[Fact]
 		public void DeletedRowsAreStillResolvedByToken() {
