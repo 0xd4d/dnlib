@@ -726,6 +726,26 @@ public enum CharEnum : ushort { }
 			Assert.Equal(expected.Pdb, stream.GetWrittenData());
 		}
 
+		// A deterministic PDB is written to memory first if the stream can't be read (its ID is a hash of the PDB),
+		// and copied to the stream. A file that had more data is made shorter.
+		[Fact]
+		public void DeterministicPdbIsWrittenToAStreamThatCanNotBeRead() {
+			var expected = ChangeAndWrite(module => { }, options => options.PdbOptions |= PdbWriterOptions.Deterministic);
+			using (var directory = new TempDirectory()) {
+				var path = directory.GetPath("written.pdb");
+				File.WriteAllBytes(path, new byte[expected.Pdb!.Length + 1000]);
+				using (var stream = new FileStream(path, FileMode.Open, FileAccess.Write)) {
+					Assert.False(stream.CanRead);
+					ChangeAndWrite(module => { }, options => {
+						options.PdbOptions |= PdbWriterOptions.Deterministic;
+						options.PdbStream = stream;
+					});
+				}
+
+				Assert.Equal(expected.Pdb, File.ReadAllBytes(path));
+			}
+		}
+
 		// The PDB's ID is in the PE file, and a checksum of the PDB too if the original file had one. dnlib
 		// checks both when it reads the files.
 		[Fact]
