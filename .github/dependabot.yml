@@ -15,9 +15,16 @@ updates:
           - '*'
 
   - package-ecosystem: nuget
+    # Every directory with a project, and / for .config/dotnet-tools.json. tests/coverage-highlighter isn't in
+    # dnlib.sln. Add new projects here.
     directories:
+      - /
       - /src
       - /Examples
+      - /tests/dnlib.Tests
+      - /tests/dnlib.TestUtils
+      - /tests/dnlib.AotTests
+      - /tests/dnlib.Net35Tests
       - /tests/coverage-highlighter
     schedule:
       interval: weekly
