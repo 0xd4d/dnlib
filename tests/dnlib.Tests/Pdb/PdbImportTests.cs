@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using dnlib.DotNet;
 using dnlib.DotNet.Pdb;
+using dnlib.DotNet.Writer;
 using dnlib.TestUtils;
 using Xunit;
 
@@ -140,6 +142,31 @@ namespace dnlib.Tests.Pdb {
 			Assert.False(scope.HasImports);
 			Assert.False(scope.HasCustomDebugInfos);
 			Assert.Null(scope.Parent);
+		}
+
+		// An import without its namespace or type is a writer error. If the error is ignored, an empty name or a
+		// nil token is written.
+		[Theory]
+		[InlineData("namespace", "String is null")]
+		[InlineData("type", "ITypeDefOrRef is null")]
+		public void AnImportWithoutItsTargetIsAnError(string what, string expectedError) {
+			Action<ModuleDefMD> addImport = module => {
+				var scope = DebugInfoSource.GetRootScope(module, "Sum");
+				var imports = new PdbImportScope { Parent = scope.ImportScope };
+				imports.Imports.Add(what == "namespace" ? new PdbImportNamespace(null!) : new PdbImportType(null));
+				scope.ImportScope = imports;
+			};
+			using (var module = DebugInfoSource.Load()) {
+				addImport(module);
+				var exception = Assert.Throws<ModuleWriterException>(() => RoundTrip.WriteWithPortablePdb(module, preserveMetadata: true));
+				Assert.Contains(expectedError, exception.Message);
+			}
+			using (var module = DebugInfoSource.Load()) {
+				addImport(module);
+				var written = RoundTrip.WriteWithPortablePdb(module, preserveMetadata: true, options => options.Logger = DummyLogger.NoThrowInstance);
+				using (var read = RoundTrip.LoadWithPdb(written.Image, written.Pdb!))
+					Assert.Single(DebugInfoSource.GetRootScope(read, "Sum").ImportScope!.Imports);
+			}
 		}
 	}
 }

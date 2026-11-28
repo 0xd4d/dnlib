@@ -172,5 +172,16 @@ namespace dnlib.Tests.Pdb {
 				Assert.Empty(ReadDocumentNamesWithSrm(written.Pdb!));
 			}
 		}
+
+		// A document created without values has an empty URL and checksum, and isn't equal to something else
+		[Fact]
+		public void ANewDocumentIsEmpty() {
+			var document = new PdbDocument();
+
+			Assert.Equal(string.Empty, document.Url);
+			Assert.Empty(document.CheckSum);
+			Assert.Empty(document.CustomDebugInfos);
+			Assert.False(document.Equals("not a document"));
+		}
 	}
 }
