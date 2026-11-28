@@ -1,5 +1,6 @@
 // dnlib: See LICENSE.txt for more info
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using dnlib.DotNet.Emit;
@@ -81,6 +82,8 @@ namespace dnlib.DotNet {
 		public void RegisterExperimentalOpCode(OpCode opCode) {
 			byte high = (byte)((ushort)opCode.Value >> 8);
 			byte low = (byte)opCode.Value;
+			if (!IsExperimental(high))
+				throw new ArgumentOutOfRangeException(nameof(opCode), "The first byte of an experimental opcode must be 0xF0..0xFB");
 			OpCode?[] array = experimentalOpCodes[high - 0xF0] ??= new OpCode?[256];
 
 			array[low] = opCode;
@@ -90,6 +93,8 @@ namespace dnlib.DotNet {
 		/// Clears an experimental CIL opcode.
 		/// </summary>
 		public void ClearExperimentalOpCode(byte high, byte low) {
+			if (!IsExperimental(high))
+				return;
 			OpCode?[]? array = experimentalOpCodes[high - 0xF0];
 
 			if (array != null)
@@ -99,8 +104,14 @@ namespace dnlib.DotNet {
 		/// <summary>
 		/// Attempts to get an experimental CIL opcode.
 		/// </summary>
+		/// <returns>The opcode or <c>null</c> if it wasn't registered or if <paramref name="high"/> isn't
+		/// within the range <c>0xF0..0xFB</c></returns>
 		public OpCode? GetExperimentalOpCode(byte high, byte low) {
+			if (!IsExperimental(high))
+				return null;
 			return experimentalOpCodes[high - 0xF0]?[low];
 		}
+
+		static bool IsExperimental(byte high) => high >= 0xF0 && high <= 0xFB;
 	}
 }
