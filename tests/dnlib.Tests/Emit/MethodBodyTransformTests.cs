@@ -122,6 +122,20 @@ namespace dnlib.Tests.Emit {
 			body.OptimizeBranches();
 			Assert.Equal(shortName, branch.OpCode.Name);
 			Assert.Same(target, branch.Operand);
+
+			// SimplifyMacros() also replaces the short branches
+			body.Instructions.SimplifyMacros(new List<Local>(), new List<Parameter>());
+			Assert.Equal(longName, branch.OpCode.Name);
+		}
+
+		// The operand of ldc.i4.s is an sbyte, of ldc.i4 an int: both get the shortest form
+		[Theory, InlineData(1, "ldc.i4.1"), InlineData(-1, "ldc.i4.m1"), InlineData(100, "ldc.i4.s")]
+		public void AnSByteOperandUsesTheShortestForm(int value, string expectedName) {
+			var instructions = new List<Instruction> { new Instruction(OpCodes.Ldc_I4_S, (sbyte)value), OpCodes.Ret.ToInstruction() };
+
+			instructions.OptimizeMacros();
+
+			Assert.Equal(expectedName, instructions[0].OpCode.Name);
 		}
 
 		[Fact]
