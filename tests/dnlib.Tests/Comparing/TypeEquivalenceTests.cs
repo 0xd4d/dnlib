@@ -316,5 +316,94 @@ namespace Interop {{
 			Assert.False(new SigComparer().Equals(CreateSignature(first), CreateSignature(different)));
 			Assert.False(new SigComparer(SigComparerOptions.DontCheckTypeEquivalence).Equals(CreateSignature(first), CreateSignature(second)));
 		}
+
+		// A struct with a TypeIdentifierAttribute in a new assembly. 'scope' and 'identifier' are the attribute's
+		// arguments (their types can be wrong).
+		static TypeDefUser CreateStruct(string assemblyName, CAArgument[] arguments, string @namespace = "Interop", string name = "Point") {
+			var module = new ModuleDefUser(assemblyName + ".dll");
+			new AssemblyDefUser(assemblyName, new System.Version(1, 0, 0, 0)).Modules.Add(module);
+			var types = module.CorLibTypes;
+			var type = new TypeDefUser(@namespace, name, types.GetTypeRef("System", "ValueType")) { Attributes = TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.SequentialLayout };
+			module.Types.Add(type);
+			var attributeType = types.GetTypeRef("System.Runtime.InteropServices", "TypeIdentifierAttribute");
+			var ctor = new MemberRefUser(module, ".ctor", MethodSig.CreateInstance(types.Void, arguments.Select(a => a.Type!).ToArray()), attributeType);
+			var attribute = new CustomAttribute(ctor);
+			foreach (var argument in arguments)
+				attribute.ConstructorArguments.Add(argument);
+			type.CustomAttributes.Add(attribute);
+			return type;
+		}
+
+		static CAArgument[] StringArguments(ModuleDef module, string scope, string identifier) =>
+			new[] { new CAArgument(module.CorLibTypes.String, new UTF8String(scope)), new CAArgument(module.CorLibTypes.String, identifier) };
+
+		// The identifier can be a UTF8String or a string
+		[Fact]
+		public void TheArgumentsOfTheAttributeCanBeUTF8StringsOrStrings() {
+			var types = new ModuleDefUser().CorLibTypes;
+			var a = CreateStruct("A", StringArguments(new ModuleDefUser(), "scope", "Interop.Point"));
+			var b = CreateStruct("B", StringArguments(new ModuleDefUser(), "scope", "Interop.Point"));
+
+			Assert.True(new SigComparer().Equals(a, b));
+		}
+
+		// The scope and the identifier must be strings
+		[Theory, InlineData(0), InlineData(1)]
+		public void ArgumentsOfAnotherTypeAreNotAnIdentity(int intArgument) {
+			var module = new ModuleDefUser();
+			CAArgument[] Arguments() {
+				var arguments = StringArguments(module, "scope", "Interop.Point");
+				arguments[intArgument] = new CAArgument(module.CorLibTypes.Int32, 1);
+				return arguments;
+			}
+			var a = CreateStruct("A", Arguments());
+			var b = CreateStruct("B", Arguments());
+
+			Assert.False(new SigComparer().Equals(a, b));
+		}
+
+		// Without arguments, the identity is the GUID of the assembly and the name of the type: a type without a
+		// namespace or without a name is identified too
+		[Theory]
+		[InlineData("Interop", "Point")]
+		[InlineData("", "Point")]
+		[InlineData("Interop", "")]
+		public void WithoutArgumentsTheIdentityIsTheGuidOfTheAssemblyAndTheName(string @namespace, string name) {
+			TypeDefUser Create(string assemblyName) {
+				var type = CreateStruct(assemblyName, new CAArgument[0], @namespace, name);
+				var module = type.Module!;
+				var guidAttribute = new CustomAttribute(new MemberRefUser(module, ".ctor", MethodSig.CreateInstance(module.CorLibTypes.Void, module.CorLibTypes.String),
+					module.CorLibTypes.GetTypeRef("System.Runtime.InteropServices", "GuidAttribute")));
+				guidAttribute.ConstructorArguments.Add(new CAArgument(module.CorLibTypes.String, "11111111-2222-3333-4444-555555555555"));
+				module.Assembly!.CustomAttributes.Add(guidAttribute);
+				return type;
+			}
+
+			Assert.True(new SigComparer().Equals(Create("A"), Create("B")));
+		}
+
+		// Without arguments and without a GUID of the assembly there's no identity
+		[Fact]
+		public void WithoutArgumentsAndWithoutAGuidThereIsNoIdentity() {
+			var a = CreateStruct("A", new CAArgument[0]);
+			var b = CreateStruct("B", new CAArgument[0]);
+
+			Assert.False(new SigComparer().Equals(a, b));
+			// A type without a module has no assembly
+			var noModule = new TypeDefUser("Interop", "Point");
+			noModule.CustomAttributes.Add(a.CustomAttributes[0]);
+			Assert.False(new SigComparer().Equals(noModule, b));
+		}
+
+		// A Windows Runtime type is never equivalent
+		[Fact]
+		public void AWindowsRuntimeTypeIsNotEquivalent() {
+			var module = new ModuleDefUser();
+			var a = CreateStruct("A", StringArguments(module, "scope", "Interop.Point"));
+			var b = CreateStruct("B", StringArguments(module, "scope", "Interop.Point"));
+			a.Attributes |= TypeAttributes.WindowsRuntime;
+
+			Assert.False(new SigComparer().Equals(a, b));
+		}
 	}
 }
