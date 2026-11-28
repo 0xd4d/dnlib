@@ -57,6 +57,8 @@ namespace dnlib.Tests.RoundTrips {
 			case Table.MemberRef: items = operands.OfType<MemberRef>(); break;
 			case Table.TypeSpec: items = operands.OfType<TypeSpec>(); break;
 			case Table.MethodSpec: items = operands.OfType<MethodSpec>(); break;
+			// The signatures of the locals
+			case Table.StandAloneSig: return bodies.Where(a => a.LocalVarSigTok != 0).Select(a => new MDToken(a.LocalVarSigTok)).ToList();
 			default: throw new ArgumentException("Unknown table: " + table);
 			}
 			return items.Select(a => a.MDToken).ToList();
@@ -73,6 +75,7 @@ namespace dnlib.Tests.RoundTrips {
 		[InlineData(MetadataFlags.PreservePropertyRids, Table.Property)]
 		[InlineData(MetadataFlags.PreserveTypeSpecRids, Table.TypeSpec)]
 		[InlineData(MetadataFlags.PreserveMethodSpecRids, Table.MethodSpec)]
+		[InlineData(MetadataFlags.PreserveStandAloneSigRids, Table.StandAloneSig)]
 		public void FlagKeepsTheTokensOfItsTable(MetadataFlags flag, Table table) {
 			using (var original = ModuleDefMD.Load(Image)) {
 				var expectedTokens = GetTokens(original, table);
@@ -254,6 +257,44 @@ namespace dnlib.Tests.RoundTrips {
 					Assert.Equal(original.TablesStream.MethodTable.Rows, writtenModule.TablesStream.MethodTable.Rows);
 				}
 				RunUnlessMonoCanNotLoadIt(written);
+			}
+		}
+
+		// New members are added after the rows of the old ones, which keep their numbers
+		[Fact]
+		public void NewMembersGetRowsAfterTheOldRows() {
+			using (var original = ModuleDefMD.Load(Image)) {
+				var type = original.Find("Features.Code", isReflectionName: true)!;
+				var oldTokens = original.GetTypes().SelectMany(a => a.Methods).Select(a => (a.FullName, a.MDToken)).ToList();
+				var types = original.CorLibTypes;
+				for (int i = 0; i < 3; i++) {
+					type.Fields.Add(new FieldDefUser("NewField" + i, new FieldSig(types.Int32), FieldAttributes.Public | FieldAttributes.Static));
+					var method = new MethodDefUser("NewMethod" + i, MethodSig.CreateStatic(types.Void, types.Int32), MethodImplAttributes.IL, MethodAttributes.Public | MethodAttributes.Static);
+					method.Body = new dnlib.DotNet.Emit.CilBody();
+					method.Body.Instructions.Add(dnlib.DotNet.Emit.OpCodes.Ret.ToInstruction());
+					method.ParamDefs.Add(new ParamDefUser("value" + i, 1));
+					type.Methods.Add(method);
+					type.Properties.Add(new PropertyDefUser("NewProperty" + i, PropertySig.CreateStatic(types.Int32)));
+					type.Events.Add(new EventDefUser("NewEvent" + i, types.GetTypeRef("System", "Action")));
+				}
+
+				var written = Write(original, MetadataFlags.PreserveAll);
+
+				using (var writtenModule = ModuleDefMD.Load(written)) {
+					var writtenTokens = writtenModule.GetTypes().SelectMany(a => a.Methods).ToDictionary(a => a.FullName, a => a.MDToken);
+					foreach (var (fullName, token) in oldTokens)
+						Assert.Equal(token, writtenTokens[fullName]);
+					var writtenType = writtenModule.Find("Features.Code", isReflectionName: true)!;
+					var newMethods = Enumerable.Range(0, 3).Select(a => writtenType.FindMethod("NewMethod" + a)!).ToList();
+					Assert.True(newMethods.All(a => a.Rid > oldTokens.Max(b => b.MDToken.Rid)));
+					// In the order they were added
+					Assert.Equal(newMethods[0].Rid + 1, newMethods[1].Rid);
+					Assert.Equal(newMethods[0].Rid + 2, newMethods[2].Rid);
+					Assert.NotNull(writtenType.FindField("NewField2"));
+					Assert.NotNull(writtenType.FindProperty("NewProperty2"));
+					Assert.NotNull(writtenType.FindEvent("NewEvent2"));
+					Assert.Equal("value2", newMethods[2].ParamDefs.Single().Name);
+				}
 			}
 		}
 	}
